@@ -1,26 +1,244 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #050508;
+  --foreground: #FFFFFF;
+  --accent: #FF6B00;
+  --highlight: #00A8FF;
+  --hot: #FF3366;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: dark;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Hero gradient glow */
+.hero-glow {
+  background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(255, 107, 0, 0.15), transparent);
+}
+
+/* Electric border glow effect */
+.border-glow {
+  position: relative;
+}
+
+.border-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #FF6B00, #00A8FF, #FF3366);
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.border-glow:hover::before {
+  opacity: 1;
+}
+
+/* Custom scrollbar - sleek */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0c0c12;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #FF6B00, #FF3366);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #FF8534, #FF5588);
+}
+
+/* Glow effects - BOLD */
+.glow-accent {
+  box-shadow: 0 0 30px rgba(255, 107, 0, 0.4), 0 0 60px rgba(255, 107, 0, 0.2);
+}
+
+.glow-highlight {
+  box-shadow: 0 0 30px rgba(0, 168, 255, 0.4), 0 0 60px rgba(0, 168, 255, 0.2);
+}
+
+.glow-hot {
+  box-shadow: 0 0 30px rgba(255, 51, 102, 0.4), 0 0 60px rgba(255, 51, 102, 0.2);
+}
+
+/* Stats card hover effect - premium feel */
+.stat-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  border-color: #FF6B00;
+  box-shadow: 0 8px 30px rgba(255, 107, 0, 0.2);
+}
+
+/* Table styles */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #A0A0B0;
+  background: #0c0c12;
+  border-bottom: 1px solid #252530;
+}
+
+.data-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #141420;
+}
+
+.data-table tr:hover {
+  background: #141420;
+}
+
+/* Odds badges - HIGH VISIBILITY */
+.odds-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.odds-positive {
+  background: rgba(0, 255, 136, 0.15);
+  color: #00FF88;
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+}
+
+.odds-negative {
+  background: rgba(255, 68, 85, 0.15);
+  color: #FF4455;
+  text-shadow: 0 0 10px rgba(255, 68, 85, 0.5);
+}
+
+.odds-neutral {
+  background: rgba(160, 160, 176, 0.1);
+  color: #A0A0B0;
+}
+
+/* Trend indicators - BRIGHT */
+.trend-up {
+  color: #00FF88;
+  text-shadow: 0 0 8px rgba(0, 255, 136, 0.4);
+}
+
+.trend-down {
+  color: #FF4455;
+  text-shadow: 0 0 8px rgba(255, 68, 85, 0.4);
+}
+
+.trend-stable {
+  color: #A0A0B0;
+}
+
+/* Loading skeleton - premium */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #141420 25%,
+    #1c1c2a 50%,
+    #141420 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Focus styles - electric orange */
+*:focus-visible {
+  outline: 2px solid #FF6B00;
+  outline-offset: 2px;
+}
+
+/* Pulse animation for key values */
+@keyframes pulseValue {
+  0%, 100% { 
+    text-shadow: 0 0 10px currentColor;
+  }
+  50% { 
+    text-shadow: 0 0 20px currentColor, 0 0 30px currentColor;
+  }
+}
+
+.pulse-value {
+  animation: pulseValue 2s ease-in-out infinite;
+}
+
+/* Card hover state - premium */
+.card-premium {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid #252530;
+}
+
+.card-premium:hover {
+  border-color: #FF6B00;
+  box-shadow: 0 0 40px rgba(255, 107, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Button styles */
+.btn-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.5s;
+}
+
+.btn-glow:hover::after {
+  transform: translateX(100%);
+}
+
+/* Hot badge for important items */
+.badge-hot {
+  background: linear-gradient(135deg, #FF3366, #FF6B00);
+  color: white;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  box-shadow: 0 0 15px rgba(255, 51, 102, 0.4);
 }

@@ -1,65 +1,540 @@
-import Image from "next/image";
+import Link from 'next/link'
+import { 
+  TrendingUp, 
+  TrendingDown,
+  Zap, 
+  ArrowRight,
+  AlertCircle,
+  Clock,
+  BarChart3,
+  Flame,
+  Target,
+  Trophy,
+  Star,
+  Users,
+  Medal,
+  ChevronRight,
+  Calendar
+} from 'lucide-react'
+
+// Mock data - will be replaced with real API calls
+const todaysGames = [
+  {
+    id: '1', sport: 'NFL', sportIcon: '🏈',
+    away: { abbr: 'CAR', record: '4-12', ats: '7-9', ou: '8-8' },
+    home: { abbr: 'TB', record: '9-7', ats: '10-6', ou: '9-7' },
+    time: '4:30 PM', spread: -3.5, total: 45.5, 
+    moneyline: { away: +150, home: -175 },
+    aiPick: 'TB -3.5', aiConf: 68, isHot: true
+  },
+  {
+    id: '2', sport: 'NFL', sportIcon: '🏈',
+    away: { abbr: 'SEA', record: '9-7', ats: '9-7', ou: '10-6' },
+    home: { abbr: 'SF', record: '6-10', ats: '6-10', ou: '7-9' },
+    time: '8:00 PM', spread: -2.5, total: 43.5,
+    moneyline: { away: -130, home: +110 },
+    aiPick: 'OVER 43.5', aiConf: 62, isHot: false
+  },
+  {
+    id: '3', sport: 'NBA', sportIcon: '🏀',
+    away: { abbr: 'OKC', record: '27-5', ats: '20-12', ou: '17-15' },
+    home: { abbr: 'GSW', record: '18-15', ats: '15-18', ou: '18-15' },
+    time: '10:00 PM', spread: -4.5, total: 224.5,
+    moneyline: { away: -185, home: +155 },
+    aiPick: 'OKC -4.5', aiConf: 71, isHot: true
+  },
+  {
+    id: '4', sport: 'NBA', sportIcon: '🏀',
+    away: { abbr: 'BOS', record: '25-8', ats: '18-15', ou: '16-17' },
+    home: { abbr: 'MIL', record: '18-14', ats: '16-16', ou: '15-17' },
+    time: '7:30 PM', spread: -2.5, total: 228.5,
+    moneyline: { away: -135, home: +115 },
+    aiPick: 'BOS ML', aiConf: 65, isHot: false
+  },
+  {
+    id: '5', sport: 'NHL', sportIcon: '🏒',
+    away: { abbr: 'COL', record: '24-15', ats: '20-19', ou: '22-17' },
+    home: { abbr: 'VGK', record: '26-10', ats: '22-14', ou: '18-18' },
+    time: '10:30 PM', spread: -1.5, total: 6.5,
+    moneyline: { away: +125, home: -145 },
+    aiPick: 'OVER 6.5', aiConf: 58, isHot: false
+  },
+  {
+    id: '6', sport: 'NHL', sportIcon: '🏒',
+    away: { abbr: 'TOR', record: '22-13', ats: '18-17', ou: '20-15' },
+    home: { abbr: 'NYR', record: '21-15', ats: '17-19', ou: '16-20' },
+    time: '7:00 PM', spread: -1.5, total: 6.0,
+    moneyline: { away: +115, home: -135 },
+    aiPick: 'NYR ML', aiConf: 54, isHot: false
+  },
+]
+
+// Top Leaderboard Data
+const topCappers = [
+  { rank: 1, name: 'SharpShooter_Mike', avatar: '🎯', record: '156-98', winPct: 61.4, units: +42.3, streak: 'W5', sport: 'All' },
+  { rank: 2, name: 'VegasVince', avatar: '🎰', record: '89-52', winPct: 63.1, units: +38.7, streak: 'W3', sport: 'NFL' },
+  { rank: 3, name: 'HoopsGuru', avatar: '🏀', record: '124-87', winPct: 58.8, units: +28.4, streak: 'L1', sport: 'NBA' },
+  { rank: 4, name: 'IceColdPicks', avatar: '🏒', record: '67-45', winPct: 59.8, units: +22.1, streak: 'W7', sport: 'NHL' },
+  { rank: 5, name: 'MoneyLine_Maven', avatar: '💰', record: '201-156', winPct: 56.3, units: +19.8, streak: 'W2', sport: 'All' },
+]
+
+const hotTrends = [
+  { id: '1', trend: 'NFL home underdogs', record: '18-6', pct: 75, edge: '+12.4%', sport: 'NFL' },
+  { id: '2', trend: 'Thunder road games', record: '9-1', pct: 90, edge: '+8.7%', sport: 'NBA' },
+  { id: '3', trend: 'NHL January overs', record: '14-10', pct: 58, edge: '+5.2%', sport: 'NHL' },
+  { id: '4', trend: 'Week 18 unders', record: '24-12', pct: 67, edge: '+6.8%', sport: 'NFL' },
+]
+
+// League Standings (condensed)
+const standings = {
+  NFL: [
+    { team: 'DET', record: '14-2', pf: 512, pa: 298 },
+    { team: 'KC', record: '14-2', pf: 438, pa: 286 },
+    { team: 'PHI', record: '13-3', pf: 466, pa: 298 },
+    { team: 'BUF', record: '13-3', pf: 502, pa: 318 },
+  ],
+  NBA: [
+    { team: 'OKC', record: '27-5', pf: 120.2, pa: 106.8 },
+    { team: 'CLE', record: '26-6', pf: 119.5, pa: 108.2 },
+    { team: 'BOS', record: '25-8', pf: 118.8, pa: 110.1 },
+    { team: 'MEM', record: '23-10', pf: 117.2, pa: 111.5 },
+  ]
+}
+
+const injuries = [
+  { player: 'Brock Purdy', team: 'SF', status: 'Q', injury: 'Elbow' },
+  { player: 'Stephen Curry', team: 'GSW', status: 'O', injury: 'Knee' },
+  { player: 'Luka Doncic', team: 'DAL', status: 'Q', injury: 'Calf' },
+]
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen" style={{ background: '#050508' }}>
+      {/* Hero Section - BOLD & IMPACTFUL */}
+      <section className="relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #0a0a12 0%, #050508 100%)' }}>
+        {/* Animated gradient orbs */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full opacity-20 blur-3xl pointer-events-none" 
+             style={{ background: 'radial-gradient(circle, #FF6B00 0%, transparent 70%)' }} />
+        <div className="absolute top-20 right-1/4 w-80 h-80 rounded-full opacity-15 blur-3xl pointer-events-none" 
+             style={{ background: 'radial-gradient(circle, #00A8FF 0%, transparent 70%)' }} />
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
+          <div className="text-center max-w-4xl mx-auto">
+            {/* AI Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
+                 style={{ background: 'linear-gradient(135deg, rgba(255,107,0,0.15), rgba(0,168,255,0.15))', border: '1px solid rgba(255,107,0,0.3)' }}>
+              <Zap style={{ color: '#FF6B00', width: '16px', height: '16px' }} />
+              <span style={{ color: '#FF6B00', fontSize: '0.875rem', fontWeight: 600 }}>AI-Powered Analysis</span>
+            </div>
+            
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black mb-6" style={{ color: '#FFFFFF', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+              Find Your{' '}
+              <span style={{ 
+                background: 'linear-gradient(135deg, #FF6B00, #FF3366)', 
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                filter: 'drop-shadow(0 0 30px rgba(255,107,0,0.5))'
+              }}>Edge</span>
+            </h1>
+            
+            <p className="text-xl mb-10" style={{ color: '#A0A0B0', maxWidth: '600px', margin: '0 auto 2.5rem' }}>
+              Real-time matchup analysis, betting trends, and AI picks.
+              Make smarter decisions with data.
+            </p>
+            
+            <div className="flex flex-wrap justify-center gap-4 mb-12">
+              <Link href="/nfl"
+                    className="inline-flex items-center gap-3 px-8 py-4 rounded-xl font-bold text-lg transition-all hover:scale-105"
+                    style={{ 
+                      background: 'linear-gradient(135deg, #FF6B00, #FF8534)', 
+                      color: '#000',
+                      boxShadow: '0 0 30px rgba(255,107,0,0.4)'
+                    }}>
+                <span style={{ fontSize: '1.5rem' }}>🏈</span>
+                NFL Wild Card
+                <ArrowRight style={{ width: '20px', height: '20px' }} />
+              </Link>
+              <Link href="/markets"
+                    className="inline-flex items-center gap-3 px-8 py-4 rounded-xl font-bold text-lg transition-all hover:scale-105"
+                    style={{ 
+                      background: 'rgba(255,255,255,0.05)', 
+                      color: '#FFF',
+                      border: '1px solid rgba(255,255,255,0.1)'
+                    }}>
+                <TrendingUp style={{ width: '20px', height: '20px', color: '#00A8FF' }} />
+                Prediction Markets
+              </Link>
+            </div>
+            
+            {/* Stats Row - THE HOOK */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+              <div className="p-4 rounded-xl text-center" style={{ background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.2)' }}>
+                <div className="text-3xl font-black mb-1" style={{ color: '#FF6B00', textShadow: '0 0 20px rgba(255,107,0,0.5)' }}>67.3%</div>
+                <div className="text-xs uppercase tracking-wider" style={{ color: '#808090' }}>AI Win Rate</div>
+              </div>
+              <div className="p-4 rounded-xl text-center" style={{ background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.2)' }}>
+                <div className="text-3xl font-black mb-1" style={{ color: '#00FF88', textShadow: '0 0 20px rgba(0,255,136,0.5)' }}>+12.4%</div>
+                <div className="text-xs uppercase tracking-wider" style={{ color: '#808090' }}>Best Edge Today</div>
+              </div>
+              <div className="p-4 rounded-xl text-center" style={{ background: 'rgba(0,168,255,0.1)', border: '1px solid rgba(0,168,255,0.2)' }}>
+                <div className="text-3xl font-black mb-1" style={{ color: '#00A8FF', textShadow: '0 0 20px rgba(0,168,255,0.5)' }}>847</div>
+                <div className="text-xs uppercase tracking-wider" style={{ color: '#808090' }}>Active Markets</div>
+              </div>
+              <div className="p-4 rounded-xl text-center" style={{ background: 'rgba(255,51,102,0.1)', border: '1px solid rgba(255,51,102,0.2)' }}>
+                <div className="text-3xl font-black mb-1" style={{ color: '#FF3366', textShadow: '0 0 20px rgba(255,51,102,0.5)' }}>24</div>
+                <div className="text-xs uppercase tracking-wider" style={{ color: '#808090' }}>Hot Trends</div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      {/* Today's Games - COMPACT GRID */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Clock style={{ color: '#FF6B00', width: '20px', height: '20px' }} />
+            <h2 className="text-xl font-bold" style={{ color: '#FFF' }}>Today&apos;s Games</h2>
+            <span className="text-sm" style={{ color: '#606070' }}>({todaysGames.length} matchups)</span>
+          </div>
+          <Link href="/nfl" className="flex items-center gap-1 text-sm font-semibold"
+                style={{ color: '#FF6B00' }}>
+            All Games <ChevronRight style={{ width: '16px', height: '16px' }} />
+          </Link>
         </div>
-      </main>
+
+        {/* Compact Matchup Grid - 2-3 columns */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {todaysGames.map((game) => (
+            <Link key={game.id} href={`/${game.sport.toLowerCase()}`}
+                  className="block rounded-xl p-4 transition-all hover:scale-[1.02]"
+                  style={{ 
+                    background: '#0c0c14',
+                    border: game.isHot ? '1px solid rgba(255,107,0,0.4)' : '1px solid rgba(255,255,255,0.06)'
+                  }}>
+              {/* Header Row */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span>{game.sportIcon}</span>
+                  <span className="text-xs font-semibold" style={{ color: '#808090' }}>{game.time}</span>
+                  {game.isHot && (
+                    <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold"
+                          style={{ background: 'rgba(255,107,0,0.2)', color: '#FF6B00' }}>
+                      <Flame style={{ width: '10px', height: '10px' }} /> HOT
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-1 px-2 py-1 rounded"
+                     style={{ background: 'rgba(255,107,0,0.1)' }}>
+                  <Zap style={{ color: '#FF6B00', width: '12px', height: '12px' }} />
+                  <span className="text-xs font-bold" style={{ color: '#FF6B00' }}>{game.aiConf}%</span>
+                </div>
+              </div>
+              
+              {/* Teams with Full Stats */}
+              <div className="space-y-2">
+                {/* Away Team */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-10 text-center font-bold" style={{ color: '#FFF' }}>{game.away.abbr}</span>
+                    <span className="text-xs" style={{ color: '#606070' }}>{game.away.record}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs">
+                    <span style={{ color: '#808090' }}>ATS: <span style={{ color: '#A0A0B0' }}>{game.away.ats}</span></span>
+                    <span className="font-mono font-bold px-2 py-0.5 rounded"
+                          style={{ 
+                            background: game.moneyline.away > 0 ? 'rgba(0,255,136,0.1)' : 'rgba(255,68,85,0.1)',
+                            color: game.moneyline.away > 0 ? '#00FF88' : '#FF4455'
+                          }}>
+                      {game.moneyline.away > 0 ? '+' : ''}{game.moneyline.away}
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Home Team */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-10 text-center font-bold" style={{ color: '#FFF' }}>{game.home.abbr}</span>
+                    <span className="text-xs" style={{ color: '#606070' }}>{game.home.record}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs">
+                    <span style={{ color: '#808090' }}>ATS: <span style={{ color: '#A0A0B0' }}>{game.home.ats}</span></span>
+                    <span className="font-mono font-bold px-2 py-0.5 rounded"
+                          style={{ 
+                            background: game.moneyline.home > 0 ? 'rgba(0,255,136,0.1)' : 'rgba(255,68,85,0.1)',
+                            color: game.moneyline.home > 0 ? '#00FF88' : '#FF4455'
+                          }}>
+                      {game.moneyline.home > 0 ? '+' : ''}{game.moneyline.home}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Spread & Total Row */}
+              <div className="flex items-center justify-between mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                <div className="flex gap-3">
+                  <span className="text-xs px-2 py-1 rounded" style={{ background: 'rgba(0,168,255,0.1)', color: '#00A8FF' }}>
+                    {game.spread > 0 ? '+' : ''}{game.spread}
+                  </span>
+                  <span className="text-xs px-2 py-1 rounded" style={{ background: 'rgba(255,255,255,0.05)', color: '#A0A0B0' }}>
+                    O/U {game.total}
+                  </span>
+                </div>
+                <span className="text-xs font-bold" style={{ color: '#FF6B00' }}>{game.aiPick}</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* LEADERBOARD - THE VIRAL FEATURE */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="rounded-2xl p-6" style={{ 
+          background: 'linear-gradient(135deg, #0c0c14 0%, #101018 100%)',
+          border: '1px solid rgba(255,215,0,0.2)'
+        }}>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg" style={{ background: 'rgba(255,215,0,0.15)' }}>
+                <Trophy style={{ color: '#FFD700', width: '24px', height: '24px' }} />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold" style={{ color: '#FFF' }}>Top Cappers Leaderboard</h2>
+                <p className="text-xs" style={{ color: '#808090' }}>Track the best handicappers • January 2026</p>
+              </div>
+            </div>
+            <Link href="/leaderboard" className="flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all hover:scale-105"
+                  style={{ background: 'rgba(255,215,0,0.15)', color: '#FFD700', border: '1px solid rgba(255,215,0,0.3)' }}>
+              <Users style={{ width: '16px', height: '16px' }} />
+              Full Rankings
+            </Link>
+          </div>
+          
+          {/* Leaderboard Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <th className="text-left py-3 px-2 text-xs font-semibold" style={{ color: '#606070' }}>RANK</th>
+                  <th className="text-left py-3 px-2 text-xs font-semibold" style={{ color: '#606070' }}>CAPPER</th>
+                  <th className="text-center py-3 px-2 text-xs font-semibold" style={{ color: '#606070' }}>RECORD</th>
+                  <th className="text-center py-3 px-2 text-xs font-semibold" style={{ color: '#606070' }}>WIN %</th>
+                  <th className="text-center py-3 px-2 text-xs font-semibold" style={{ color: '#606070' }}>UNITS</th>
+                  <th className="text-center py-3 px-2 text-xs font-semibold" style={{ color: '#606070' }}>STREAK</th>
+                </tr>
+              </thead>
+              <tbody>
+                {topCappers.map((capper) => (
+                  <tr key={capper.rank} className="transition-all hover:bg-white/[0.02]" 
+                      style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                    <td className="py-3 px-2">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold"
+                           style={{ 
+                             background: capper.rank === 1 ? 'rgba(255,215,0,0.2)' : 
+                                        capper.rank === 2 ? 'rgba(192,192,192,0.2)' : 
+                                        capper.rank === 3 ? 'rgba(205,127,50,0.2)' : 'rgba(255,255,255,0.05)',
+                             color: capper.rank === 1 ? '#FFD700' : 
+                                    capper.rank === 2 ? '#C0C0C0' : 
+                                    capper.rank === 3 ? '#CD7F32' : '#808090'
+                           }}>
+                        {capper.rank === 1 ? '🥇' : capper.rank === 2 ? '🥈' : capper.rank === 3 ? '🥉' : capper.rank}
+                      </div>
+                    </td>
+                    <td className="py-3 px-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{capper.avatar}</span>
+                        <div>
+                          <div className="font-semibold" style={{ color: '#FFF' }}>{capper.name}</div>
+                          <div className="text-xs" style={{ color: '#606070' }}>{capper.sport}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-2 text-center font-mono font-semibold" style={{ color: '#A0A0B0' }}>
+                      {capper.record}
+                    </td>
+                    <td className="py-3 px-2 text-center">
+                      <span className="font-bold" style={{ color: capper.winPct >= 60 ? '#00FF88' : capper.winPct >= 55 ? '#FFD700' : '#A0A0B0' }}>
+                        {capper.winPct}%
+                      </span>
+                    </td>
+                    <td className="py-3 px-2 text-center">
+                      <span className="font-bold" style={{ color: capper.units > 0 ? '#00FF88' : '#FF4455' }}>
+                        {capper.units > 0 ? '+' : ''}{capper.units}
+                      </span>
+                    </td>
+                    <td className="py-3 px-2 text-center">
+                      <span className="px-2 py-1 rounded text-xs font-bold"
+                            style={{ 
+                              background: capper.streak.startsWith('W') ? 'rgba(0,255,136,0.15)' : 'rgba(255,68,85,0.15)',
+                              color: capper.streak.startsWith('W') ? '#00FF88' : '#FF4455'
+                            }}>
+                        {capper.streak}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          
+          {/* CTA to join */}
+          <div className="mt-6 pt-4 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+            <span className="text-sm" style={{ color: '#808090' }}>Track your picks and compete for the top spot</span>
+            <Link href="/leaderboard" className="text-sm font-bold" style={{ color: '#FFD700' }}>
+              Start Tracking Your Picks →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Three Column Layout: Trends, Standings, Sidebar */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <div className="grid lg:grid-cols-3 gap-6">
+          
+          {/* Hot Trends */}
+          <div className="rounded-2xl p-5" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <BarChart3 style={{ color: '#00FF88', width: '18px', height: '18px' }} />
+                <h3 className="font-bold" style={{ color: '#FFF' }}>Hot Trends</h3>
+              </div>
+              <Link href="/trends" className="text-xs font-semibold" style={{ color: '#00FF88' }}>View All</Link>
+            </div>
+            
+            <div className="space-y-2">
+              {hotTrends.map((trend) => (
+                <div key={trend.id} className="p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs px-1.5 py-0.5 rounded font-semibold"
+                          style={{ 
+                            background: trend.sport === 'NFL' ? 'rgba(255,107,0,0.15)' : 
+                                       trend.sport === 'NBA' ? 'rgba(0,168,255,0.15)' : 'rgba(255,51,102,0.15)',
+                            color: trend.sport === 'NFL' ? '#FF6B00' : 
+                                   trend.sport === 'NBA' ? '#00A8FF' : '#FF3366'
+                          }}>
+                      {trend.sport}
+                    </span>
+                    <span className="text-lg font-black" style={{ color: '#00FF88' }}>{trend.edge}</span>
+                  </div>
+                  <div className="text-sm" style={{ color: '#A0A0B0' }}>{trend.trend}</div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
+                      <div className="h-full rounded-full" style={{ width: `${trend.pct}%`, background: '#00FF88' }} />
+                    </div>
+                    <span className="text-xs font-mono" style={{ color: '#00FF88' }}>{trend.record}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* League Standings - DATA DRIVEN */}
+          <div className="rounded-2xl p-5" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Medal style={{ color: '#00A8FF', width: '18px', height: '18px' }} />
+                <h3 className="font-bold" style={{ color: '#FFF' }}>Standings</h3>
+              </div>
+            </div>
+            
+            {/* NFL Standings */}
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span>🏈</span>
+                <span className="text-xs font-semibold" style={{ color: '#FF6B00' }}>NFL LEADERS</span>
+              </div>
+              <div className="space-y-1">
+                {standings.NFL.map((team, i) => (
+                  <div key={team.team} className="flex items-center justify-between py-1.5 px-2 rounded"
+                       style={{ background: i === 0 ? 'rgba(255,107,0,0.1)' : 'transparent' }}>
+                    <div className="flex items-center gap-2">
+                      <span className="w-4 text-xs text-center" style={{ color: '#606070' }}>{i + 1}</span>
+                      <span className="font-semibold" style={{ color: '#FFF' }}>{team.team}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs">
+                      <span style={{ color: '#A0A0B0' }}>{team.record}</span>
+                      <span style={{ color: '#606070' }}>{team.pf}-{team.pa}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* NBA Standings */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <span>🏀</span>
+                <span className="text-xs font-semibold" style={{ color: '#00A8FF' }}>NBA LEADERS</span>
+              </div>
+              <div className="space-y-1">
+                {standings.NBA.map((team, i) => (
+                  <div key={team.team} className="flex items-center justify-between py-1.5 px-2 rounded"
+                       style={{ background: i === 0 ? 'rgba(0,168,255,0.1)' : 'transparent' }}>
+                    <div className="flex items-center gap-2">
+                      <span className="w-4 text-xs text-center" style={{ color: '#606070' }}>{i + 1}</span>
+                      <span className="font-semibold" style={{ color: '#FFF' }}>{team.team}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs">
+                      <span style={{ color: '#A0A0B0' }}>{team.record}</span>
+                      <span style={{ color: '#606070' }}>{team.pf.toFixed(1)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          {/* Sidebar - Injuries & Quick Links */}
+          <div className="space-y-4">
+            {/* Key Injuries */}
+            <div className="rounded-2xl p-5" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div className="flex items-center gap-2 mb-4">
+                <AlertCircle style={{ color: '#FF4455', width: '18px', height: '18px' }} />
+                <h3 className="font-bold" style={{ color: '#FFF' }}>Key Injuries</h3>
+              </div>
+              
+              <div className="space-y-2">
+                {injuries.map((injury, i) => (
+                  <div key={i} className="flex items-center justify-between py-2">
+                    <div>
+                      <div className="font-semibold text-sm" style={{ color: '#FFF' }}>{injury.player}</div>
+                      <div className="text-xs" style={{ color: '#606070' }}>{injury.team} • {injury.injury}</div>
+                    </div>
+                    <span className="w-6 h-6 rounded flex items-center justify-center text-xs font-bold"
+                          style={{ 
+                            background: injury.status === 'O' ? 'rgba(255,68,85,0.2)' : 'rgba(255,107,0,0.2)',
+                            color: injury.status === 'O' ? '#FF4455' : '#FF6B00'
+                          }}>
+                      {injury.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Quick Links */}
+            <div className="rounded-2xl p-5" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <h3 className="font-bold mb-4" style={{ color: '#FFF' }}>Quick Links</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { label: '🏈 NFL', href: '/nfl' },
+                  { label: '🏀 NBA', href: '/nba' },
+                  { label: '🏒 NHL', href: '/nhl' },
+                  { label: '⚾ MLB', href: '/mlb' },
+                  { label: '📈 Markets', href: '/markets' },
+                  { label: '🏆 Leaderboard', href: '/leaderboard' },
+                ].map((link) => (
+                  <Link key={link.href} href={link.href}
+                        className="p-3 rounded-lg text-center text-sm font-semibold transition-all hover:scale-105"
+                        style={{ background: 'rgba(255,255,255,0.03)', color: '#FFF' }}>
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
-  );
+  )
 }
