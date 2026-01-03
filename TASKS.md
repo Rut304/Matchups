@@ -60,12 +60,13 @@
 
 ## 🔄 IN PROGRESS (P1 - High Priority)
 
-### API Integrations
+### API Integrations (Code Complete, Need Env Vars in Vercel)
 
-- [ ] **Live Odds API** - Connect to real-time odds provider
-- [ ] **Polymarket API** - Real prediction market data
-- [ ] **Kalshi API** - Event contracts integration
-- [ ] **Sports Data API** - Live scores, stats, injuries
+- [x] **Live Odds API** - The Odds API client (src/lib/api/odds.ts) ✅
+- [x] **Polymarket API** - Client ready (src/lib/api/markets.ts) ✅
+- [x] **Kalshi API** - Client ready (src/lib/api/markets.ts) ✅
+- [x] **Sports Data API** - API-Sports client (src/lib/api/sports.ts) ✅
+- [ ] **Environment Variables** - Add API keys to Vercel dashboard
 
 ### User Features
 
@@ -74,18 +75,31 @@
 - [ ] **Leaderboard Backend** - Real rankings from database
 - [ ] **Profile Pages** - Individual capper profiles
 
+### Research Complete ✅
+
+- [x] **Bettor Research** - See docs/BETTOR-RESEARCH.md
+  - 12 essential data points bettors need
+  - Competitive analysis (Action Network, OddsJam, SBR)
+  - Feature prioritization for next phases
+  - Monetization model ($19 Pro / $49 Elite)
+
 ---
 
 ## 📋 BACKLOG (P2 - Medium Priority)
 
-### Features
+### Phase 1: Core Value (From Research)
 
-- [ ] **Email Alerts** - Daily picks, hot trends notifications
+- [ ] **Line Shop Widget** - Show best odds across all books
+- [ ] **Odds Calculator Suite** - Parlay, hedge, Kelly, EV calculators
+- [ ] **Injury Tracker** - Real-time with impact ratings
+- [ ] **Weather Widget** - For NFL/MLB outdoor games
+
+### Phase 2: Engagement Features
+
+- [ ] **Email Alerts** - Line moves, sharp action, injuries
 - [ ] **Mobile App** - React Native or PWA
 - [ ] **Social Sharing** - Share picks to Twitter/X
-- [ ] **Streak Tracking** - Hot/cold streak badges
-- [ ] **Bankroll Tracker** - Unit tracking for users
-- [ ] **Custom Domain** - matchups.com or similar
+- [ ] **Push Notifications** - Real-time alerts
 
 ### Content
 
@@ -105,27 +119,38 @@
 
 ## 🎯 FUTURE IDEAS (P3)
 
+### Pro Features (Monetization)
+
+- [ ] Arbitrage Scanner
+- [ ] Positive EV Finder
+- [ ] API Access for Developers
+- [ ] Custom Alert System
+- [ ] Historical Database
+
+### Content & Community
+
+- [ ] Blog/Articles - Expert analysis
+- [ ] Video Picks - YouTube/TikTok
+- [ ] Discord Bot - Community picks
+- [ ] Newsletter - Weekly roundup
+
+### Advanced Analytics
+
 - [ ] Prop Bet Builder
-- [ ] Parlay Calculator
-- [ ] Sharp Money Indicators
-- [ ] Weather Impact Analysis
-- [ ] Injury Impact Scoring
-- [ ] Public vs Sharp Splits
-- [ ] ROI Calculator
 - [ ] Betting Simulator
-- [ ] Fantasy Sports Integration
-- [ ] Crypto/Web3 Features
+- [ ] Fantasy Integration
+- [ ] Referee/Umpire Trends
 
 ---
 
 ## 📊 Metrics & Goals
 
 | Metric | Current | Target |
-|--------|---------|--------|
+| ------ | ------- | ------ |
 | AI Pick Win Rate | 58% | 60%+ |
 | Pages Complete | 10 | 10 ✅ |
 | E2E Tests | 23 | 50 |
-| API Integrations | 0 | 4 |
+| API Integrations | 4 (code) | 4 (live) |
 | Active Users | 0 | 1,000 |
 
 ---
