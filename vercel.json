@@ -3,19 +3,19 @@
   "crons": [
     {
       "path": "/api/cron/refresh-odds",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 8 * * *"
     },
     {
       "path": "/api/cron/refresh-scores",
-      "schedule": "*/2 * * * *"
+      "schedule": "0 12 * * *"
     },
     {
       "path": "/api/cron/refresh-standings",
-      "schedule": "0 */1 * * *"
+      "schedule": "0 6 * * *"
     },
     {
       "path": "/api/cron/refresh-injuries",
-      "schedule": "*/15 * * * *"
+      "schedule": "0 10 * * *"
     }
   ]
 }
