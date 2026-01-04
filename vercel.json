@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/cron/refresh-odds",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/refresh-scores",
+      "schedule": "*/2 * * * *"
+    },
+    {
+      "path": "/api/cron/refresh-standings",
+      "schedule": "0 */1 * * *"
+    },
+    {
+      "path": "/api/cron/refresh-injuries",
+      "schedule": "*/15 * * * *"
+    }
+  ]
+}
