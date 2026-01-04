@@ -1,7 +1,8 @@
 # Matchups - Project Task Tracker
 
-> **Last Updated:** January 2, 2026  
+> **Last Updated:** January 4, 2026  
 > **Production URL:** <https://matchups-rut304s-projects.vercel.app>
+> **Supabase Project:** Matchups (cdfdmkntdsfylososgwo)
 
 ---
 
@@ -20,6 +21,8 @@
 - [x] **NBA Page** - Compact game cards, ATS stats, league standings
 - [x] **NHL Page** - Puck line, totals, league points standings
 - [x] **MLB Page** - Run line, pitcher matchups, playoff picture
+- [x] **NCAAF Page** - College Football with AP Top 25, Heisman Watch, CFP Preview ✅ NEW
+- [x] **NCAAB Page** - College Basketball with POY Watch, Bracketology, Conference Rankings ✅ NEW
 
 ### Key Features
 
@@ -32,8 +35,11 @@
   - Rank change indicators, verified badges
 - [x] **Markets Page** - Polymarket/Kalshi prediction markets with AI edge
 - [x] **Trends Page** - Betting trends by sport with ROI, confidence bars
+- [x] **Analytics Page** - Dashboard with news sentiment & market data ✅ NEW
+- [x] **Players Page** - Player lookup and stats ✅ NEW
 - [x] **Admin Dashboard** - Basic admin interface
 - [x] **Admin Docs Page** - Infrastructure & workflow documentation
+- [x] **Admin Picks Page** - Pick management interface ✅ NEW
 
 ### Data & Stats
 
@@ -46,34 +52,53 @@
 
 ### Infrastructure
 
-- [x] **Supabase Schema** - Database tables defined
-- [x] **Playwright Tests** - 23 E2E tests passing
+- [x] **Supabase Schema** - Database tables deployed to Matchups project ✅ MIGRATED
+- [x] **Supabase Connection** - Connected to cdfdmkntdsfylososgwo.supabase.co ✅ NEW
+- [x] **Playwright Tests** - 40+ E2E tests covering all routes ✅ UPDATED
 - [x] **Footer Component** - Admin link moved to footer
-- [x] **Navbar Updated** - Leaderboard CTA in prime position
+- [x] **Navbar Updated** - Leaderboard CTA, NCAAF/NCAAB links added
+- [x] **Vercel Environment Variables** - All API keys configured ✅ NEW
+- [x] **MCP Servers** - GitHub, Supabase, Vercel MCP configured ✅ NEW
+- [x] **Live Sports API Layer** - ESPN, NHL, MLB, Ball Don't Lie APIs ✅ NEW
 
 ### Security
 
 - [x] **.env removed from Git** - Environment variables secured
 - [x] **.gitignore updated** - Proper ignore patterns
+- [x] **Supabase RLS** - Row Level Security policies enabled ✅ NEW
+
+---
+
+## ✅ RECENTLY COMPLETED (January 4, 2026)
+
+### API Integrations - ALL LIVE ✅
+
+- [x] **The Odds API** - Live odds fetching (key in Vercel)
+- [x] **API-Sports** - Comprehensive sports data (key in Vercel)
+- [x] **ESPN API** - Free live scores and schedules
+- [x] **NHL Official API** - Free hockey data
+- [x] **MLB Stats API** - Free baseball data
+- [x] **Ball Don't Lie** - Free NBA player data
+- [x] **Polymarket API** - Prediction markets
+- [x] **Kalshi API** - Prediction markets
+
+### Database Migration ✅
+
+- [x] **New Supabase Project** - Created "Matchups" project on correct account
+- [x] **Full Schema Deployed** - All tables, indexes, triggers, RLS
+- [x] **Seed Data Loaded** - 8 NFL teams in database
+- [x] **Old Project Separated** - PolyParlay project untouched
 
 ---
 
 ## 🔄 IN PROGRESS (P1 - High Priority)
 
-### API Integrations (Code Complete, Need Env Vars in Vercel)
-
-- [x] **Live Odds API** - The Odds API client (src/lib/api/odds.ts) ✅
-- [x] **Polymarket API** - Client ready (src/lib/api/markets.ts) ✅
-- [x] **Kalshi API** - Client ready (src/lib/api/markets.ts) ✅
-- [x] **Sports Data API** - API-Sports client (src/lib/api/sports.ts) ✅
-- [ ] **Environment Variables** - Add API keys to Vercel dashboard
-
 ### User Features
 
 - [ ] **User Authentication** - Supabase Auth setup
 - [ ] **Pick Tracking** - Users can log their picks
-- [ ] **Leaderboard Backend** - Real rankings from database
-- [ ] **Profile Pages** - Individual capper profiles
+- [ ] **Leaderboard Backend** - Connect to Supabase cappers/picks tables
+- [ ] **Profile Pages** - Individual capper profiles (/leaderboard/[slug])
 
 ### Research Complete ✅
 
@@ -148,10 +173,11 @@
 | Metric | Current | Target |
 | ------ | ------- | ------ |
 | AI Pick Win Rate | 58% | 60%+ |
-| Pages Complete | 10 | 10 ✅ |
-| E2E Tests | 23 | 50 |
-| API Integrations | 4 (code) | 4 (live) |
+| Pages Complete | 15 | 15 ✅ |
+| E2E Tests | 40+ | 50 |
+| API Integrations | 8 (live) | 8 ✅ |
 | Active Users | 0 | 1,000 |
+| Supabase Tables | 20+ | 20+ ✅ |
 
 ---
 
