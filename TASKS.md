@@ -71,6 +71,16 @@
 
 ## ✅ RECENTLY COMPLETED (January 4, 2026)
 
+### Sus Plays Feature ✅ NEW
+- [x] **Sus Plays Page** - /sus - Viral content tracking questionable plays
+  - Monitor X/Twitter for trending sports videos
+  - Players being questioned for throwing games/props
+  - Community voting (Sus vs Legit)
+  - Filtering by sport, bet type, trending
+  - Video thumbnails, view counts, source links
+  - Sus Score algorithm (1-100)
+  - Submit your own sus play feature
+
 ### API Integrations - ALL LIVE ✅
 
 - [x] **The Odds API** - Live odds fetching (key in Vercel)

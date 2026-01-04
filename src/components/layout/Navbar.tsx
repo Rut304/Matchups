@@ -11,7 +11,9 @@ import {
   Menu,
   X,
   Zap,
-  AlertTriangle
+  AlertTriangle,
+  Calculator,
+  ShoppingBag
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -22,6 +24,8 @@ const navigation = [
   { name: 'NHL', href: '/nhl', icon: () => <span className="text-lg">🏒</span> },
   { name: 'MLB', href: '/mlb', icon: () => <span className="text-lg">⚾</span> },
   { name: 'Sus Plays', href: '/sus', icon: AlertTriangle, highlight: true },
+  { name: 'Line Shop', href: '/lineshop', icon: ShoppingBag },
+  { name: 'Calculators', href: '/calculators', icon: Calculator },
   { name: 'Markets', href: '/markets', icon: BarChart3 },
 ]
 
