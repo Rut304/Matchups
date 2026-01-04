@@ -10,7 +10,8 @@ import {
   Settings,
   Menu,
   X,
-  Zap
+  Zap,
+  AlertTriangle
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -20,7 +21,7 @@ const navigation = [
   { name: 'NBA', href: '/nba', icon: () => <span className="text-lg">🏀</span> },
   { name: 'NHL', href: '/nhl', icon: () => <span className="text-lg">🏒</span> },
   { name: 'MLB', href: '/mlb', icon: () => <span className="text-lg">⚾</span> },
-  { name: 'Trends', href: '/trends', icon: TrendingUp },
+  { name: 'Sus Plays', href: '/sus', icon: AlertTriangle, highlight: true },
   { name: 'Markets', href: '/markets', icon: BarChart3 },
 ]
 
@@ -48,6 +49,7 @@ export function Navbar() {
               const isActive = pathname === item.href || 
                 (item.href !== '/' && pathname.startsWith(item.href))
               const Icon = item.icon
+              const isHighlight = 'highlight' in item && item.highlight
 
               return (
                 <Link
@@ -55,10 +57,13 @@ export function Navbar() {
                   href={item.href}
                   className={cn(
                     'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all',
-                    isActive
-                      ? 'bg-accent/10 text-accent'
-                      : 'text-text-secondary hover:text-text-primary hover:bg-background-tertiary'
+                    isHighlight
+                      ? 'text-white hover:scale-105'
+                      : isActive
+                        ? 'bg-accent/10 text-accent'
+                        : 'text-text-secondary hover:text-text-primary hover:bg-background-tertiary'
                   )}
+                  style={isHighlight ? { background: 'linear-gradient(135deg, #FF3366, #FF6B00)' } : undefined}
                 >
                   <Icon className="w-4 h-4" />
                   {item.name}
@@ -96,6 +101,7 @@ export function Navbar() {
               const isActive = pathname === item.href || 
                 (item.href !== '/' && pathname.startsWith(item.href))
               const Icon = item.icon
+              const isHighlight = 'highlight' in item && item.highlight
 
               return (
                 <Link
@@ -104,10 +110,13 @@ export function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(
                     'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all',
-                    isActive
-                      ? 'bg-accent/10 text-accent'
-                      : 'text-text-secondary hover:text-text-primary hover:bg-background-tertiary'
+                    isHighlight
+                      ? 'text-white'
+                      : isActive
+                        ? 'bg-accent/10 text-accent'
+                        : 'text-text-secondary hover:text-text-primary hover:bg-background-tertiary'
                   )}
+                  style={isHighlight ? { background: 'linear-gradient(135deg, #FF3366, #FF6B00)' } : undefined}
                 >
                   <Icon className="w-4 h-4" />
                   {item.name}
