@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { 
   TrendingUp, 
@@ -8,358 +8,564 @@ import {
   Zap, 
   ExternalLink,
   Flame,
-  Filter
+  RefreshCw,
+  BookOpen,
+  BarChart3,
+  Users,
+  AlertTriangle,
+  Activity,
+  Globe,
+  DollarSign,
+  Cloud,
+  Tv,
+  Cpu,
+  Bitcoin
 } from 'lucide-react'
+import { 
+  type PredictionMarket, 
+  type MarketCategory,
+  getMockMarkets,
+  predictionMarketResearch
+} from '@/lib/api/prediction-markets'
 
 type Platform = 'all' | 'polymarket' | 'kalshi'
-type Category = 'all' | 'nfl' | 'nba' | 'politics' | 'futures'
+type SortBy = 'volume' | 'price' | 'change' | 'liquidity'
 
-const markets = [
-  {
-    id: '1',
-    question: 'Chiefs win Super Bowl LIX?',
-    platform: 'Polymarket',
-    category: 'nfl',
-    yesPrice: 34,
-    change24h: +5.2,
-    volume24h: '$1.2M',
-    liquidity: '$5.2M',
-    endDate: 'Feb 9',
-    aiEdge: { side: 'YES', edge: 8.2 },
-    isHot: true,
-  },
-  {
-    id: '2',
-    question: 'Saquon Barkley NFL MVP?',
-    platform: 'Polymarket',
-    category: 'nfl',
-    yesPrice: 22,
-    change24h: +3.8,
-    volume24h: '$890K',
-    liquidity: '$2.1M',
-    endDate: 'Feb 6',
-    aiEdge: { side: 'YES', edge: 12.5 },
-    isHot: true,
-  },
-  {
-    id: '3',
-    question: 'Lakers make playoffs?',
-    platform: 'Kalshi',
-    category: 'nba',
-    yesPrice: 67,
-    change24h: -4.1,
-    volume24h: '$456K',
-    liquidity: '$1.8M',
-    endDate: 'Apr 14',
-    aiEdge: null,
-    isHot: false,
-  },
-  {
-    id: '4',
-    question: 'Lions win Super Bowl LIX?',
-    platform: 'Polymarket',
-    category: 'nfl',
-    yesPrice: 19,
-    change24h: +2.1,
-    volume24h: '$720K',
-    liquidity: '$3.1M',
-    endDate: 'Feb 9',
-    aiEdge: { side: 'NO', edge: 5.8 },
-    isHot: false,
-  },
-  {
-    id: '5',
-    question: 'Thunder 60+ wins?',
-    platform: 'Kalshi',
-    category: 'nba',
-    yesPrice: 78,
-    change24h: +1.5,
-    volume24h: '$234K',
-    liquidity: '$890K',
-    endDate: 'Apr 13',
-    aiEdge: { side: 'YES', edge: 6.2 },
-    isHot: false,
-  },
-  {
-    id: '6',
-    question: 'Eagles win NFC Championship?',
-    platform: 'Polymarket',
-    category: 'nfl',
-    yesPrice: 28,
-    change24h: -1.8,
-    volume24h: '$560K',
-    liquidity: '$2.4M',
-    endDate: 'Jan 26',
-    aiEdge: { side: 'YES', edge: 4.3 },
-    isHot: false,
-  },
-  {
-    id: '7',
-    question: 'Bills win AFC Championship?',
-    platform: 'Polymarket',
-    category: 'nfl',
-    yesPrice: 31,
-    change24h: +4.2,
-    volume24h: '$680K',
-    liquidity: '$2.8M',
-    endDate: 'Jan 26',
-    aiEdge: { side: 'YES', edge: 7.1 },
-    isHot: true,
-  },
-  {
-    id: '8',
-    question: 'Celtics repeat champions?',
-    platform: 'Kalshi',
-    category: 'nba',
-    yesPrice: 24,
-    change24h: +0.8,
-    volume24h: '$1.1M',
-    liquidity: '$4.2M',
-    endDate: 'Jun 15',
-    aiEdge: { side: 'YES', edge: 9.4 },
-    isHot: false,
-  },
-  {
-    id: '9',
-    question: 'Jalen Hurts Super Bowl MVP?',
-    platform: 'Polymarket',
-    category: 'nfl',
-    yesPrice: 12,
-    change24h: +1.2,
-    volume24h: '$320K',
-    liquidity: '$1.4M',
-    endDate: 'Feb 9',
-    aiEdge: null,
-    isHot: false,
-  },
-  {
-    id: '10',
-    question: 'OKC Thunder best record?',
-    platform: 'Kalshi',
-    category: 'nba',
-    yesPrice: 45,
-    change24h: -2.3,
-    volume24h: '$410K',
-    liquidity: '$1.9M',
-    endDate: 'Apr 13',
-    aiEdge: { side: 'NO', edge: 3.8 },
-    isHot: false,
-  },
-  {
-    id: '11',
-    question: 'Ravens make Super Bowl?',
-    platform: 'Polymarket',
-    category: 'nfl',
-    yesPrice: 26,
-    change24h: +3.1,
-    volume24h: '$590K',
-    liquidity: '$2.6M',
-    endDate: 'Jan 26',
-    aiEdge: { side: 'YES', edge: 5.2 },
-    isHot: false,
-  },
-  {
-    id: '12',
-    question: 'Nikola Jokic MVP 3-peat?',
-    platform: 'Kalshi',
-    category: 'nba',
-    yesPrice: 38,
-    change24h: -1.4,
-    volume24h: '$780K',
-    liquidity: '$3.3M',
-    endDate: 'May 10',
-    aiEdge: { side: 'NO', edge: 4.1 },
-    isHot: false,
-  },
-]
+const categoryConfig: Record<MarketCategory, { label: string; icon: React.ReactNode; color: string; bg: string }> = {
+  all: { label: 'All Markets', icon: <Globe className="w-4 h-4" />, color: '#FFF', bg: 'rgba(255,255,255,0.1)' },
+  politics: { label: 'Politics', icon: <Users className="w-4 h-4" />, color: '#FF3366', bg: 'rgba(255,51,102,0.2)' },
+  sports: { label: 'Sports', icon: <Activity className="w-4 h-4" />, color: '#00FF88', bg: 'rgba(0,255,136,0.2)' },
+  crypto: { label: 'Crypto', icon: <Bitcoin className="w-4 h-4" />, color: '#F7931A', bg: 'rgba(247,147,26,0.2)' },
+  entertainment: { label: 'Entertainment', icon: <Tv className="w-4 h-4" />, color: '#9B59B6', bg: 'rgba(155,89,182,0.2)' },
+  economics: { label: 'Economics', icon: <DollarSign className="w-4 h-4" />, color: '#00A8FF', bg: 'rgba(0,168,255,0.2)' },
+  weather: { label: 'Weather', icon: <Cloud className="w-4 h-4" />, color: '#87CEEB', bg: 'rgba(135,206,235,0.2)' },
+  world_events: { label: 'World Events', icon: <Globe className="w-4 h-4" />, color: '#FFD700', bg: 'rgba(255,215,0,0.2)' },
+  tech: { label: 'Tech & AI', icon: <Cpu className="w-4 h-4" />, color: '#00D4AA', bg: 'rgba(0,212,170,0.2)' },
+}
 
-const topMovers = [
-  { question: 'Chiefs Super Bowl', change: +5.2, price: 34 },
-  { question: 'Barkley MVP', change: +3.8, price: 22 },
-  { question: 'Lakers Playoffs', change: -4.1, price: 67 },
-  { question: 'Lions Super Bowl', change: +2.1, price: 19 },
-]
+const formatVolume = (vol: number): string => {
+  if (vol >= 1000000) return `$${(vol / 1000000).toFixed(1)}M`
+  if (vol >= 1000) return `$${(vol / 1000).toFixed(0)}K`
+  return `$${vol.toFixed(0)}`
+}
+
+const formatLiquidity = (liq: number): string => {
+  if (liq >= 1000000) return `$${(liq / 1000000).toFixed(1)}M`
+  if (liq >= 1000) return `$${(liq / 1000).toFixed(0)}K`
+  return `$${liq.toFixed(0)}`
+}
 
 export default function MarketsPage() {
   const [platform, setPlatform] = useState<Platform>('all')
-  const [category, setCategory] = useState<Category>('all')
+  const [category, setCategory] = useState<MarketCategory>('all')
+  const [sortBy, setSortBy] = useState<SortBy>('volume')
+  const [markets, setMarkets] = useState<PredictionMarket[]>([])
+  const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<'markets' | 'analytics' | 'research'>('markets')
 
-  const filteredMarkets = markets.filter(m => {
-    if (platform !== 'all' && m.platform.toLowerCase() !== platform) return false
-    if (category !== 'all' && m.category !== category) return false
-    return true
-  })
+  useEffect(() => {
+    // For now use mock data - in production would fetch from APIs
+    setLoading(true)
+    setTimeout(() => {
+      let data = getMockMarkets(category)
+      
+      // Filter by platform
+      if (platform !== 'all') {
+        data = data.filter(m => m.platform === platform)
+      }
+      
+      // Sort
+      switch (sortBy) {
+        case 'volume':
+          data.sort((a, b) => b.volume24h - a.volume24h)
+          break
+        case 'price':
+          data.sort((a, b) => b.yesPrice - a.yesPrice)
+          break
+        case 'change':
+          data.sort((a, b) => Math.abs(b.change24h) - Math.abs(a.change24h))
+          break
+        case 'liquidity':
+          data.sort((a, b) => b.liquidity - a.liquidity)
+          break
+      }
+      
+      setMarkets(data)
+      setLoading(false)
+    }, 300)
+  }, [platform, category, sortBy])
+
+  const totalVolume = markets.reduce((sum, m) => sum + m.volume24h, 0)
+  const totalLiquidity = markets.reduce((sum, m) => sum + m.liquidity, 0)
+  const hotCount = markets.filter(m => m.isHot).length
 
   return (
     <div className="min-h-screen" style={{ background: '#050508' }}>
       {/* Hero Header */}
       <section className="relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #0a0a12 0%, #050508 100%)' }}>
-        <div className="absolute top-0 left-1/2 w-96 h-96 rounded-full opacity-15 blur-3xl pointer-events-none" 
-             style={{ background: 'radial-gradient(circle, #FF3366 0%, transparent 70%)' }} />
+        {/* Gradient orbs */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full opacity-20 blur-3xl pointer-events-none" 
+             style={{ background: 'radial-gradient(circle, #9B59B6 0%, transparent 70%)' }} />
+        <div className="absolute top-0 right-1/4 w-96 h-96 rounded-full opacity-15 blur-3xl pointer-events-none" 
+             style={{ background: 'radial-gradient(circle, #FF6B00 0%, transparent 70%)' }} />
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          {/* Title */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <div className="flex items-center gap-4">
-              <span className="text-4xl">📈</span>
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                   style={{ background: 'linear-gradient(135deg, #9B59B6, #FF6B00)' }}>
+                <BarChart3 className="w-7 h-7 text-white" />
+              </div>
               <div>
-                <h1 className="text-3xl font-black" style={{ color: '#FFF' }}>Prediction Markets</h1>
-                <p style={{ color: '#808090' }}>Polymarket • Kalshi • Real-time odds</p>
+                <h1 className="text-3xl md:text-4xl font-black" style={{ color: '#FFF' }}>
+                  Prediction Markets
+                </h1>
+                <p className="text-sm" style={{ color: '#808090' }}>
+                  Live data from Polymarket & Kalshi • Politics • Sports • Crypto • Entertainment
+                </p>
               </div>
             </div>
             
-            {/* Filters */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className="flex items-center gap-1 p-1 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                {(['all', 'polymarket', 'kalshi'] as Platform[]).map((p) => (
-                  <button key={p} onClick={() => setPlatform(p)}
-                          className="px-3 py-1.5 rounded-md text-xs font-semibold capitalize transition-all"
-                          style={{ 
-                            background: platform === p ? 'linear-gradient(135deg, #FF6B00, #FF3366)' : 'transparent',
-                            color: platform === p ? '#000' : '#808090'
-                          }}>
-                    {p === 'all' ? 'All' : p}
-                  </button>
-                ))}
-              </div>
-              <div className="flex items-center gap-1 p-1 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                {(['all', 'nfl', 'nba', 'futures'] as Category[]).map((c) => (
-                  <button key={c} onClick={() => setCategory(c)}
-                          className="px-3 py-1.5 rounded-md text-xs font-semibold uppercase transition-all"
-                          style={{ 
-                            background: category === c ? 'rgba(255,255,255,0.1)' : 'transparent',
-                            color: category === c ? '#FFF' : '#808090'
-                          }}>
-                    {c === 'all' ? 'All' : c}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {/* Refresh button */}
+            <button className="flex items-center gap-2 px-4 py-2 rounded-xl transition-all hover:scale-105"
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <RefreshCw className="w-4 h-4" style={{ color: '#808090' }} />
+              <span className="text-sm font-semibold" style={{ color: '#808090' }}>Live</span>
+              <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#00FF88' }} />
+            </button>
+          </div>
+
+          {/* Tab Navigation */}
+          <div className="flex items-center gap-1 p-1 rounded-xl w-fit mb-6" style={{ background: 'rgba(255,255,255,0.03)' }}>
+            {(['markets', 'analytics', 'research'] as const).map(tab => (
+              <button key={tab} onClick={() => setActiveTab(tab)}
+                      className="px-4 py-2 rounded-lg text-sm font-bold capitalize transition-all"
+                      style={{ 
+                        background: activeTab === tab ? 'linear-gradient(135deg, #9B59B6, #FF6B00)' : 'transparent',
+                        color: activeTab === tab ? '#000' : '#808090'
+                      }}>
+                {tab === 'markets' && <BarChart3 className="w-4 h-4 inline mr-1.5" />}
+                {tab === 'analytics' && <Activity className="w-4 h-4 inline mr-1.5" />}
+                {tab === 'research' && <BookOpen className="w-4 h-4 inline mr-1.5" />}
+                {tab}
+              </button>
+            ))}
           </div>
           
           {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
-            <div className="p-3 rounded-xl text-center" style={{ background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.2)' }}>
-              <div className="text-2xl font-black" style={{ color: '#FF6B00' }}>$12.4M</div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div className="p-3 rounded-xl text-center" style={{ background: 'rgba(155,89,182,0.15)', border: '1px solid rgba(155,89,182,0.3)' }}>
+              <div className="text-xl md:text-2xl font-black" style={{ color: '#9B59B6' }}>{formatVolume(totalVolume)}</div>
               <div className="text-xs" style={{ color: '#808090' }}>24h Volume</div>
             </div>
-            <div className="p-3 rounded-xl text-center" style={{ background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.2)' }}>
-              <div className="text-2xl font-black" style={{ color: '#00FF88' }}>847</div>
+            <div className="p-3 rounded-xl text-center" style={{ background: 'rgba(0,168,255,0.15)', border: '1px solid rgba(0,168,255,0.3)' }}>
+              <div className="text-xl md:text-2xl font-black" style={{ color: '#00A8FF' }}>{formatLiquidity(totalLiquidity)}</div>
+              <div className="text-xs" style={{ color: '#808090' }}>Total Liquidity</div>
+            </div>
+            <div className="p-3 rounded-xl text-center" style={{ background: 'rgba(0,255,136,0.15)', border: '1px solid rgba(0,255,136,0.3)' }}>
+              <div className="text-xl md:text-2xl font-black" style={{ color: '#00FF88' }}>{markets.length}</div>
               <div className="text-xs" style={{ color: '#808090' }}>Active Markets</div>
             </div>
-            <div className="p-3 rounded-xl text-center" style={{ background: 'rgba(0,168,255,0.1)', border: '1px solid rgba(0,168,255,0.2)' }}>
-              <div className="text-2xl font-black" style={{ color: '#00A8FF' }}>12</div>
-              <div className="text-xs" style={{ color: '#808090' }}>AI Edge Picks</div>
+            <div className="p-3 rounded-xl text-center" style={{ background: 'rgba(255,51,102,0.15)', border: '1px solid rgba(255,51,102,0.3)' }}>
+              <div className="text-xl md:text-2xl font-black" style={{ color: '#FF3366' }}>{hotCount}</div>
+              <div className="text-xs" style={{ color: '#808090' }}>🔥 Hot Markets</div>
             </div>
-            <div className="p-3 rounded-xl text-center" style={{ background: 'rgba(255,51,102,0.1)', border: '1px solid rgba(255,51,102,0.2)' }}>
-              <div className="text-2xl font-black" style={{ color: '#FF3366' }}>68%</div>
-              <div className="text-xs" style={{ color: '#808090' }}>Edge Win Rate</div>
+            <div className="p-3 rounded-xl text-center" style={{ background: 'rgba(255,107,0,0.15)', border: '1px solid rgba(255,107,0,0.3)' }}>
+              <div className="text-xl md:text-2xl font-black" style={{ color: '#FF6B00' }}>2</div>
+              <div className="text-xs" style={{ color: '#808090' }}>Platforms</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Markets Section */}
+      {/* Main Content */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Compact Markets Grid - 3 columns on desktop */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-          {filteredMarkets.map((market) => (
-            <div key={market.id} 
-                 className="rounded-xl overflow-hidden transition-all hover:scale-[1.02] cursor-pointer"
-                 style={{ 
-                   background: '#0c0c14',
-                   border: market.isHot ? '1px solid rgba(255,51,102,0.4)' : '1px solid rgba(255,255,255,0.06)'
-                 }}>
-              <div className="p-3">
-                {/* Header - Platform & Hot badge */}
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold"
-                        style={{ 
-                          background: market.platform === 'Polymarket' ? 'rgba(138,43,226,0.2)' : 'rgba(0,168,255,0.2)',
-                          color: market.platform === 'Polymarket' ? '#9B59B6' : '#00A8FF'
-                        }}>
-                    {market.platform}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    {market.isHot && (
-                      <Flame style={{ width: '12px', height: '12px', color: '#FF3366' }} />
-                    )}
-                    {market.aiEdge && (
-                      <Zap style={{ width: '12px', height: '12px', color: '#FF6B00' }} />
-                    )}
-                  </div>
-                </div>
-                
-                {/* Question - Compact */}
-                <h3 className="font-bold text-sm leading-tight mb-2" style={{ color: '#FFF' }}>
-                  {market.question}
-                </h3>
-                
-                {/* Compact Price Bar */}
-                <div className="mb-2">
-                  <div className="flex justify-between text-xs mb-1">
-                    <span style={{ color: '#00FF88' }}>Y {market.yesPrice}¢</span>
-                    <span style={{ color: '#FF4455' }}>N {100 - market.yesPrice}¢</span>
-                  </div>
-                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,68,85,0.3)' }}>
-                    <div className="h-full rounded-full" 
-                         style={{ width: `${market.yesPrice}%`, background: '#00FF88' }} />
-                  </div>
-                </div>
-                
-                {/* Compact Stats - 2 rows */}
-                <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] mb-2">
-                  <div className="flex justify-between">
-                    <span style={{ color: '#606070' }}>24h</span>
-                    <span className="font-bold" style={{ color: market.change24h > 0 ? '#00FF88' : '#FF4455' }}>
-                      {market.change24h > 0 ? '+' : ''}{market.change24h}%
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span style={{ color: '#606070' }}>Vol</span>
-                    <span className="font-semibold" style={{ color: '#A0A0B0' }}>{market.volume24h}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span style={{ color: '#606070' }}>Liq</span>
-                    <span className="font-semibold" style={{ color: '#A0A0B0' }}>{market.liquidity}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span style={{ color: '#606070' }}>End</span>
-                    <span className="font-semibold" style={{ color: '#A0A0B0' }}>{market.endDate}</span>
-                  </div>
-                </div>
-                
-                {/* AI Edge - Super Compact */}
-                {market.aiEdge && (
-                  <div className="flex items-center justify-between px-2 py-1.5 rounded-lg"
-                       style={{ background: 'rgba(255,107,0,0.1)' }}>
-                    <span className="text-[10px] font-bold" style={{ color: market.aiEdge.side === 'YES' ? '#00FF88' : '#FF4455' }}>
-                      AI: {market.aiEdge.side}
-                    </span>
-                    <span className="text-xs font-black" style={{ color: '#FF6B00' }}>+{market.aiEdge.edge}%</span>
-                  </div>
-                )}
+        {activeTab === 'markets' && (
+          <>
+            {/* Filters Row */}
+            <div className="flex flex-wrap items-center gap-3 mb-6">
+              {/* Platform Filter */}
+              <div className="flex items-center gap-1 p-1 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                {(['all', 'polymarket', 'kalshi'] as Platform[]).map((p) => (
+                  <button key={p} onClick={() => setPlatform(p)}
+                          className="px-3 py-1.5 rounded-md text-xs font-semibold capitalize transition-all"
+                          style={{ 
+                            background: platform === p ? 'linear-gradient(135deg, #9B59B6, #FF6B00)' : 'transparent',
+                            color: platform === p ? '#000' : '#808090'
+                          }}>
+                    {p === 'all' ? 'All Platforms' : p}
+                  </button>
+                ))}
+              </div>
+              
+              {/* Sort */}
+              <div className="flex items-center gap-1 p-1 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                {(['volume', 'price', 'change', 'liquidity'] as SortBy[]).map((s) => (
+                  <button key={s} onClick={() => setSortBy(s)}
+                          className="px-3 py-1.5 rounded-md text-xs font-semibold capitalize transition-all"
+                          style={{ 
+                            background: sortBy === s ? 'rgba(255,255,255,0.1)' : 'transparent',
+                            color: sortBy === s ? '#FFF' : '#808090'
+                          }}>
+                    {s}
+                  </button>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
-        
-        {/* Bottom Stats Row */}
-        <div className="mt-6 flex items-center justify-between p-4 rounded-xl" 
-             style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <TrendingUp style={{ color: '#00FF88', width: '16px', height: '16px' }} />
-              <span className="text-sm" style={{ color: '#808090' }}>Top Movers:</span>
-              {topMovers.slice(0, 3).map((m, i) => (
-                <span key={i} className="text-xs px-2 py-1 rounded" 
-                      style={{ background: 'rgba(255,255,255,0.05)', color: m.change > 0 ? '#00FF88' : '#FF4455' }}>
-                  {m.question} {m.change > 0 ? '+' : ''}{m.change}%
-                </span>
-              ))}
+
+            {/* Category Pills */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              {(Object.keys(categoryConfig) as MarketCategory[]).map((cat) => {
+                const config = categoryConfig[cat]
+                return (
+                  <button key={cat} onClick={() => setCategory(cat)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all hover:scale-105"
+                          style={{ 
+                            background: category === cat ? config.bg : 'rgba(255,255,255,0.03)',
+                            border: `1px solid ${category === cat ? config.color : 'rgba(255,255,255,0.1)'}`,
+                            color: category === cat ? config.color : '#808090'
+                          }}>
+                    {config.icon}
+                    {config.label}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Markets Grid */}
+            {loading ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="h-48 rounded-xl animate-pulse" style={{ background: 'rgba(255,255,255,0.05)' }} />
+                ))}
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {markets.map((market) => {
+                  const catConfig = categoryConfig[market.category]
+                  return (
+                    <div key={market.id} 
+                         className="rounded-xl overflow-hidden transition-all hover:scale-[1.02] cursor-pointer group"
+                         style={{ 
+                           background: '#0c0c14',
+                           border: market.isHot ? '1px solid rgba(255,51,102,0.4)' : '1px solid rgba(255,255,255,0.06)'
+                         }}>
+                      <div className="p-4">
+                        {/* Header */}
+                        <div className="flex items-center justify-between gap-2 mb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] px-2 py-0.5 rounded font-bold"
+                                  style={{ 
+                                    background: market.platform === 'polymarket' ? 'rgba(155,89,182,0.2)' : 'rgba(0,168,255,0.2)',
+                                    color: market.platform === 'polymarket' ? '#9B59B6' : '#00A8FF'
+                                  }}>
+                              {market.platform.toUpperCase()}
+                            </span>
+                            <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded font-bold"
+                                  style={{ background: catConfig.bg, color: catConfig.color }}>
+                              {catConfig.icon}
+                              {catConfig.label}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            {market.isHot && <Flame className="w-4 h-4" style={{ color: '#FF3366' }} />}
+                          </div>
+                        </div>
+                        
+                        {/* Question */}
+                        <h3 className="font-bold text-sm leading-tight mb-3 group-hover:text-white transition-colors" 
+                            style={{ color: '#E0E0E8' }}>
+                          {market.question}
+                        </h3>
+                        
+                        {/* Price Bar */}
+                        <div className="mb-3">
+                          <div className="flex justify-between text-xs mb-1">
+                            <span className="font-bold" style={{ color: '#00FF88' }}>YES {market.yesPrice.toFixed(1)}¢</span>
+                            <span className="font-bold" style={{ color: '#FF4455' }}>NO {market.noPrice.toFixed(1)}¢</span>
+                          </div>
+                          <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,68,85,0.3)' }}>
+                            <div className="h-full rounded-full transition-all" 
+                                 style={{ width: `${market.yesPrice}%`, background: 'linear-gradient(90deg, #00FF88, #00CC66)' }} />
+                          </div>
+                        </div>
+                        
+                        {/* Stats Grid */}
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                          <div className="flex justify-between">
+                            <span style={{ color: '#606070' }}>24h Vol</span>
+                            <span className="font-bold" style={{ color: '#A0A0B0' }}>{formatVolume(market.volume24h)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span style={{ color: '#606070' }}>Change</span>
+                            <span className="font-bold" style={{ color: market.change24h > 0 ? '#00FF88' : '#FF4455' }}>
+                              {market.change24h > 0 ? '+' : ''}{market.change24h.toFixed(1)}%
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span style={{ color: '#606070' }}>Liquidity</span>
+                            <span className="font-bold" style={{ color: '#A0A0B0' }}>{formatLiquidity(market.liquidity)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span style={{ color: '#606070' }}>Spread</span>
+                            <span className="font-bold" style={{ color: market.spread < 2 ? '#00FF88' : '#FF9500' }}>
+                              {market.spread.toFixed(1)}%
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Footer */}
+                        <div className="flex items-center justify-between mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                          <span className="text-[10px]" style={{ color: '#606070' }}>
+                            Ends: {new Date(market.endDate).toLocaleDateString()}
+                          </span>
+                          <a href={market.platform === 'polymarket' 
+                              ? `https://polymarket.com/event/${market.slug}` 
+                              : `https://kalshi.com/markets/${market.slug}`}
+                             target="_blank"
+                             rel="noopener noreferrer"
+                             className="flex items-center gap-1 text-[10px] font-bold hover:underline"
+                             style={{ color: '#9B59B6' }}>
+                            Trade <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </>
+        )}
+
+        {activeTab === 'analytics' && (
+          <div className="space-y-6">
+            {/* Volume by Category */}
+            <div className="rounded-xl p-6" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <h2 className="text-xl font-bold mb-4" style={{ color: '#FFF' }}>Volume by Category</h2>
+              <div className="space-y-3">
+                {[
+                  { cat: 'politics', vol: 4800000, pct: 42 },
+                  { cat: 'sports', vol: 3200000, pct: 28 },
+                  { cat: 'crypto', vol: 1600000, pct: 14 },
+                  { cat: 'economics', vol: 1100000, pct: 10 },
+                  { cat: 'tech', vol: 450000, pct: 4 },
+                  { cat: 'entertainment', vol: 230000, pct: 2 },
+                ].map(item => {
+                  const config = categoryConfig[item.cat as MarketCategory]
+                  return (
+                    <div key={item.cat} className="flex items-center gap-3">
+                      <div className="w-24 flex items-center gap-2">
+                        {config.icon}
+                        <span className="text-xs font-semibold" style={{ color: config.color }}>{config.label}</span>
+                      </div>
+                      <div className="flex-1 h-6 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                        <div className="h-full rounded-full flex items-center justify-end pr-2"
+                             style={{ width: `${item.pct}%`, background: config.bg }}>
+                          <span className="text-[10px] font-bold" style={{ color: config.color }}>{formatVolume(item.vol)}</span>
+                        </div>
+                      </div>
+                      <span className="text-xs font-bold w-12 text-right" style={{ color: '#808090' }}>{item.pct}%</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Top Movers */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="rounded-xl p-6" style={{ background: '#0c0c14', border: '1px solid rgba(0,255,136,0.2)' }}>
+                <div className="flex items-center gap-2 mb-4">
+                  <TrendingUp className="w-5 h-5" style={{ color: '#00FF88' }} />
+                  <h2 className="text-lg font-bold" style={{ color: '#00FF88' }}>Top Gainers (24h)</h2>
+                </div>
+                <div className="space-y-2">
+                  {markets.filter(m => m.change24h > 0).slice(0, 5).map((m) => (
+                    <div key={m.id} className="flex items-center justify-between p-2 rounded-lg" style={{ background: 'rgba(0,255,136,0.05)' }}>
+                      <span className="text-xs font-semibold" style={{ color: '#E0E0E8' }}>{m.question}</span>
+                      <span className="text-xs font-bold" style={{ color: '#00FF88' }}>+{m.change24h.toFixed(1)}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="rounded-xl p-6" style={{ background: '#0c0c14', border: '1px solid rgba(255,68,85,0.2)' }}>
+                <div className="flex items-center gap-2 mb-4">
+                  <TrendingDown className="w-5 h-5" style={{ color: '#FF4455' }} />
+                  <h2 className="text-lg font-bold" style={{ color: '#FF4455' }}>Top Losers (24h)</h2>
+                </div>
+                <div className="space-y-2">
+                  {markets.filter(m => m.change24h < 0).slice(0, 5).map((m) => (
+                    <div key={m.id} className="flex items-center justify-between p-2 rounded-lg" style={{ background: 'rgba(255,68,85,0.05)' }}>
+                      <span className="text-xs font-semibold" style={{ color: '#E0E0E8' }}>{m.question}</span>
+                      <span className="text-xs font-bold" style={{ color: '#FF4455' }}>{m.change24h.toFixed(1)}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Whale Activity Alert */}
+            <div className="rounded-xl p-6" style={{ background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.3)' }}>
+              <div className="flex items-center gap-2 mb-4">
+                <AlertTriangle className="w-5 h-5" style={{ color: '#FF6B00' }} />
+                <h2 className="text-lg font-bold" style={{ color: '#FF6B00' }}>Whale Activity (Last 1h)</h2>
+              </div>
+              <div className="space-y-2">
+                {[
+                  { market: 'Trump 2028 Primary', amount: '$45,000', side: 'YES', time: '12 min ago' },
+                  { market: 'Chiefs Super Bowl', amount: '$32,000', side: 'NO', time: '28 min ago' },
+                  { market: 'Bitcoin $150k', amount: '$28,000', side: 'YES', time: '45 min ago' },
+                ].map((trade, i) => (
+                  <div key={i} className="flex items-center justify-between p-2 rounded-lg" style={{ background: 'rgba(0,0,0,0.3)' }}>
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg">🐋</span>
+                      <span className="text-xs font-semibold" style={{ color: '#E0E0E8' }}>{trade.market}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-bold" style={{ color: trade.side === 'YES' ? '#00FF88' : '#FF4455' }}>
+                        {trade.amount} {trade.side}
+                      </span>
+                      <span className="text-[10px]" style={{ color: '#808090' }}>{trade.time}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Key Metrics */}
+            <div className="rounded-xl p-6" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <h2 className="text-lg font-bold mb-4" style={{ color: '#FFF' }}>Key Metrics to Watch</h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                {predictionMarketResearch.keyMetrics.map((metric, i) => (
+                  <div key={i} className="p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                    <div className="font-bold text-sm mb-1" style={{ color: '#9B59B6' }}>{metric.metric}</div>
+                    <div className="text-xs" style={{ color: '#808090' }}>{metric.description}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-          <Link href="/leaderboard" className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all hover:scale-105"
-                style={{ background: 'linear-gradient(135deg, #FF6B00, #FF3366)', color: '#000' }}>
+        )}
+
+        {activeTab === 'research' && (
+          <div className="space-y-6">
+            {/* Academic Research */}
+            <div className="rounded-xl p-6" style={{ background: '#0c0c14', border: '1px solid rgba(155,89,182,0.2)' }}>
+              <div className="flex items-center gap-2 mb-4">
+                <BookOpen className="w-5 h-5" style={{ color: '#9B59B6' }} />
+                <h2 className="text-xl font-bold" style={{ color: '#9B59B6' }}>Academic Research</h2>
+              </div>
+              <p className="text-sm mb-4" style={{ color: '#808090' }}>
+                Key papers that establish prediction markets as the gold standard for forecasting
+              </p>
+              <div className="space-y-3">
+                {predictionMarketResearch.keyPapers.map((paper, i) => (
+                  <div key={i} className="p-4 rounded-lg" style={{ background: 'rgba(155,89,182,0.1)' }}>
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <div className="font-bold text-sm" style={{ color: '#FFF' }}>{paper.title}</div>
+                        <div className="text-xs" style={{ color: '#808090' }}>{paper.authors} ({paper.year})</div>
+                        <div className="text-xs mt-1" style={{ color: '#A0A0B0' }}>{paper.journal}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-black" style={{ color: '#9B59B6' }}>{paper.citations.toLocaleString()}</div>
+                        <div className="text-[10px]" style={{ color: '#606070' }}>citations</div>
+                      </div>
+                    </div>
+                    <div className="mt-2 px-2 py-1 rounded text-xs" style={{ background: 'rgba(0,255,136,0.1)', color: '#00FF88' }}>
+                      💡 {paper.keyFinding}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Edge-Finding Strategies */}
+            <div className="rounded-xl p-6" style={{ background: '#0c0c14', border: '1px solid rgba(255,107,0,0.2)' }}>
+              <div className="flex items-center gap-2 mb-4">
+                <Zap className="w-5 h-5" style={{ color: '#FF6B00' }} />
+                <h2 className="text-xl font-bold" style={{ color: '#FF6B00' }}>Edge-Finding Strategies</h2>
+              </div>
+              <p className="text-sm mb-4" style={{ color: '#808090' }}>
+                Proven strategies from professional prediction market traders
+              </p>
+              <div className="grid md:grid-cols-2 gap-4">
+                {predictionMarketResearch.edgeStrategies.map((strat, i) => (
+                  <div key={i} className="p-4 rounded-lg" style={{ background: 'rgba(255,107,0,0.1)' }}>
+                    <div className="font-bold text-sm mb-1" style={{ color: '#FF6B00' }}>{strat.name}</div>
+                    <div className="text-xs" style={{ color: '#A0A0B0' }}>{strat.description}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Platform Comparison */}
+            <div className="rounded-xl p-6" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <h2 className="text-xl font-bold mb-4" style={{ color: '#FFF' }}>Platform Comparison</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                      <th className="text-left p-2" style={{ color: '#808090' }}>Feature</th>
+                      <th className="text-center p-2" style={{ color: '#9B59B6' }}>Polymarket</th>
+                      <th className="text-center p-2" style={{ color: '#00A8FF' }}>Kalshi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { feature: 'Regulation', poly: 'Offshore (Crypto)', kalshi: 'CFTC Regulated' },
+                      { feature: 'Settlement', poly: 'USDC', kalshi: 'USD' },
+                      { feature: 'Categories', poly: 'Politics, Sports, Crypto, Culture', kalshi: 'Economics, Weather, Politics, Sports' },
+                      { feature: 'Min Trade', poly: '$1', kalshi: '$1' },
+                      { feature: 'Max Position', poly: 'Unlimited', kalshi: '$25,000' },
+                      { feature: 'API Access', poly: 'Free (Gamma API)', kalshi: 'Free (REST + WebSocket)' },
+                      { feature: 'Liquidity', poly: 'High (AMM)', kalshi: 'Medium (Order Book)' },
+                      { feature: 'US Access', poly: 'VPN Required', kalshi: 'Full Access' },
+                    ].map((row, i) => (
+                      <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                        <td className="p-2" style={{ color: '#A0A0B0' }}>{row.feature}</td>
+                        <td className="p-2 text-center" style={{ color: '#E0E0E8' }}>{row.poly}</td>
+                        <td className="p-2 text-center" style={{ color: '#E0E0E8' }}>{row.kalshi}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* API Documentation */}
+            <div className="rounded-xl p-6" style={{ background: '#0c0c14', border: '1px solid rgba(0,255,136,0.2)' }}>
+              <div className="flex items-center gap-2 mb-4">
+                <Cpu className="w-5 h-5" style={{ color: '#00FF88' }} />
+                <h2 className="text-xl font-bold" style={{ color: '#00FF88' }}>API Endpoints</h2>
+              </div>
+              <div className="space-y-3">
+                <div className="p-3 rounded-lg font-mono text-xs" style={{ background: 'rgba(0,0,0,0.4)' }}>
+                  <div style={{ color: '#9B59B6' }}>// Polymarket Gamma API (FREE)</div>
+                  <div style={{ color: '#00FF88' }}>GET https://gamma-api.polymarket.com/events?active=true</div>
+                  <div style={{ color: '#00FF88' }}>GET https://gamma-api.polymarket.com/markets?limit=100</div>
+                </div>
+                <div className="p-3 rounded-lg font-mono text-xs" style={{ background: 'rgba(0,0,0,0.4)' }}>
+                  <div style={{ color: '#00A8FF' }}>// Kalshi REST API</div>
+                  <div style={{ color: '#00FF88' }}>GET https://api.elections.kalshi.com/trade-api/v2/markets</div>
+                  <div style={{ color: '#00FF88' }}>WSS wss://api.elections.kalshi.com/trade-api/ws/v2</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Footer CTA */}
+        <div className="mt-8 flex items-center justify-between p-6 rounded-xl" 
+             style={{ background: 'linear-gradient(135deg, rgba(155,89,182,0.2), rgba(255,107,0,0.2))', border: '1px solid rgba(155,89,182,0.3)' }}>
+          <div>
+            <h3 className="font-bold text-lg" style={{ color: '#FFF' }}>Track Expert Picks on These Markets</h3>
+            <p className="text-sm" style={{ color: '#808090' }}>See which celebrities and sharps are betting on prediction markets</p>
+          </div>
+          <Link href="/leaderboard" className="px-4 py-2 rounded-xl font-bold text-sm transition-all hover:scale-105"
+                style={{ background: 'linear-gradient(135deg, #9B59B6, #FF6B00)', color: '#FFF' }}>
             View Leaderboard →
           </Link>
         </div>

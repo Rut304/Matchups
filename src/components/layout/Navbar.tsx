@@ -20,8 +20,11 @@ const navigation = [
   { name: 'NBA', href: '/nba', icon: () => <span className="text-lg">🏀</span> },
   { name: 'NHL', href: '/nhl', icon: () => <span className="text-lg">🏒</span> },
   { name: 'MLB', href: '/mlb', icon: () => <span className="text-lg">⚾</span> },
+  { name: 'NCAAF', href: '/ncaaf', icon: () => <span className="text-lg">🏈</span> },
+  { name: 'NCAAB', href: '/ncaab', icon: () => <span className="text-lg">🏀</span> },
+  { name: 'Players', href: '/players', icon: () => <span className="text-lg">👤</span> },
+  { name: 'Systems', href: '/systems', icon: Zap },
   { name: 'Markets', href: '/markets', icon: TrendingUp },
-  { name: 'Trends', href: '/trends', icon: BarChart3 },
 ]
 
 export function Navbar() {
@@ -71,10 +74,10 @@ export function Navbar() {
           <div className="flex items-center gap-4">
             <Link
               href="/leaderboard"
-              className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition-all"
+              className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition-all hover:scale-105"
               style={{ background: 'linear-gradient(135deg, #FF6B00, #FF3366)', color: '#000' }}
             >
-              🏆 Leaderboard
+              🎯 Check the Experts
             </Link>
 
             {/* Mobile menu button */}

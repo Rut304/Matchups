@@ -77,9 +77,9 @@ export default function CapperProfilePage() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: '#050508' }}>
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4" style={{ color: '#FFF' }}>Capper Not Found</h1>
+          <h1 className="text-2xl font-bold mb-4" style={{ color: '#FFF' }}>Expert Not Found</h1>
           <Link href="/leaderboard" className="text-sm" style={{ color: '#00A8FF' }}>
-            ← Back to Leaderboard
+            ← Back to Experts
           </Link>
         </div>
       </div>
@@ -107,7 +107,7 @@ export default function CapperProfilePage() {
                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold mb-6 transition-all hover:bg-white/10"
                 style={{ color: '#808090' }}>
             <ArrowLeft className="w-4 h-4" />
-            Back to Leaderboard
+            Back to Experts
           </Link>
           
           {/* Profile Header */}

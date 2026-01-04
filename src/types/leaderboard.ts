@@ -4,7 +4,7 @@ export type CapperType = 'celebrity' | 'pro' | 'community' | 'ai'
 export type BetType = 'spread' | 'moneyline' | 'over_under' | 'prop' | 'parlay' | 'teaser' | 'futures'
 export type PickResult = 'win' | 'loss' | 'push' | 'pending' | 'void'
 export type Sport = 'NFL' | 'NBA' | 'NHL' | 'MLB' | 'NCAAF' | 'NCAAB' | 'Soccer' | 'Other'
-export type Network = 'ESPN' | 'FOX' | 'CBS' | 'TNT' | 'FS1' | 'NFL Network' | 'Podcast' | 'YouTube' | 'X/Twitter' | 'The Athletic' | 'Action Network' | 'Independent'
+export type Network = 'ESPN' | 'FOX' | 'CBS' | 'TNT' | 'FS1' | 'NFL Network' | 'Podcast' | 'YouTube' | 'X/Twitter' | 'The Athletic' | 'Action Network' | 'Independent' | 'Barstool' | 'Twitter' | 'TSN' | 'Covers'
 
 export interface Capper {
   id: string
@@ -137,6 +137,10 @@ export interface LeaderboardEntry {
   
   // For display
   lastPickResult?: 'win' | 'loss' | 'push'
+  
+  // Year filtering context
+  totalPicks?: number
+  yearFiltered?: boolean
 }
 
 // Filter options for leaderboard

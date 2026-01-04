@@ -49,6 +49,7 @@ export default function LeaderboardPage() {
   const [sortBy, setSortBy] = useState<'units' | 'winPct' | 'roi' | 'picks'>('units')
   const [compareList, setCompareList] = useState<LeaderboardEntry[]>([])
   const [showComparison, setShowComparison] = useState(false)
+  const [yearFilter, setYearFilter] = useState<'current' | 'all' | number>('current') // 2025/2026 by default
   
   const displayEntries = useMemo(() => {
     // Handle prediction market tab differently
@@ -60,7 +61,8 @@ export default function LeaderboardPage() {
       capperType: activeTab === 'fade' || activeTab === 'all' ? 'all' : activeTab,
       betType: betTypeFilter === 'all' ? undefined : betTypeFilter,
       sport: sportFilter === 'all' ? undefined : sportFilter,
-      sortBy 
+      sortBy,
+      year: yearFilter // Pass year filter
     })
     
     // For fade tab, show worst performers
@@ -69,7 +71,7 @@ export default function LeaderboardPage() {
     }
     
     return entries
-  }, [activeTab, betTypeFilter, sportFilter, sortBy])
+  }, [activeTab, betTypeFilter, sportFilter, sortBy, yearFilter])
 
   // Computed stats
   const allEntries = getLeaderboardEntries({ capperType: 'all' })
@@ -291,7 +293,7 @@ export default function LeaderboardPage() {
                 </div>
                 
                 {/* Sort */}
-                <div className="flex items-center gap-2 ml-auto">
+                <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold" style={{ color: '#606070' }}>SORT:</span>
                   <div className="flex gap-1">
                     {[
@@ -308,6 +310,31 @@ export default function LeaderboardPage() {
                           color: sortBy === s.id ? '#9B59B6' : '#808090'
                         }}>
                         {s.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Year Filter - NEW! */}
+                <div className="flex items-center gap-2 ml-auto">
+                  <Calendar className="w-4 h-4" style={{ color: '#00FF88' }} />
+                  <span className="text-xs font-semibold" style={{ color: '#606070' }}>YEAR:</span>
+                  <div className="flex gap-1">
+                    {[
+                      { id: 'current', label: '2025/26' },
+                      { id: 2024, label: '2024' },
+                      { id: 'all', label: 'All Time' },
+                    ].map((y) => (
+                      <button
+                        key={String(y.id)}
+                        onClick={() => setYearFilter(y.id as typeof yearFilter)}
+                        className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all"
+                        style={{
+                          background: yearFilter === y.id ? 'rgba(0,255,136,0.2)' : 'rgba(255,255,255,0.05)',
+                          color: yearFilter === y.id ? '#00FF88' : '#808090',
+                          border: yearFilter === y.id ? '1px solid rgba(0,255,136,0.3)' : '1px solid transparent'
+                        }}>
+                        {y.label}
                       </button>
                     ))}
                   </div>

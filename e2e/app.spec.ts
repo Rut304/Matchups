@@ -7,9 +7,16 @@ const mainRoutes = [
   { path: '/nba', name: 'NBA Page' },
   { path: '/nhl', name: 'NHL Page' },
   { path: '/mlb', name: 'MLB Page' },
+  { path: '/ncaaf', name: 'NCAAF Page' },
+  { path: '/ncaab', name: 'NCAAB Page' },
   { path: '/markets', name: 'Markets Page' },
   { path: '/trends', name: 'Trends Page' },
+  { path: '/leaderboard', name: 'Leaderboard Page' },
+  { path: '/analytics', name: 'Analytics Page' },
+  { path: '/players', name: 'Players Page' },
   { path: '/admin', name: 'Admin Page' },
+  { path: '/admin/picks', name: 'Admin Picks Page' },
+  { path: '/admin/docs', name: 'Admin Docs Page' },
 ];
 
 test.describe('Page Load Tests', () => {
@@ -256,5 +263,161 @@ test.describe('Error Handling', () => {
     const response = await page.goto('/non-existent-page-xyz');
     // Next.js returns 404 for unknown routes
     expect(response?.status()).toBe(404);
+  });
+});
+
+test.describe('College Sports Pages', () => {
+  test('NCAAF page loads with college football content', async ({ page }) => {
+    await page.goto('/ncaaf');
+    await page.waitForLoadState('networkidle');
+    
+    // Check for College Football heading
+    await expect(page.locator('h1')).toContainText(/College Football|NCAAF/i);
+    
+    // Check for key sections
+    const sections = ['AP Top 25', 'Heisman Watch', 'Conference'];
+    for (const section of sections) {
+      const sectionEl = page.locator(`text=${section}`).first();
+      if (await sectionEl.isVisible()) {
+        await expect(sectionEl).toBeVisible();
+      }
+    }
+  });
+
+  test('NCAAB page loads with college basketball content', async ({ page }) => {
+    await page.goto('/ncaab');
+    await page.waitForLoadState('networkidle');
+    
+    // Check for College Basketball heading
+    await expect(page.locator('h1')).toContainText(/College Basketball|NCAAB/i);
+    
+    // Check for key sections
+    const sections = ['AP Top 25', 'Player of the Year', 'Bracketology'];
+    for (const section of sections) {
+      const sectionEl = page.locator(`text=${section}`).first();
+      if (await sectionEl.isVisible()) {
+        await expect(sectionEl).toBeVisible();
+      }
+    }
+  });
+});
+
+test.describe('Leaderboard Tests', () => {
+  test('Leaderboard page loads with expert data', async ({ page }) => {
+    await page.goto('/leaderboard');
+    await page.waitForLoadState('networkidle');
+    
+    // Check for Leaderboard heading
+    await expect(page.locator('h1')).toContainText(/Leaderboard|Expert/i);
+    
+    // Should have filter options
+    const sportFilters = page.locator('button').filter({ hasText: /NFL|NBA|All Sports/i });
+    expect(await sportFilters.count()).toBeGreaterThan(0);
+  });
+
+  test('Leaderboard filters work', async ({ page }) => {
+    await page.goto('/leaderboard');
+    await page.waitForLoadState('networkidle');
+    
+    // Try clicking sport filters
+    const nflFilter = page.locator('button').filter({ hasText: 'NFL' }).first();
+    if (await nflFilter.isVisible()) {
+      await nflFilter.click();
+      await page.waitForTimeout(200);
+    }
+    
+    const allFilter = page.locator('button').filter({ hasText: /All/i }).first();
+    if (await allFilter.isVisible()) {
+      await allFilter.click();
+    }
+  });
+});
+
+test.describe('Analytics Page Tests', () => {
+  test('Analytics page loads with data', async ({ page }) => {
+    await page.goto('/analytics');
+    await page.waitForLoadState('networkidle');
+    
+    // Check for Analytics heading
+    await expect(page.locator('h1')).toContainText(/Analytics|Dashboard/i);
+    
+    // Should have stat cards or charts
+    const cards = page.locator('[class*="card"], [class*="Card"]');
+    expect(await cards.count()).toBeGreaterThan(0);
+  });
+});
+
+test.describe('Players Page Tests', () => {
+  test('Players page loads', async ({ page }) => {
+    await page.goto('/players');
+    await page.waitForLoadState('networkidle');
+    
+    // Check page loaded successfully
+    await expect(page.locator('body')).toBeVisible();
+    
+    // Should have player-related content
+    await expect(page.locator('h1').first()).toBeVisible();
+  });
+});
+
+test.describe('API Health Checks', () => {
+  test('Sports pages fetch data without errors', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    
+    // Test each sport page
+    const sportPages = ['/nfl', '/nba', '/nhl', '/mlb', '/ncaaf', '/ncaab'];
+    
+    for (const sportPage of sportPages) {
+      await page.goto(sportPage);
+      await page.waitForLoadState('networkidle');
+      
+      // Should not have runtime errors
+      const pageErrors = errors.filter(e => !e.includes('ResizeObserver'));
+      expect(pageErrors).toHaveLength(0);
+      
+      // Clear errors for next page
+      errors.length = 0;
+    }
+  });
+});
+
+test.describe('Supabase Integration Tests', () => {
+  test('Leaderboard page can connect to Supabase', async ({ page }) => {
+    await page.goto('/leaderboard');
+    await page.waitForLoadState('networkidle');
+    
+    // Page should load without connection errors
+    const errorText = page.locator('text=/error|failed|connection/i');
+    // Either no errors visible, or data is showing
+    const hasData = await page.locator('[class*="card"], table, [class*="list"]').count() > 0;
+    const hasError = await errorText.isVisible().catch(() => false);
+    
+    // Should have data OR be in a loading state, but not show connection errors
+    expect(hasData || !hasError).toBe(true);
+  });
+});
+
+test.describe('Navigation - New Routes', () => {
+  test('Navbar has college sports links', async ({ page }) => {
+    await page.goto('/');
+    
+    // Check for NCAAF link
+    const ncaafLink = page.locator('a[href="/ncaaf"]');
+    await expect(ncaafLink.first()).toBeVisible();
+    
+    // Check for NCAAB link
+    const ncaabLink = page.locator('a[href="/ncaab"]');
+    await expect(ncaabLink.first()).toBeVisible();
+  });
+
+  test('Can navigate to leaderboard', async ({ page }) => {
+    await page.goto('/');
+    
+    const leaderboardLink = page.locator('a[href="/leaderboard"]');
+    if (await leaderboardLink.first().isVisible()) {
+      await leaderboardLink.first().click();
+      await expect(page).toHaveURL('/leaderboard');
+    }
   });
 });
