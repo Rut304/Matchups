@@ -558,15 +558,24 @@ export default function MarketsPage() {
         )}
 
         {/* Footer CTA */}
-        <div className="mt-8 flex items-center justify-between p-6 rounded-xl" 
-             style={{ background: 'linear-gradient(135deg, rgba(155,89,182,0.2), rgba(255,107,0,0.2))', border: '1px solid rgba(155,89,182,0.3)' }}>
-          <div>
-            <h3 className="font-bold text-lg" style={{ color: '#FFF' }}>Track Expert Picks on These Markets</h3>
-            <p className="text-sm" style={{ color: '#808090' }}>See which celebrities and sharps are betting on prediction markets</p>
-          </div>
-          <Link href="/leaderboard" className="px-4 py-2 rounded-xl font-bold text-sm transition-all hover:scale-105"
-                style={{ background: 'linear-gradient(135deg, #9B59B6, #FF6B00)', color: '#FFF' }}>
-            View Leaderboard →
+        <div className="mt-8 grid md:grid-cols-2 gap-4">
+          <Link href="/markets/insights"
+                className="flex items-center justify-between p-6 rounded-xl transition-all hover:scale-[1.02]"
+                style={{ background: 'linear-gradient(135deg, rgba(128,0,255,0.2), rgba(0,168,255,0.2))', border: '1px solid rgba(128,0,255,0.3)' }}>
+            <div>
+              <h3 className="font-bold text-lg" style={{ color: '#FFF' }}>Research-Backed Insights</h3>
+              <p className="text-sm" style={{ color: '#808090' }}>12 academic edges & biases to exploit in prediction markets</p>
+            </div>
+            <BookOpen className="w-8 h-8" style={{ color: '#9B59B6' }} />
+          </Link>
+          <Link href="/leaderboard" 
+                className="flex items-center justify-between p-6 rounded-xl transition-all hover:scale-[1.02]"
+                style={{ background: 'linear-gradient(135deg, rgba(155,89,182,0.2), rgba(255,107,0,0.2))', border: '1px solid rgba(155,89,182,0.3)' }}>
+            <div>
+              <h3 className="font-bold text-lg" style={{ color: '#FFF' }}>Track Expert Picks</h3>
+              <p className="text-sm" style={{ color: '#808090' }}>See which celebrities and sharps are betting on prediction markets</p>
+            </div>
+            <Users className="w-8 h-8" style={{ color: '#FF6B00' }} />
           </Link>
         </div>
       </section>
