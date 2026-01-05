@@ -1,0 +1,385 @@
+/**
+ * Unified Data Layer
+ * Combines ESPN + The Odds API into a single normalized data source
+ * Stores in Supabase and provides real-time updates
+ */
+
+import { createClient } from '@/lib/supabase/server'
+import { getScoreboard, getTeams, transformESPNGame, ESPN_SPORTS, type SportKey } from './espn'
+import { getOdds, transformOddsGame, ODDS_API_SPORTS, type OddsSportKey } from './the-odds-api'
+
+// Unified Game Type
+export interface UnifiedGame {
+  id: string
+  sport: SportKey
+  status: 'scheduled' | 'live' | 'final' | 'postponed' | 'cancelled'
+  scheduledAt: string
+  startedAt?: string
+  completedAt?: string
+  
+  // Teams
+  homeTeam: {
+    id: string
+    name: string
+    abbreviation: string
+    logo?: string
+    color?: string
+    score?: number
+    record?: string
+  }
+  awayTeam: {
+    id: string
+    name: string
+    abbreviation: string
+    logo?: string
+    color?: string
+    score?: number
+    record?: string
+  }
+  
+  // Game Info
+  venue?: string
+  broadcast?: string
+  weather?: {
+    temp: number
+    condition: string
+  }
+  period?: string
+  clock?: string
+  
+  // Betting Lines
+  odds?: {
+    spread: number
+    spreadOdds: number
+    total: number
+    overOdds: number
+    underOdds: number
+    homeML: number
+    awayML: number
+  }
+  
+  // Consensus
+  consensus?: {
+    spread: number | null
+    total: number | null
+    homeML: number | null
+    bookmakerCount: number
+  }
+  
+  // Sources
+  espnId?: string
+  oddsApiId?: string
+  
+  // Timestamps
+  lastUpdated: string
+}
+
+// Sync games from ESPN and merge with odds
+export async function syncGames(sport: SportKey): Promise<UnifiedGame[]> {
+  const games: UnifiedGame[] = []
+  
+  // 1. Fetch from ESPN (primary source for game data)
+  const espnScoreboard = await getScoreboard(sport)
+  const espnGames = espnScoreboard.events.map(g => transformESPNGame(g, sport))
+  
+  // 2. Fetch odds (if API key is configured)
+  let oddsGames: ReturnType<typeof transformOddsGame>[] = []
+  if (process.env.ODDS_API_KEY && sport in ODDS_API_SPORTS) {
+    try {
+      const oddsData = await getOdds(sport as OddsSportKey)
+      oddsGames = oddsData.map(g => transformOddsGame(g, sport as OddsSportKey))
+    } catch (error) {
+      console.error(`[DataLayer] Failed to fetch odds for ${sport}:`, error)
+    }
+  }
+  
+  // 3. Merge ESPN games with odds data
+  for (const espnGame of espnGames) {
+    // Match by team names (ESPN and Odds API use slightly different formats)
+    const matchingOdds = oddsGames.find(og => 
+      fuzzyMatchTeam(og.homeTeam, espnGame.home.name || '') &&
+      fuzzyMatchTeam(og.awayTeam, espnGame.away.name || '')
+    )
+    
+    const unified: UnifiedGame = {
+      id: espnGame.id,
+      sport,
+      status: espnGame.status as UnifiedGame['status'],
+      scheduledAt: espnGame.scheduledAt,
+      homeTeam: {
+        id: espnGame.home.id || '',
+        name: espnGame.home.name || '',
+        abbreviation: espnGame.home.abbreviation || '',
+        logo: espnGame.home.logo,
+        color: espnGame.home.color ? `#${espnGame.home.color}` : undefined,
+        score: espnGame.home.score ?? undefined,
+        record: espnGame.home.record,
+      },
+      awayTeam: {
+        id: espnGame.away.id || '',
+        name: espnGame.away.name || '',
+        abbreviation: espnGame.away.abbreviation || '',
+        logo: espnGame.away.logo,
+        color: espnGame.away.color ? `#${espnGame.away.color}` : undefined,
+        score: espnGame.away.score ?? undefined,
+        record: espnGame.away.record,
+      },
+      venue: espnGame.venue,
+      broadcast: espnGame.broadcast,
+      weather: espnGame.weather ?? undefined,
+      period: espnGame.period ?? undefined,
+      clock: espnGame.clock,
+      // Use ESPN odds if available, otherwise use The Odds API
+      odds: matchingOdds?.odds || espnGame.odds ? {
+        spread: matchingOdds?.odds.spread ?? espnGame.odds?.spread ?? 0,
+        spreadOdds: matchingOdds?.odds.spreadOdds ?? -110,
+        total: matchingOdds?.odds.total ?? espnGame.odds?.total ?? 0,
+        overOdds: matchingOdds?.odds.overOdds ?? -110,
+        underOdds: matchingOdds?.odds.underOdds ?? -110,
+        homeML: matchingOdds?.odds.homeML ?? espnGame.odds?.homeML ?? 0,
+        awayML: matchingOdds?.odds.awayML ?? espnGame.odds?.awayML ?? 0,
+      } : undefined,
+      consensus: matchingOdds?.consensus ?? undefined,
+      espnId: espnGame.id,
+      oddsApiId: matchingOdds?.id,
+      lastUpdated: new Date().toISOString(),
+    }
+    
+    games.push(unified)
+  }
+  
+  return games
+}
+
+// Fuzzy match team names between ESPN and Odds API
+function fuzzyMatchTeam(name1: string, name2: string): boolean {
+  const normalize = (s: string) => s.toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .replace(/city|state|university|college/g, '')
+  
+  const n1 = normalize(name1)
+  const n2 = normalize(name2)
+  
+  // Exact match after normalization
+  if (n1 === n2) return true
+  
+  // One contains the other
+  if (n1.includes(n2) || n2.includes(n1)) return true
+  
+  // Check common abbreviations
+  const abbrevMap: Record<string, string[]> = {
+    'lakers': ['losangeles', 'la'],
+    'celtics': ['boston'],
+    'warriors': ['goldenstate', 'gsw'],
+    'chiefs': ['kansascity', 'kc'],
+    'bills': ['buffalo'],
+    'eagles': ['philadelphia', 'philly'],
+    'cowboys': ['dallas'],
+    // Add more as needed
+  }
+  
+  for (const [key, aliases] of Object.entries(abbrevMap)) {
+    if ((n1.includes(key) || aliases.some(a => n1.includes(a))) &&
+        (n2.includes(key) || aliases.some(a => n2.includes(a)))) {
+      return true
+    }
+  }
+  
+  return false
+}
+
+// Store games in Supabase
+export async function storeGames(games: UnifiedGame[]): Promise<void> {
+  const supabase = await createClient()
+  
+  for (const game of games) {
+    // Upsert game
+    const { error: gameError } = await supabase
+      .from('games')
+      .upsert({
+        id: game.id,
+        sport: game.sport,
+        status: game.status,
+        scheduled_at: game.scheduledAt,
+        home_team_id: game.homeTeam.id,
+        away_team_id: game.awayTeam.id,
+        home_score: game.homeTeam.score,
+        away_score: game.awayTeam.score,
+        venue: game.venue,
+        broadcast: game.broadcast,
+        espn_id: game.espnId,
+        updated_at: game.lastUpdated,
+      }, { onConflict: 'id' })
+    
+    if (gameError) console.error(`[DataLayer] Error storing game ${game.id}:`, gameError)
+    
+    // Upsert odds
+    if (game.odds) {
+      const { error: oddsError } = await supabase
+        .from('odds')
+        .upsert({
+          game_id: game.id,
+          spread: game.odds.spread,
+          spread_odds: game.odds.spreadOdds,
+          total: game.odds.total,
+          over_odds: game.odds.overOdds,
+          under_odds: game.odds.underOdds,
+          home_ml: game.odds.homeML,
+          away_ml: game.odds.awayML,
+          source: 'the-odds-api',
+          updated_at: game.lastUpdated,
+        }, { onConflict: 'game_id' })
+      
+      if (oddsError) console.error(`[DataLayer] Error storing odds for ${game.id}:`, oddsError)
+    }
+  }
+}
+
+// Sync teams from ESPN to Supabase
+export async function syncTeams(sport: SportKey): Promise<void> {
+  const supabase = await createClient()
+  const teams = await getTeams(sport)
+  
+  for (const team of teams) {
+    const { error } = await supabase
+      .from('teams')
+      .upsert({
+        id: team.id,
+        sport,
+        name: team.displayName,
+        abbreviation: team.abbreviation,
+        location: team.location,
+        logo_url: team.logo,
+        primary_color: team.color ? `#${team.color}` : null,
+        secondary_color: team.alternateColor ? `#${team.alternateColor}` : null,
+        espn_id: team.id,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'id' })
+    
+    if (error) console.error(`[DataLayer] Error storing team ${team.id}:`, error)
+  }
+}
+
+// Fetch games from Supabase (with caching)
+export async function getGamesFromDB(
+  sport: SportKey,
+  options: { status?: string; date?: string; limit?: number } = {}
+): Promise<UnifiedGame[]> {
+  const supabase = await createClient()
+  
+  let query = supabase
+    .from('games')
+    .select(`
+      *,
+      odds(*),
+      home_team:teams!games_home_team_id_fkey(*),
+      away_team:teams!games_away_team_id_fkey(*)
+    `)
+    .eq('sport', sport)
+  
+  if (options.status) {
+    query = query.eq('status', options.status)
+  }
+  
+  if (options.date) {
+    const start = new Date(options.date)
+    start.setHours(0, 0, 0, 0)
+    const end = new Date(options.date)
+    end.setHours(23, 59, 59, 999)
+    query = query.gte('scheduled_at', start.toISOString()).lte('scheduled_at', end.toISOString())
+  }
+  
+  if (options.limit) {
+    query = query.limit(options.limit)
+  }
+  
+  query = query.order('scheduled_at', { ascending: true })
+  
+  const { data, error } = await query
+  
+  if (error) {
+    console.error('[DataLayer] Error fetching games:', error)
+    return []
+  }
+  
+  // Transform to UnifiedGame format
+  return (data || []).map(dbGameToUnified)
+}
+
+// Convert DB row to UnifiedGame
+function dbGameToUnified(row: Record<string, unknown>): UnifiedGame {
+  const homeTeam = row.home_team as Record<string, unknown> | null
+  const awayTeam = row.away_team as Record<string, unknown> | null
+  const odds = (row.odds as Record<string, unknown>[] | null)?.[0]
+  
+  return {
+    id: row.id as string,
+    sport: row.sport as SportKey,
+    status: row.status as UnifiedGame['status'],
+    scheduledAt: row.scheduled_at as string,
+    homeTeam: {
+      id: homeTeam?.id as string || '',
+      name: homeTeam?.name as string || '',
+      abbreviation: homeTeam?.abbreviation as string || '',
+      logo: homeTeam?.logo_url as string | undefined,
+      color: homeTeam?.primary_color as string | undefined,
+      score: row.home_score as number | undefined,
+    },
+    awayTeam: {
+      id: awayTeam?.id as string || '',
+      name: awayTeam?.name as string || '',
+      abbreviation: awayTeam?.abbreviation as string || '',
+      logo: awayTeam?.logo_url as string | undefined,
+      color: awayTeam?.primary_color as string | undefined,
+      score: row.away_score as number | undefined,
+    },
+    venue: row.venue as string | undefined,
+    broadcast: row.broadcast as string | undefined,
+    odds: odds ? {
+      spread: odds.spread as number,
+      spreadOdds: odds.spread_odds as number,
+      total: odds.total as number,
+      overOdds: odds.over_odds as number,
+      underOdds: odds.under_odds as number,
+      homeML: odds.home_ml as number,
+      awayML: odds.away_ml as number,
+    } : undefined,
+    espnId: row.espn_id as string | undefined,
+    lastUpdated: row.updated_at as string,
+  }
+}
+
+// Get today's games across all sports (for homepage)
+export async function getTodaysGamesAllSports(): Promise<Record<SportKey, UnifiedGame[]>> {
+  const sports: SportKey[] = ['NFL', 'NBA', 'NHL', 'MLB']
+  const results: Partial<Record<SportKey, UnifiedGame[]>> = {}
+  
+  await Promise.all(
+    sports.map(async (sport) => {
+      try {
+        // Try DB first, fallback to live fetch
+        const dbGames = await getGamesFromDB(sport, { 
+          date: new Date().toISOString().split('T')[0],
+          limit: 20 
+        })
+        
+        if (dbGames.length > 0) {
+          results[sport] = dbGames
+        } else {
+          // Fresh fetch from APIs
+          const liveGames = await syncGames(sport)
+          results[sport] = liveGames
+        }
+      } catch (error) {
+        console.error(`[DataLayer] Error fetching ${sport}:`, error)
+        results[sport] = []
+      }
+    })
+  )
+  
+  return results as Record<SportKey, UnifiedGame[]>
+}
+
+// Export sport keys for convenience
+export { ESPN_SPORTS, ODDS_API_SPORTS }
+export type { SportKey, OddsSportKey }
