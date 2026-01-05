@@ -19,7 +19,16 @@ import {
   LineChart,
   PieChart,
   Star,
-  Shield
+  Shield,
+  Activity,
+  Flame,
+  Globe,
+  Bitcoin,
+  DollarSign,
+  Vote,
+  Tv,
+  Cpu,
+  Newspaper
 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 
@@ -100,7 +109,64 @@ const toolsNav = [
   { name: 'Alerts', href: '/alerts', icon: Bell, desc: 'Line moves & sharp action' },
   { name: 'Trends', href: '/trends', icon: TrendingUp, desc: 'Betting systems & angles' },
   { name: 'Analytics', href: '/analytics', icon: LineChart, desc: 'Advanced metrics' },
-  { name: 'Markets', href: '/markets', icon: Star, desc: 'Polymarket & prediction' },
+]
+
+// Markets Navigation - Major section
+const marketsNav = [
+  { 
+    name: 'All Markets', 
+    href: '/markets', 
+    icon: Globe,
+    emoji: '🎯',
+    color: 'from-purple-600 to-pink-600',
+    desc: 'Browse all prediction markets'
+  },
+  { 
+    name: 'Politics', 
+    href: '/markets/politics', 
+    icon: Vote,
+    emoji: '🗳️',
+    color: 'from-red-600 to-red-800',
+    desc: 'Elections, policy & government'
+  },
+  { 
+    name: 'Crypto', 
+    href: '/markets/crypto', 
+    icon: Bitcoin,
+    emoji: '₿',
+    color: 'from-orange-500 to-yellow-500',
+    desc: 'Bitcoin, ETH & crypto prices'
+  },
+  { 
+    name: 'Entertainment', 
+    href: '/markets/entertainment', 
+    icon: Tv,
+    emoji: '🎬',
+    color: 'from-pink-500 to-purple-500',
+    desc: 'Movies, TV & pop culture'
+  },
+  { 
+    name: 'Tech & AI', 
+    href: '/markets/tech', 
+    icon: Cpu,
+    emoji: '🤖',
+    color: 'from-cyan-500 to-blue-500',
+    desc: 'Tech companies & AI predictions'
+  },
+  { 
+    name: 'Economics', 
+    href: '/markets/economics', 
+    icon: DollarSign,
+    emoji: '📈',
+    color: 'from-green-500 to-emerald-500',
+    desc: 'Interest rates, GDP & markets'
+  },
+]
+
+const marketsTools = [
+  { name: 'Hot Markets', href: '/markets/trending', icon: Flame, desc: 'Biggest movers today' },
+  { name: 'Analytics', href: '/markets/analytics', icon: BarChart3, desc: 'Volume & liquidity analysis' },
+  { name: 'News & Events', href: '/markets/news', icon: Newspaper, desc: 'Market-moving events' },
 ]
 
 export function Navbar() {
@@ -205,6 +271,84 @@ export function Navbar() {
               )}
             </div>
 
+            {/* Markets Dropdown - Major Section */}
+            <div 
+              className="relative"
+              onMouseEnter={() => handleMouseEnter('markets')}
+              onMouseLeave={handleMouseLeave}
+            >
+              <button
+                className={cn(
+                  'flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all',
+                  activeDropdown === 'markets' 
+                    ? 'bg-purple-500/20 text-purple-300' 
+                    : 'text-gray-300 hover:text-white hover:bg-white/5'
+                )}
+              >
+                <Star className="w-4 h-4 text-purple-400" />
+                Markets <ChevronDown className={cn('w-4 h-4 transition-transform', activeDropdown === 'markets' && 'rotate-180')} />
+              </button>
+              {activeDropdown === 'markets' && (
+                <div 
+                  className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[580px] p-5 rounded-2xl bg-[#0c0c14]/98 backdrop-blur-xl border border-purple-500/20 shadow-2xl"
+                  onMouseEnter={() => handleMouseEnter('markets')}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  {/* Header */}
+                  <div className="flex items-center gap-2 mb-4 pb-3 border-b border-white/10">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                      <Globe className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-white">Prediction Markets</div>
+                      <div className="text-xs text-gray-500">Polymarket & Kalshi data</div>
+                    </div>
+                    <Link 
+                      href="/markets"
+                      onClick={() => setActiveDropdown(null)}
+                      className="ml-auto px-3 py-1.5 rounded-lg bg-purple-500/20 text-purple-300 text-xs font-semibold hover:bg-purple-500/30 transition-all"
+                    >
+                      View All →
+                    </Link>
+                  </div>
+                  
+                  {/* Categories Grid */}
+                  <div className="grid grid-cols-3 gap-3 mb-4">
+                    {marketsNav.slice(1).map((market) => (
+                      <Link 
+                        key={market.href}
+                        href={market.href}
+                        onClick={() => setActiveDropdown(null)}
+                        className={cn(
+                          'flex items-center gap-2 px-3 py-2.5 rounded-xl font-semibold text-white transition-all hover:scale-[1.02]',
+                          'bg-gradient-to-r',
+                          market.color
+                        )}
+                      >
+                        <span className="text-lg">{market.emoji}</span>
+                        <span className="text-sm">{market.name}</span>
+                      </Link>
+                    ))}
+                  </div>
+                  
+                  {/* Tools */}
+                  <div className="grid grid-cols-3 gap-2 pt-3 border-t border-white/10">
+                    {marketsTools.map((tool) => (
+                      <Link 
+                        key={tool.href}
+                        href={tool.href}
+                        onClick={() => setActiveDropdown(null)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+                      >
+                        <tool.icon className="w-4 h-4 text-purple-400" />
+                        {tool.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Tools Dropdown */}
             <div 
               className="relative"
@@ -248,6 +392,19 @@ export function Navbar() {
             </div>
 
             {/* Direct Links */}
+            <Link 
+              href="/scores" 
+              className={cn(
+                'flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all',
+                pathname === '/scores' 
+                  ? 'bg-green-500/20 text-green-400' 
+                  : 'text-gray-300 hover:text-white hover:bg-white/5'
+              )}
+            >
+              <Activity className="w-4 h-4" />
+              Scores
+            </Link>
+
             <Link 
               href="/leaderboard" 
               className={cn(
@@ -341,6 +498,50 @@ export function Navbar() {
                     <span className="text-xs font-bold text-white">{sport.name}</span>
                   </Link>
                 ))}
+              </div>
+            </div>
+
+            {/* Prediction Markets */}
+            <div>
+              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Prediction Markets</div>
+              <div className="grid grid-cols-3 gap-3">
+                {marketsNav.slice(0, 6).map((market) => (
+                  <Link 
+                    key={market.href} 
+                    href={market.href} 
+                    onClick={() => setMobileMenuOpen(false)} 
+                    className={cn(
+                      'flex flex-col items-center gap-2 py-4 rounded-xl transition-all bg-gradient-to-br',
+                      market.color
+                    )}
+                  >
+                    <span className="text-2xl">{market.emoji}</span>
+                    <span className="text-xs font-bold text-white">{market.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* Quick Links */}
+            <div>
+              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Quick Links</div>
+              <div className="grid grid-cols-2 gap-2">
+                <Link 
+                  href="/scores" 
+                  onClick={() => setMobileMenuOpen(false)} 
+                  className="flex items-center gap-3 p-4 rounded-xl bg-green-500/10 border border-green-500/20 hover:bg-green-500/20 transition-all"
+                >
+                  <Activity className="w-5 h-5 text-green-400" />
+                  <span className="text-sm font-semibold text-white">Live Scores</span>
+                </Link>
+                <Link 
+                  href="/markets" 
+                  onClick={() => setMobileMenuOpen(false)} 
+                  className="flex items-center gap-3 p-4 rounded-xl bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20 transition-all"
+                >
+                  <Star className="w-5 h-5 text-purple-400" />
+                  <span className="text-sm font-semibold text-white">All Markets</span>
+                </Link>
               </div>
             </div>
 
