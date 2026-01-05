@@ -127,10 +127,22 @@ export default function Home() {
         <div className="absolute top-20 right-1/4 w-80 h-80 rounded-full opacity-15 blur-3xl pointer-events-none" 
              style={{ background: 'radial-gradient(circle, #00A8FF 0%, transparent 70%)' }} />
         
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 relative z-10">
           <div className="text-center max-w-4xl mx-auto">
+            {/* FREE Banner - Eye Catching */}
+            <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full mb-6 animate-pulse"
+                 style={{ 
+                   background: 'linear-gradient(135deg, rgba(0,255,136,0.2), rgba(0,200,100,0.1))', 
+                   border: '2px solid rgba(0,255,136,0.5)',
+                   boxShadow: '0 0 30px rgba(0,255,136,0.3)'
+                 }}>
+              <span style={{ fontSize: '1.25rem' }}>🎉</span>
+              <span style={{ color: '#00FF88', fontSize: '1rem', fontWeight: 800, letterSpacing: '0.05em' }}>100% FREE — NO SIGN UP REQUIRED</span>
+              <span style={{ fontSize: '1.25rem' }}>🎉</span>
+            </div>
+            
             {/* AI Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 ml-3"
                  style={{ background: 'linear-gradient(135deg, rgba(255,107,0,0.15), rgba(0,168,255,0.15))', border: '1px solid rgba(255,107,0,0.3)' }}>
               <Zap style={{ color: '#FF6B00', width: '16px', height: '16px' }} />
               <span style={{ color: '#FF6B00', fontSize: '0.875rem', fontWeight: 600 }}>AI-Powered Analysis</span>
@@ -146,32 +158,59 @@ export default function Home() {
               }}>Edge</span>
             </h1>
             
-            <p className="text-xl mb-10" style={{ color: '#A0A0B0', maxWidth: '600px', margin: '0 auto 2.5rem' }}>
+            <p className="text-xl mb-8" style={{ color: '#A0A0B0', maxWidth: '600px', margin: '0 auto 2rem' }}>
               Real-time matchup analysis, betting trends, and AI picks.
               Make smarter decisions with data.
             </p>
+
+            {/* Value Props */}
+            <div className="flex flex-wrap justify-center gap-6 mb-10 text-sm" style={{ color: '#808090' }}>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full" style={{ background: '#00FF88' }}></div>
+                <span>Free Forever</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full" style={{ background: '#00A8FF' }}></div>
+                <span>No Account Needed</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full" style={{ background: '#FF6B00' }}></div>
+                <span>Updated in Real-Time</span>
+              </div>
+            </div>
             
+            {/* CTA Buttons - More Prominent */}
             <div className="flex flex-wrap justify-center gap-4 mb-12">
-              <Link href="/nfl"
+              <Link href="/sus"
                     className="inline-flex items-center gap-3 px-8 py-4 rounded-xl font-bold text-lg transition-all hover:scale-105"
                     style={{ 
-                      background: 'linear-gradient(135deg, #FF6B00, #FF8534)', 
-                      color: '#000',
-                      boxShadow: '0 0 30px rgba(255,107,0,0.4)'
+                      background: 'linear-gradient(135deg, #FF3366, #FF6B00)', 
+                      color: '#FFF',
+                      boxShadow: '0 0 40px rgba(255,51,102,0.5)'
                     }}>
-                <span style={{ fontSize: '1.5rem' }}>🏈</span>
-                NFL Wild Card
+                <AlertCircle style={{ width: '22px', height: '22px' }} />
+                View Sus Plays
                 <ArrowRight style={{ width: '20px', height: '20px' }} />
               </Link>
-              <Link href="/markets"
+              <Link href="/leaderboard"
+                    className="inline-flex items-center gap-3 px-8 py-4 rounded-xl font-bold text-lg transition-all hover:scale-105"
+                    style={{ 
+                      background: 'linear-gradient(135deg, #FFD700, #FF8C00)', 
+                      color: '#000',
+                      boxShadow: '0 0 30px rgba(255,215,0,0.4)'
+                    }}>
+                <Trophy style={{ width: '20px', height: '20px' }} />
+                Check The Expert
+              </Link>
+              <Link href="/nfl"
                     className="inline-flex items-center gap-3 px-8 py-4 rounded-xl font-bold text-lg transition-all hover:scale-105"
                     style={{ 
                       background: 'rgba(255,255,255,0.05)', 
                       color: '#FFF',
-                      border: '1px solid rgba(255,255,255,0.1)'
+                      border: '1px solid rgba(255,255,255,0.2)'
                     }}>
-                <TrendingUp style={{ width: '20px', height: '20px', color: '#00A8FF' }} />
-                Prediction Markets
+                <span style={{ fontSize: '1.25rem' }}>🏈</span>
+                NFL Playoffs
               </Link>
             </div>
             

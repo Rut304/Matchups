@@ -72,6 +72,7 @@
 ## ✅ RECENTLY COMPLETED (January 4, 2026)
 
 ### Sus Plays Feature ✅ NEW
+
 - [x] **Sus Plays Page** - /sus - Viral content tracking questionable plays
   - Monitor X/Twitter for trending sports videos
   - Players being questioned for throwing games/props
@@ -105,10 +106,24 @@
 
 ### User Features
 
-- [ ] **User Authentication** - Supabase Auth setup
-- [ ] **Pick Tracking** - Users can log their picks
-- [ ] **Leaderboard Backend** - Connect to Supabase cappers/picks tables
-- [ ] **Profile Pages** - Individual capper profiles (/leaderboard/[slug])
+- [x] **User Authentication** - Supabase Auth setup ✅ COMPLETED
+  - Auth context and provider
+  - Login/Signup page with OAuth
+  - Middleware for session refresh
+  - Callback handler for OAuth
+- [x] **Pick Tracking** - Users can log their picks ✅ COMPLETED
+  - /picks page with stats dashboard
+  - Create pick modal
+  - Filter by sport/status
+  - Win rate tracking
+- [x] **Leaderboard Backend** - Connect to Supabase cappers/picks tables ✅ COMPLETED
+  - /api/leaderboard endpoint
+  - /api/cappers/[slug] endpoint
+  - Sport/timeframe filtering
+- [x] **Profile Pages** - Individual capper profiles (/leaderboard/[slug]) ✅ COMPLETED
+  - User profile settings at /profile
+  - Notification preferences
+  - Subscription management UI
 
 ### Research Complete ✅
 
@@ -120,18 +135,73 @@
 
 ---
 
+## ✅ RECENTLY COMPLETED (January 2026)
+
+### Line Shop & Calculators ✅ NEW
+
+- [x] **Line Shop Widget** - /lineshop
+  - Compare odds across 8 sportsbooks
+  - DraftKings, FanDuel, BetMGM, Caesars, etc.
+  - Spread/Total/Moneyline views
+  - Best odds highlighting
+- [x] **Odds Calculator Suite** - /calculators
+  - Parlay calculator (multi-leg)
+  - Hedge calculator (guaranteed profit)
+  - Kelly Criterion (optimal bet sizing)
+  - EV Calculator (expected value)
+  - Odds Converter (American/Decimal/Fractional)
+
+### Weather & Injuries ✅ NEW
+
+- [x] **Weather Widget** - /weather
+  - Outdoor game conditions
+  - Impact assessment (low/medium/high)
+  - Betting tips per game
+- [x] **Injury Tracker** - /injuries
+  - Real-time injury updates
+  - Betting impact ratings (1-5)
+  - Line movement tracking
+  - Star player filtering
+
+### Alerts & Notifications ✅ NEW
+
+- [x] **Live Alerts** - /alerts
+  - Line movement alerts
+  - Sharp action detection
+  - Injury updates
+  - Public money tracking
+  - Severity levels
+
+### Admin Management ✅ NEW
+
+- [x] **Admin Content Management** - /admin/manage
+  - CRUD for cappers
+  - Pick result updates
+  - Sus play moderation
+  - Verification management
+
+### API Routes ✅ NEW
+
+- [x] /api/leaderboard - Capper rankings
+- [x] /api/picks - User picks CRUD
+- [x] /api/cappers/[slug] - Capper profiles
+- [x] /api/injuries - Injury data
+- [x] /api/alerts - Live alerts
+
+---
+
 ## 📋 BACKLOG (P2 - Medium Priority)
 
 ### Phase 1: Core Value (From Research)
 
-- [ ] **Line Shop Widget** - Show best odds across all books
-- [ ] **Odds Calculator Suite** - Parlay, hedge, Kelly, EV calculators
-- [ ] **Injury Tracker** - Real-time with impact ratings
-- [ ] **Weather Widget** - For NFL/MLB outdoor games
+- [x] **Line Shop Widget** - Show best odds across all books ✅ COMPLETED
+- [x] **Odds Calculator Suite** - Parlay, hedge, Kelly, EV calculators ✅ COMPLETED
+- [x] **Injury Tracker** - Real-time with impact ratings ✅ COMPLETED
+- [x] **Weather Widget** - For NFL/MLB outdoor games ✅ COMPLETED
 
 ### Phase 2: Engagement Features
 
-- [ ] **Email Alerts** - Line moves, sharp action, injuries
+- [x] **Email Alerts** - Line moves, sharp action, injuries ✅ (UI Complete, email integration pending)
 - [ ] **Mobile App** - React Native or PWA
 - [ ] **Social Sharing** - Share picks to Twitter/X
 - [ ] **Push Notifications** - Real-time alerts

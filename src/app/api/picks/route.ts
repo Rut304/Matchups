@@ -19,17 +19,18 @@ export async function GET(request: Request) {
         *,
         capper:cappers(
           id,
-          username,
-          display_name,
+          slug,
+          name,
+          avatar_emoji,
           avatar_url,
-          is_verified,
-          is_pro
+          verified,
+          capper_type
         ),
         game:games(
           id,
-          home_team,
-          away_team,
-          game_time,
+          home_team_id,
+          away_team_id,
+          scheduled_at,
           status,
           home_score,
           away_score
@@ -58,35 +59,38 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // Transform picks data
-    const transformedPicks = picks?.map(pick => ({
-      id: pick.id,
-      capper: {
-        id: pick.capper?.id,
-        username: pick.capper?.username,
-        displayName: pick.capper?.display_name,
-        avatar: pick.capper?.avatar_url,
-        isVerified: pick.capper?.is_verified,
-        isPro: pick.capper?.is_pro,
-      },
-      game: pick.game ? {
-        id: pick.game.id,
-        homeTeam: pick.game.home_team,
-        awayTeam: pick.game.away_team,
-        gameTime: pick.game.game_time,
-        status: pick.game.status,
-        score: pick.game.home_score !== null ? `${pick.game.home_score}-${pick.game.away_score}` : null,
-      } : null,
-      sport: pick.sport,
-      pickType: pick.pick_type, // spread, moneyline, total, prop
-      selection: pick.selection,
-      odds: pick.odds,
-      units: pick.units,
-      confidence: pick.confidence,
-      analysis: pick.analysis,
-      result: pick.result, // pending, won, lost, push
-      createdAt: pick.created_at,
-    })) || []
+    // Transform picks data - handle array from join
+    const transformedPicks = picks?.map(pick => {
+      const capper = Array.isArray(pick.capper) ? pick.capper[0] : pick.capper
+      const game = Array.isArray(pick.game) ? pick.game[0] : pick.game
+      return {
+        id: pick.id,
+        capper: capper ? {
+          id: capper.id,
+          slug: capper.slug,
+          name: capper.name,
+          avatarEmoji: capper.avatar_emoji,
+          avatarUrl: capper.avatar_url,
+          verified: capper.verified,
+          capperType: capper.capper_type,
+        } : null,
+        game: game ? {
+          id: game.id,
+          scheduledAt: game.scheduled_at,
+          status: game.status,
+          score: game.home_score !== null ? `${game.home_score}-${game.away_score}` : null,
+        } : null,
+        sport: pick.sport,
+        pickType: pick.bet_type, // spread, moneyline, total, prop
+        selection: pick.pick_description,
+        odds: pick.odds,
+        units: pick.units,
+        confidence: pick.confidence,
+        analysis: pick.analysis,
+        result: pick.result, // pending, won, lost, push
+        createdAt: pick.created_at,
+      }
+    }) || []
 
     return NextResponse.json({
       picks: transformedPicks,

@@ -21,7 +21,9 @@ import {
   Scale,
   Brain,
   Zap,
-  Calendar
+  Calendar,
+  UserCheck,
+  Award
 } from 'lucide-react'
 import { getLeaderboardEntries, capperStats, type LeaderboardEntry } from '@/lib/leaderboard-data'
 import { predictionCappers, analyticsSummary, MarketType } from '@/lib/prediction-market-data'
@@ -125,7 +127,7 @@ export default function LeaderboardPage() {
           {/* Main Title */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-3 mb-3">
-              <Trophy className="w-10 h-10" style={{ color: '#FFD700', filter: 'drop-shadow(0 0 20px rgba(255,215,0,0.5))' }} />
+              <UserCheck className="w-10 h-10" style={{ color: '#FFD700', filter: 'drop-shadow(0 0 20px rgba(255,215,0,0.5))' }} />
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight" 
                   style={{ 
                     background: 'linear-gradient(135deg, #FFD700 0%, #FFF 50%, #FFD700 100%)',
@@ -133,9 +135,9 @@ export default function LeaderboardPage() {
                     WebkitTextFillColor: 'transparent',
                     textShadow: '0 0 60px rgba(255,215,0,0.3)'
                   }}>
-                LEADERBOARD
+                CHECK THE EXPERT
               </h1>
-              <Trophy className="w-10 h-10" style={{ color: '#FFD700', filter: 'drop-shadow(0 0 20px rgba(255,215,0,0.5))' }} />
+              <Award className="w-10 h-10" style={{ color: '#FFD700', filter: 'drop-shadow(0 0 20px rgba(255,215,0,0.5))' }} />
             </div>
             <p className="text-lg sm:text-xl" style={{ color: '#808090' }}>
               Track every pick from ESPN, FOX, TNT & more • <span style={{ color: '#FF4455' }}>Exposed Records</span> • <span style={{ color: '#00FF88' }}>Sharp Analysis</span>
