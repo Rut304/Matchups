@@ -111,7 +111,7 @@ export async function getOdds(
   const url = `${ODDS_API_BASE}/sports/${sportKey}/odds?${params}`
   
   const res = await fetch(url, { 
-    next: { revalidate: 300 }, // Cache for 5 min (save API calls)
+    next: { revalidate: 1800 }, // Cache for 30 min (save API calls on 500/month limit)
     headers: { 'Accept': 'application/json' }
   })
   

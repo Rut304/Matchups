@@ -107,7 +107,7 @@ export async function getScoreboard(sport: SportKey, date?: string): Promise<ESP
     url += `?dates=${date.replace(/-/g, '')}`
   }
   
-  const res = await fetch(url, { next: { revalidate: 60 } }) // Cache for 1 minute
+  const res = await fetch(url, { next: { revalidate: 300 } }) // Cache for 5 minutes
   if (!res.ok) throw new Error(`ESPN API error: ${res.status}`)
   return res.json()
 }
