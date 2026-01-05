@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import {
@@ -10,10 +10,12 @@ import {
   MapPin,
   TrendingUp,
   ChevronRight,
+  ChevronLeft,
   Zap,
   Activity,
   Filter,
-  Calendar
+  Calendar,
+  CalendarDays
 } from 'lucide-react'
 
 interface TeamInfo {
@@ -66,6 +68,47 @@ const statusFilters: { key: StatusFilter; label: string; color: string }[] = [
   { key: 'final', label: 'Final', color: '#888' },
 ]
 
+// Date utilities - All dates in Eastern Time
+function getEasternDate(offsetDays = 0): Date {
+  const now = new Date()
+  const eastern = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }))
+  eastern.setDate(eastern.getDate() + offsetDays)
+  eastern.setHours(0, 0, 0, 0)
+  return eastern
+}
+
+function formatDateString(date: Date): string {
+  return date.toISOString().split('T')[0] // YYYY-MM-DD
+}
+
+function formatDisplayDate(date: Date): string {
+  const today = getEasternDate()
+  const yesterday = getEasternDate(-1)
+  const tomorrow = getEasternDate(1)
+  
+  const dateStr = formatDateString(date)
+  
+  if (dateStr === formatDateString(today)) return 'Today'
+  if (dateStr === formatDateString(yesterday)) return 'Yesterday'
+  if (dateStr === formatDateString(tomorrow)) return 'Tomorrow'
+  
+  return date.toLocaleDateString('en-US', { 
+    weekday: 'short', 
+    month: 'short', 
+    day: 'numeric',
+    year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
+  })
+}
+
+function formatFullDate(date: Date): string {
+  return date.toLocaleDateString('en-US', { 
+    weekday: 'long', 
+    month: 'long', 
+    day: 'numeric',
+    year: 'numeric'
+  })
+}
+
 function GameCard({ game }: { game: GameData }) {
   const isLive = game.status === 'live'
   const isFinal = game.status === 'final'
@@ -74,13 +117,11 @@ function GameCard({ game }: { game: GameData }) {
 
   return (
     <div 
-      className="relative rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.02] group"
-      style={{
-        background: isLive 
-          ? 'linear-gradient(135deg, rgba(0,255,136,0.1) 0%, rgba(0,100,50,0.05) 100%)'
-          : 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
-        border: isLive ? '1px solid rgba(0,255,136,0.3)' : '1px solid rgba(255,255,255,0.06)'
-      }}
+      className={`relative rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.02] group ${
+        isLive 
+          ? 'bg-gradient-to-br from-green-500/10 to-green-700/5 border border-green-500/30'
+          : 'bg-gradient-to-br from-white/3 to-white/1 border border-white/6'
+      }`}
     >
       {/* Live indicator pulse */}
       {isLive && (
@@ -100,11 +141,13 @@ function GameCard({ game }: { game: GameData }) {
           <span className="text-xs font-semibold text-gray-400">{game.sport}</span>
         </div>
         <div 
-          className="px-2.5 py-1 rounded-lg text-xs font-bold"
-          style={{
-            background: isLive ? 'rgba(0,255,136,0.2)' : isFinal ? 'rgba(255,255,255,0.1)' : 'rgba(0,168,255,0.15)',
-            color: isLive ? '#00FF88' : isFinal ? '#888' : '#00A8FF'
-          }}
+          className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
+            isLive 
+              ? 'bg-green-500/20 text-green-400'
+              : isFinal 
+                ? 'bg-white/10 text-gray-400'
+                : 'bg-blue-500/15 text-blue-400'
+          }`}
         >
           {game.statusDisplay}
         </div>
@@ -124,10 +167,7 @@ function GameCard({ game }: { game: GameData }) {
                 className="w-8 h-8 object-contain"
               />
             ) : (
-              <div 
-                className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs text-white"
-                style={{ background: game.away.color || '#333' }}
-              >
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs text-white bg-gray-700">
                 {game.away.abbr.slice(0, 2)}
               </div>
             )}
@@ -162,10 +202,7 @@ function GameCard({ game }: { game: GameData }) {
                 className="w-8 h-8 object-contain"
               />
             ) : (
-              <div 
-                className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs text-white"
-                style={{ background: game.home.color || '#333' }}
-              >
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs text-white bg-gray-700">
                 {game.home.abbr.slice(0, 2)}
               </div>
             )}
@@ -225,14 +262,180 @@ function GameCard({ game }: { game: GameData }) {
   )
 }
 
+// Date Navigation Component
+function DateNavigation({ 
+  selectedDate, 
+  onDateChange,
+  isToday 
+}: { 
+  selectedDate: Date
+  onDateChange: (date: Date) => void
+  isToday: boolean
+}) {
+  const [showCalendar, setShowCalendar] = useState(false)
+  
+  // Quick date buttons
+  const quickDates = useMemo(() => {
+    return [
+      { label: 'Yesterday', date: getEasternDate(-1) },
+      { label: 'Today', date: getEasternDate(0) },
+      { label: 'Tomorrow', date: getEasternDate(1) },
+    ]
+  }, [])
+
+  const goToPreviousDay = () => {
+    const newDate = new Date(selectedDate)
+    newDate.setDate(newDate.getDate() - 1)
+    onDateChange(newDate)
+  }
+
+  const goToNextDay = () => {
+    const newDate = new Date(selectedDate)
+    newDate.setDate(newDate.getDate() + 1)
+    onDateChange(newDate)
+  }
+
+  const handleDateInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const date = new Date(e.target.value + 'T12:00:00')
+    if (!isNaN(date.getTime())) {
+      onDateChange(date)
+      setShowCalendar(false)
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-4 mb-8">
+      {/* Date Display and Navigation */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={goToPreviousDay}
+            className="p-2 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all"
+            aria-label="Previous day"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          
+          <div className="relative">
+            <button
+              onClick={() => setShowCalendar(!showCalendar)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all min-w-[200px] justify-center"
+            >
+              <CalendarDays className="w-4 h-4 text-orange-500" />
+              <span className="font-semibold">{formatDisplayDate(selectedDate)}</span>
+              {isToday && (
+                <span className="ml-2 px-2 py-0.5 rounded bg-green-500/20 text-green-400 text-xs font-bold">
+                  LIVE
+                </span>
+              )}
+            </button>
+            
+            {/* Date Picker Dropdown */}
+            {showCalendar && (
+              <div className="absolute top-full mt-2 left-0 z-50 p-4 rounded-2xl bg-gray-900 border border-white/10 shadow-xl min-w-[280px]">
+                <div className="mb-3">
+                  <label htmlFor="date-picker" className="text-xs text-gray-400 block mb-2">Select Date</label>
+                  <input
+                    id="date-picker"
+                    type="date"
+                    title="Select a date"
+                    value={formatDateString(selectedDate)}
+                    onChange={handleDateInput}
+                    className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-orange-500"
+                    max={formatDateString(getEasternDate(7))}
+                  />
+                </div>
+                
+                <div className="text-xs text-gray-500 mb-2">Quick Select</div>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: '2 days ago', offset: -2 },
+                    { label: 'Yesterday', offset: -1 },
+                    { label: 'Today', offset: 0 },
+                    { label: 'Tomorrow', offset: 1 },
+                  ].map((item) => (
+                    <button
+                      key={item.offset}
+                      onClick={() => {
+                        onDateChange(getEasternDate(item.offset))
+                        setShowCalendar(false)
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-white/5 text-gray-300 text-xs hover:bg-white/10 hover:text-white transition-all"
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+                
+                <div className="mt-3 pt-3 border-t border-white/5">
+                  <button
+                    onClick={() => {
+                      onDateChange(getEasternDate())
+                      setShowCalendar(false)
+                    }}
+                    className="w-full px-3 py-2 rounded-lg bg-orange-500/20 text-orange-400 text-sm font-semibold hover:bg-orange-500/30 transition-all"
+                  >
+                    Jump to Today
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <button
+            onClick={goToNextDay}
+            className="p-2 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all"
+            aria-label="Next day"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Quick Date Buttons */}
+        <div className="hidden sm:flex items-center gap-2">
+          {quickDates.map((item) => {
+            const isSelected = formatDateString(selectedDate) === formatDateString(item.date)
+            return (
+              <button
+                key={item.label}
+                onClick={() => onDateChange(item.date)}
+                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                  isSelected
+                    ? 'bg-orange-500 text-white'
+                    : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
+                }`}
+              >
+                {item.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Full Date Display */}
+      <div className="text-center">
+        <p className="text-gray-400 text-sm">
+          {formatFullDate(selectedDate)}
+          <span className="text-gray-600 ml-2">• Eastern Time</span>
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export default function ScoresPage() {
   const [games, setGames] = useState<GameData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [sportFilter, setSportFilter] = useState<SportFilter>('ALL')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [selectedDate, setSelectedDate] = useState<Date>(getEasternDate())
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
+
+  const isToday = useMemo(() => {
+    return formatDateString(selectedDate) === formatDateString(getEasternDate())
+  }, [selectedDate])
 
   const fetchScores = useCallback(async (showRefreshIndicator = false) => {
     if (showRefreshIndicator) setIsRefreshing(true)
@@ -241,6 +444,7 @@ export default function ScoresPage() {
       const params = new URLSearchParams()
       if (sportFilter !== 'ALL') params.set('sport', sportFilter)
       if (statusFilter !== 'all') params.set('status', statusFilter)
+      params.set('date', formatDateString(selectedDate))
       
       const res = await fetch(`/api/scores?${params}`)
       const data = await res.json()
@@ -259,31 +463,44 @@ export default function ScoresPage() {
       setLoading(false)
       setIsRefreshing(false)
     }
-  }, [sportFilter, statusFilter])
+  }, [sportFilter, statusFilter, selectedDate])
 
   useEffect(() => {
     fetchScores()
     
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(() => fetchScores(), 30000)
-    return () => clearInterval(interval)
-  }, [fetchScores])
+    // Auto-refresh every 30 seconds only for today
+    if (isToday) {
+      const interval = setInterval(() => fetchScores(), 30000)
+      return () => clearInterval(interval)
+    }
+  }, [fetchScores, isToday])
+
+  const handleDateChange = (newDate: Date) => {
+    setSelectedDate(newDate)
+    setLoading(true)
+    // Reset status filter when viewing historical dates
+    if (formatDateString(newDate) !== formatDateString(getEasternDate())) {
+      setStatusFilter('all')
+    }
+  }
 
   const liveCount = games.filter(g => g.status === 'live').length
   const scheduledCount = games.filter(g => g.status === 'scheduled').length
   const finalCount = games.filter(g => g.status === 'final').length
 
   return (
-    <div className="min-h-screen pt-20 pb-12" style={{ background: '#050508' }}>
+    <div className="min-h-screen pt-20 pb-12 bg-[#050508]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
             <h1 className="text-3xl sm:text-4xl font-black text-white flex items-center gap-3">
               <Activity className="w-8 h-8 text-orange-500" />
               Scores & Matchups
             </h1>
-            <p className="text-gray-400 mt-1">Live scores from across all sports</p>
+            <p className="text-gray-400 mt-1">
+              {isToday ? 'Live scores from across all sports' : 'Historical and scheduled games'}
+            </p>
           </div>
           
           <div className="flex items-center gap-3">
@@ -303,15 +520,22 @@ export default function ScoresPage() {
           </div>
         </div>
 
+        {/* Date Navigation */}
+        <DateNavigation 
+          selectedDate={selectedDate}
+          onDateChange={handleDateChange}
+          isToday={isToday}
+        />
+
         {/* Stats Banner */}
         <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/20">
-            <div className="text-3xl font-black text-green-400">{liveCount}</div>
+          <div className={`p-4 rounded-2xl border ${liveCount > 0 ? 'bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20' : 'bg-gradient-to-br from-gray-500/10 to-gray-600/5 border-gray-500/10'}`}>
+            <div className={`text-3xl font-black ${liveCount > 0 ? 'text-green-400' : 'text-gray-600'}`}>{liveCount}</div>
             <div className="text-sm text-gray-400">Live Now</div>
           </div>
           <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/20">
             <div className="text-3xl font-black text-blue-400">{scheduledCount}</div>
-            <div className="text-sm text-gray-400">Upcoming</div>
+            <div className="text-sm text-gray-400">{isToday ? 'Upcoming' : 'Scheduled'}</div>
           </div>
           <div className="p-4 rounded-2xl bg-gradient-to-br from-gray-500/10 to-gray-600/5 border border-gray-500/20">
             <div className="text-3xl font-black text-gray-400">{finalCount}</div>
@@ -342,20 +566,26 @@ export default function ScoresPage() {
 
           {/* Status Filter */}
           <div className="flex gap-2 sm:ml-auto">
-            {statusFilters.map((filter) => (
-              <button
-                key={filter.key}
-                onClick={() => setStatusFilter(filter.key)}
-                className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-                  statusFilter === filter.key
-                    ? 'bg-white/10 text-white'
-                    : 'bg-white/5 text-gray-500 hover:bg-white/10 hover:text-white'
-                }`}
-                style={statusFilter === filter.key ? { borderBottom: `2px solid ${filter.color}` } : {}}
-              >
-                {filter.label}
-              </button>
-            ))}
+            {statusFilters.map((filter) => {
+              // Hide "Live Now" for historical dates
+              if (filter.key === 'live' && !isToday) return null
+              return (
+                <button
+                  key={filter.key}
+                  onClick={() => setStatusFilter(filter.key)}
+                  className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                    statusFilter === filter.key
+                      ? `bg-white/10 text-white border-b-2 ${
+                          filter.key === 'live' ? 'border-green-400' : 
+                          filter.key === 'scheduled' ? 'border-blue-400' : 'border-gray-400'
+                        }`
+                      : 'bg-white/5 text-gray-500 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  {filter.label}
+                </button>
+              )
+            })}
           </div>
         </div>
 
@@ -386,10 +616,18 @@ export default function ScoresPage() {
             <div className="text-6xl mb-4">🎮</div>
             <div className="text-xl font-bold text-white mb-2">No games found</div>
             <div className="text-gray-500">
-              {statusFilter === 'live' 
+              {isToday && statusFilter === 'live' 
                 ? 'No games are currently live. Check back soon!'
-                : 'No games match your current filters.'}
+                : `No games scheduled for ${formatDisplayDate(selectedDate)}`}
             </div>
+            {!isToday && (
+              <button
+                onClick={() => handleDateChange(getEasternDate())}
+                className="mt-4 px-6 py-3 rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 transition-all"
+              >
+                View Today&apos;s Games
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

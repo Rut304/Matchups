@@ -1,6 +1,7 @@
 /**
  * Live Scores API
  * Fetches real-time scores from ESPN for all sports
+ * Supports historical dates and future schedules
  */
 
 import { NextResponse } from 'next/server'
@@ -53,6 +54,15 @@ const sportEmojis: Record<string, string> = {
   MLB: '⚾',
   NCAAF: '🏈',
   NCAAB: '🏀'
+}
+
+// Get current date in Eastern Time
+function getEasternDate(offsetDays = 0): string {
+  const now = new Date()
+  // Convert to Eastern Time
+  const eastern = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }))
+  eastern.setDate(eastern.getDate() + offsetDays)
+  return eastern.toISOString().split('T')[0] // YYYY-MM-DD
 }
 
 function parseGame(game: ESPNGame, sport: string): GameData {
@@ -131,6 +141,9 @@ export async function GET(request: Request) {
   const date = searchParams.get('date') // Format: YYYY-MM-DD
   const status = searchParams.get('status') // 'live', 'scheduled', 'final', 'all'
   
+  // Default to today in Eastern Time if no date specified
+  const targetDate = date || getEasternDate()
+  
   try {
     const allGames: GameData[] = []
     
@@ -143,7 +156,7 @@ export async function GET(request: Request) {
     const results = await Promise.allSettled(
       sportsToFetch.map(async (s) => {
         try {
-          const scoreboard = await getScoreboard(s, date || undefined)
+          const scoreboard = await getScoreboard(s, targetDate)
           return scoreboard.events.map(game => parseGame(game, s))
         } catch (error) {
           console.error(`Error fetching ${s} scoreboard:`, error)
@@ -175,8 +188,12 @@ export async function GET(request: Request) {
     return NextResponse.json({
       success: true,
       timestamp: new Date().toISOString(),
+      date: targetDate,
+      timezone: 'America/New_York',
       count: filteredGames.length,
       liveCount: filteredGames.filter(g => g.status === 'live').length,
+      finalCount: filteredGames.filter(g => g.status === 'final').length,
+      scheduledCount: filteredGames.filter(g => g.status === 'scheduled').length,
       games: filteredGames
     })
     
