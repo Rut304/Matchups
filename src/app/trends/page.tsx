@@ -146,7 +146,8 @@ function TrendsContent() {
           <div className="lg:col-span-3">
             <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-3">
               {filteredTrends.map((trend) => (
-                <div key={trend.id} className="rounded-xl overflow-hidden transition-all hover:scale-[1.02] cursor-pointer"
+                <Link key={trend.id} href={`/trends/${trend.id}`}
+                      className="rounded-xl overflow-hidden transition-all hover:scale-[1.02] cursor-pointer group"
                      style={{ 
                        background: '#0c0c14',
                        border: trend.isHot ? '1px solid rgba(0,255,136,0.3)' : '1px solid rgba(255,255,255,0.06)'
@@ -206,8 +207,14 @@ function TrendsContent() {
                              }} />
                       </div>
                     </div>
+                    
+                    {/* View Details Link */}
+                    <div className="mt-2 flex items-center justify-end gap-1 text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity"
+                         style={{ color: '#FF6B00' }}>
+                      View Results <ChevronRight size={10} />
+                    </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
             

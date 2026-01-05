@@ -165,7 +165,8 @@ const marketsNav = [
 
 const marketsTools = [
   { name: 'Hot Markets', href: '/markets/trending', icon: Flame, desc: 'Biggest movers today' },
-  { name: 'Analytics', href: '/markets/analytics', icon: BarChart3, desc: 'Volume & liquidity analysis' },
+  { name: 'The Edge', href: '/markets/edge', icon: Target, desc: 'AI-powered edges & alerts' },
+  { name: 'Insights', href: '/markets/insights', icon: BarChart3, desc: 'Research-backed analytics' },
   { name: 'News & Events', href: '/markets/news', icon: Newspaper, desc: 'Market-moving events' },
 ]
 
@@ -405,39 +406,37 @@ export function Navbar() {
               Scores
             </Link>
 
+            {/* Check The Expert - Gold Button in Nav */}
             <Link 
               href="/leaderboard" 
-              className={cn(
-                'px-4 py-2 rounded-lg text-sm font-semibold transition-all',
-                pathname === '/leaderboard' 
-                  ? 'bg-white/10 text-white' 
-                  : 'text-gray-300 hover:text-white hover:bg-white/5'
-              )}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold hover:scale-105 transition-all"
+              style={{ background: 'linear-gradient(135deg, #FFD700, #FF8C00)', color: '#000' }}
             >
-              Experts
+              <Trophy className="w-4 h-4" />
+              <span>Experts</span>
             </Link>
           </div>
 
           {/* Right side CTAs */}
           <div className="flex items-center gap-3">
-            {/* Sus Plays - Primary CTA */}
+            {/* The Edge - Primary CTA */}
+            <Link 
+              href="/markets/edge" 
+              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white hover:scale-105 transition-all shadow-lg shadow-purple-500/20"
+              style={{ background: 'linear-gradient(135deg, #9B59B6, #6B46C1)' }}
+            >
+              <Target className="w-4 h-4" />
+              <span>The Edge</span>
+            </Link>
+
+            {/* Sus Plays - Secondary CTA */}
             <Link 
               href="/sus" 
-              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white hover:scale-105 transition-all shadow-lg shadow-red-500/20"
+              className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white hover:scale-105 transition-all shadow-lg shadow-red-500/20"
               style={{ background: 'linear-gradient(135deg, #FF3366, #FF6B00)' }}
             >
               <AlertTriangle className="w-4 h-4" />
               <span>Sus Plays</span>
-            </Link>
-
-            {/* Check The Expert - Secondary CTA */}
-            <Link 
-              href="/leaderboard" 
-              className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold hover:scale-105 transition-all shadow-lg shadow-yellow-500/20"
-              style={{ background: 'linear-gradient(135deg, #FFD700, #FF8C00)', color: '#000' }}
-            >
-              <Trophy className="w-4 h-4" />
-              <span>Check The Expert</span>
             </Link>
 
             {/* Mobile menu button */}

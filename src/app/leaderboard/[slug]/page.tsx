@@ -515,6 +515,77 @@ export default function CapperProfilePage() {
                 ))}
               </div>
             </div>
+            
+            {/* Trust & Verification Section */}
+            <div className="rounded-2xl p-5" style={{ background: '#0c0c14', border: '1px solid rgba(0,168,255,0.2)' }}>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(0,168,255,0.15)' }}>
+                  <Info className="w-4 h-4" style={{ color: '#00A8FF' }} />
+                </div>
+                <div>
+                  <h2 className="font-bold text-lg" style={{ color: '#FFF' }}>Trust & Verification</h2>
+                  <p className="text-xs" style={{ color: '#808090' }}>How we ensure accuracy</p>
+                </div>
+              </div>
+              
+              <div className="grid sm:grid-cols-2 gap-4 mb-4">
+                {/* Source Verification */}
+                <div className="p-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Tv className="w-4 h-4" style={{ color: '#FF6B00' }} />
+                    <span className="font-bold text-sm" style={{ color: '#FFF' }}>Source Tracking</span>
+                  </div>
+                  <p className="text-xs mb-2" style={{ color: '#A0A0B0' }}>
+                    Every pick is recorded with its original source (TV broadcast, podcast, Twitter, etc.) and timestamp.
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs px-2 py-1 rounded" style={{ background: 'rgba(255,107,0,0.15)', color: '#FF6B00' }}>📺 TV</span>
+                    <span className="text-xs px-2 py-1 rounded" style={{ background: 'rgba(138,43,226,0.15)', color: '#9B59B6' }}>🎙️ Podcast</span>
+                    <span className="text-xs px-2 py-1 rounded" style={{ background: 'rgba(29,161,242,0.15)', color: '#1DA1F2' }}>𝕏 Twitter</span>
+                  </div>
+                </div>
+                
+                {/* Timestamping */}
+                <div className="p-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock className="w-4 h-4" style={{ color: '#00FF88' }} />
+                    <span className="font-bold text-sm" style={{ color: '#FFF' }}>Pre-Game Locks</span>
+                  </div>
+                  <p className="text-xs" style={{ color: '#A0A0B0' }}>
+                    Picks must be recorded BEFORE game start. Post-game entries are flagged and rejected. All timestamps are verified against game schedules.
+                  </p>
+                </div>
+                
+                {/* Public Record */}
+                <div className="p-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <ExternalLink className="w-4 h-4" style={{ color: '#9B59B6' }} />
+                    <span className="font-bold text-sm" style={{ color: '#FFF' }}>Verifiable Sources</span>
+                  </div>
+                  <p className="text-xs" style={{ color: '#A0A0B0' }}>
+                    Where available, we link to original broadcasts, clips, or posts. Users can verify picks against primary sources.
+                  </p>
+                </div>
+                
+                {/* Methodology */}
+                <div className="p-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <BarChart3 className="w-4 h-4" style={{ color: '#FFD700' }} />
+                    <span className="font-bold text-sm" style={{ color: '#FFF' }}>Consistent Grading</span>
+                  </div>
+                  <p className="text-xs" style={{ color: '#A0A0B0' }}>
+                    All picks graded by closing line. Pushes excluded from win%. Standard -110 juice assumed unless specified.
+                  </p>
+                </div>
+              </div>
+              
+              {/* Disclaimer */}
+              <div className="p-3 rounded-lg" style={{ background: 'rgba(255,215,0,0.1)', border: '1px solid rgba(255,215,0,0.2)' }}>
+                <p className="text-xs" style={{ color: '#FFD700' }}>
+                  ⚠️ <strong>Transparency Note:</strong> Some celebrity picks are collected from public broadcasts where the exact spread/line at time of pick may differ from closing line. We always note when line at pick is estimated vs. verified. Want to report an error? <Link href="/admin/docs" className="underline">Contact us</Link>.
+                </p>
+              </div>
+            </div>
           </>
         )}
         
