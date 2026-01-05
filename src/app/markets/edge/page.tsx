@@ -539,9 +539,13 @@ export default function EdgePage() {
               <p className="text-sm text-gray-400 mb-4">
                 Get instant notifications for high-confidence edge signals (75%+ confidence only).
               </p>
-              <button className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold text-sm hover:scale-[1.02] transition-transform">
-                Enable Alerts (Coming Soon)
-              </button>
+              <Link 
+                href="/markets/edge/alerts"
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold text-sm hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
+              >
+                <Bell className="w-4 h-4" />
+                Configure Alerts
+              </Link>
             </div>
           </div>
         </div>
