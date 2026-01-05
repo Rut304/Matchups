@@ -406,14 +406,14 @@ export function Navbar() {
               Scores
             </Link>
 
-            {/* Check The Expert - Gold Button in Nav */}
+            {/* Expert Tracker - Gold Button in Nav */}
             <Link 
               href="/leaderboard" 
               className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold hover:scale-105 transition-all"
               style={{ background: 'linear-gradient(135deg, #FFD700, #FF8C00)', color: '#000' }}
             >
               <Trophy className="w-4 h-4" />
-              <span>Experts</span>
+              <span>Check the "Experts"</span>
             </Link>
           </div>
 
@@ -475,7 +475,7 @@ export function Navbar() {
                 className="flex items-center justify-center gap-2 py-4 rounded-xl font-bold shadow-lg"
                 style={{ background: 'linear-gradient(135deg, #FFD700, #FF8C00)', color: '#000' }}
               >
-                <Trophy className="w-5 h-5" /> Experts
+                <Trophy className="w-5 h-5" /> Expert Tracker
               </Link>
             </div>
 

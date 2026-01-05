@@ -127,7 +127,7 @@ export default function LeaderboardPage() {
           {/* Main Title */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-3 mb-3">
-              <UserCheck className="w-10 h-10" style={{ color: '#FFD700', filter: 'drop-shadow(0 0 20px rgba(255,215,0,0.5))' }} />
+              <span className="text-4xl">🧾</span>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight" 
                   style={{ 
                     background: 'linear-gradient(135deg, #FFD700 0%, #FFF 50%, #FFD700 100%)',
@@ -135,12 +135,15 @@ export default function LeaderboardPage() {
                     WebkitTextFillColor: 'transparent',
                     textShadow: '0 0 60px rgba(255,215,0,0.3)'
                   }}>
-                CHECK THE EXPERT
+                EXPERT TRACKER
               </h1>
-              <Award className="w-10 h-10" style={{ color: '#FFD700', filter: 'drop-shadow(0 0 20px rgba(255,215,0,0.5))' }} />
+              <span className="text-4xl">🔍</span>
             </div>
             <p className="text-lg sm:text-xl" style={{ color: '#808090' }}>
-              Track every pick from ESPN, FOX, TNT & more • <span style={{ color: '#FF4455' }}>Exposed Records</span> • <span style={{ color: '#00FF88' }}>Sharp Analysis</span>
+              The so-called &quot;experts&quot; don&apos;t want you to see this • <span style={{ color: '#FF4455' }}>Receipts Exposed</span> • <span style={{ color: '#00FF88' }}>No More Hiding</span>
+            </p>
+            <p className="text-sm mt-2" style={{ color: '#606070' }}>
+              Every pick from ESPN, FOX, TNT & more — tracked and verified
             </p>
           </div>
           

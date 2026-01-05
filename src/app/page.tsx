@@ -154,8 +154,8 @@ export default function Home() {
               </div>
               <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                 <Trophy className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
-                <div className="font-bold text-white text-sm mb-1">Expert Leaderboard</div>
-                <p className="text-xs text-gray-500">Track verified picks from top analysts and celebrities</p>
+                <div className="font-bold text-white text-sm mb-1">Expert Tracker</div>
+                <p className="text-xs text-gray-500">See how the "experts" actually perform — receipts included</p>
               </div>
             </div>
             
@@ -169,7 +169,7 @@ export default function Home() {
               <Link href="/leaderboard"
                     className="inline-flex items-center gap-3 px-8 py-4 rounded-xl font-bold text-lg transition-all hover:scale-105 bg-gradient-to-r from-yellow-500 to-orange-500 text-black shadow-[0_0_30px_rgba(255,215,0,0.4)]">
                 <Trophy className="w-5 h-5" />
-                Expert Picks Leaderboard
+                Expert Tracker 🧾
               </Link>
             </div>
             
@@ -294,8 +294,8 @@ export default function Home() {
                 <Trophy style={{ color: '#FFD700', width: '24px', height: '24px' }} />
               </div>
               <div>
-                <h2 className="text-xl font-bold" style={{ color: '#FFF' }}>Top Cappers Leaderboard</h2>
-                <p className="text-xs" style={{ color: '#808090' }}>Track the best handicappers • January 2026</p>
+                <h2 className="text-xl font-bold" style={{ color: '#FFF' }}>Expert Tracker</h2>
+                <p className="text-xs" style={{ color: '#808090' }}>How the "experts" are actually doing • Receipts don't lie</p>
               </div>
             </div>
             <Link href="/leaderboard" className="flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all hover:scale-105"
@@ -374,9 +374,9 @@ export default function Home() {
           
           {/* CTA to join */}
           <div className="mt-6 pt-4 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-            <span className="text-sm" style={{ color: '#808090' }}>Track your picks and compete for the top spot</span>
+            <span className="text-sm" style={{ color: '#808090' }}>No more hiding — every pick is tracked</span>
             <Link href="/leaderboard" className="text-sm font-bold" style={{ color: '#FFD700' }}>
-              Start Tracking Your Picks →
+              Check the Receipts →
             </Link>
           </div>
         </div>

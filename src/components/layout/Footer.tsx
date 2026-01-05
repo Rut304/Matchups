@@ -34,7 +34,7 @@ export function Footer() {
               {[
                 { label: '📈 Markets', href: '/markets' },
                 { label: '📊 Trends', href: '/trends' },
-                { label: '🏆 Leaderboard', href: '/leaderboard' },
+                { label: '🧾 Expert Tracker', href: '/leaderboard' },
               ].map((link) => (
                 <Link key={link.href} href={link.href}
                       className="block text-sm transition-colors hover:text-white"
