@@ -32,7 +32,9 @@ import {
   TrendingUp as Trending,
   Info,
   LineChart,
-  Percent
+  Percent,
+  Tv,
+  Shield
 } from 'lucide-react'
 import { 
   getCapperBySlug, 
