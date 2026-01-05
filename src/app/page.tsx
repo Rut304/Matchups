@@ -178,8 +178,8 @@ export default function Home() {
               <Link href="/sus"
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all hover:scale-105 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20">
                 <AlertCircle className="w-4 h-4" />
-                Sus Plays
-                <span className="text-xs text-red-400/70 hidden sm:inline">— Experts fading the public</span>
+                Suspected Plays
+                <span className="text-xs text-red-400/70 hidden sm:inline">— Cover/no-cover plays to watch</span>
               </Link>
               <Link href="/trends"
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all hover:scale-105 bg-green-500/10 border border-green-500/30 text-green-400 hover:bg-green-500/20">

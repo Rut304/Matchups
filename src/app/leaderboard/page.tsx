@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { 
   Trophy, 
   TrendingUp, 
@@ -127,7 +128,13 @@ export default function LeaderboardPage() {
           {/* Main Title */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-3 mb-3">
-              <span className="text-4xl">🧾</span>
+              <Image 
+                src="/wrong-stamp.svg" 
+                alt="Wrong Stamp" 
+                width={80} 
+                height={40}
+                className="opacity-90 -rotate-6"
+              />
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight" 
                   style={{ 
                     background: 'linear-gradient(135deg, #FFD700 0%, #FFF 50%, #FFD700 100%)',

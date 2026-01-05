@@ -244,8 +244,8 @@ export default function SusPlaysPage() {
               <AlertTriangle className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl font-black text-white">Sus Plays</h1>
-              <p style={{ color: '#808090' }} className="text-sm">Questionable decisions that moved the line</p>
+              <h1 className="text-4xl font-black text-white">Suspected Plays</h1>
+              <p style={{ color: '#808090' }} className="text-sm">Plays that just barely covered (or didn&apos;t) the line or prop</p>
             </div>
           </div>
           
