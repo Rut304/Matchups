@@ -28,9 +28,13 @@ import {
   Vote,
   Tv,
   Cpu,
-  Newspaper
+  Newspaper,
+  User,
+  LogOut,
+  LayoutDashboard
 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
+import { useAuth } from '@/lib/auth-context'
 
 // Sports organized by category for cleaner navigation
 const proSportsNav = [
@@ -207,6 +211,7 @@ export function Navbar() {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const { user, loading: authLoading, signOut } = useAuth()
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -516,6 +521,70 @@ export function Navbar() {
               <span>Sus Plays</span>
             </Link>
 
+            {/* User Auth Section */}
+            {!authLoading && (
+              user ? (
+                <div 
+                  className="relative hidden lg:block"
+                  onMouseEnter={() => handleMouseEnter('user')}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  <button
+                    title="User menu"
+                    className={cn(
+                      'flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold transition-all',
+                      activeDropdown === 'user' 
+                        ? 'bg-green-500/20 text-green-400' 
+                        : 'text-gray-300 hover:text-white hover:bg-white/5'
+                    )}
+                  >
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
+                      <User className="w-4 h-4 text-white" />
+                    </div>
+                    <ChevronDown className={cn('w-4 h-4 transition-transform', activeDropdown === 'user' && 'rotate-180')} />
+                  </button>
+                  {activeDropdown === 'user' && (
+                    <div 
+                      className="absolute top-full right-0 mt-2 w-56 p-2 rounded-xl bg-[#0c0c14]/98 backdrop-blur-xl border border-white/10 shadow-2xl"
+                      onMouseEnter={() => handleMouseEnter('user')}
+                      onMouseLeave={handleMouseLeave}
+                    >
+                      <div className="px-3 py-2 border-b border-white/10 mb-2">
+                        <p className="text-xs text-gray-500">Signed in as</p>
+                        <p className="text-sm font-medium text-white truncate">{user.email}</p>
+                      </div>
+                      <Link 
+                        href="/dashboard" 
+                        onClick={() => setActiveDropdown(null)}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-all text-gray-300 hover:text-white"
+                      >
+                        <LayoutDashboard className="w-4 h-4 text-green-400" />
+                        <span className="text-sm font-medium">Dashboard</span>
+                      </Link>
+                      <button 
+                        onClick={() => {
+                          signOut()
+                          setActiveDropdown(null)
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-500/10 transition-all text-gray-300 hover:text-red-400"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span className="text-sm font-medium">Sign Out</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link 
+                  href="/auth" 
+                  className="hidden lg:flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-white/10 hover:bg-white/20 transition-all"
+                >
+                  <User className="w-4 h-4" />
+                  <span>Sign In</span>
+                </Link>
+              )
+            )}
+
             {/* Mobile menu button */}
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
@@ -637,6 +706,50 @@ export function Navbar() {
                   </Link>
                 ))}
               </div>
+            </div>
+
+            {/* User Account Section - Mobile */}
+            <div>
+              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Account</div>
+              {!authLoading && (
+                user ? (
+                  <div className="space-y-2">
+                    <div className="p-4 rounded-xl bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20">
+                      <p className="text-xs text-gray-500">Signed in as</p>
+                      <p className="text-sm font-medium text-white truncate">{user.email}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Link 
+                        href="/dashboard" 
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-3 p-4 rounded-xl bg-green-500/10 border border-green-500/20 hover:bg-green-500/20 transition-all"
+                      >
+                        <LayoutDashboard className="w-5 h-5 text-green-400" />
+                        <span className="text-sm font-semibold text-white">Dashboard</span>
+                      </Link>
+                      <button 
+                        onClick={() => {
+                          signOut()
+                          setMobileMenuOpen(false)
+                        }}
+                        className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-all"
+                      >
+                        <LogOut className="w-5 h-5 text-red-400" />
+                        <span className="text-sm font-semibold text-white">Sign Out</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <Link 
+                    href="/auth" 
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-center gap-2 p-4 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold shadow-lg"
+                  >
+                    <User className="w-5 h-5" />
+                    <span>Sign In / Sign Up</span>
+                  </Link>
+                )
+              )}
             </div>
           </div>
         </div>
