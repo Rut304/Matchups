@@ -28,6 +28,7 @@ import {
   Search
 } from 'lucide-react'
 import { getNFLTeams, getTeamByAbbreviation, type TeamAnalytics } from '@/lib/analytics-data'
+import { GamesSection } from '@/components/game'
 
 type TimeFrame = 'season' | 'last30' | 'last14' | 'last7'
 type BetType = 'ats' | 'ou' | 'ml'
@@ -128,16 +129,16 @@ export default function NFLAnalyticsPage() {
     return teams
   }, [allTeams, searchQuery, sortBy, sortDir, betType, situation])
   
-  // Get top trends
+  // Get top trends - show more data
   const topATSTeams = [...allTeams].sort((a, b) => 
     calcWinPct(b.ats.overall.wins, b.ats.overall.losses) - calcWinPct(a.ats.overall.wins, a.ats.overall.losses)
-  ).slice(0, 3)
+  ).slice(0, 6) // Show top 6 in quick view
   const topOverTeams = [...allTeams].sort((a, b) => 
     calcOverPct(b.ou.overall.overs, b.ou.overall.unders) - calcOverPct(a.ou.overall.overs, a.ou.overall.unders)
-  ).slice(0, 3)
+  ).slice(0, 6) // Show top 6 in quick view
   const topUnderTeams = [...allTeams].sort((a, b) => 
     calcOverPct(a.ou.overall.overs, a.ou.overall.unders) - calcOverPct(b.ou.overall.overs, b.ou.overall.unders)
-  ).slice(0, 3)
+  ).slice(0, 6) // Show top 6 in quick view
   const hotTeams = allTeams.filter(t => t.isHot)
   const coldTeams = allTeams.filter(t => t.isCold)
 
@@ -167,6 +168,11 @@ export default function NFLAnalyticsPage() {
             <QuickStat label="Hot Streaks" value={`${hotTeams.length}`} subValue="teams" color="#FF6B00" />
           </div>
         </div>
+      </section>
+      
+      {/* Real Games - Live from ESPN */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <GamesSection sport="NFL" title="🏈 Today's NFL Games" />
       </section>
       
       {/* Main Content */}

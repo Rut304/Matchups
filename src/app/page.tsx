@@ -21,6 +21,7 @@ import {
   ExternalLink,
   Info
 } from 'lucide-react'
+import { EdgeDashboardWithFiltersWrapper } from '@/components/edge'
 
 // Today's biggest games - ranked by estimated betting handle
 // In production, this would come from ESPN + Odds API betting percentages
@@ -178,8 +179,8 @@ export default function Home() {
               <Link href="/sus"
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all hover:scale-105 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20">
                 <AlertCircle className="w-4 h-4" />
-                Suspected Plays
-                <span className="text-xs text-red-400/70 hidden sm:inline">— Cover/no-cover plays to watch</span>
+                Suspect Plays
+                <span className="text-xs text-red-400/70 hidden sm:inline">— Who&apos;s his Mizuhara?</span>
               </Link>
               <Link href="/trends"
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all hover:scale-105 bg-green-500/10 border border-green-500/30 text-green-400 hover:bg-green-500/20">
@@ -281,6 +282,9 @@ export default function Home() {
           <span>Handle estimates based on market volume data. Public % from betting consensus.</span>
         </div>
       </section>
+
+      {/* TODAY'S TOP EDGES - AI-Powered Analysis with Filters */}
+      <EdgeDashboardWithFiltersWrapper />
 
       {/* LEADERBOARD - THE VIRAL FEATURE */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

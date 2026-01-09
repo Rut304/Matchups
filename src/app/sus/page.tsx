@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { 
   AlertTriangle,
@@ -22,6 +22,17 @@ import {
   Target,
   Zap
 } from 'lucide-react'
+
+// Load Twitter widgets script
+declare global {
+  interface Window {
+    twttr?: {
+      widgets: {
+        load: (element?: HTMLElement) => void
+      }
+    }
+  }
+}
 
 type Sport = 'all' | 'nfl' | 'nba' | 'nhl' | 'mlb' | 'ncaaf' | 'ncaab'
 type SusType = 'all' | 'prop' | 'spread' | 'moneyline' | 'total'
@@ -52,6 +63,27 @@ interface SusPlay {
 
 // Mock data - In production this would come from Twitter/X API scraping
 const mockSusPlays: SusPlay[] = [
+  {
+    id: '0',
+    sport: 'nfl',
+    playerName: 'Unknown',
+    team: 'N/A',
+    opponent: 'N/A',
+    gameDate: '2025-06-06',
+    description: 'Team didn\'t take the field goal when they been kicking all year long. The fix is on.',
+    susType: 'spread',
+    relatedBet: 'Spread/Total Impact',
+    videoUrl: '#',
+    twitterUrl: 'https://x.com/dyce4pf/status/2007623922582466723',
+    views: 115,
+    susScore: 88,
+    votes: { sus: 94, legit: 12 },
+    comments: 47,
+    trending: true,
+    verified: false,
+    postedAt: 'Recently',
+    source: '@dyce4pf'
+  },
   {
     id: '1',
     sport: 'nba',
@@ -206,6 +238,62 @@ const getSportEmoji = (sport: Sport): string => {
   return emojis[sport]
 }
 
+// Twitter/X Embed Component
+function TwitterEmbed({ tweetUrl }: { tweetUrl: string }) {
+  const [loaded, setLoaded] = useState(false)
+  
+  useEffect(() => {
+    // Load Twitter widgets script
+    const script = document.createElement('script')
+    script.src = 'https://platform.twitter.com/widgets.js'
+    script.async = true
+    script.onload = () => {
+      if (window.twttr) {
+        window.twttr.widgets.load()
+        setLoaded(true)
+      }
+    }
+    document.body.appendChild(script)
+    
+    return () => {
+      // Cleanup if needed
+    }
+  }, [])
+  
+  // Extract tweet ID from URL
+  const getTweetId = (url: string): string | null => {
+    const match = url.match(/status\/(\d+)/)
+    return match ? match[1] : null
+  }
+  
+  const tweetId = getTweetId(tweetUrl)
+  
+  if (!tweetId) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <a href={tweetUrl} target="_blank" rel="noopener noreferrer" 
+           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-all">
+          <Twitter className="w-5 h-5" />
+          View on X
+          <ExternalLink className="w-4 h-4" />
+        </a>
+      </div>
+    )
+  }
+  
+  return (
+    <div className="w-full h-full flex items-center justify-center overflow-hidden">
+      <blockquote 
+        className="twitter-tweet" 
+        data-theme="dark"
+        data-conversation="none"
+      >
+        <a href={tweetUrl}>Loading tweet...</a>
+      </blockquote>
+    </div>
+  )
+}
+
 export default function SusPlaysPage() {
   const [sport, setSport] = useState<Sport>('all')
   const [susType, setSusType] = useState<SusType>('all')
@@ -244,8 +332,8 @@ export default function SusPlaysPage() {
               <AlertTriangle className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl font-black text-white">Suspected Plays</h1>
-              <p style={{ color: '#808090' }} className="text-sm">Plays that just barely covered (or didn&apos;t) the line or prop</p>
+              <h1 className="text-4xl font-black text-white">Suspect Plays</h1>
+              <p style={{ color: '#808090' }} className="text-sm">Who&apos;s his Mizuhara? 🤔</p>
             </div>
           </div>
           
@@ -254,12 +342,32 @@ export default function SusPlaysPage() {
             <div className="flex items-start gap-3">
               <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#FF3366' }} />
               <div>
-                <p className="text-sm font-semibold" style={{ color: '#FF3366' }}>For Entertainment Only</p>
-                <p className="text-xs" style={{ color: '#808090' }}>
-                  These clips highlight unusual plays that coincided with betting lines. We're not accusing anyone of wrongdoing. 
-                  Let the community decide what's sus and what's just bad luck.
+                <p className="text-sm font-semibold" style={{ color: '#FF3366' }}>For Entertainment &amp; Discussion Only</p>
+                <p className="text-xs" style={{ color: '#A0A0B0' }}>
+                  When a play lands exactly on a number that benefits a specific bet, we archive it here. We track the player, the line, 
+                  and the outcome. <strong style={{ color: '#FFF' }}>Does someone close to them have action?</strong> Let the internet decide. 
+                  We&apos;re not accusing anyone — just asking questions and keeping receipts. 🧾
                 </p>
               </div>
+            </div>
+          </div>
+
+          {/* How It Works */}
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="p-3 rounded-xl" style={{ background: 'rgba(0,168,255,0.1)', border: '1px solid rgba(0,168,255,0.2)' }}>
+              <div className="text-lg mb-1">📹</div>
+              <p className="text-xs font-semibold text-white">Video Evidence</p>
+              <p className="text-[10px]" style={{ color: '#808090' }}>Clips embedded from Twitter/X for instant playback</p>
+            </div>
+            <div className="p-3 rounded-xl" style={{ background: 'rgba(255,215,0,0.1)', border: '1px solid rgba(255,215,0,0.2)' }}>
+              <div className="text-lg mb-1">📊</div>
+              <p className="text-xs font-semibold text-white">Line Tracking</p>
+              <p className="text-[10px]" style={{ color: '#808090' }}>We show the exact bet that hit and by how much</p>
+            </div>
+            <div className="p-3 rounded-xl" style={{ background: 'rgba(255,51,102,0.1)', border: '1px solid rgba(255,51,102,0.2)' }}>
+              <div className="text-lg mb-1">🗳️</div>
+              <p className="text-xs font-semibold text-white">Community Voting</p>
+              <p className="text-[10px]" style={{ color: '#808090' }}>Vote SUS or LEGIT and see consensus</p>
             </div>
           </div>
         </div>
@@ -357,14 +465,20 @@ export default function SusPlaysPage() {
                 className="rounded-2xl overflow-hidden transition-all hover:scale-[1.01]"
                 style={{ background: '#12121A', border: play.trending ? '2px solid #FF6B00' : '1px solid rgba(255,255,255,0.06)' }}
               >
-                {/* Video Thumbnail */}
-                <div className="relative aspect-video bg-black/50 flex items-center justify-center cursor-pointer group">
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                  <Play className="w-16 h-16 text-white/80 group-hover:text-white group-hover:scale-110 transition-all" />
+                {/* Video Thumbnail / Twitter Embed */}
+                <div className="relative aspect-video bg-black/50 flex items-center justify-center group">
+                  {play.twitterUrl && play.twitterUrl !== '#' ? (
+                    <TwitterEmbed tweetUrl={play.twitterUrl} />
+                  ) : (
+                    <>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                      <Play className="w-16 h-16 text-white/80 group-hover:text-white group-hover:scale-110 transition-all cursor-pointer" />
+                    </>
+                  )}
                   
                   {/* Trending Badge */}
                   {play.trending && (
-                    <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold"
+                    <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold z-10"
                          style={{ background: '#FF6B00', color: '#000' }}>
                       <Flame className="w-3 h-3" />
                       TRENDING
@@ -372,20 +486,20 @@ export default function SusPlaysPage() {
                   )}
 
                   {/* Sus Score Badge */}
-                  <div className="absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-bold"
+                  <div className="absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-bold z-10"
                        style={{ background: getSusColor(play.susScore), color: '#000' }}>
                     {play.susScore}% SUS
                   </div>
 
                   {/* Views */}
-                  <div className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold"
+                  <div className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold z-10"
                        style={{ background: 'rgba(0,0,0,0.7)', color: '#FFF' }}>
                     <Eye className="w-3 h-3" />
                     {formatViews(play.views)}
                   </div>
 
                   {/* Sport Badge */}
-                  <div className="absolute bottom-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold"
+                  <div className="absolute bottom-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold z-10"
                        style={{ background: 'rgba(0,0,0,0.7)', color: '#FFF' }}>
                     {getSportEmoji(play.sport)} {play.sport.toUpperCase()}
                   </div>

@@ -70,6 +70,73 @@ export interface AIPick {
   confidence: number
 }
 
+// Box Score for completed games
+export interface BoxScoreQuarter {
+  q1: number
+  q2: number
+  q3: number
+  q4: number
+  ot?: number
+  final: number
+}
+
+export interface TopPerformer {
+  player: string
+  team: string
+  position: string
+  stats: string
+  highlight?: string
+}
+
+export interface GameResult {
+  homeScore: number
+  awayScore: number
+  homeQuarters: BoxScoreQuarter
+  awayQuarters: BoxScoreQuarter
+  winner: 'home' | 'away' | 'tie'
+  spreadResult: 'home_cover' | 'away_cover' | 'push'
+  totalResult: 'over' | 'under' | 'push'
+  aiResult?: 'win' | 'loss' | 'push'
+  topPerformers: TopPerformer[]
+  summary?: string
+}
+
+// Team Analytics Summary - pulled from trends/analytics data
+export interface TeamAnalyticsSummary {
+  abbr: string
+  name: string
+  record: string
+  ats: {
+    overall: string
+    home: string
+    away: string
+    asFav: string
+    asUnderdog: string
+    last10: string
+  }
+  ou: {
+    overall: string
+    home: string
+    away: string
+    last10: string
+  }
+  situational: {
+    afterWin: string
+    afterLoss: string
+    divisional: string
+    primetime: string
+  }
+  scoring: {
+    ppg: number
+    oppg: number
+    margin: number
+  }
+  streak: string
+  isHot: boolean
+  isCold: boolean
+  trends: string[]
+}
+
 export interface GameDetail {
   id: string
   sport: string
@@ -78,6 +145,7 @@ export interface GameDetail {
   date: string
   time: string
   isHot: boolean
+  status: 'scheduled' | 'live' | 'final' // Game status
   home: GameTeam
   away: GameTeam
   spread: {
@@ -89,6 +157,10 @@ export interface GameDetail {
     home: number
     away: number
   }
+  // Opening lines - preserved for completed games
+  openingSpread?: { favorite: string; line: number }
+  openingTotal?: number
+  openingMoneyline?: { home: number; away: number }
   aiPick: string
   aiConfidence: number
   aiAnalysis: string
@@ -106,6 +178,11 @@ export interface GameDetail {
   matchup: GameMatchup
   homeTrends: string[]
   awayTrends: string[]
+  // Deep team analytics from trends page
+  homeAnalytics?: TeamAnalyticsSummary
+  awayAnalytics?: TeamAnalyticsSummary
+  // Completed game data
+  result?: GameResult
 }
 
 // Mock game data - Replace with real API calls
@@ -118,6 +195,7 @@ const mockGames: Record<string, GameDetail> = {
     date: 'Sun, Jan 5',
     time: '1:00 PM ET',
     isHot: true,
+    status: 'scheduled',
     home: {
       id: 'det',
       name: 'Lions',
@@ -223,6 +301,7 @@ const mockGames: Record<string, GameDetail> = {
     date: 'Sun, Jan 5',
     time: '4:25 PM ET',
     isHot: true,
+    status: 'scheduled',
     home: {
       id: 'buf',
       name: 'Bills',
@@ -325,6 +404,7 @@ const mockGames: Record<string, GameDetail> = {
     date: 'Sat, Jan 4',
     time: '8:30 PM ET',
     isHot: true,
+    status: 'scheduled',
     home: {
       id: 'lal',
       name: 'Lakers',
@@ -425,6 +505,7 @@ const additionalGames: Record<string, GameDetail> = {
     date: 'Sat, Jan 4',
     time: '7:00 PM ET',
     isHot: true,
+    status: 'scheduled',
     home: {
       id: 'bos',
       name: 'Bruins',
@@ -517,8 +598,7 @@ const additionalGames: Record<string, GameDetail> = {
     league: 'AL East Rivalry',
     date: 'Sat, Apr 12',
     time: '4:10 PM ET',
-    isHot: true,
-    home: {
+    isHot: true,    status: 'scheduled',    home: {
       id: 'bos',
       name: 'Red Sox',
       city: 'Boston',
@@ -606,17 +686,192 @@ const additionalGames: Record<string, GameDetail> = {
       '4-2 as road favorite',
     ],
   },
+  // COMPLETED GAME EXAMPLE - With full box score
+  'nfl-phi-dal-final': {
+    id: 'nfl-phi-dal-final',
+    sport: 'NFL',
+    sportIcon: '🏈',
+    league: 'NFC East Rivalry',
+    date: 'Sun, Jan 5',
+    time: 'FINAL',
+    isHot: false,
+    status: 'final',
+    home: {
+      id: 'dal',
+      name: 'Cowboys',
+      city: 'Dallas',
+      abbr: 'DAL',
+      emoji: '⭐',
+      record: '8-9',
+      ats: '8-9',
+    },
+    away: {
+      id: 'phi',
+      name: 'Eagles',
+      city: 'Philadelphia',
+      abbr: 'PHI',
+      emoji: '🦅',
+      record: '14-3',
+      ats: '10-7',
+    },
+    spread: {
+      favorite: 'PHI',
+      line: -7,
+    },
+    total: 45.5,
+    moneyline: {
+      home: +275,
+      away: -350,
+    },
+    openingSpread: { favorite: 'PHI', line: -6 },
+    openingTotal: 46,
+    openingMoneyline: { home: +240, away: -290 },
+    aiPick: 'PHI -7',
+    aiConfidence: 71,
+    aiAnalysis: 'Eagles dominant on the road this season at 7-1 ATS. Dallas struggling at home against playoff teams. Jalen Hurts healthy and the Eagles defense is elite.',
+    aiPicks: [
+      { pick: 'PHI -7', reasoning: 'Eagles 7-1 ATS on road, Cowboys 2-5 ATS at home vs playoff teams', confidence: 71 },
+      { pick: 'UNDER 45.5', reasoning: 'Eagles D allowing 17.2 PPG, cold weather expected', confidence: 64 },
+    ],
+    signals: [
+      { type: 'bullish', title: 'Sharp Money Eagles', description: 'Line moved from -6 to -7 with 72% money on PHI' },
+      { type: 'bearish', title: 'Cowboys Injuries', description: 'Multiple O-line starters out' },
+    ],
+    injuries: [
+      { player: 'Tyler Smith', team: 'DAL', position: 'LT', status: 'Out', injury: 'Knee' },
+      { player: 'Zack Martin', team: 'DAL', position: 'RG', status: 'Out', injury: 'Ankle' },
+    ],
+    weather: { temp: 38, wind: 12, condition: 'Clear' },
+    metrics: {
+      lineMovement: '-6 → -7',
+      lineDirection: 'up',
+      publicPct: 65,
+      publicSide: 'PHI',
+      sharpMoney: '72%',
+      sharpTrend: 'up',
+      handlePct: 72,
+      handleSide: 'PHI',
+    },
+    h2h: [
+      { date: 'Oct 16, 2024', score: 'PHI 34-6', winner: 'PHI', atsResult: 'W', ouResult: 'U' },
+      { date: 'Dec 10, 2023', score: 'DAL 33-13', winner: 'DAL', atsResult: 'W', ouResult: 'O' },
+    ],
+    betting: {
+      openSpread: 'PHI -6',
+      currentSpread: 'PHI -7',
+      spreadPcts: { home: 35, away: 65 },
+      mlPcts: { home: 28, away: 72 },
+      totalPcts: { over: 52, under: 48 },
+    },
+    matchup: {
+      homeOffRank: 18,
+      homeDefRank: 22,
+      awayOffRank: 4,
+      awayDefRank: 1,
+      keyPoints: [
+        'Eagles #1 defense vs struggling Cowboys offense',
+        'Philadelphia 7-1 ATS on the road',
+        'Dallas O-line decimated by injuries',
+      ],
+    },
+    homeTrends: [
+      'Cowboys 4-4 ATS at home',
+      '2-5 ATS vs playoff teams',
+      'UNDER 5-3 in home games',
+    ],
+    awayTrends: [
+      'Eagles 7-1 ATS on the road',
+      '10-7 ATS overall this season',
+      'UNDER 10-7 in all games',
+    ],
+    // COMPLETED GAME RESULTS
+    result: {
+      homeScore: 17,
+      awayScore: 34,
+      homeQuarters: { q1: 3, q2: 7, q3: 0, q4: 7, final: 17 },
+      awayQuarters: { q1: 14, q2: 10, q3: 7, q4: 3, final: 34 },
+      winner: 'away',
+      spreadResult: 'away_cover',
+      totalResult: 'over',
+      aiResult: 'win',
+      topPerformers: [
+        { player: 'Jalen Hurts', team: 'PHI', position: 'QB', stats: '22/28, 287 yds, 3 TD', highlight: 'Perfect 158.3 passer rating' },
+        { player: 'Saquon Barkley', team: 'PHI', position: 'RB', stats: '24 car, 142 yds, 2 TD', highlight: '75-yard TD run' },
+        { player: 'A.J. Brown', team: 'PHI', position: 'WR', stats: '8 rec, 124 yds, 1 TD', highlight: 'Game-sealing TD in Q3' },
+        { player: 'Dak Prescott', team: 'DAL', position: 'QB', stats: '19/32, 198 yds, 1 TD, 2 INT', highlight: '' },
+        { player: 'CeeDee Lamb', team: 'DAL', position: 'WR', stats: '6 rec, 78 yds', highlight: 'Limited by coverage' },
+      ],
+      summary: 'The Eagles dominated from start to finish, jumping out to a 24-10 halftime lead and never looking back. Philadelphia\'s defense forced three turnovers and held Dallas to just 248 total yards. Jalen Hurts was nearly perfect, while Saquon Barkley gashed the Cowboys for 142 rushing yards. The AI correctly predicted Eagles -7 and hit the spread by 10 points.'
+    },
+  },
 }
 
 // Merge all games
 const allGames = { ...mockGames, ...additionalGames }
+
+// Import team analytics
+import { getTeamByAbbr, type TeamAnalytics } from '@/lib/analytics-data'
+import type { Sport } from '@/types/leaderboard'
+
+// Convert TeamAnalytics to TeamAnalyticsSummary
+function convertToSummary(team: TeamAnalytics): TeamAnalyticsSummary {
+  const formatRecord = (w: number, l: number, p?: number) => 
+    p ? `${w}-${l}-${p}` : `${w}-${l}`
+  
+  return {
+    abbr: team.abbr,
+    name: team.name,
+    record: formatRecord(team.record.wins, team.record.losses, team.record.ties),
+    ats: {
+      overall: formatRecord(team.ats.overall.wins, team.ats.overall.losses, team.ats.overall.pushes),
+      home: formatRecord(team.ats.home.wins, team.ats.home.losses, team.ats.home.pushes),
+      away: formatRecord(team.ats.away.wins, team.ats.away.losses, team.ats.away.pushes),
+      asFav: formatRecord(team.ats.asFavorite.wins, team.ats.asFavorite.losses, team.ats.asFavorite.pushes),
+      asUnderdog: formatRecord(team.ats.asUnderdog.wins, team.ats.asUnderdog.losses, team.ats.asUnderdog.pushes),
+      last10: formatRecord(team.ats.last10.wins, team.ats.last10.losses, team.ats.last10.pushes),
+    },
+    ou: {
+      overall: formatRecord(team.ou.overall.overs, team.ou.overall.unders, team.ou.overall.pushes),
+      home: formatRecord(team.ou.home.overs, team.ou.home.unders, team.ou.home.pushes),
+      away: formatRecord(team.ou.away.overs, team.ou.away.unders, team.ou.away.pushes),
+      last10: formatRecord(team.ou.last10.overs, team.ou.last10.unders, team.ou.last10.pushes),
+    },
+    situational: {
+      afterWin: team.situational.afterWin.ats,
+      afterLoss: team.situational.afterLoss.ats,
+      divisional: team.situational.divisional.ats,
+      primetime: team.situational.primetime.ats,
+    },
+    scoring: {
+      ppg: team.scoring.ppg,
+      oppg: team.scoring.oppg,
+      margin: team.scoring.margin,
+    },
+    streak: team.streak,
+    isHot: team.isHot,
+    isCold: team.isCold,
+    trends: team.trends,
+  }
+}
 
 // API Functions
 export async function getGameById(id: string): Promise<GameDetail | null> {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 300))
   
-  return allGames[id] || null
+  const game = allGames[id]
+  if (!game) return null
+  
+  // Enrich with team analytics
+  const sport = game.sport as Sport
+  const homeTeam = getTeamByAbbr(sport, game.home.abbr)
+  const awayTeam = getTeamByAbbr(sport, game.away.abbr)
+  
+  return {
+    ...game,
+    homeAnalytics: homeTeam ? convertToSummary(homeTeam) : undefined,
+    awayAnalytics: awayTeam ? convertToSummary(awayTeam) : undefined,
+  }
 }
 
 export async function getGamesByDate(date: string, sport?: string): Promise<GameDetail[]> {

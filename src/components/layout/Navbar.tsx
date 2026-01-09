@@ -32,8 +32,8 @@ import {
 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 
-// Simplified sport navigation with full features
-const sportsNav = [
+// Sports organized by category for cleaner navigation
+const proSportsNav = [
   { 
     name: 'NFL', 
     href: '/nfl', 
@@ -80,9 +80,24 @@ const sportsNav = [
     ]
   },
   { 
+    name: 'WNBA', 
+    href: '/wnba', 
+    emoji: '🏀',
+    color: 'from-orange-500 to-pink-500',
+    subItems: [
+      { name: 'Matchups', href: '/wnba/matchups', icon: Target },
+      { name: 'Player Stats', href: '/wnba/players', icon: Users },
+      { name: 'Team Rankings', href: '/wnba/rankings', icon: BarChart3 },
+    ]
+  },
+]
+
+const collegeSportsNav = [
+  { 
     name: 'NCAAF', 
     href: '/ncaaf', 
     emoji: '🏈',
+    fullName: 'College Football',
     color: 'from-amber-600 to-amber-800',
     subItems: [
       { name: 'Matchups', href: '/ncaaf/matchups', icon: Target },
@@ -94,6 +109,7 @@ const sportsNav = [
     name: 'NCAAB', 
     href: '/ncaab', 
     emoji: '🏀',
+    fullName: "Men's Basketball",
     color: 'from-indigo-600 to-indigo-800',
     subItems: [
       { name: 'Matchups', href: '/ncaab/matchups', icon: Target },
@@ -101,7 +117,22 @@ const sportsNav = [
       { name: 'Team Rankings', href: '/ncaab/rankings', icon: BarChart3 },
     ]
   },
+  { 
+    name: 'WNCAAB', 
+    href: '/wncaab', 
+    emoji: '🏀',
+    fullName: "Women's Basketball",
+    color: 'from-pink-500 to-purple-600',
+    subItems: [
+      { name: 'Matchups', href: '/wncaab/matchups', icon: Target },
+      { name: 'Player Stats', href: '/wncaab/players', icon: Users },
+      { name: 'Team Rankings', href: '/wncaab/rankings', icon: BarChart3 },
+    ]
+  },
 ]
+
+// Combined for mobile menu
+const sportsNav = [...proSportsNav, ...collegeSportsNav]
 
 const toolsNav = [
   { name: 'Line Shop', href: '/lineshop', icon: PieChart, desc: 'Best odds across sportsbooks' },
@@ -234,39 +265,85 @@ export function Navbar() {
               </button>
               {activeDropdown === 'sports' && (
                 <div 
-                  className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[680px] p-5 rounded-2xl bg-[#0c0c14]/98 backdrop-blur-xl border border-white/10 shadow-2xl"
+                  className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[780px] p-5 rounded-2xl bg-[#0c0c14]/98 backdrop-blur-xl border border-white/10 shadow-2xl"
                   onMouseEnter={() => handleMouseEnter('sports')}
                   onMouseLeave={handleMouseLeave}
                 >
-                  <div className="grid grid-cols-3 gap-4">
-                    {sportsNav.map((sport) => (
-                      <div key={sport.name} className="group/sport">
-                        <Link 
-                          href={sport.href} 
-                          onClick={() => setActiveDropdown(null)} 
-                          className={cn(
-                            'flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-white transition-all',
-                            'bg-gradient-to-r hover:scale-[1.02]',
-                            sport.color
-                          )}
-                        >
-                          <span className="text-xl">{sport.emoji}</span>
-                          <span>{sport.name}</span>
-                        </Link>
-                        <div className="mt-2 space-y-1 pl-1">
-                          {sport.subItems.map((item) => (
-                            <Link 
-                              key={item.href} 
-                              href={item.href} 
-                              onClick={() => setActiveDropdown(null)} 
-                              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all"
-                            >
-                              <item.icon className="w-3.5 h-3.5" /> {item.name}
-                            </Link>
-                          ))}
-                        </div>
+                  <div className="grid grid-cols-2 gap-6">
+                    {/* Pro Sports */}
+                    <div>
+                      <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-1">Pro Sports</h3>
+                      <div className="grid grid-cols-2 gap-2">
+                        {proSportsNav.map((sport) => (
+                          <Link 
+                            key={sport.name}
+                            href={sport.href} 
+                            onClick={() => setActiveDropdown(null)} 
+                            className={cn(
+                              'flex items-center gap-2 px-3 py-2 rounded-xl font-semibold text-white transition-all',
+                              'bg-gradient-to-r hover:scale-[1.02] text-sm',
+                              sport.color
+                            )}
+                          >
+                            <span className="text-lg">{sport.emoji}</span>
+                            <span>{sport.name}</span>
+                          </Link>
+                        ))}
                       </div>
-                    ))}
+                    </div>
+                    
+                    {/* College Sports */}
+                    <div>
+                      <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-1">College Sports</h3>
+                      <div className="space-y-2">
+                        {collegeSportsNav.map((sport) => (
+                          <Link 
+                            key={sport.name}
+                            href={sport.href} 
+                            onClick={() => setActiveDropdown(null)} 
+                            className={cn(
+                              'flex items-center gap-2 px-3 py-2 rounded-xl font-semibold text-white transition-all',
+                              'bg-gradient-to-r hover:scale-[1.02] text-sm',
+                              sport.color
+                            )}
+                          >
+                            <span className="text-lg">{sport.emoji}</span>
+                            <span className="flex-1">{sport.name}</span>
+                            <span className="text-xs text-white/60">{sport.fullName}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Quick Links */}
+                  <div className="mt-4 pt-4 border-t border-white/10">
+                    <div className="flex items-center gap-4">
+                      <Link 
+                        href="/live" 
+                        onClick={() => setActiveDropdown(null)}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all text-sm font-medium"
+                      >
+                        <Activity className="w-4 h-4" />
+                        Live Games
+                      </Link>
+                      <Link 
+                        href="/trends" 
+                        onClick={() => setActiveDropdown(null)}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 text-gray-300 hover:bg-white/10 transition-all text-sm font-medium"
+                      >
+                        <TrendingUp className="w-4 h-4" />
+                        All Trends
+                      </Link>
+                      <Link 
+                        href="/analytics" 
+                        onClick={() => setActiveDropdown(null)}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 text-gray-300 hover:bg-white/10 transition-all text-sm font-medium"
+                      >
+                        <BarChart3 className="w-4 h-4" />
+                        Analytics
+                      </Link>
+                    </div>
                   </div>
                 </div>
               )}
@@ -452,7 +529,7 @@ export function Navbar() {
 
       {/* Mobile Navigation - Full Screen */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-x-0 top-16 bottom-0 bg-[#0a0a12]/98 backdrop-blur-xl overflow-y-auto">
+        <div className="lg:hidden fixed inset-x-0 top-16 bottom-0 bg-[#0a0a12]/98 backdrop-blur-xl overflow-y-auto z-60">
           <div className="px-4 py-6 space-y-6">
             {/* FREE Banner */}
             <div className="text-center py-3 rounded-xl bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30">

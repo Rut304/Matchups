@@ -537,13 +537,14 @@ export async function getHomepageData(): Promise<HomepageData> {
     getUnifiedTrends(),
   ])
 
+  // Return ALL data - slicing/pagination handled at component level for tracking
   const data: HomepageData = {
     standings: {
-      nfl: nflStandings.slice(0, 8), // Top 8
-      nba: nbaStandings.slice(0, 8),
+      nfl: nflStandings, // Full list - slice at display if needed
+      nba: nbaStandings, // Full list - slice at display if needed
     },
-    injuries: injuries.filter(i => i.impact === 'high').slice(0, 10),
-    trends: trends.filter(t => t.isHot).slice(0, 6),
+    injuries: injuries.filter(i => i.impact === 'high'), // All high-impact injuries
+    trends: trends.filter(t => t.isHot), // All hot trends
     lastUpdated: new Date().toISOString(),
     sources: ['api-sports', 'the-odds-api', 'ball-dont-lie'],
   }

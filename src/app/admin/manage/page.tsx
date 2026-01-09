@@ -48,9 +48,17 @@ interface SusPlay {
   description: string
   sport: string
   player_name: string
+  team?: string
+  video_url?: string
+  play_type?: string
+  betting_impact?: string
   sus_votes: number
   legit_votes: number
+  is_trending?: boolean
+  is_featured?: boolean
   created_at: string
+  source_url?: string
+  source_handle?: string
 }
 
 type TabType = 'cappers' | 'picks' | 'sus_plays'
@@ -89,6 +97,13 @@ export default function AdminCappersPage() {
     description: '',
     sport: 'nfl',
     player_name: '',
+    team: '',
+    video_url: '',
+    play_type: 'other',
+    betting_impact: 'spread',
+    source_url: '',
+    source_handle: '',
+    is_featured: false,
   })
 
   const supabase = createClient()
@@ -194,14 +209,34 @@ export default function AdminCappersPage() {
       title: susPlayForm.title,
       description: susPlayForm.description,
       sport: susPlayForm.sport,
-      player_name: susPlayForm.player_name,
+      player_name: susPlayForm.player_name || null,
+      team: susPlayForm.team || null,
+      video_url: susPlayForm.video_url || null,
+      play_type: susPlayForm.play_type || 'other',
+      betting_impact: susPlayForm.betting_impact || null,
+      is_featured: susPlayForm.is_featured,
       sus_votes: 0,
       legit_votes: 0
     })
     if (!error) {
       setShowCreateForm(false)
-      setSusPlayForm({ title: '', description: '', sport: 'nfl', player_name: '' })
+      setSusPlayForm({ 
+        title: '', 
+        description: '', 
+        sport: 'nfl', 
+        player_name: '', 
+        team: '',
+        video_url: '',
+        play_type: 'other',
+        betting_impact: 'spread',
+        source_url: '', 
+        source_handle: '',
+        is_featured: false
+      })
       fetchData()
+    } else {
+      console.error('Error creating sus play:', error)
+      alert('Error creating sus play: ' + error.message)
     }
   }
 
@@ -638,57 +673,168 @@ export default function AdminCappersPage() {
             {/* Sus Play Form */}
             {activeTab === 'sus_plays' && (
               <div className="space-y-4">
+                <div className="p-3 rounded-xl mb-2" style={{ background: 'rgba(255,51,102,0.1)', border: '1px solid rgba(255,51,102,0.2)' }}>
+                  <p className="text-xs" style={{ color: '#FF3366' }}>🚨 Add suspicious plays with video evidence from Twitter/X</p>
+                </div>
+                
+                {/* Source URL - Twitter/X link */}
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: '#808090' }}>Title *</label>
+                  <label className="block text-sm font-medium mb-2" style={{ color: '#808090' }}>
+                    Twitter/X Video URL *
+                  </label>
                   <input
-                    type="text"
-                    value={susPlayForm.title}
-                    onChange={(e) => setSusPlayForm({ ...susPlayForm, title: e.target.value })}
-                    placeholder="e.g., Player drops easy catch in key moment"
+                    type="url"
+                    value={susPlayForm.video_url}
+                    onChange={(e) => {
+                      const url = e.target.value
+                      setSusPlayForm({ ...susPlayForm, video_url: url })
+                      // Auto-extract handle from Twitter/X URLs
+                      const twitterMatch = url.match(/(?:twitter\.com|x\.com)\/([^/]+)/)
+                      if (twitterMatch) {
+                        setSusPlayForm(prev => ({ ...prev, video_url: url, source_handle: `@${twitterMatch[1]}` }))
+                      }
+                    }}
+                    placeholder="https://x.com/username/status/123456..."
                     className="w-full px-4 py-3 rounded-xl text-white"
                     style={{ background: '#0A0A0F', border: '1px solid rgba(255,255,255,0.1)' }}
                   />
+                  <p className="text-xs mt-1" style={{ color: '#606070' }}>
+                    Paste a Twitter/X link with video - it will embed automatically
+                  </p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: '#808090' }}>Player Name</label>
-                  <input
-                    type="text"
-                    value={susPlayForm.player_name}
-                    onChange={(e) => setSusPlayForm({ ...susPlayForm, player_name: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl text-white"
-                    style={{ background: '#0A0A0F', border: '1px solid rgba(255,255,255,0.1)' }}
-                  />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: '#808090' }}>Title *</label>
+                    <input
+                      type="text"
+                      value={susPlayForm.title}
+                      onChange={(e) => setSusPlayForm({ ...susPlayForm, title: e.target.value })}
+                      placeholder="e.g., Player drops easy TD"
+                      className="w-full px-4 py-3 rounded-xl text-white"
+                      style={{ background: '#0A0A0F', border: '1px solid rgba(255,255,255,0.1)' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: '#808090' }}>Source Handle</label>
+                    <input
+                      type="text"
+                      value={susPlayForm.source_handle}
+                      onChange={(e) => setSusPlayForm({ ...susPlayForm, source_handle: e.target.value })}
+                      placeholder="@username (auto-filled)"
+                      className="w-full px-4 py-3 rounded-xl text-white"
+                      style={{ background: '#0A0A0F', border: '1px solid rgba(255,255,255,0.1)' }}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: '#808090' }}>Sport</label>
-                  <select
-                    value={susPlayForm.sport}
-                    onChange={(e) => setSusPlayForm({ ...susPlayForm, sport: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl text-white"
-                    style={{ background: '#0A0A0F', border: '1px solid rgba(255,255,255,0.1)' }}
-                  >
-                    <option value="nfl">NFL</option>
-                    <option value="nba">NBA</option>
-                    <option value="nhl">NHL</option>
-                    <option value="mlb">MLB</option>
-                  </select>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: '#808090' }}>Player Name</label>
+                    <input
+                      type="text"
+                      value={susPlayForm.player_name}
+                      onChange={(e) => setSusPlayForm({ ...susPlayForm, player_name: e.target.value })}
+                      placeholder="e.g., Patrick Mahomes"
+                      className="w-full px-4 py-3 rounded-xl text-white"
+                      style={{ background: '#0A0A0F', border: '1px solid rgba(255,255,255,0.1)' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: '#808090' }}>Team</label>
+                    <input
+                      type="text"
+                      value={susPlayForm.team}
+                      onChange={(e) => setSusPlayForm({ ...susPlayForm, team: e.target.value })}
+                      placeholder="e.g., KC"
+                      className="w-full px-4 py-3 rounded-xl text-white"
+                      style={{ background: '#0A0A0F', border: '1px solid rgba(255,255,255,0.1)' }}
+                    />
+                  </div>
                 </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: '#808090' }}>Sport</label>
+                    <select
+                      value={susPlayForm.sport}
+                      onChange={(e) => setSusPlayForm({ ...susPlayForm, sport: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl text-white"
+                      style={{ background: '#0A0A0F', border: '1px solid rgba(255,255,255,0.1)' }}
+                    >
+                      <option value="nfl">NFL</option>
+                      <option value="nba">NBA</option>
+                      <option value="nhl">NHL</option>
+                      <option value="mlb">MLB</option>
+                      <option value="ncaaf">NCAAF</option>
+                      <option value="ncaab">NCAAB</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: '#808090' }}>Play Type</label>
+                    <select
+                      value={susPlayForm.play_type}
+                      onChange={(e) => setSusPlayForm({ ...susPlayForm, play_type: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl text-white"
+                      style={{ background: '#0A0A0F', border: '1px solid rgba(255,255,255,0.1)' }}
+                    >
+                      <option value="drop">Drop</option>
+                      <option value="fumble">Fumble</option>
+                      <option value="penalty">Penalty</option>
+                      <option value="missed_shot">Missed Shot</option>
+                      <option value="error">Error</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: '#808090' }}>Bet Impact</label>
+                    <select
+                      value={susPlayForm.betting_impact}
+                      onChange={(e) => setSusPlayForm({ ...susPlayForm, betting_impact: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl text-white"
+                      style={{ background: '#0A0A0F', border: '1px solid rgba(255,255,255,0.1)' }}
+                    >
+                      <option value="spread">Spread</option>
+                      <option value="total">Total (O/U)</option>
+                      <option value="prop">Player Prop</option>
+                      <option value="moneyline">Moneyline</option>
+                      <option value="multiple">Multiple</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium mb-2" style={{ color: '#808090' }}>Description</label>
                   <textarea
                     value={susPlayForm.description}
                     onChange={(e) => setSusPlayForm({ ...susPlayForm, description: e.target.value })}
                     rows={3}
+                    placeholder="Describe what happened and why it looks suspicious..."
                     className="w-full px-4 py-3 rounded-xl text-white resize-none"
                     style={{ background: '#0A0A0F', border: '1px solid rgba(255,255,255,0.1)' }}
                   />
                 </div>
+
+                <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  <input
+                    type="checkbox"
+                    checked={susPlayForm.is_featured}
+                    onChange={(e) => setSusPlayForm({ ...susPlayForm, is_featured: e.target.checked })}
+                    className="w-5 h-5 rounded"
+                  />
+                  <div>
+                    <label className="font-medium text-white">Feature this play</label>
+                    <p className="text-xs" style={{ color: '#606070' }}>Featured plays appear at the top of the Sus page</p>
+                  </div>
+                </div>
+
                 <button
                   onClick={createSusPlay}
-                  className="w-full py-3 rounded-xl font-bold transition-all hover:scale-105"
+                  disabled={!susPlayForm.title || !susPlayForm.video_url}
+                  className="w-full py-3 rounded-xl font-bold transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
                   style={{ background: 'linear-gradient(135deg, #FF3366, #FF6B00)', color: '#FFF' }}
                 >
-                  Create Sus Play
+                  🚨 Create Sus Play
                 </button>
               </div>
             )}

@@ -131,8 +131,8 @@ export default async function NCAABPage() {
                 </div>
               ) : (
                 <div className="grid md:grid-cols-2 gap-3">
-                  {games.slice(0, 8).map((game) => (
-                    <GameCard key={game.id} game={game} />
+                  {games.slice(0, 8).map((game, idx) => (
+                    <GameCard key={`${game.id}-${idx}`} game={game} />
                   ))}
                 </div>
               )}

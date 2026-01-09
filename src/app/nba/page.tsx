@@ -29,6 +29,7 @@ import {
   Star
 } from 'lucide-react'
 import { getNBATeams, getTeamByAbbreviation, type TeamAnalytics } from '@/lib/analytics-data'
+import { GamesSection } from '@/components/game'
 
 type TimeFrame = 'season' | 'last30' | 'last14' | 'last7'
 type BetType = 'ats' | 'ou' | 'ml'
@@ -122,13 +123,13 @@ export default function NBAAnalyticsPage() {
     return teams
   }, [allTeams, searchQuery, sortBy, sortDir, betType, situation])
   
-  // Get top trends
+  // Get top trends - show more data
   const topATSTeams = [...allTeams].sort((a, b) => 
     calcWinPct(b.ats.overall.wins, b.ats.overall.losses) - calcWinPct(a.ats.overall.wins, a.ats.overall.losses)
-  ).slice(0, 3)
+  ).slice(0, 6) // Show top 6 in quick view
   const topOverTeams = [...allTeams].sort((a, b) => 
     calcOverPct(b.ou.overall.overs, b.ou.overall.unders) - calcOverPct(a.ou.overall.overs, a.ou.overall.unders)
-  ).slice(0, 3)
+  ).slice(0, 6) // Show top 6 in quick view
   const hotTeams = allTeams.filter(t => t.isHot)
   const coldTeams = allTeams.filter(t => t.isCold)
 
@@ -215,6 +216,11 @@ export default function NBAAnalyticsPage() {
             <QuickStat label="Cold Streaks" value={`${coldTeams.length}`} subValue="teams" color="#FF4455" />
           </div>
         </div>
+      </section>
+      
+      {/* Real Games - Live from ESPN */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <GamesSection sport="NBA" title="🏀 Today's NBA Games" />
       </section>
       
       {/* Main Content */}

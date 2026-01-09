@@ -33,9 +33,10 @@ import {
   Info
 } from 'lucide-react'
 import { getGameById, type GameDetail } from '@/lib/api/games'
+import { BoxScore } from '@/components/game'
 
 // Tabs for the game detail view
-type Tab = 'overview' | 'trends' | 'betting' | 'matchup' | 'ai'
+type Tab = 'overview' | 'trends' | 'betting' | 'matchup' | 'analytics' | 'ai' | 'results'
 
 export default function GameDetailPage() {
   const params = useParams()
@@ -50,6 +51,10 @@ export default function GameDetailPage() {
       const data = await getGameById(gameId)
       setGame(data)
       setLoading(false)
+      // Auto-switch to results tab for completed games
+      if (data?.status === 'final') {
+        setActiveTab('results')
+      }
     }
     loadGame()
   }, [gameId])
@@ -88,10 +93,14 @@ export default function GameDetailPage() {
   }
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
+    ...(game.status === 'final' ? [
+      { id: 'results' as Tab, label: 'Results', icon: <Trophy style={{ width: '16px', height: '16px' }} /> },
+    ] : []),
     { id: 'overview', label: 'Overview', icon: <Target style={{ width: '16px', height: '16px' }} /> },
     { id: 'trends', label: 'Trends', icon: <TrendingUp style={{ width: '16px', height: '16px' }} /> },
     { id: 'betting', label: 'Betting', icon: <DollarSign style={{ width: '16px', height: '16px' }} /> },
     { id: 'matchup', label: 'Matchup', icon: <Swords style={{ width: '16px', height: '16px' }} /> },
+    { id: 'analytics', label: 'Team Analytics', icon: <BarChart3 style={{ width: '16px', height: '16px' }} /> },
     { id: 'ai', label: 'AI Analysis', icon: <Brain style={{ width: '16px', height: '16px' }} /> },
   ]
 
@@ -217,10 +226,12 @@ export default function GameDetailPage() {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Content - 2 cols */}
           <div className="lg:col-span-2 space-y-6">
+            {activeTab === 'results' && game.status === 'final' && <BoxScore game={game} />}
             {activeTab === 'overview' && <OverviewTab game={game} />}
             {activeTab === 'trends' && <TrendsTab game={game} />}
             {activeTab === 'betting' && <BettingTab game={game} />}
             {activeTab === 'matchup' && <MatchupTab game={game} />}
+            {activeTab === 'analytics' && <AnalyticsTab game={game} />}
             {activeTab === 'ai' && <AITab game={game} />}
           </div>
 
@@ -534,6 +545,249 @@ function AITab({ game }: { game: GameDetail }) {
           ))}
         </div>
       </div>
+    </div>
+  )
+}
+
+function AnalyticsTab({ game }: { game: GameDetail }) {
+  const homeAnalytics = game.homeAnalytics
+  const awayAnalytics = game.awayAnalytics
+  
+  return (
+    <div className="space-y-6">
+      {/* Quick Summary Banner */}
+      <div className="rounded-xl p-4" style={{ background: 'linear-gradient(135deg, rgba(255,107,0,0.15) 0%, rgba(255,107,0,0.05) 100%)', border: '1px solid rgba(255,107,0,0.3)' }}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <BarChart3 style={{ color: '#FF6B00', width: '20px', height: '20px' }} />
+            <div>
+              <p className="text-sm font-bold" style={{ color: '#FFF' }}>Team Analytics Summary</p>
+              <p className="text-xs" style={{ color: '#808090' }}>ATS records, O/U trends, and situational performance</p>
+            </div>
+          </div>
+          <a href={`/analytics`} className="text-xs font-semibold px-3 py-1.5 rounded-lg hover:opacity-80 transition-opacity"
+             style={{ background: 'rgba(255,107,0,0.2)', color: '#FF6B00' }}>
+            Full Analytics →
+          </a>
+        </div>
+      </div>
+
+      {/* ATS Records Comparison */}
+      <div className="rounded-xl p-5" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <h3 className="flex items-center gap-2 text-lg font-bold mb-4" style={{ color: '#FFF' }}>
+          <TrendingUp style={{ color: '#FF6B00', width: '18px', height: '18px' }} />
+          Against the Spread (ATS)
+        </h3>
+        
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Home Team ATS */}
+          <div>
+            <h4 className="text-sm font-bold mb-3" style={{ color: '#FF6B00' }}>{game.home.name}</h4>
+            {homeAnalytics ? (
+              <div className="space-y-2">
+                <AnalyticRow label="Overall" value={homeAnalytics.ats.overall} />
+                <AnalyticRow label="At Home" value={homeAnalytics.ats.home} />
+                <AnalyticRow label="As Favorite" value={homeAnalytics.ats.asFav} />
+                <AnalyticRow label="As Underdog" value={homeAnalytics.ats.asUnderdog} />
+                <AnalyticRow label="Last 10" value={homeAnalytics.ats.last10} />
+              </div>
+            ) : (
+              <p className="text-sm" style={{ color: '#606070' }}>Analytics not available</p>
+            )}
+          </div>
+          
+          {/* Away Team ATS */}
+          <div>
+            <h4 className="text-sm font-bold mb-3" style={{ color: '#FF6B00' }}>{game.away.name}</h4>
+            {awayAnalytics ? (
+              <div className="space-y-2">
+                <AnalyticRow label="Overall" value={awayAnalytics.ats.overall} />
+                <AnalyticRow label="On Road" value={awayAnalytics.ats.away} />
+                <AnalyticRow label="As Favorite" value={awayAnalytics.ats.asFav} />
+                <AnalyticRow label="As Underdog" value={awayAnalytics.ats.asUnderdog} />
+                <AnalyticRow label="Last 10" value={awayAnalytics.ats.last10} />
+              </div>
+            ) : (
+              <p className="text-sm" style={{ color: '#606070' }}>Analytics not available</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Over/Under Trends */}
+      <div className="rounded-xl p-5" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <h3 className="flex items-center gap-2 text-lg font-bold mb-4" style={{ color: '#FFF' }}>
+          <Target style={{ color: '#FF6B00', width: '18px', height: '18px' }} />
+          Over/Under Trends
+        </h3>
+        
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Home Team O/U */}
+          <div>
+            <h4 className="text-sm font-bold mb-3" style={{ color: '#FF6B00' }}>{game.home.name}</h4>
+            {homeAnalytics ? (
+              <div className="space-y-2">
+                <AnalyticRow label="Overall" value={homeAnalytics.ou.overall} />
+                <AnalyticRow label="At Home" value={homeAnalytics.ou.home} />
+                <AnalyticRow label="Last 10" value={homeAnalytics.ou.last10} />
+              </div>
+            ) : (
+              <p className="text-sm" style={{ color: '#606070' }}>Analytics not available</p>
+            )}
+          </div>
+          
+          {/* Away Team O/U */}
+          <div>
+            <h4 className="text-sm font-bold mb-3" style={{ color: '#FF6B00' }}>{game.away.name}</h4>
+            {awayAnalytics ? (
+              <div className="space-y-2">
+                <AnalyticRow label="Overall" value={awayAnalytics.ou.overall} />
+                <AnalyticRow label="On Road" value={awayAnalytics.ou.away} />
+                <AnalyticRow label="Last 10" value={awayAnalytics.ou.last10} />
+              </div>
+            ) : (
+              <p className="text-sm" style={{ color: '#606070' }}>Analytics not available</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Situational Performance */}
+      <div className="rounded-xl p-5" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <h3 className="flex items-center gap-2 text-lg font-bold mb-4" style={{ color: '#FFF' }}>
+          <Zap style={{ color: '#FF6B00', width: '18px', height: '18px' }} />
+          Situational Performance
+        </h3>
+        
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Home Team Situational */}
+          <div>
+            <h4 className="text-sm font-bold mb-3" style={{ color: '#FF6B00' }}>{game.home.name}</h4>
+            {homeAnalytics ? (
+              <div className="space-y-2">
+                <AnalyticRow label="After a Win" value={homeAnalytics.situational.afterWin} />
+                <AnalyticRow label="After a Loss" value={homeAnalytics.situational.afterLoss} />
+                {homeAnalytics.situational.divisional && (
+                  <AnalyticRow label="Divisional Games" value={homeAnalytics.situational.divisional} />
+                )}
+                {homeAnalytics.situational.primetime && (
+                  <AnalyticRow label="Primetime" value={homeAnalytics.situational.primetime} />
+                )}
+              </div>
+            ) : (
+              <p className="text-sm" style={{ color: '#606070' }}>Analytics not available</p>
+            )}
+          </div>
+          
+          {/* Away Team Situational */}
+          <div>
+            <h4 className="text-sm font-bold mb-3" style={{ color: '#FF6B00' }}>{game.away.name}</h4>
+            {awayAnalytics ? (
+              <div className="space-y-2">
+                <AnalyticRow label="After a Win" value={awayAnalytics.situational.afterWin} />
+                <AnalyticRow label="After a Loss" value={awayAnalytics.situational.afterLoss} />
+                {awayAnalytics.situational.divisional && (
+                  <AnalyticRow label="Divisional Games" value={awayAnalytics.situational.divisional} />
+                )}
+                {awayAnalytics.situational.primetime && (
+                  <AnalyticRow label="Primetime" value={awayAnalytics.situational.primetime} />
+                )}
+              </div>
+            ) : (
+              <p className="text-sm" style={{ color: '#606070' }}>Analytics not available</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Scoring Averages */}
+      <div className="rounded-xl p-5" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <h3 className="flex items-center gap-2 text-lg font-bold mb-4" style={{ color: '#FFF' }}>
+          <Activity style={{ color: '#FF6B00', width: '18px', height: '18px' }} />
+          Scoring Averages
+        </h3>
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {homeAnalytics && (
+            <>
+              <div className="p-4 rounded-lg text-center" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                <p className="text-xs mb-1" style={{ color: '#606070' }}>{game.home.abbr} PPG</p>
+                <p className="text-2xl font-bold" style={{ color: '#00FF88' }}>{homeAnalytics.scoring.ppg}</p>
+              </div>
+              <div className="p-4 rounded-lg text-center" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                <p className="text-xs mb-1" style={{ color: '#606070' }}>{game.home.abbr} Opp PPG</p>
+                <p className="text-2xl font-bold" style={{ color: '#FF4455' }}>{homeAnalytics.scoring.oppg}</p>
+              </div>
+            </>
+          )}
+          {awayAnalytics && (
+            <>
+              <div className="p-4 rounded-lg text-center" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                <p className="text-xs mb-1" style={{ color: '#606070' }}>{game.away.abbr} PPG</p>
+                <p className="text-2xl font-bold" style={{ color: '#00FF88' }}>{awayAnalytics.scoring.ppg}</p>
+              </div>
+              <div className="p-4 rounded-lg text-center" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                <p className="text-xs mb-1" style={{ color: '#606070' }}>{game.away.abbr} Opp PPG</p>
+                <p className="text-2xl font-bold" style={{ color: '#FF4455' }}>{awayAnalytics.scoring.oppg}</p>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Key Trends List */}
+      {(homeAnalytics?.trends?.length || awayAnalytics?.trends?.length) && (
+        <div className="rounded-xl p-5" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <h3 className="flex items-center gap-2 text-lg font-bold mb-4" style={{ color: '#FFF' }}>
+            <Flame style={{ color: '#FF6B00', width: '18px', height: '18px' }} />
+            Hot Trends
+          </h3>
+          <div className="grid md:grid-cols-2 gap-4">
+            {homeAnalytics?.trends && (
+              <div>
+                <h4 className="text-sm font-bold mb-2" style={{ color: '#FF6B00' }}>{game.home.name}</h4>
+                <div className="space-y-1">
+                  {homeAnalytics.trends.slice(0, 3).map((trend, i) => (
+                    <p key={i} className="text-sm flex items-center gap-2" style={{ color: '#A0A0B0' }}>
+                      <CheckCircle style={{ color: '#00FF88', width: '12px', height: '12px' }} />
+                      {trend}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            )}
+            {awayAnalytics?.trends && (
+              <div>
+                <h4 className="text-sm font-bold mb-2" style={{ color: '#FF6B00' }}>{game.away.name}</h4>
+                <div className="space-y-1">
+                  {awayAnalytics.trends.slice(0, 3).map((trend, i) => (
+                    <p key={i} className="text-sm flex items-center gap-2" style={{ color: '#A0A0B0' }}>
+                      <CheckCircle style={{ color: '#00FF88', width: '12px', height: '12px' }} />
+                      {trend}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function AnalyticRow({ label, value }: { label: string; value: string }) {
+  // Parse the record to determine color (e.g., "8-4" → winning)
+  const parts = value.split('-')
+  const isWinning = parts.length === 2 && parseInt(parts[0]) > parseInt(parts[1])
+  const isLosing = parts.length === 2 && parseInt(parts[0]) < parseInt(parts[1])
+  
+  return (
+    <div className="flex items-center justify-between p-2 rounded" style={{ background: 'rgba(255,255,255,0.03)' }}>
+      <span className="text-sm" style={{ color: '#808090' }}>{label}</span>
+      <span className="text-sm font-bold" style={{ 
+        color: isWinning ? '#00FF88' : isLosing ? '#FF4455' : '#A0A0B0' 
+      }}>{value}</span>
     </div>
   )
 }

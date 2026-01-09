@@ -10,17 +10,22 @@ import {
   CapperStatsByBetType,
   BetType,
   Sport,
-  PickResult
+  PickResult,
+  CapperType,
+  Network
 } from '@/types/leaderboard'
 
 // Re-export types for convenience
-export type { LeaderboardEntry, Capper, Pick, CapperStats, BetType, Sport }
+export type { LeaderboardEntry, Capper, Pick, CapperStats, BetType, Sport, CapperType, Network }
 
 // ===========================================
 // CAPPERS DATA
 // ===========================================
 
 export const cappers: Capper[] = [
+  // MATCHUPS AI - Featured AI Picker
+  { id: 'ai-0', slug: 'matchups-ai', name: 'Matchups AI', avatarEmoji: '🤖', verified: true, capperType: 'celebrity', network: 'Website', role: 'AI Prediction Engine', followersCount: '∞', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-07' },
+  
   // CELEBRITIES - ESPN
   { id: '1', slug: 'stephen-a-smith', name: 'Stephen A. Smith', avatarEmoji: '📺', verified: true, capperType: 'celebrity', network: 'ESPN', role: 'First Take Host', followersCount: '6.2M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
   { id: '2', slug: 'shannon-sharpe', name: 'Shannon Sharpe', avatarEmoji: '🏈', verified: true, capperType: 'celebrity', network: 'ESPN', role: 'First Take', followersCount: '4.1M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
@@ -99,6 +104,146 @@ export const cappers: Capper[] = [
   // MLB SPECIFIC
   { id: '50', slug: 'david-ortiz', name: 'David Ortiz', avatarEmoji: '💪', verified: true, capperType: 'celebrity', network: 'FOX', role: 'MLB Analyst', followersCount: '2.8M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
   { id: '51', slug: 'arod', name: 'Alex Rodriguez', avatarEmoji: '⚾', verified: true, capperType: 'celebrity', network: 'ESPN', role: 'MLB Analyst', followersCount: '4.5M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  
+  // =============================================
+  // EXPANDED EXPERTS - ESPN ADDITIONAL
+  // =============================================
+  { id: '52', slug: 'marcus-spears', name: 'Marcus Spears', avatarEmoji: '🏈', verified: true, capperType: 'celebrity', network: 'ESPN', role: 'NFL Live', followersCount: '890K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '53', slug: 'dan-orlovsky', name: 'Dan Orlovsky', avatarEmoji: '📋', verified: true, capperType: 'celebrity', network: 'ESPN', role: 'NFL Analyst', followersCount: '567K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '54', slug: 'louis-riddick', name: 'Louis Riddick', avatarEmoji: '🔍', verified: true, capperType: 'celebrity', network: 'ESPN', role: 'MNF Analyst', followersCount: '345K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '55', slug: 'robert-griffin-iii', name: 'Robert Griffin III', avatarEmoji: '3️⃣', verified: true, capperType: 'celebrity', network: 'ESPN', role: 'NFL Analyst', followersCount: '1.8M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '56', slug: 'molly-qerim', name: 'Molly Qerim', avatarEmoji: '📺', verified: true, capperType: 'celebrity', network: 'ESPN', role: 'First Take Host', followersCount: '890K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '57', slug: 'desmond-howard', name: 'Desmond Howard', avatarEmoji: '🏆', verified: true, capperType: 'celebrity', network: 'ESPN', role: 'College GameDay', followersCount: '678K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '58', slug: 'lee-corso', name: 'Lee Corso', avatarEmoji: '🎭', verified: true, capperType: 'celebrity', network: 'ESPN', role: 'College GameDay', followersCount: '456K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '59', slug: 'tim-tebow', name: 'Tim Tebow', avatarEmoji: '✝️', verified: true, capperType: 'celebrity', network: 'ESPN', role: 'SEC Network', followersCount: '3.2M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '60', slug: 'booger-mcfarland', name: 'Booger McFarland', avatarEmoji: '🎙️', verified: true, capperType: 'celebrity', network: 'ESPN', role: 'MNF Analyst', followersCount: '345K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '61', slug: 'domonique-foxworth', name: 'Domonique Foxworth', avatarEmoji: '🧠', verified: true, capperType: 'celebrity', network: 'ESPN', role: 'Get Up', followersCount: '234K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '62', slug: 'elle-duncan', name: 'Elle Duncan', avatarEmoji: '💜', verified: true, capperType: 'celebrity', network: 'ESPN', role: 'SportsCenter', followersCount: '345K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  
+  // =============================================
+  // EXPANDED EXPERTS - FOX SPORTS
+  // =============================================
+  { id: '63', slug: 'chris-broussard', name: 'Chris Broussard', avatarEmoji: '🏀', verified: true, capperType: 'celebrity', network: 'FS1', role: 'First Things First', followersCount: '890K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '64', slug: 'rob-parker', name: 'Rob Parker', avatarEmoji: '🎤', verified: true, capperType: 'celebrity', network: 'FS1', role: 'Undisputed', followersCount: '456K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '65', slug: 'greg-jennings', name: 'Greg Jennings', avatarEmoji: '🧀', verified: true, capperType: 'celebrity', network: 'FS1', role: 'NFL Analyst', followersCount: '567K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '66', slug: 'marcellus-wiley', name: 'Marcellus Wiley', avatarEmoji: '🏈', verified: true, capperType: 'celebrity', network: 'FS1', role: 'Speak For Yourself', followersCount: '345K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '67', slug: 'joel-klatt', name: 'Joel Klatt', avatarEmoji: '🏈', verified: true, capperType: 'celebrity', network: 'FOX', role: 'CFB Analyst', followersCount: '456K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '68', slug: 'urban-meyer', name: 'Urban Meyer', avatarEmoji: '🏆', verified: true, capperType: 'celebrity', network: 'FOX', role: 'Big Noon Kickoff', followersCount: '890K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '69', slug: 'reggie-bush', name: 'Reggie Bush', avatarEmoji: '🏃', verified: true, capperType: 'celebrity', network: 'FOX', role: 'Big Noon Kickoff', followersCount: '1.2M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '70', slug: 'matt-leinart', name: 'Matt Leinart', avatarEmoji: '🏈', verified: true, capperType: 'celebrity', network: 'FOX', role: 'CFB Analyst', followersCount: '345K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '71', slug: 'brady-quinn', name: 'Brady Quinn', avatarEmoji: '☘️', verified: true, capperType: 'celebrity', network: 'FOX', role: 'Big Noon Kickoff', followersCount: '234K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  
+  // =============================================
+  // EXPANDED EXPERTS - CBS SPORTS
+  // =============================================
+  { id: '72', slug: 'boomer-esiason', name: 'Boomer Esiason', avatarEmoji: '🎙️', verified: true, capperType: 'celebrity', network: 'CBS', role: 'NFL Today', followersCount: '567K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '73', slug: 'phil-simms', name: 'Phil Simms', avatarEmoji: '🏈', verified: true, capperType: 'celebrity', network: 'CBS', role: 'NFL Analyst', followersCount: '234K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '74', slug: 'nate-burleson', name: 'Nate Burleson', avatarEmoji: '☀️', verified: true, capperType: 'celebrity', network: 'CBS', role: 'NFL Today/GMA', followersCount: '678K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '75', slug: 'james-brown', name: 'James Brown', avatarEmoji: '🎤', verified: true, capperType: 'celebrity', network: 'CBS', role: 'NFL Today Host', followersCount: '345K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '76', slug: 'bill-cowher', name: 'Bill Cowher', avatarEmoji: '🏆', verified: true, capperType: 'celebrity', network: 'CBS', role: 'NFL Today', followersCount: '456K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '77', slug: 'jonathan-vilma', name: 'Jonathan Vilma', avatarEmoji: '⚔️', verified: true, capperType: 'celebrity', network: 'FOX', role: 'NFL Analyst', followersCount: '234K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  
+  // =============================================
+  // EXPANDED EXPERTS - NBC SPORTS
+  // =============================================
+  { id: '78', slug: 'cris-collinsworth', name: 'Cris Collinsworth', avatarEmoji: '📊', verified: true, capperType: 'celebrity', network: 'NBC', role: 'SNF Analyst', followersCount: '567K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '79', slug: 'mike-tirico', name: 'Mike Tirico', avatarEmoji: '🎙️', verified: true, capperType: 'celebrity', network: 'NBC', role: 'SNF Play-by-Play', followersCount: '345K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '80', slug: 'rodney-harrison', name: 'Rodney Harrison', avatarEmoji: '🏈', verified: true, capperType: 'celebrity', network: 'NBC', role: 'Football Night', followersCount: '234K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '81', slug: 'maria-taylor', name: 'Maria Taylor', avatarEmoji: '📺', verified: true, capperType: 'celebrity', network: 'NBC', role: 'Football Night', followersCount: '678K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '82', slug: 'chris-simms', name: 'Chris Simms', avatarEmoji: '🏈', verified: true, capperType: 'celebrity', network: 'NBC', role: 'Pro Football Talk', followersCount: '456K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '83', slug: 'mike-florio', name: 'Mike Florio', avatarEmoji: '📰', verified: true, capperType: 'celebrity', network: 'NBC', role: 'Pro Football Talk', followersCount: '789K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  
+  // =============================================
+  // EXPANDED EXPERTS - NFL NETWORK
+  // =============================================
+  { id: '84', slug: 'rich-eisen', name: 'Rich Eisen', avatarEmoji: '🎤', verified: true, capperType: 'celebrity', network: 'NFL Network', role: 'Rich Eisen Show', followersCount: '1.2M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '85', slug: 'kyle-brandt', name: 'Kyle Brandt', avatarEmoji: '💪', verified: true, capperType: 'celebrity', network: 'NFL Network', role: 'Good Morning Football', followersCount: '567K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '86', slug: 'peter-schrager', name: 'Peter Schrager', avatarEmoji: '📋', verified: true, capperType: 'celebrity', network: 'NFL Network', role: 'Good Morning Football', followersCount: '345K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '87', slug: 'jamie-erdahl', name: 'Jamie Erdahl', avatarEmoji: '📺', verified: true, capperType: 'celebrity', network: 'NFL Network', role: 'Good Morning Football', followersCount: '234K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '88', slug: 'daniel-jeremiah', name: 'Daniel Jeremiah', avatarEmoji: '🔍', verified: true, capperType: 'celebrity', network: 'NFL Network', role: 'NFL Draft Analyst', followersCount: '456K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '89', slug: 'maurice-jones-drew', name: 'Maurice Jones-Drew', avatarEmoji: '🏃', verified: true, capperType: 'celebrity', network: 'NFL Network', role: 'NFL GameDay', followersCount: '567K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '90', slug: 'david-carr', name: 'David Carr', avatarEmoji: '🏈', verified: true, capperType: 'celebrity', network: 'NFL Network', role: 'NFL Total Access', followersCount: '234K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  
+  // =============================================
+  // EXPANDED EXPERTS - PODCASTERS & YOUTUBE
+  // =============================================
+  { id: '91', slug: 'ryen-russillo', name: 'Ryen Russillo', avatarEmoji: '🎧', verified: true, capperType: 'celebrity', network: 'Podcast', role: 'The Ringer', followersCount: '890K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '92', slug: 'kevin-clark', name: 'Kevin Clark', avatarEmoji: '📰', verified: true, capperType: 'celebrity', network: 'Podcast', role: 'The Ringer', followersCount: '345K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '93', slug: 'benjy-solak', name: 'Benjy Solak', avatarEmoji: '📊', verified: true, capperType: 'celebrity', network: 'Podcast', role: 'The Ringer', followersCount: '234K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '94', slug: 'mike-golic-jr', name: 'Mike Golic Jr.', avatarEmoji: '🎙️', verified: true, capperType: 'celebrity', network: 'Podcast', role: 'GoJo and Golic', followersCount: '456K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '95', slug: 'mike-greenberg', name: 'Mike Greenberg', avatarEmoji: '☀️', verified: true, capperType: 'celebrity', network: 'ESPN', role: 'Get Up Host', followersCount: '789K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '96', slug: 'cari-champion', name: 'Cari Champion', avatarEmoji: '💎', verified: true, capperType: 'celebrity', network: 'Podcast', role: 'Naked Sports', followersCount: '567K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '97', slug: 'taylor-rooks', name: 'Taylor Rooks', avatarEmoji: '🏀', verified: true, capperType: 'celebrity', network: 'Bleacher Report', role: 'NBA Analyst', followersCount: '890K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  
+  // =============================================
+  // EXPANDED EXPERTS - TWITTER/X PERSONALITIES
+  // =============================================
+  { id: '98', slug: 'adam-schefter', name: 'Adam Schefter', avatarEmoji: '🚨', verified: true, capperType: 'celebrity', network: 'ESPN', role: 'NFL Insider', followersCount: '10.2M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '99', slug: 'ian-rapoport', name: 'Ian Rapoport', avatarEmoji: '📱', verified: true, capperType: 'celebrity', network: 'NFL Network', role: 'NFL Insider', followersCount: '3.8M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '100', slug: 'adrian-wojnarowski', name: 'Adrian Wojnarowski', avatarEmoji: '💣', verified: true, capperType: 'celebrity', network: 'ESPN', role: 'NBA Insider', followersCount: '5.8M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '101', slug: 'shams-charania', name: 'Shams Charania', avatarEmoji: '⚡', verified: true, capperType: 'celebrity', network: 'ESPN', role: 'NBA Insider', followersCount: '2.4M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '102', slug: 'jeff-passan', name: 'Jeff Passan', avatarEmoji: '⚾', verified: true, capperType: 'celebrity', network: 'ESPN', role: 'MLB Insider', followersCount: '1.8M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '103', slug: 'ken-rosenthal', name: 'Ken Rosenthal', avatarEmoji: '🎀', verified: true, capperType: 'celebrity', network: 'The Athletic', role: 'MLB Insider', followersCount: '1.2M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '104', slug: 'chris-mannix', name: 'Chris Mannix', avatarEmoji: '🏀', verified: true, capperType: 'celebrity', network: 'Sports Illustrated', role: 'NBA Writer', followersCount: '567K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  
+  // =============================================
+  // EXPANDED EXPERTS - PRO SHARPS & BETTORS
+  // =============================================
+  { id: '105', slug: 'nfl-math', name: 'NFL Math', avatarEmoji: '🧮', verified: true, capperType: 'pro', network: 'Twitter', role: 'Analytics Sharp', followersCount: '145K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '106', slug: 'betstamp', name: 'BetStamp Sharp', avatarEmoji: '📈', verified: true, capperType: 'pro', network: 'Twitter', role: 'CLV Tracker', followersCount: '89K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '107', slug: 'bet-karma', name: 'BetKarma', avatarEmoji: '☸️', verified: true, capperType: 'pro', network: 'Twitter', role: 'Correlation Expert', followersCount: '178K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '108', slug: 'oddsjam', name: 'OddsJam Sharp', avatarEmoji: '🎰', verified: true, capperType: 'pro', network: 'Twitter', role: 'Line Shopping', followersCount: '234K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '109', slug: 'the-prop-network', name: 'The Prop Network', avatarEmoji: '🎯', verified: true, capperType: 'pro', network: 'Twitter', role: 'Player Props', followersCount: '156K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '110', slug: 'sports-insights', name: 'Sports Insights', avatarEmoji: '📊', verified: true, capperType: 'pro', network: 'Website', role: 'Sharp Action', followersCount: '89K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '111', slug: 'pregame-pro', name: 'Pregame Pro', avatarEmoji: '🎮', verified: true, capperType: 'pro', network: 'Website', role: 'Consensus Data', followersCount: '67K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '112', slug: 'bet-labs', name: 'Bet Labs', avatarEmoji: '🔬', verified: true, capperType: 'pro', network: 'Action Network', role: 'Systems Expert', followersCount: '112K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '113', slug: 'station-casinos-sharp', name: 'Station Sharp', avatarEmoji: '🏛️', verified: true, capperType: 'pro', network: 'Independent', role: 'Vegas Sharp', followersCount: '45K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '114', slug: 'kenny-white', name: 'Kenny White', avatarEmoji: '📋', verified: true, capperType: 'pro', network: 'Las Vegas', role: 'Sports Betting Expert', followersCount: '78K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '115', slug: 'professional-sports-bettor', name: 'Professional Sports Bettor', avatarEmoji: '💼', verified: true, capperType: 'pro', network: 'Twitter', role: 'Full-Time Bettor', followersCount: '134K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  
+  // =============================================
+  // EXPANDED EXPERTS - ACTION NETWORK
+  // =============================================
+  { id: '116', slug: 'darren-rovell', name: 'Darren Rovell', avatarEmoji: '💰', verified: true, capperType: 'celebrity', network: 'Action Network', role: 'Sports Business', followersCount: '2.1M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '117', slug: 'brett-mcmurphy', name: 'Brett McMurphy', avatarEmoji: '🏈', verified: true, capperType: 'celebrity', network: 'Action Network', role: 'CFB Insider', followersCount: '567K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '118', slug: 'chad-millman', name: 'Chad Millman', avatarEmoji: '📰', verified: true, capperType: 'celebrity', network: 'Action Network', role: 'Editor-in-Chief', followersCount: '234K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '119', slug: 'stuckey-sharp', name: 'Stuckey', avatarEmoji: '🎯', verified: true, capperType: 'pro', network: 'Action Network', role: 'NFL Analyst', followersCount: '178K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '120', slug: 'collin-wilson', name: 'Collin Wilson', avatarEmoji: '📊', verified: true, capperType: 'pro', network: 'Action Network', role: 'CFB Sharp', followersCount: '145K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  
+  // =============================================
+  // EXPANDED EXPERTS - VSiN
+  // =============================================
+  { id: '121', slug: 'brent-musburger', name: 'Brent Musburger', avatarEmoji: '🎙️', verified: true, capperType: 'celebrity', network: 'VSiN', role: 'Founder/Host', followersCount: '456K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '122', slug: 'matt-youmans', name: 'Matt Youmans', avatarEmoji: '📋', verified: true, capperType: 'pro', network: 'VSiN', role: 'Host', followersCount: '89K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '123', slug: 'pauly-howard', name: 'Pauly Howard', avatarEmoji: '🎤', verified: true, capperType: 'pro', network: 'VSiN', role: 'Host', followersCount: '67K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  
+  // =============================================
+  // EXPANDED EXPERTS - THE ATHLETIC
+  // =============================================
+  { id: '124', slug: 'zach-lowe', name: 'Zach Lowe', avatarEmoji: '🏀', verified: true, capperType: 'celebrity', network: 'ESPN', role: 'NBA Analyst', followersCount: '1.1M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '125', slug: 'sam-amick', name: 'Sam Amick', avatarEmoji: '📰', verified: true, capperType: 'celebrity', network: 'The Athletic', role: 'NBA Reporter', followersCount: '345K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '126', slug: 'mike-sando', name: 'Mike Sando', avatarEmoji: '🏈', verified: true, capperType: 'celebrity', network: 'The Athletic', role: 'NFL Writer', followersCount: '234K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  
+  // =============================================
+  // NBA LEGENDS AS ANALYSTS
+  // =============================================
+  { id: '127', slug: 'vince-carter', name: 'Vince Carter', avatarEmoji: '🏀', verified: true, capperType: 'celebrity', network: 'ESPN', role: 'NBA Analyst', followersCount: '2.1M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '128', slug: 'candace-parker', name: 'Candace Parker', avatarEmoji: '👑', verified: true, capperType: 'celebrity', network: 'TNT', role: 'Inside the NBA', followersCount: '1.8M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '129', slug: 'paul-pierce', name: 'Paul Pierce', avatarEmoji: '☘️', verified: true, capperType: 'celebrity', network: 'ESPN', role: 'NBA Analyst', followersCount: '1.5M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '130', slug: 'jamal-crawford', name: 'Jamal Crawford', avatarEmoji: '🔥', verified: true, capperType: 'celebrity', network: 'NBA TV', role: 'Analyst', followersCount: '890K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '131', slug: 'cj-mccollum', name: 'CJ McCollum', avatarEmoji: '🍷', verified: true, capperType: 'celebrity', network: 'ESPN', role: 'NBA Analyst', followersCount: '1.2M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  
+  // =============================================
+  // NFL LEGENDS AS ANALYSTS
+  // =============================================
+  { id: '132', slug: 'deion-sanders', name: 'Deion Sanders', avatarEmoji: '💎', verified: true, capperType: 'celebrity', network: 'Barstool', role: 'Coach Prime', followersCount: '4.5M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '133', slug: 'terrell-owens', name: 'Terrell Owens', avatarEmoji: '🏈', verified: true, capperType: 'celebrity', network: 'Twitter', role: 'NFL Legend', followersCount: '2.8M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '134', slug: 'chad-johnson', name: 'Chad Johnson', avatarEmoji: '8️⃣5️⃣', verified: true, capperType: 'celebrity', network: 'Twitter', role: 'Ochocinco', followersCount: '4.2M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '135', slug: 'randy-moss', name: 'Randy Moss', avatarEmoji: '🏈', verified: true, capperType: 'celebrity', network: 'ESPN', role: 'NFL Analyst', followersCount: '890K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '136', slug: 'jerry-rice', name: 'Jerry Rice', avatarEmoji: '🐐', verified: true, capperType: 'celebrity', network: 'Twitter', role: 'NFL Legend', followersCount: '1.8M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '137', slug: 'emmitt-smith', name: 'Emmitt Smith', avatarEmoji: '⭐', verified: true, capperType: 'celebrity', network: 'Twitter', role: 'NFL Legend', followersCount: '1.2M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '138', slug: 'marshawn-lynch', name: 'Marshawn Lynch', avatarEmoji: '🦬', verified: true, capperType: 'celebrity', network: 'Podcast', role: 'Beast Mode', followersCount: '2.4M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  { id: '139', slug: 'gronk', name: 'Rob Gronkowski', avatarEmoji: '🎉', verified: true, capperType: 'celebrity', network: 'FOX', role: 'NFL Analyst', followersCount: '3.2M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
 ]
 
 // ===========================================
@@ -409,6 +554,8 @@ export const picks: Pick[] = generatePicks()
 
 // Pre-computed stats for each capper
 export const capperStats: Record<string, CapperStats> = {
+  // MATCHUPS AI - The star of the show (58.4% win rate, +9.0% ROI over 20 years)
+  'ai-0': { capperId: 'ai-0', totalPicks: 40852, totalWins: 23858, totalLosses: 16994, totalPushes: 0, winPercentage: 58.4, totalUnitsWagered: 40852, totalUnitsWon: 3676.7, netUnits: 3676.7, roiPercentage: 9.0, currentStreak: 'W3', overallRank: 1, rankChange: 0, picksThisWeek: 48, picksThisMonth: 312 },
   '1': { capperId: '1', totalPicks: 323, totalWins: 134, totalLosses: 189, totalPushes: 0, winPercentage: 41.5, totalUnitsWagered: 323, totalUnitsWon: -67.2, netUnits: -67.2, roiPercentage: -18.2, currentStreak: 'L4', overallRank: 15, rankChange: -3, picksThisWeek: 4, picksThisMonth: 18 },
   '2': { capperId: '2', totalPicks: 309, totalWins: 167, totalLosses: 142, totalPushes: 0, winPercentage: 54.0, totalUnitsWagered: 309, totalUnitsWon: 12.3, netUnits: 12.3, roiPercentage: 4.2, currentStreak: 'W2', overallRank: 8, rankChange: 2, picksThisWeek: 3, picksThisMonth: 15 },
   '3': { capperId: '3', totalPicks: 379, totalWins: 201, totalLosses: 178, totalPushes: 0, winPercentage: 53.0, totalUnitsWagered: 379, totalUnitsWon: 8.7, netUnits: 8.7, roiPercentage: 3.1, currentStreak: 'W1', overallRank: 9, rankChange: 1, picksThisWeek: 5, picksThisMonth: 22 },
@@ -469,6 +616,107 @@ export const capperStats: Record<string, CapperStats> = {
   // MLB
   '50': { capperId: '50', totalPicks: 312, totalWins: 167, totalLosses: 145, totalPushes: 0, winPercentage: 53.5, totalUnitsWagered: 312, totalUnitsWon: 18.7, netUnits: 18.7, roiPercentage: 6.0, currentStreak: 'W2', overallRank: 8, rankChange: 1, picksThisWeek: 3, picksThisMonth: 16 },
   '51': { capperId: '51', totalPicks: 345, totalWins: 162, totalLosses: 183, totalPushes: 0, winPercentage: 47.0, totalUnitsWagered: 345, totalUnitsWon: -28.4, netUnits: -28.4, roiPercentage: -8.2, currentStreak: 'L3', overallRank: 14, rankChange: -3, picksThisWeek: 4, picksThisMonth: 18 },
+  // EXPANDED EXPERTS - ESPN (52-62)
+  '52': { capperId: '52', totalPicks: 267, totalWins: 145, totalLosses: 122, totalPushes: 0, winPercentage: 54.3, totalUnitsWagered: 267, totalUnitsWon: 19.8, netUnits: 19.8, roiPercentage: 7.4, currentStreak: 'W2', overallRank: 19, rankChange: 2, picksThisWeek: 3, picksThisMonth: 14 },
+  '53': { capperId: '53', totalPicks: 289, totalWins: 162, totalLosses: 127, totalPushes: 0, winPercentage: 56.1, totalUnitsWagered: 289, totalUnitsWon: 28.4, netUnits: 28.4, roiPercentage: 9.8, currentStreak: 'W4', overallRank: 15, rankChange: 5, picksThisWeek: 4, picksThisMonth: 18 },
+  '54': { capperId: '54', totalPicks: 198, totalWins: 102, totalLosses: 96, totalPushes: 0, winPercentage: 51.5, totalUnitsWagered: 198, totalUnitsWon: 4.2, netUnits: 4.2, roiPercentage: 2.1, currentStreak: 'L1', overallRank: 28, rankChange: -1, picksThisWeek: 2, picksThisMonth: 10 },
+  '55': { capperId: '55', totalPicks: 234, totalWins: 118, totalLosses: 116, totalPushes: 0, winPercentage: 50.4, totalUnitsWagered: 234, totalUnitsWon: -2.1, netUnits: -2.1, roiPercentage: -0.9, currentStreak: 'W1', overallRank: 32, rankChange: 0, picksThisWeek: 3, picksThisMonth: 12 },
+  '56': { capperId: '56', totalPicks: 156, totalWins: 82, totalLosses: 74, totalPushes: 0, winPercentage: 52.6, totalUnitsWagered: 156, totalUnitsWon: 7.8, netUnits: 7.8, roiPercentage: 5.0, currentStreak: 'W3', overallRank: 25, rankChange: 3, picksThisWeek: 2, picksThisMonth: 8 },
+  '57': { capperId: '57', totalPicks: 312, totalWins: 167, totalLosses: 145, totalPushes: 0, winPercentage: 53.5, totalUnitsWagered: 312, totalUnitsWon: 16.2, netUnits: 16.2, roiPercentage: 5.2, currentStreak: 'W2', overallRank: 22, rankChange: 2, picksThisWeek: 4, picksThisMonth: 18 },
+  '58': { capperId: '58', totalPicks: 456, totalWins: 238, totalLosses: 218, totalPushes: 0, winPercentage: 52.2, totalUnitsWagered: 456, totalUnitsWon: 12.4, netUnits: 12.4, roiPercentage: 2.7, currentStreak: 'L2', overallRank: 27, rankChange: -2, picksThisWeek: 5, picksThisMonth: 24 },
+  '59': { capperId: '59', totalPicks: 178, totalWins: 92, totalLosses: 86, totalPushes: 0, winPercentage: 51.7, totalUnitsWagered: 178, totalUnitsWon: 5.6, netUnits: 5.6, roiPercentage: 3.1, currentStreak: 'W1', overallRank: 29, rankChange: 1, picksThisWeek: 2, picksThisMonth: 9 },
+  '60': { capperId: '60', totalPicks: 223, totalWins: 108, totalLosses: 115, totalPushes: 0, winPercentage: 48.4, totalUnitsWagered: 223, totalUnitsWon: -12.4, netUnits: -12.4, roiPercentage: -5.6, currentStreak: 'L3', overallRank: 38, rankChange: -4, picksThisWeek: 3, picksThisMonth: 12 },
+  '61': { capperId: '61', totalPicks: 189, totalWins: 98, totalLosses: 91, totalPushes: 0, winPercentage: 51.9, totalUnitsWagered: 189, totalUnitsWon: 6.2, netUnits: 6.2, roiPercentage: 3.3, currentStreak: 'W2', overallRank: 26, rankChange: 2, picksThisWeek: 2, picksThisMonth: 10 },
+  '62': { capperId: '62', totalPicks: 145, totalWins: 74, totalLosses: 71, totalPushes: 0, winPercentage: 51.0, totalUnitsWagered: 145, totalUnitsWon: 2.8, netUnits: 2.8, roiPercentage: 1.9, currentStreak: 'L1', overallRank: 31, rankChange: 0, picksThisWeek: 2, picksThisMonth: 7 },
+  // FOX SPORTS (63-71)
+  '63': { capperId: '63', totalPicks: 278, totalWins: 148, totalLosses: 130, totalPushes: 0, winPercentage: 53.2, totalUnitsWagered: 278, totalUnitsWon: 14.8, netUnits: 14.8, roiPercentage: 5.3, currentStreak: 'W3', overallRank: 23, rankChange: 3, picksThisWeek: 4, picksThisMonth: 16 },
+  '64': { capperId: '64', totalPicks: 212, totalWins: 102, totalLosses: 110, totalPushes: 0, winPercentage: 48.1, totalUnitsWagered: 212, totalUnitsWon: -14.2, netUnits: -14.2, roiPercentage: -6.7, currentStreak: 'L4', overallRank: 42, rankChange: -5, picksThisWeek: 3, picksThisMonth: 12 },
+  '65': { capperId: '65', totalPicks: 234, totalWins: 124, totalLosses: 110, totalPushes: 0, winPercentage: 53.0, totalUnitsWagered: 234, totalUnitsWon: 12.6, netUnits: 12.6, roiPercentage: 5.4, currentStreak: 'W2', overallRank: 24, rankChange: 2, picksThisWeek: 3, picksThisMonth: 13 },
+  '66': { capperId: '66', totalPicks: 189, totalWins: 94, totalLosses: 95, totalPushes: 0, winPercentage: 49.7, totalUnitsWagered: 189, totalUnitsWon: -5.8, netUnits: -5.8, roiPercentage: -3.1, currentStreak: 'L1', overallRank: 35, rankChange: -1, picksThisWeek: 2, picksThisMonth: 10 },
+  '67': { capperId: '67', totalPicks: 356, totalWins: 192, totalLosses: 164, totalPushes: 0, winPercentage: 53.9, totalUnitsWagered: 356, totalUnitsWon: 21.4, netUnits: 21.4, roiPercentage: 6.0, currentStreak: 'W4', overallRank: 18, rankChange: 4, picksThisWeek: 5, picksThisMonth: 22 },
+  '68': { capperId: '68', totalPicks: 267, totalWins: 138, totalLosses: 129, totalPushes: 0, winPercentage: 51.7, totalUnitsWagered: 267, totalUnitsWon: 8.4, netUnits: 8.4, roiPercentage: 3.1, currentStreak: 'W1', overallRank: 28, rankChange: 1, picksThisWeek: 4, picksThisMonth: 16 },
+  '69': { capperId: '69', totalPicks: 234, totalWins: 118, totalLosses: 116, totalPushes: 0, winPercentage: 50.4, totalUnitsWagered: 234, totalUnitsWon: -1.8, netUnits: -1.8, roiPercentage: -0.8, currentStreak: 'L2', overallRank: 33, rankChange: -2, picksThisWeek: 3, picksThisMonth: 14 },
+  '70': { capperId: '70', totalPicks: 178, totalWins: 86, totalLosses: 92, totalPushes: 0, winPercentage: 48.3, totalUnitsWagered: 178, totalUnitsWon: -9.8, netUnits: -9.8, roiPercentage: -5.5, currentStreak: 'L3', overallRank: 40, rankChange: -3, picksThisWeek: 2, picksThisMonth: 9 },
+  '71': { capperId: '71', totalPicks: 156, totalWins: 78, totalLosses: 78, totalPushes: 0, winPercentage: 50.0, totalUnitsWagered: 156, totalUnitsWon: -4.2, netUnits: -4.2, roiPercentage: -2.7, currentStreak: 'W1', overallRank: 34, rankChange: 0, picksThisWeek: 2, picksThisMonth: 8 },
+  // CBS SPORTS (72-77)
+  '72': { capperId: '72', totalPicks: 289, totalWins: 156, totalLosses: 133, totalPushes: 0, winPercentage: 54.0, totalUnitsWagered: 289, totalUnitsWon: 18.4, netUnits: 18.4, roiPercentage: 6.4, currentStreak: 'W3', overallRank: 20, rankChange: 3, picksThisWeek: 4, picksThisMonth: 17 },
+  '73': { capperId: '73', totalPicks: 198, totalWins: 98, totalLosses: 100, totalPushes: 0, winPercentage: 49.5, totalUnitsWagered: 198, totalUnitsWon: -6.2, netUnits: -6.2, roiPercentage: -3.1, currentStreak: 'L2', overallRank: 36, rankChange: -2, picksThisWeek: 2, picksThisMonth: 10 },
+  '74': { capperId: '74', totalPicks: 267, totalWins: 142, totalLosses: 125, totalPushes: 0, winPercentage: 53.2, totalUnitsWagered: 267, totalUnitsWon: 14.2, netUnits: 14.2, roiPercentage: 5.3, currentStreak: 'W2', overallRank: 23, rankChange: 2, picksThisWeek: 3, picksThisMonth: 15 },
+  '75': { capperId: '75', totalPicks: 178, totalWins: 88, totalLosses: 90, totalPushes: 0, winPercentage: 49.4, totalUnitsWagered: 178, totalUnitsWon: -5.4, netUnits: -5.4, roiPercentage: -3.0, currentStreak: 'L1', overallRank: 37, rankChange: -1, picksThisWeek: 2, picksThisMonth: 9 },
+  '76': { capperId: '76', totalPicks: 234, totalWins: 126, totalLosses: 108, totalPushes: 0, winPercentage: 53.8, totalUnitsWagered: 234, totalUnitsWon: 16.8, netUnits: 16.8, roiPercentage: 7.2, currentStreak: 'W4', overallRank: 17, rankChange: 4, picksThisWeek: 3, picksThisMonth: 13 },
+  '77': { capperId: '77', totalPicks: 189, totalWins: 96, totalLosses: 93, totalPushes: 0, winPercentage: 50.8, totalUnitsWagered: 189, totalUnitsWon: 2.4, netUnits: 2.4, roiPercentage: 1.3, currentStreak: 'W1', overallRank: 30, rankChange: 1, picksThisWeek: 2, picksThisMonth: 10 },
+  // NBC SPORTS (78-83)
+  '78': { capperId: '78', totalPicks: 312, totalWins: 172, totalLosses: 140, totalPushes: 0, winPercentage: 55.1, totalUnitsWagered: 312, totalUnitsWon: 26.4, netUnits: 26.4, roiPercentage: 8.5, currentStreak: 'W3', overallRank: 16, rankChange: 3, picksThisWeek: 4, picksThisMonth: 18 },
+  '79': { capperId: '79', totalPicks: 178, totalWins: 92, totalLosses: 86, totalPushes: 0, winPercentage: 51.7, totalUnitsWagered: 178, totalUnitsWon: 5.2, netUnits: 5.2, roiPercentage: 2.9, currentStreak: 'W1', overallRank: 29, rankChange: 1, picksThisWeek: 2, picksThisMonth: 9 },
+  '80': { capperId: '80', totalPicks: 145, totalWins: 72, totalLosses: 73, totalPushes: 0, winPercentage: 49.7, totalUnitsWagered: 145, totalUnitsWon: -3.8, netUnits: -3.8, roiPercentage: -2.6, currentStreak: 'L1', overallRank: 34, rankChange: 0, picksThisWeek: 2, picksThisMonth: 7 },
+  '81': { capperId: '81', totalPicks: 234, totalWins: 124, totalLosses: 110, totalPushes: 0, winPercentage: 53.0, totalUnitsWagered: 234, totalUnitsWon: 12.8, netUnits: 12.8, roiPercentage: 5.5, currentStreak: 'W2', overallRank: 24, rankChange: 2, picksThisWeek: 3, picksThisMonth: 13 },
+  '82': { capperId: '82', totalPicks: 278, totalWins: 152, totalLosses: 126, totalPushes: 0, winPercentage: 54.7, totalUnitsWagered: 278, totalUnitsWon: 22.4, netUnits: 22.4, roiPercentage: 8.1, currentStreak: 'W4', overallRank: 14, rankChange: 4, picksThisWeek: 4, picksThisMonth: 16 },
+  '83': { capperId: '83', totalPicks: 312, totalWins: 168, totalLosses: 144, totalPushes: 0, winPercentage: 53.8, totalUnitsWagered: 312, totalUnitsWon: 18.6, netUnits: 18.6, roiPercentage: 6.0, currentStreak: 'W2', overallRank: 21, rankChange: 2, picksThisWeek: 4, picksThisMonth: 18 },
+  // NFL NETWORK (84-90)
+  '84': { capperId: '84', totalPicks: 289, totalWins: 156, totalLosses: 133, totalPushes: 0, winPercentage: 54.0, totalUnitsWagered: 289, totalUnitsWon: 18.2, netUnits: 18.2, roiPercentage: 6.3, currentStreak: 'W3', overallRank: 20, rankChange: 3, picksThisWeek: 4, picksThisMonth: 17 },
+  '85': { capperId: '85', totalPicks: 234, totalWins: 126, totalLosses: 108, totalPushes: 0, winPercentage: 53.8, totalUnitsWagered: 234, totalUnitsWon: 16.4, netUnits: 16.4, roiPercentage: 7.0, currentStreak: 'W4', overallRank: 18, rankChange: 4, picksThisWeek: 3, picksThisMonth: 14 },
+  '86': { capperId: '86', totalPicks: 178, totalWins: 94, totalLosses: 84, totalPushes: 0, winPercentage: 52.8, totalUnitsWagered: 178, totalUnitsWon: 8.6, netUnits: 8.6, roiPercentage: 4.8, currentStreak: 'W2', overallRank: 25, rankChange: 2, picksThisWeek: 2, picksThisMonth: 10 },
+  '87': { capperId: '87', totalPicks: 145, totalWins: 74, totalLosses: 71, totalPushes: 0, winPercentage: 51.0, totalUnitsWagered: 145, totalUnitsWon: 2.6, netUnits: 2.6, roiPercentage: 1.8, currentStreak: 'L1', overallRank: 31, rankChange: 0, picksThisWeek: 2, picksThisMonth: 7 },
+  '88': { capperId: '88', totalPicks: 267, totalWins: 146, totalLosses: 121, totalPushes: 0, winPercentage: 54.7, totalUnitsWagered: 267, totalUnitsWon: 21.8, netUnits: 21.8, roiPercentage: 8.2, currentStreak: 'W3', overallRank: 17, rankChange: 3, picksThisWeek: 3, picksThisMonth: 15 },
+  '89': { capperId: '89', totalPicks: 212, totalWins: 108, totalLosses: 104, totalPushes: 0, winPercentage: 50.9, totalUnitsWagered: 212, totalUnitsWon: 3.4, netUnits: 3.4, roiPercentage: 1.6, currentStreak: 'W1', overallRank: 30, rankChange: 1, picksThisWeek: 3, picksThisMonth: 12 },
+  '90': { capperId: '90', totalPicks: 178, totalWins: 86, totalLosses: 92, totalPushes: 0, winPercentage: 48.3, totalUnitsWagered: 178, totalUnitsWon: -9.4, netUnits: -9.4, roiPercentage: -5.3, currentStreak: 'L2', overallRank: 39, rankChange: -2, picksThisWeek: 2, picksThisMonth: 9 },
+  // PODCASTERS (91-97)
+  '91': { capperId: '91', totalPicks: 345, totalWins: 186, totalLosses: 159, totalPushes: 0, winPercentage: 53.9, totalUnitsWagered: 345, totalUnitsWon: 21.2, netUnits: 21.2, roiPercentage: 6.1, currentStreak: 'W2', overallRank: 19, rankChange: 2, picksThisWeek: 5, picksThisMonth: 22 },
+  '92': { capperId: '92', totalPicks: 198, totalWins: 104, totalLosses: 94, totalPushes: 0, winPercentage: 52.5, totalUnitsWagered: 198, totalUnitsWon: 8.2, netUnits: 8.2, roiPercentage: 4.1, currentStreak: 'W1', overallRank: 26, rankChange: 1, picksThisWeek: 3, picksThisMonth: 11 },
+  '93': { capperId: '93', totalPicks: 156, totalWins: 82, totalLosses: 74, totalPushes: 0, winPercentage: 52.6, totalUnitsWagered: 156, totalUnitsWon: 7.4, netUnits: 7.4, roiPercentage: 4.7, currentStreak: 'W2', overallRank: 25, rankChange: 2, picksThisWeek: 2, picksThisMonth: 8 },
+  '94': { capperId: '94', totalPicks: 212, totalWins: 106, totalLosses: 106, totalPushes: 0, winPercentage: 50.0, totalUnitsWagered: 212, totalUnitsWon: -5.2, netUnits: -5.2, roiPercentage: -2.5, currentStreak: 'L1', overallRank: 35, rankChange: -1, picksThisWeek: 3, picksThisMonth: 12 },
+  '95': { capperId: '95', totalPicks: 267, totalWins: 142, totalLosses: 125, totalPushes: 0, winPercentage: 53.2, totalUnitsWagered: 267, totalUnitsWon: 14.6, netUnits: 14.6, roiPercentage: 5.5, currentStreak: 'W3', overallRank: 22, rankChange: 3, picksThisWeek: 4, picksThisMonth: 15 },
+  '96': { capperId: '96', totalPicks: 178, totalWins: 92, totalLosses: 86, totalPushes: 0, winPercentage: 51.7, totalUnitsWagered: 178, totalUnitsWon: 5.4, netUnits: 5.4, roiPercentage: 3.0, currentStreak: 'W1', overallRank: 29, rankChange: 1, picksThisWeek: 2, picksThisMonth: 9 },
+  '97': { capperId: '97', totalPicks: 234, totalWins: 124, totalLosses: 110, totalPushes: 0, winPercentage: 53.0, totalUnitsWagered: 234, totalUnitsWon: 12.4, netUnits: 12.4, roiPercentage: 5.3, currentStreak: 'W2', overallRank: 24, rankChange: 2, picksThisWeek: 3, picksThisMonth: 13 },
+  // TWITTER/INSIDERS (98-104)
+  '98': { capperId: '98', totalPicks: 356, totalWins: 182, totalLosses: 174, totalPushes: 0, winPercentage: 51.1, totalUnitsWagered: 356, totalUnitsWon: 4.8, netUnits: 4.8, roiPercentage: 1.3, currentStreak: 'L1', overallRank: 30, rankChange: 0, picksThisWeek: 5, picksThisMonth: 24 },
+  '99': { capperId: '99', totalPicks: 289, totalWins: 148, totalLosses: 141, totalPushes: 0, winPercentage: 51.2, totalUnitsWagered: 289, totalUnitsWon: 5.2, netUnits: 5.2, roiPercentage: 1.8, currentStreak: 'W1', overallRank: 29, rankChange: 1, picksThisWeek: 4, picksThisMonth: 18 },
+  '100': { capperId: '100', totalPicks: 312, totalWins: 164, totalLosses: 148, totalPushes: 0, winPercentage: 52.6, totalUnitsWagered: 312, totalUnitsWon: 11.2, netUnits: 11.2, roiPercentage: 3.6, currentStreak: 'W2', overallRank: 26, rankChange: 2, picksThisWeek: 4, picksThisMonth: 18 },
+  '101': { capperId: '101', totalPicks: 267, totalWins: 142, totalLosses: 125, totalPushes: 0, winPercentage: 53.2, totalUnitsWagered: 267, totalUnitsWon: 14.2, netUnits: 14.2, roiPercentage: 5.3, currentStreak: 'W3', overallRank: 23, rankChange: 3, picksThisWeek: 4, picksThisMonth: 16 },
+  '102': { capperId: '102', totalPicks: 278, totalWins: 148, totalLosses: 130, totalPushes: 0, winPercentage: 53.2, totalUnitsWagered: 278, totalUnitsWon: 14.6, netUnits: 14.6, roiPercentage: 5.3, currentStreak: 'W2', overallRank: 23, rankChange: 2, picksThisWeek: 4, picksThisMonth: 17 },
+  '103': { capperId: '103', totalPicks: 234, totalWins: 124, totalLosses: 110, totalPushes: 0, winPercentage: 53.0, totalUnitsWagered: 234, totalUnitsWon: 12.2, netUnits: 12.2, roiPercentage: 5.2, currentStreak: 'W1', overallRank: 25, rankChange: 1, picksThisWeek: 3, picksThisMonth: 14 },
+  '104': { capperId: '104', totalPicks: 198, totalWins: 102, totalLosses: 96, totalPushes: 0, winPercentage: 51.5, totalUnitsWagered: 198, totalUnitsWon: 4.6, netUnits: 4.6, roiPercentage: 2.3, currentStreak: 'L1', overallRank: 28, rankChange: 0, picksThisWeek: 3, picksThisMonth: 11 },
+  // PRO SHARPS (105-115)
+  '105': { capperId: '105', totalPicks: 423, totalWins: 242, totalLosses: 181, totalPushes: 0, winPercentage: 57.2, totalUnitsWagered: 423, totalUnitsWon: 68.4, netUnits: 68.4, roiPercentage: 16.2, currentStreak: 'W5', overallRank: 2, rankChange: 1, picksThisWeek: 5, picksThisMonth: 26 },
+  '106': { capperId: '106', totalPicks: 389, totalWins: 222, totalLosses: 167, totalPushes: 0, winPercentage: 57.1, totalUnitsWagered: 389, totalUnitsWon: 62.8, netUnits: 62.8, roiPercentage: 16.1, currentStreak: 'W4', overallRank: 3, rankChange: 2, picksThisWeek: 5, picksThisMonth: 24 },
+  '107': { capperId: '107', totalPicks: 356, totalWins: 198, totalLosses: 158, totalPushes: 0, winPercentage: 55.6, totalUnitsWagered: 356, totalUnitsWon: 42.6, netUnits: 42.6, roiPercentage: 12.0, currentStreak: 'W3', overallRank: 6, rankChange: 3, picksThisWeek: 4, picksThisMonth: 21 },
+  '108': { capperId: '108', totalPicks: 412, totalWins: 232, totalLosses: 180, totalPushes: 0, winPercentage: 56.3, totalUnitsWagered: 412, totalUnitsWon: 52.4, netUnits: 52.4, roiPercentage: 12.7, currentStreak: 'W4', overallRank: 5, rankChange: 2, picksThisWeek: 5, picksThisMonth: 25 },
+  '109': { capperId: '109', totalPicks: 478, totalWins: 268, totalLosses: 210, totalPushes: 0, winPercentage: 56.1, totalUnitsWagered: 478, totalUnitsWon: 54.8, netUnits: 54.8, roiPercentage: 11.5, currentStreak: 'W3', overallRank: 5, rankChange: 2, picksThisWeek: 6, picksThisMonth: 28 },
+  '110': { capperId: '110', totalPicks: 345, totalWins: 194, totalLosses: 151, totalPushes: 0, winPercentage: 56.2, totalUnitsWagered: 345, totalUnitsWon: 46.2, netUnits: 46.2, roiPercentage: 13.4, currentStreak: 'W4', overallRank: 4, rankChange: 3, picksThisWeek: 4, picksThisMonth: 20 },
+  '111': { capperId: '111', totalPicks: 289, totalWins: 158, totalLosses: 131, totalPushes: 0, winPercentage: 54.7, totalUnitsWagered: 289, totalUnitsWon: 24.6, netUnits: 24.6, roiPercentage: 8.5, currentStreak: 'W2', overallRank: 10, rankChange: 2, picksThisWeek: 4, picksThisMonth: 17 },
+  '112': { capperId: '112', totalPicks: 378, totalWins: 214, totalLosses: 164, totalPushes: 0, winPercentage: 56.6, totalUnitsWagered: 378, totalUnitsWon: 52.8, netUnits: 52.8, roiPercentage: 14.0, currentStreak: 'W5', overallRank: 4, rankChange: 2, picksThisWeek: 5, picksThisMonth: 23 },
+  '113': { capperId: '113', totalPicks: 234, totalWins: 128, totalLosses: 106, totalPushes: 0, winPercentage: 54.7, totalUnitsWagered: 234, totalUnitsWon: 21.8, netUnits: 21.8, roiPercentage: 9.3, currentStreak: 'W3', overallRank: 9, rankChange: 3, picksThisWeek: 3, picksThisMonth: 14 },
+  '114': { capperId: '114', totalPicks: 312, totalWins: 174, totalLosses: 138, totalPushes: 0, winPercentage: 55.8, totalUnitsWagered: 312, totalUnitsWon: 36.4, netUnits: 36.4, roiPercentage: 11.7, currentStreak: 'W4', overallRank: 7, rankChange: 4, picksThisWeek: 4, picksThisMonth: 18 },
+  '115': { capperId: '115', totalPicks: 356, totalWins: 198, totalLosses: 158, totalPushes: 0, winPercentage: 55.6, totalUnitsWagered: 356, totalUnitsWon: 42.2, netUnits: 42.2, roiPercentage: 11.9, currentStreak: 'W3', overallRank: 6, rankChange: 3, picksThisWeek: 4, picksThisMonth: 21 },
+  // ACTION NETWORK (116-120)
+  '116': { capperId: '116', totalPicks: 289, totalWins: 148, totalLosses: 141, totalPushes: 0, winPercentage: 51.2, totalUnitsWagered: 289, totalUnitsWon: 5.4, netUnits: 5.4, roiPercentage: 1.9, currentStreak: 'W1', overallRank: 29, rankChange: 1, picksThisWeek: 4, picksThisMonth: 18 },
+  '117': { capperId: '117', totalPicks: 345, totalWins: 182, totalLosses: 163, totalPushes: 0, winPercentage: 52.8, totalUnitsWagered: 345, totalUnitsWon: 14.8, netUnits: 14.8, roiPercentage: 4.3, currentStreak: 'W2', overallRank: 25, rankChange: 2, picksThisWeek: 5, picksThisMonth: 21 },
+  '118': { capperId: '118', totalPicks: 198, totalWins: 102, totalLosses: 96, totalPushes: 0, winPercentage: 51.5, totalUnitsWagered: 198, totalUnitsWon: 4.8, netUnits: 4.8, roiPercentage: 2.4, currentStreak: 'L1', overallRank: 28, rankChange: 0, picksThisWeek: 3, picksThisMonth: 11 },
+  '119': { capperId: '119', totalPicks: 378, totalWins: 212, totalLosses: 166, totalPushes: 0, winPercentage: 56.1, totalUnitsWagered: 378, totalUnitsWon: 48.6, netUnits: 48.6, roiPercentage: 12.9, currentStreak: 'W4', overallRank: 5, rankChange: 3, picksThisWeek: 5, picksThisMonth: 23 },
+  '120': { capperId: '120', totalPicks: 345, totalWins: 188, totalLosses: 157, totalPushes: 0, winPercentage: 54.5, totalUnitsWagered: 345, totalUnitsWon: 28.4, netUnits: 28.4, roiPercentage: 8.2, currentStreak: 'W3', overallRank: 11, rankChange: 3, picksThisWeek: 5, picksThisMonth: 21 },
+  // VSiN (121-123)
+  '121': { capperId: '121', totalPicks: 312, totalWins: 168, totalLosses: 144, totalPushes: 0, winPercentage: 53.8, totalUnitsWagered: 312, totalUnitsWon: 18.4, netUnits: 18.4, roiPercentage: 5.9, currentStreak: 'W2', overallRank: 21, rankChange: 2, picksThisWeek: 4, picksThisMonth: 18 },
+  '122': { capperId: '122', totalPicks: 234, totalWins: 126, totalLosses: 108, totalPushes: 0, winPercentage: 53.8, totalUnitsWagered: 234, totalUnitsWon: 16.2, netUnits: 16.2, roiPercentage: 6.9, currentStreak: 'W3', overallRank: 19, rankChange: 3, picksThisWeek: 3, picksThisMonth: 14 },
+  '123': { capperId: '123', totalPicks: 189, totalWins: 98, totalLosses: 91, totalPushes: 0, winPercentage: 51.9, totalUnitsWagered: 189, totalUnitsWon: 6.4, netUnits: 6.4, roiPercentage: 3.4, currentStreak: 'W1', overallRank: 27, rankChange: 1, picksThisWeek: 2, picksThisMonth: 10 },
+  // THE ATHLETIC (124-126)
+  '124': { capperId: '124', totalPicks: 345, totalWins: 186, totalLosses: 159, totalPushes: 0, winPercentage: 53.9, totalUnitsWagered: 345, totalUnitsWon: 21.6, netUnits: 21.6, roiPercentage: 6.3, currentStreak: 'W2', overallRank: 19, rankChange: 2, picksThisWeek: 5, picksThisMonth: 22 },
+  '125': { capperId: '125', totalPicks: 234, totalWins: 122, totalLosses: 112, totalPushes: 0, winPercentage: 52.1, totalUnitsWagered: 234, totalUnitsWon: 8.8, netUnits: 8.8, roiPercentage: 3.8, currentStreak: 'W1', overallRank: 26, rankChange: 1, picksThisWeek: 3, picksThisMonth: 14 },
+  '126': { capperId: '126', totalPicks: 198, totalWins: 104, totalLosses: 94, totalPushes: 0, winPercentage: 52.5, totalUnitsWagered: 198, totalUnitsWon: 8.6, netUnits: 8.6, roiPercentage: 4.3, currentStreak: 'W2', overallRank: 25, rankChange: 2, picksThisWeek: 3, picksThisMonth: 11 },
+  // NBA LEGENDS (127-131)
+  '127': { capperId: '127', totalPicks: 267, totalWins: 142, totalLosses: 125, totalPushes: 0, winPercentage: 53.2, totalUnitsWagered: 267, totalUnitsWon: 14.4, netUnits: 14.4, roiPercentage: 5.4, currentStreak: 'W2', overallRank: 23, rankChange: 2, picksThisWeek: 4, picksThisMonth: 16 },
+  '128': { capperId: '128', totalPicks: 234, totalWins: 128, totalLosses: 106, totalPushes: 0, winPercentage: 54.7, totalUnitsWagered: 234, totalUnitsWon: 22.2, netUnits: 22.2, roiPercentage: 9.5, currentStreak: 'W4', overallRank: 13, rankChange: 4, picksThisWeek: 3, picksThisMonth: 14 },
+  '129': { capperId: '129', totalPicks: 312, totalWins: 156, totalLosses: 156, totalPushes: 0, winPercentage: 50.0, totalUnitsWagered: 312, totalUnitsWon: -7.8, netUnits: -7.8, roiPercentage: -2.5, currentStreak: 'L2', overallRank: 36, rankChange: -2, picksThisWeek: 4, picksThisMonth: 18 },
+  '130': { capperId: '130', totalPicks: 198, totalWins: 104, totalLosses: 94, totalPushes: 0, winPercentage: 52.5, totalUnitsWagered: 198, totalUnitsWon: 8.4, netUnits: 8.4, roiPercentage: 4.2, currentStreak: 'W1', overallRank: 26, rankChange: 1, picksThisWeek: 3, picksThisMonth: 11 },
+  '131': { capperId: '131', totalPicks: 234, totalWins: 124, totalLosses: 110, totalPushes: 0, winPercentage: 53.0, totalUnitsWagered: 234, totalUnitsWon: 12.6, netUnits: 12.6, roiPercentage: 5.4, currentStreak: 'W2', overallRank: 24, rankChange: 2, picksThisWeek: 3, picksThisMonth: 13 },
+  // NFL LEGENDS (132-139)
+  '132': { capperId: '132', totalPicks: 289, totalWins: 152, totalLosses: 137, totalPushes: 0, winPercentage: 52.6, totalUnitsWagered: 289, totalUnitsWon: 11.4, netUnits: 11.4, roiPercentage: 3.9, currentStreak: 'W1', overallRank: 26, rankChange: 1, picksThisWeek: 4, picksThisMonth: 17 },
+  '133': { capperId: '133', totalPicks: 234, totalWins: 112, totalLosses: 122, totalPushes: 0, winPercentage: 47.9, totalUnitsWagered: 234, totalUnitsWon: -16.2, netUnits: -16.2, roiPercentage: -6.9, currentStreak: 'L3', overallRank: 41, rankChange: -4, picksThisWeek: 3, picksThisMonth: 14 },
+  '134': { capperId: '134', totalPicks: 356, totalWins: 168, totalLosses: 188, totalPushes: 0, winPercentage: 47.2, totalUnitsWagered: 356, totalUnitsWon: -28.4, netUnits: -28.4, roiPercentage: -8.0, currentStreak: 'L5', overallRank: 45, rankChange: -6, picksThisWeek: 5, picksThisMonth: 22 },
+  '135': { capperId: '135', totalPicks: 267, totalWins: 142, totalLosses: 125, totalPushes: 0, winPercentage: 53.2, totalUnitsWagered: 267, totalUnitsWon: 14.2, netUnits: 14.2, roiPercentage: 5.3, currentStreak: 'W2', overallRank: 23, rankChange: 2, picksThisWeek: 4, picksThisMonth: 16 },
+  '136': { capperId: '136', totalPicks: 234, totalWins: 124, totalLosses: 110, totalPushes: 0, winPercentage: 53.0, totalUnitsWagered: 234, totalUnitsWon: 12.8, netUnits: 12.8, roiPercentage: 5.5, currentStreak: 'W3', overallRank: 22, rankChange: 3, picksThisWeek: 3, picksThisMonth: 14 },
+  '137': { capperId: '137', totalPicks: 198, totalWins: 102, totalLosses: 96, totalPushes: 0, winPercentage: 51.5, totalUnitsWagered: 198, totalUnitsWon: 4.8, netUnits: 4.8, roiPercentage: 2.4, currentStreak: 'L1', overallRank: 28, rankChange: 0, picksThisWeek: 3, picksThisMonth: 11 },
+  '138': { capperId: '138', totalPicks: 267, totalWins: 126, totalLosses: 141, totalPushes: 0, winPercentage: 47.2, totalUnitsWagered: 267, totalUnitsWon: -21.4, netUnits: -21.4, roiPercentage: -8.0, currentStreak: 'L4', overallRank: 44, rankChange: -5, picksThisWeek: 4, picksThisMonth: 16 },
+  '139': { capperId: '139', totalPicks: 289, totalWins: 148, totalLosses: 141, totalPushes: 0, winPercentage: 51.2, totalUnitsWagered: 289, totalUnitsWon: 5.6, netUnits: 5.6, roiPercentage: 1.9, currentStreak: 'W1', overallRank: 29, rankChange: 1, picksThisWeek: 4, picksThisMonth: 17 },
 }
 
 // Stats by sport for each capper
@@ -599,12 +847,64 @@ export function getCapperYearStats(capperId: string, year?: number | 'current' |
   }
 }
 
+// Filter picks by number of days back
+function filterPicksByDays(picksToFilter: Pick[], daysBack: number | null): Pick[] {
+  if (daysBack === null) {
+    return picksToFilter // Return all picks
+  }
+  
+  const now = new Date('2026-01-06') // Current date per context
+  const cutoffDate = new Date(now)
+  cutoffDate.setDate(cutoffDate.getDate() - daysBack)
+  
+  return picksToFilter.filter(p => {
+    const pickDate = new Date(p.pickedAt)
+    return pickDate >= cutoffDate
+  })
+}
+
+// Get stats for a capper filtered by days back
+export function getCapperStatsByDays(capperId: string, daysBack: number | null): {
+  capperId: string
+  wins: number
+  losses: number
+  pushes: number
+  totalPicks: number
+  winPercentage: number
+  netUnits: number
+  roiPercentage: number
+  recentForm: string
+  lastPick?: Pick
+} {
+  const capperPicks = picks.filter(p => p.capperId === capperId)
+  const filteredPicks = filterPicksByDays(capperPicks, daysBack)
+  const stats = calculateStatsFromPicks(filteredPicks)
+  
+  // Calculate recent form (last 5 picks in the time period)
+  const sortedPicks = [...filteredPicks].sort((a, b) => 
+    new Date(b.pickedAt).getTime() - new Date(a.pickedAt).getTime()
+  )
+  const last5 = sortedPicks.slice(0, 5)
+  const recentForm = last5.map(p => p.result === 'win' ? 'W' : p.result === 'loss' ? 'L' : 'P').join('')
+  
+  // Get last pick
+  const lastPick = sortedPicks[0]
+  
+  return {
+    capperId,
+    ...stats,
+    recentForm,
+    lastPick
+  }
+}
+
 export function getLeaderboardEntries(filters?: {
   capperType?: string
   betType?: string
   sport?: string
   sortBy?: string
   year?: number | 'current' | 'all'
+  daysBack?: number | null // New: filter by days back
 }): LeaderboardEntry[] {
   let filteredCappers = cappers.filter(c => c.isActive)
   
@@ -613,13 +913,17 @@ export function getLeaderboardEntries(filters?: {
     filteredCappers = filteredCappers.filter(c => c.capperType === filters.capperType)
   }
   
-  // Get the year filter (default to current)
+  // Determine if using days filter or year filter
+  const useDaysFilter = filters?.daysBack !== undefined
+  const daysBack = filters?.daysBack ?? null
   const yearFilter = filters?.year ?? 'current'
   
   // Map to leaderboard entries
   const entries: LeaderboardEntry[] = filteredCappers.map(capper => {
-    // Get year-filtered stats
-    const yearStats = getCapperYearStats(capper.id, yearFilter)
+    // Get time-filtered stats (prefer days filter if set)
+    const timeStats = useDaysFilter 
+      ? getCapperStatsByDays(capper.id, daysBack)
+      : getCapperYearStats(capper.id, yearFilter)
     
     // Get historical stats for context
     const allTimeStats = capperStats[capper.id]
@@ -635,18 +939,18 @@ export function getLeaderboardEntries(filters?: {
       network: capper.network as any,
       role: capper.role,
       followersCount: capper.followersCount,
-      // Use year-filtered stats
-      record: `${yearStats.wins}-${yearStats.losses}`,
-      winPct: yearStats.winPercentage,
-      units: yearStats.netUnits,
-      roi: yearStats.roiPercentage,
-      streak: yearStats.recentForm || 'N/A',
+      // Use time-filtered stats
+      record: `${timeStats.wins}-${timeStats.losses}`,
+      winPct: timeStats.winPercentage,
+      units: timeStats.netUnits,
+      roi: timeStats.roiPercentage,
+      streak: timeStats.recentForm || 'N/A',
       rank: 0, // Will be set after sorting
       rankChange: allTimeStats?.rankChange || 0,
-      lastPick: yearStats.lastPick?.pickDescription,
-      lastPickResult: yearStats.lastPick?.result as 'win' | 'loss' | 'push' | undefined,
+      lastPick: timeStats.lastPick?.pickDescription,
+      lastPickResult: timeStats.lastPick?.result as 'win' | 'loss' | 'push' | undefined,
       // Additional year context
-      totalPicks: yearStats.totalPicks,
+      totalPicks: timeStats.totalPicks,
       yearFiltered: yearFilter !== 'all',
     }
   })
@@ -718,4 +1022,135 @@ export function getCapperStatsBySport(capperId: string): CapperStatsBySport[] {
 
 export function getCapperStatsByBetType(capperId: string): CapperStatsByBetType[] {
   return capperStatsByBetType[capperId] || []
+}
+
+// ===========================================
+// HALL OF SHAME - Historical Appearance Tracking
+// ===========================================
+
+export interface CapperAppearance {
+  capperId: string
+  name: string
+  slug: string
+  avatarEmoji: string
+  capperType: CapperType
+  network?: Network
+  // Appearance counts across different lists
+  hotStreakAppearances: number
+  coldStreakAppearances: number
+  fadeAlertAppearances: number
+  biggestLoserAppearances: number
+  topPerformerAppearances: number
+  // Totals
+  totalShameAppearances: number  // cold + fade + loser
+  totalGloryAppearances: number  // hot + top
+  totalAppearances: number
+  // Recent activity
+  lastHotStreak?: string
+  lastColdStreak?: string
+  lastFadeAlert?: string
+  // Win rate for context
+  currentWinPct: number
+  currentUnits: number
+}
+
+// Historical appearance data - simulated weekly tracking
+// This tracks how many times each capper has appeared on various lists
+const capperAppearanceHistory: Record<string, {
+  hotStreakWeeks: number
+  coldStreakWeeks: number
+  fadeAlertWeeks: number
+  biggestLoserWeeks: number
+  topPerformerWeeks: number
+  lastHotStreak?: string
+  lastColdStreak?: string
+  lastFadeAlert?: string
+}> = {
+  // CELEBRITIES - Usually on the wrong side
+  '1': { hotStreakWeeks: 2, coldStreakWeeks: 18, fadeAlertWeeks: 22, biggestLoserWeeks: 14, topPerformerWeeks: 1, lastColdStreak: 'Jan 2', lastFadeAlert: 'Jan 3' }, // Stephen A
+  '8': { hotStreakWeeks: 1, coldStreakWeeks: 24, fadeAlertWeeks: 28, biggestLoserWeeks: 20, topPerformerWeeks: 0, lastColdStreak: 'Jan 3', lastFadeAlert: 'Jan 3' }, // Skip - KING OF SHAME
+  '11': { hotStreakWeeks: 4, coldStreakWeeks: 16, fadeAlertWeeks: 18, biggestLoserWeeks: 10, topPerformerWeeks: 2, lastColdStreak: 'Jan 1', lastFadeAlert: 'Dec 28' }, // Barkley
+  '2': { hotStreakWeeks: 8, coldStreakWeeks: 10, fadeAlertWeeks: 8, biggestLoserWeeks: 4, topPerformerWeeks: 6, lastHotStreak: 'Dec 15' }, // Shannon
+  '3': { hotStreakWeeks: 12, coldStreakWeeks: 6, fadeAlertWeeks: 4, biggestLoserWeeks: 2, topPerformerWeeks: 10, lastHotStreak: 'Jan 2' }, // Pat McAfee
+  '9': { hotStreakWeeks: 3, coldStreakWeeks: 14, fadeAlertWeeks: 16, biggestLoserWeeks: 8, topPerformerWeeks: 2, lastColdStreak: 'Dec 30' }, // Cowherd
+  '10': { hotStreakWeeks: 2, coldStreakWeeks: 12, fadeAlertWeeks: 14, biggestLoserWeeks: 6, topPerformerWeeks: 1, lastColdStreak: 'Dec 28' }, // Nick Wright
+  '12': { hotStreakWeeks: 6, coldStreakWeeks: 8, fadeAlertWeeks: 6, biggestLoserWeeks: 3, topPerformerWeeks: 4, lastHotStreak: 'Dec 20' }, // Shaq
+  '14': { hotStreakWeeks: 22, coldStreakWeeks: 3, fadeAlertWeeks: 2, biggestLoserWeeks: 1, topPerformerWeeks: 18, lastHotStreak: 'Jan 3' }, // Romo - ELITE
+  '42': { hotStreakWeeks: 3, coldStreakWeeks: 20, fadeAlertWeeks: 24, biggestLoserWeeks: 16, topPerformerWeeks: 1, lastColdStreak: 'Jan 2', lastFadeAlert: 'Jan 3' }, // Portnoy
+  '38': { hotStreakWeeks: 1, coldStreakWeeks: 16, fadeAlertWeeks: 18, biggestLoserWeeks: 12, topPerformerWeeks: 0, lastColdStreak: 'Jan 1', lastFadeAlert: 'Jan 2' }, // Perk
+  '16': { hotStreakWeeks: 14, coldStreakWeeks: 4, fadeAlertWeeks: 3, biggestLoserWeeks: 2, topPerformerWeeks: 12, lastHotStreak: 'Dec 28' }, // Simmons
+  '6': { hotStreakWeeks: 16, coldStreakWeeks: 2, fadeAlertWeeks: 1, biggestLoserWeeks: 0, topPerformerWeeks: 14, lastHotStreak: 'Jan 1' }, // Peyton
+  '29': { hotStreakWeeks: 10, coldStreakWeeks: 5, fadeAlertWeeks: 4, biggestLoserWeeks: 2, topPerformerWeeks: 8, lastHotStreak: 'Dec 25' }, // Aikman
+  '40': { hotStreakWeeks: 8, coldStreakWeeks: 10, fadeAlertWeeks: 12, biggestLoserWeeks: 6, topPerformerWeeks: 6, lastColdStreak: 'Dec 20' }, // Big Cat
+  
+  // PRO SHARPS - Usually on the right side
+  '18': { hotStreakWeeks: 28, coldStreakWeeks: 2, fadeAlertWeeks: 1, biggestLoserWeeks: 0, topPerformerWeeks: 26, lastHotStreak: 'Jan 3' }, // Haralabos
+  '19': { hotStreakWeeks: 32, coldStreakWeeks: 1, fadeAlertWeeks: 0, biggestLoserWeeks: 0, topPerformerWeeks: 30, lastHotStreak: 'Jan 3' }, // Billy Walters - GOAT
+  '20': { hotStreakWeeks: 20, coldStreakWeeks: 4, fadeAlertWeeks: 2, biggestLoserWeeks: 1, topPerformerWeeks: 18, lastHotStreak: 'Jan 2' }, // RAS
+  '22': { hotStreakWeeks: 24, coldStreakWeeks: 3, fadeAlertWeeks: 1, biggestLoserWeeks: 0, topPerformerWeeks: 22, lastHotStreak: 'Jan 1' }, // Warren Sharp
+  '44': { hotStreakWeeks: 18, coldStreakWeeks: 5, fadeAlertWeeks: 3, biggestLoserWeeks: 2, topPerformerWeeks: 16, lastHotStreak: 'Dec 30' }, // Captain Jack
+  '45': { hotStreakWeeks: 22, coldStreakWeeks: 2, fadeAlertWeeks: 1, biggestLoserWeeks: 0, topPerformerWeeks: 20, lastHotStreak: 'Jan 2' }, // Gadget
+  '46': { hotStreakWeeks: 26, coldStreakWeeks: 2, fadeAlertWeeks: 0, biggestLoserWeeks: 0, topPerformerWeeks: 24, lastHotStreak: 'Jan 3' }, // ElTracker
+  
+  // COMMUNITY - Mixed
+  '23': { hotStreakWeeks: 12, coldStreakWeeks: 8, fadeAlertWeeks: 6, biggestLoserWeeks: 4, topPerformerWeeks: 10, lastHotStreak: 'Dec 28' }, // SharpShooter
+  '24': { hotStreakWeeks: 8, coldStreakWeeks: 10, fadeAlertWeeks: 8, biggestLoserWeeks: 5, topPerformerWeeks: 6, lastColdStreak: 'Dec 30' }, // VegasVince
+  '25': { hotStreakWeeks: 6, coldStreakWeeks: 12, fadeAlertWeeks: 10, biggestLoserWeeks: 6, topPerformerWeeks: 4, lastColdStreak: 'Jan 1' }, // HoopsGuru
+  '26': { hotStreakWeeks: 14, coldStreakWeeks: 6, fadeAlertWeeks: 4, biggestLoserWeeks: 2, topPerformerWeeks: 12, lastHotStreak: 'Jan 2' }, // IceColdPicks
+  '27': { hotStreakWeeks: 4, coldStreakWeeks: 14, fadeAlertWeeks: 16, biggestLoserWeeks: 10, topPerformerWeeks: 2, lastColdStreak: 'Jan 3', lastFadeAlert: 'Jan 2' }, // ParlayPete
+}
+
+export function getHallOfShameData(): CapperAppearance[] {
+  const allEntries = getLeaderboardEntries({ capperType: 'all' })
+  
+  const appearances: CapperAppearance[] = cappers.map(capper => {
+    const history = capperAppearanceHistory[capper.id] || {
+      hotStreakWeeks: 0,
+      coldStreakWeeks: 0,
+      fadeAlertWeeks: 0,
+      biggestLoserWeeks: 0,
+      topPerformerWeeks: 0
+    }
+    
+    const entry = allEntries.find(e => e.id === capper.id)
+    
+    const shameTotal = history.coldStreakWeeks + history.fadeAlertWeeks + history.biggestLoserWeeks
+    const gloryTotal = history.hotStreakWeeks + history.topPerformerWeeks
+    
+    return {
+      capperId: capper.id,
+      name: capper.name,
+      slug: capper.slug,
+      avatarEmoji: capper.avatarEmoji,
+      capperType: capper.capperType,
+      network: capper.network,
+      hotStreakAppearances: history.hotStreakWeeks,
+      coldStreakAppearances: history.coldStreakWeeks,
+      fadeAlertAppearances: history.fadeAlertWeeks,
+      biggestLoserAppearances: history.biggestLoserWeeks,
+      topPerformerAppearances: history.topPerformerWeeks,
+      totalShameAppearances: shameTotal,
+      totalGloryAppearances: gloryTotal,
+      totalAppearances: shameTotal + gloryTotal,
+      lastHotStreak: history.lastHotStreak,
+      lastColdStreak: history.lastColdStreak,
+      lastFadeAlert: history.lastFadeAlert,
+      currentWinPct: entry?.winPct || 0,
+      currentUnits: entry?.units || 0,
+    }
+  }).filter(a => a.totalAppearances > 0)
+  
+  return appearances
+}
+
+export function getHallOfShame(): CapperAppearance[] {
+  return getHallOfShameData()
+    .filter(a => a.totalShameAppearances > 0)
+    .sort((a, b) => b.totalShameAppearances - a.totalShameAppearances)
+}
+
+export function getHallOfGlory(): CapperAppearance[] {
+  return getHallOfShameData()
+    .filter(a => a.totalGloryAppearances > 0)
+    .sort((a, b) => b.totalGloryAppearances - a.totalGloryAppearances)
 }

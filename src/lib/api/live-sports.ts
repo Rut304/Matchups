@@ -132,6 +132,7 @@ const SPORT_MAP: Record<string, string> = {
   ncaaf: 'football/college-football',
   ncaab: 'basketball/mens-college-basketball',
   ncaaw: 'basketball/womens-college-basketball',
+  wncaab: 'basketball/womens-college-basketball',
   wnba: 'basketball/wnba',
   mls: 'soccer/usa.1',
 }
@@ -637,7 +638,7 @@ export async function getLiveOdds(sport: string): Promise<GameOdds[]> {
 // UNIFIED API - Single entry point for all sports data
 // =============================================================================
 
-export type SupportedSport = 'nfl' | 'nba' | 'nhl' | 'mlb' | 'ncaaf' | 'ncaab' | 'ncaaw' | 'wnba'
+export type SupportedSport = 'nfl' | 'nba' | 'nhl' | 'mlb' | 'ncaaf' | 'ncaab' | 'ncaaw' | 'wncaab' | 'wnba'
 
 export async function getGames(sport: SupportedSport, date?: string): Promise<LiveGame[]> {
   const sportLower = sport.toLowerCase()

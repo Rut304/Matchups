@@ -2,8 +2,24 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
     {
+      "path": "/api/cron/refresh-odds",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/refresh-scores",
+      "schedule": "*/5 * * * *"
+    },
+    {
       "path": "/api/cron/sync-games",
-      "schedule": "0 */2 * * *"
+      "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron/refresh-standings",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/refresh-injuries",
+      "schedule": "0 */12 * * *"
     }
   ]
 }

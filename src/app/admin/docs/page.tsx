@@ -198,6 +198,8 @@ export default function AdminDocsPage() {
               { name: 'markets', desc: 'Polymarket/Kalshi markets', fields: 'id, question, yes_price, volume' },
               { name: 'users', desc: 'Capper profiles', fields: 'id, username, record, units, roi' },
               { name: 'leaderboard', desc: 'Rankings & stats', fields: 'user_id, sport, period, rank, streak' },
+              { name: 'edge_alerts', desc: 'Edge detection signals', fields: 'id, type, game_id, severity, confidence' },
+              { name: 'site_settings', desc: 'Admin config & edge toggles', fields: 'edge_*_enabled, edge_*_min_confidence' },
             ].map((table) => (
               <div key={table.name} className="p-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)' }}>
                 <div className="font-mono font-bold" style={{ color: '#00FF88' }}>{table.name}</div>

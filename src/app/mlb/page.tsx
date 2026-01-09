@@ -21,6 +21,7 @@ import {
   User
 } from 'lucide-react'
 import { getMLBTeams, type TeamAnalytics } from '@/lib/analytics-data'
+import { GamesSection } from '@/components/game'
 
 type TimeFrame = 'season' | 'last30' | 'last14' | 'last7'
 type BetType = 'runline' | 'ou' | 'ml'
@@ -195,6 +196,9 @@ export default function MLBAnalyticsPage() {
           </div>
         </div>
       </section>
+      
+      {/* Live Games Section */}
+      <GamesSection sport="MLB" />
       
       {/* Main Content */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

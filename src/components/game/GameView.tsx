@@ -80,56 +80,60 @@ export function GameView({ game, expanded = false }: GameViewProps) {
         {/* Teams */}
         <div className="space-y-2">
           {/* Away Team */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {liveData.awayTeam.logo && (
-                <img 
-                  src={liveData.awayTeam.logo} 
-                  alt={liveData.awayTeam.name}
-                  className="w-8 h-8 object-contain"
-                />
-              )}
-              <div>
-                <span className="font-semibold text-white">{liveData.awayTeam.name}</span>
-                {liveData.awayTeam.record && (
-                  <span className="ml-2 text-xs text-zinc-500">({liveData.awayTeam.record})</span>
+          {liveData.awayTeam && (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {liveData.awayTeam.logo && (
+                  <img 
+                    src={liveData.awayTeam.logo} 
+                    alt={liveData.awayTeam.name}
+                    className="w-8 h-8 object-contain"
+                  />
                 )}
+                <div>
+                  <span className="font-semibold text-white">{liveData.awayTeam.name}</span>
+                  {liveData.awayTeam.record && (
+                    <span className="ml-2 text-xs text-zinc-500">({liveData.awayTeam.record})</span>
+                  )}
+                </div>
               </div>
+              <span className={`text-2xl font-bold ${
+                isFinal && (liveData.awayTeam.score ?? 0) > (liveData.homeTeam?.score ?? 0) 
+                  ? 'text-white' 
+                  : 'text-zinc-400'
+              }`}>
+                {liveData.awayTeam.score ?? '-'}
+              </span>
             </div>
-            <span className={`text-2xl font-bold ${
-              isFinal && (liveData.awayTeam.score ?? 0) > (liveData.homeTeam.score ?? 0) 
-                ? 'text-white' 
-                : 'text-zinc-400'
-            }`}>
-              {liveData.awayTeam.score ?? '-'}
-            </span>
-          </div>
+          )}
           
           {/* Home Team */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {liveData.homeTeam.logo && (
-                <img 
-                  src={liveData.homeTeam.logo} 
-                  alt={liveData.homeTeam.name}
-                  className="w-8 h-8 object-contain"
-                />
-              )}
-              <div>
-                <span className="font-semibold text-white">{liveData.homeTeam.name}</span>
-                {liveData.homeTeam.record && (
-                  <span className="ml-2 text-xs text-zinc-500">({liveData.homeTeam.record})</span>
+          {liveData.homeTeam && (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {liveData.homeTeam.logo && (
+                  <img 
+                    src={liveData.homeTeam.logo} 
+                    alt={liveData.homeTeam.name}
+                    className="w-8 h-8 object-contain"
+                  />
                 )}
+                <div>
+                  <span className="font-semibold text-white">{liveData.homeTeam.name}</span>
+                  {liveData.homeTeam.record && (
+                    <span className="ml-2 text-xs text-zinc-500">({liveData.homeTeam.record})</span>
+                  )}
+                </div>
               </div>
+              <span className={`text-2xl font-bold ${
+                isFinal && (liveData.homeTeam.score ?? 0) > (liveData.awayTeam?.score ?? 0) 
+                  ? 'text-white' 
+                  : 'text-zinc-400'
+              }`}>
+                {liveData.homeTeam.score ?? '-'}
+              </span>
             </div>
-            <span className={`text-2xl font-bold ${
-              isFinal && (liveData.homeTeam.score ?? 0) > (liveData.awayTeam.score ?? 0) 
-                ? 'text-white' 
-                : 'text-zinc-400'
-            }`}>
-              {liveData.homeTeam.score ?? '-'}
-            </span>
-          </div>
+          )}
         </div>
         
         {/* Quick Odds Preview */}
@@ -154,10 +158,10 @@ export function GameView({ game, expanded = false }: GameViewProps) {
                 <div className="bg-zinc-800 rounded-lg p-3">
                   <div className="text-xs text-zinc-500 mb-1">Spread</div>
                   <div className="text-white font-semibold">
-                    {liveData.awayTeam.abbreviation} {liveData.odds.spread > 0 ? '+' : ''}{-liveData.odds.spread}
+                    {liveData.awayTeam?.abbreviation ?? 'Away'} {liveData.odds.spread > 0 ? '+' : ''}{-liveData.odds.spread}
                   </div>
                   <div className="text-white font-semibold">
-                    {liveData.homeTeam.abbreviation} {liveData.odds.spread > 0 ? '+' : ''}{liveData.odds.spread}
+                    {liveData.homeTeam?.abbreviation ?? 'Home'} {liveData.odds.spread > 0 ? '+' : ''}{liveData.odds.spread}
                   </div>
                 </div>
                 
@@ -176,10 +180,10 @@ export function GameView({ game, expanded = false }: GameViewProps) {
                 <div className="bg-zinc-800 rounded-lg p-3">
                   <div className="text-xs text-zinc-500 mb-1">Moneyline</div>
                   <div className="text-white font-semibold">
-                    {liveData.awayTeam.abbreviation} {formatOdds(liveData.odds.awayML)}
+                    {liveData.awayTeam?.abbreviation ?? 'Away'} {formatOdds(liveData.odds.awayML)}
                   </div>
                   <div className="text-white font-semibold">
-                    {liveData.homeTeam.abbreviation} {formatOdds(liveData.odds.homeML)}
+                    {liveData.homeTeam?.abbreviation ?? 'Home'} {formatOdds(liveData.odds.homeML)}
                   </div>
                 </div>
               </div>

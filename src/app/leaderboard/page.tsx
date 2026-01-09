@@ -12,6 +12,8 @@ import {
   ArrowDown,
   Tv,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Target,
   Crown,
   Sparkles,
@@ -24,14 +26,19 @@ import {
   Zap,
   Calendar,
   UserCheck,
-  Award
+  Award,
+  Info
 } from 'lucide-react'
-import { getLeaderboardEntries, capperStats, type LeaderboardEntry } from '@/lib/leaderboard-data'
+import { getLeaderboardEntries, capperStats, getHallOfShame, getHallOfGlory, type LeaderboardEntry, type CapperAppearance } from '@/lib/leaderboard-data'
 import { predictionCappers, analyticsSummary, MarketType } from '@/lib/prediction-market-data'
 import { BetType, Sport } from '@/types/leaderboard'
 import { getCapperSummary, type CapperAnalyticsSummary } from '@/lib/analytics-data'
+import { QuickShareButton } from '@/components/share/ShareExpertButton'
 
-type ActiveTab = 'all' | 'celebrity' | 'pro' | 'community' | 'fade' | 'prediction'
+// Top-level mode: Sports betting vs Prediction Markets
+type EdgeMode = 'sports' | 'markets'
+
+type ActiveTab = 'all' | 'celebrity' | 'pro' | 'community' | 'fade'
 
 // Source badge styling
 const sourceStyles: Record<string, { bg: string, color: string, icon: string }> = {
@@ -45,28 +52,71 @@ const sourceStyles: Record<string, { bg: string, color: string, icon: string }> 
   other: { bg: 'rgba(128,128,144,0.2)', color: '#808090', icon: '📝' },
 }
 
+// Network styles for filtering
+const networkStyles: Record<string, { bg: string, color: string }> = {
+  all: { bg: 'rgba(255,255,255,0.1)', color: '#A0A0B0' },
+  ESPN: { bg: 'rgba(255,0,0,0.2)', color: '#FF0000' },
+  FS1: { bg: 'rgba(0,100,255,0.2)', color: '#0064FF' },
+  TNT: { bg: 'rgba(255,215,0,0.2)', color: '#FFD700' },
+  CBS: { bg: 'rgba(0,168,255,0.2)', color: '#00A8FF' },
+  Podcast: { bg: 'rgba(138,43,226,0.2)', color: '#9B59B6' },
+  Twitter: { bg: 'rgba(29,161,242,0.2)', color: '#1DA1F2' },
+  Independent: { bg: 'rgba(0,255,136,0.2)', color: '#00FF88' },
+}
+
+// Time period options with days mapping
+type TimePeriod = 'today' | '3days' | 'week' | '2weeks' | 'month' | 'season' | 'all'
+const timePeriods: { id: TimePeriod, label: string, days: number | null }[] = [
+  { id: 'today', label: 'Today', days: 1 },
+  { id: '3days', label: '3 Days', days: 3 },
+  { id: 'week', label: '7 Days', days: 7 },
+  { id: '2weeks', label: '14 Days', days: 14 },
+  { id: 'month', label: '30 Days', days: 30 },
+  { id: 'season', label: 'Season', days: 120 },
+  { id: 'all', label: 'All Time', days: null },
+]
+
 export default function LeaderboardPage() {
+  // Top-level mode: Sports betting vs Prediction Markets
+  const [edgeMode, setEdgeMode] = useState<EdgeMode>('sports')
   const [activeTab, setActiveTab] = useState<ActiveTab>('celebrity')
-  const [betTypeFilter, setBetTypeFilter] = useState<BetType | 'all'>('spread') // Default to spread
+  const [betTypeFilter, setBetTypeFilter] = useState<BetType | 'all'>('all')
   const [sportFilter, setSportFilter] = useState<Sport | 'all'>('all')
+  const [networkFilter, setNetworkFilter] = useState<string>('all')
   const [sortBy, setSortBy] = useState<'units' | 'winPct' | 'roi' | 'picks'>('units')
   const [compareList, setCompareList] = useState<LeaderboardEntry[]>([])
   const [showComparison, setShowComparison] = useState(false)
-  const [yearFilter, setYearFilter] = useState<'current' | 'all' | number>('current') // 2025/2026 by default
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>('season')
+  const [expandedHotStreaks, setExpandedHotStreaks] = useState(false)
+  const [expandedColdStreaks, setExpandedColdStreaks] = useState(false)
+  const [expandedLosers, setExpandedLosers] = useState(false)
+  const [expandedHallOfShame, setExpandedHallOfShame] = useState(false)
+  const [expandedHallOfGlory, setExpandedHallOfGlory] = useState(false)
+  const [showFilters, setShowFilters] = useState(true)
+  
+  // Get Hall of Shame/Glory data
+  const hallOfShame = useMemo(() => getHallOfShame(), [])
+  const hallOfGlory = useMemo(() => getHallOfGlory(), [])
+  
+  // Map time period to days for filtering
+  const filterDays = useMemo(() => {
+    const period = timePeriods.find(p => p.id === timePeriod)
+    return period?.days ?? null
+  }, [timePeriod])
   
   const displayEntries = useMemo(() => {
-    // Handle prediction market tab differently
-    if (activeTab === 'prediction') {
-      return [] // Handled separately
-    }
-    
     let entries = getLeaderboardEntries({ 
       capperType: activeTab === 'fade' || activeTab === 'all' ? 'all' : activeTab,
       betType: betTypeFilter === 'all' ? undefined : betTypeFilter,
       sport: sportFilter === 'all' ? undefined : sportFilter,
       sortBy,
-      year: yearFilter // Pass year filter
+      daysBack: filterDays // Pass days filter instead of year
     })
+    
+    // Filter by network if set
+    if (networkFilter !== 'all') {
+      entries = entries.filter(e => e.network === networkFilter)
+    }
     
     // For fade tab, show worst performers
     if (activeTab === 'fade') {
@@ -74,20 +124,20 @@ export default function LeaderboardPage() {
     }
     
     return entries
-  }, [activeTab, betTypeFilter, sportFilter, sortBy, yearFilter])
+  }, [activeTab, betTypeFilter, sportFilter, sortBy, filterDays, networkFilter])
 
-  // Computed stats
+  // Computed stats - SHOW ALL DATA
   const allEntries = getLeaderboardEntries({ capperType: 'all' })
   const hotStreaks = allEntries
     .filter(c => c.streak.startsWith('W') && parseInt(c.streak.slice(1)) >= 3)
-    .sort((a, b) => parseInt(b.streak.slice(1)) - parseInt(a.streak.slice(1))).slice(0, 5)
+    .sort((a, b) => parseInt(b.streak.slice(1)) - parseInt(a.streak.slice(1))) // No slice - show all
   
   const coldStreaks = allEntries
     .filter(c => c.streak.startsWith('L') && parseInt(c.streak.slice(1)) >= 3)
-    .sort((a, b) => parseInt(b.streak.slice(1)) - parseInt(a.streak.slice(1))).slice(0, 5)
+    .sort((a, b) => parseInt(b.streak.slice(1)) - parseInt(a.streak.slice(1))) // No slice - show all
   
-  const topByUnits = [...allEntries].sort((a, b) => b.units - a.units).slice(0, 3)
-  const worstByUnits = [...allEntries].sort((a, b) => a.units - b.units).slice(0, 3)
+  const topByUnits = [...allEntries].sort((a, b) => b.units - a.units) // No slice - show all
+  const worstByUnits = [...allEntries].sort((a, b) => a.units - b.units) // No slice - show all
 
   // Calculate overall stats
   const totalCappers = allEntries.length
@@ -129,7 +179,7 @@ export default function LeaderboardPage() {
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-3 mb-3">
               <Image 
-                src="/wrong-stamp.svg" 
+                src="/wrong-stamp.jpeg" 
                 alt="Wrong Stamp" 
                 width={80} 
                 height={40}
@@ -215,6 +265,39 @@ export default function LeaderboardPage() {
 
       {/* MAIN CONTENT */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        
+        {/* TOP-LEVEL MODE SWITCHER: Sports vs Markets */}
+        <div className="flex items-center justify-center mb-6">
+          <div className="flex p-1.5 rounded-2xl" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <button
+              onClick={() => setEdgeMode('sports')}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all"
+              style={{
+                background: edgeMode === 'sports' ? 'linear-gradient(135deg, #FF6B00 0%, #FF8C40 100%)' : 'transparent',
+                color: edgeMode === 'sports' ? '#FFF' : '#808090',
+                boxShadow: edgeMode === 'sports' ? '0 4px 15px rgba(255,107,0,0.4)' : 'none'
+              }}
+            >
+              <span className="text-lg">🏈</span>
+              Sports Betting
+            </button>
+            <button
+              onClick={() => setEdgeMode('markets')}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all"
+              style={{
+                background: edgeMode === 'markets' ? 'linear-gradient(135deg, #9B59B6 0%, #B07CC6 100%)' : 'transparent',
+                color: edgeMode === 'markets' ? '#FFF' : '#808090',
+                boxShadow: edgeMode === 'markets' ? '0 4px 15px rgba(155,89,182,0.4)' : 'none'
+              }}
+            >
+              <span className="text-lg">📊</span>
+              Prediction Markets
+            </button>
+          </div>
+        </div>
+        
+        {/* Show different content based on mode */}
+        {edgeMode === 'sports' ? (
         <div className="grid lg:grid-cols-4 gap-6">
           
           {/* Main Table Area */}
@@ -229,7 +312,6 @@ export default function LeaderboardPage() {
                     { id: 'celebrity', label: '📺 Celebrities', color: '#FFD700' },
                     { id: 'pro', label: '💰 Sharps', color: '#00FF88' },
                     { id: 'community', label: '👥 Community', color: '#00A8FF' },
-                    { id: 'prediction', label: '🎯 Predictions', color: '#9B59B6' },
                     { id: 'fade', label: '🔥 Fade Alert', color: '#FF4455' },
                     { id: 'all', label: '🌐 All', color: '#A0A0B0' },
                   ].map((tab) => (
@@ -327,26 +409,43 @@ export default function LeaderboardPage() {
                   </div>
                 </div>
                 
-                {/* Year Filter - NEW! */}
-                <div className="flex items-center gap-2 ml-auto">
+                {/* Time Period Filter - GRANULAR */}
+                <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4" style={{ color: '#00FF88' }} />
-                  <span className="text-xs font-semibold" style={{ color: '#606070' }}>YEAR:</span>
-                  <div className="flex gap-1">
-                    {[
-                      { id: 'current', label: '2025/26' },
-                      { id: 2024, label: '2024' },
-                      { id: 'all', label: 'All Time' },
-                    ].map((y) => (
+                  <span className="text-xs font-semibold" style={{ color: '#606070' }}>TIME:</span>
+                  <div className="flex gap-1 flex-wrap">
+                    {timePeriods.map((tp) => (
                       <button
-                        key={String(y.id)}
-                        onClick={() => setYearFilter(y.id as typeof yearFilter)}
+                        key={tp.id}
+                        onClick={() => setTimePeriod(tp.id)}
                         className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all"
                         style={{
-                          background: yearFilter === y.id ? 'rgba(0,255,136,0.2)' : 'rgba(255,255,255,0.05)',
-                          color: yearFilter === y.id ? '#00FF88' : '#808090',
-                          border: yearFilter === y.id ? '1px solid rgba(0,255,136,0.3)' : '1px solid transparent'
+                          background: timePeriod === tp.id ? 'rgba(0,255,136,0.2)' : 'rgba(255,255,255,0.05)',
+                          color: timePeriod === tp.id ? '#00FF88' : '#808090',
+                          border: timePeriod === tp.id ? '1px solid rgba(0,255,136,0.3)' : '1px solid transparent'
                         }}>
-                        {y.label}
+                        {tp.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Network Filter */}
+                <div className="flex items-center gap-2 ml-auto">
+                  <Tv className="w-4 h-4" style={{ color: '#FF6B00' }} />
+                  <span className="text-xs font-semibold" style={{ color: '#606070' }}>NETWORK:</span>
+                  <div className="flex gap-1 flex-wrap">
+                    {Object.keys(networkStyles).map((network) => (
+                      <button
+                        key={network}
+                        onClick={() => setNetworkFilter(network)}
+                        className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all"
+                        style={{
+                          background: networkFilter === network ? networkStyles[network].bg : 'rgba(255,255,255,0.05)',
+                          color: networkFilter === network ? networkStyles[network].color : '#808090',
+                          border: networkFilter === network ? `1px solid ${networkStyles[network].color}40` : '1px solid transparent'
+                        }}>
+                        {network === 'all' ? 'All' : network}
                       </button>
                     ))}
                   </div>
@@ -354,163 +453,8 @@ export default function LeaderboardPage() {
               </div>
             </div>
 
-            {/* Leaderboard Table or Prediction Markets */}
-            {activeTab === 'prediction' ? (
-              /* PREDICTION MARKETS TAB */
-              <div className="rounded-2xl overflow-hidden" style={{ background: '#0c0c14', border: '1px solid rgba(138,43,226,0.3)' }}>
-                {/* Header */}
-                <div className="px-4 py-3 flex items-center justify-between" style={{ background: 'rgba(138,43,226,0.1)', borderBottom: '1px solid rgba(138,43,226,0.2)' }}>
-                  <div className="flex items-center gap-2">
-                    <Target className="w-5 h-5" style={{ color: '#9B59B6' }} />
-                    <span className="font-bold" style={{ color: '#9B59B6' }}>Prediction Market Cappers</span>
-                    <span className="text-xs px-2 py-0.5 rounded-lg" style={{ background: 'rgba(138,43,226,0.2)', color: '#9B59B6' }}>
-                      Polymarket • Kalshi • PredictIt
-                    </span>
-                  </div>
-                  <Link href="/analytics" className="text-xs font-bold px-3 py-1.5 rounded-lg transition-all hover:bg-white/10"
-                        style={{ background: 'rgba(255,107,0,0.2)', color: '#FF6B00', border: '1px solid rgba(255,107,0,0.3)' }}>
-                    🧠 Deep Analytics →
-                  </Link>
-                </div>
-                
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
-                        <th className="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-wider" style={{ color: '#606070' }}>Rank</th>
-                        <th className="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-wider" style={{ color: '#606070' }}>Capper</th>
-                        <th className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider hidden sm:table-cell" style={{ color: '#606070' }}>Source</th>
-                        <th className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider" style={{ color: '#606070' }}>Markets</th>
-                        <th className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider" style={{ color: '#606070' }}>Win %</th>
-                        <th className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider" style={{ color: '#606070' }}>ROI</th>
-                        <th className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider hidden md:table-cell" style={{ color: '#606070' }}>CLV Beat</th>
-                        <th className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider hidden lg:table-cell" style={{ color: '#606070' }}>Focus</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {predictionCappers.map((capper, idx) => {
-                        const sourceStyle = sourceStyles[capper.source.toLowerCase()] || sourceStyles.other
-                        // Derive estimated win rate and ROI from CLV data
-                        const estimatedWinRate = 50 + (capper.clvBeatRate - 50) * 0.3 // CLV correlates to win rate
-                        const estimatedROI = capper.avgCLV * 1.5 // CLV is strong proxy for ROI
-                        return (
-                          <tr 
-                            key={capper.id} 
-                            className="group transition-all hover:bg-white/[0.03]"
-                            style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}
-                          >
-                            {/* Rank */}
-                            <td className="py-3 px-4">
-                              {idx < 3 ? (
-                                <div className="w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs"
-                                     style={{ 
-                                       background: idx === 0 ? 'linear-gradient(135deg, #FFD700, #FFA500)' : 
-                                                  idx === 1 ? 'linear-gradient(135deg, #C0C0C0, #A0A0A0)' :
-                                                  'linear-gradient(135deg, #CD7F32, #8B4513)',
-                                       color: '#000'
-                                     }}>
-                                  {idx + 1}
-                                </div>
-                              ) : (
-                                <span className="font-bold text-sm w-7 text-center" style={{ color: '#606070' }}>{idx + 1}</span>
-                              )}
-                            </td>
-                            
-                            {/* Capper */}
-                            <td className="py-3 px-4">
-                              <div className="flex items-center gap-3">
-                                <span className="text-2xl">{capper.avatarEmoji}</span>
-                                <div>
-                                  <span className="font-bold text-sm" style={{ color: '#FFF' }}>{capper.name}</span>
-                                  {capper.verified && (
-                                    <span className="ml-1 text-[8px] px-1 rounded" style={{ background: 'rgba(0,168,255,0.2)', color: '#00A8FF' }}>✓</span>
-                                  )}
-                                  <div className="text-[10px]" style={{ color: '#606070' }}>{capper.followers.toLocaleString()} followers</div>
-                                </div>
-                              </div>
-                            </td>
-                            
-                            {/* Source Badge */}
-                            <td className="py-3 px-4 text-center hidden sm:table-cell">
-                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold"
-                                    style={{ background: sourceStyle.bg, color: sourceStyle.color }}>
-                                <span>{sourceStyle.icon}</span>
-                                {capper.source}
-                              </span>
-                            </td>
-                            
-                            {/* Markets (Specialties) */}
-                            <td className="py-3 px-4 text-center">
-                              <div className="flex flex-wrap justify-center gap-1">
-                                {capper.specialties.slice(0, 2).map((m: MarketType) => (
-                                  <span key={m} className="text-[9px] px-1.5 py-0.5 rounded" 
-                                        style={{ background: 'rgba(255,255,255,0.05)', color: '#808090' }}>
-                                    {m}
-                                  </span>
-                                ))}
-                                {capper.specialties.length > 2 && (
-                                  <span className="text-[9px] px-1.5 py-0.5 rounded" style={{ color: '#606070' }}>
-                                    +{capper.specialties.length - 2}
-                                  </span>
-                                )}
-                              </div>
-                            </td>
-                            
-                            {/* Win % (estimated from CLV) */}
-                            <td className="py-3 px-4 text-center">
-                              <span className="font-black text-sm" style={{ 
-                                color: estimatedWinRate >= 55 ? '#00FF88' : estimatedWinRate >= 50 ? '#FFD700' : '#FF4455' 
-                              }}>
-                                {estimatedWinRate.toFixed(1)}%
-                              </span>
-                            </td>
-                            
-                            {/* ROI (estimated from CLV) */}
-                            <td className="py-3 px-4 text-center">
-                              <span className="font-black text-sm" style={{ color: estimatedROI > 0 ? '#00FF88' : '#FF4455' }}>
-                                {estimatedROI > 0 ? '+' : ''}{estimatedROI.toFixed(1)}%
-                              </span>
-                            </td>
-                            
-                            {/* CLV Beat Rate */}
-                            <td className="py-3 px-4 text-center hidden md:table-cell">
-                              <span className="text-xs font-bold px-2 py-1 rounded-lg" 
-                                    style={{ 
-                                      background: capper.clvBeatRate >= 60 ? 'rgba(0,255,136,0.15)' : 'rgba(255,215,0,0.15)',
-                                      color: capper.clvBeatRate >= 60 ? '#00FF88' : '#FFD700'
-                                    }}>
-                                {capper.clvBeatRate.toFixed(1)}%
-                              </span>
-                            </td>
-                            
-                            {/* Focus (first specialty) */}
-                            <td className="py-3 px-4 hidden lg:table-cell">
-                              <span className="text-xs" style={{ color: '#808090' }}>{capper.specialties[0] || 'General'}</span>
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-                
-                {/* Analytics CTA */}
-                <div className="p-4" style={{ background: 'rgba(255,107,0,0.05)', borderTop: '1px solid rgba(255,107,0,0.2)' }}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-bold text-sm" style={{ color: '#FFF' }}>🧠 Want Edge-Finding Trends?</div>
-                      <div className="text-xs" style={{ color: '#808090' }}>CLV tracking • RLM alerts • Public vs Sharp • Situational edges</div>
-                    </div>
-                    <Link href="/analytics" className="px-4 py-2 rounded-lg font-bold text-sm transition-all hover:scale-105"
-                          style={{ background: 'linear-gradient(135deg, #FF6B00, #FF4455)', color: '#FFF' }}>
-                      Open Edge Finder →
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              /* REGULAR LEADERBOARD TABLE */
-              <div className="rounded-2xl overflow-hidden" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
+            {/* Leaderboard Table */}
+            <div className="rounded-2xl overflow-hidden" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
                 {/* Active Filter Badge */}
                 {(betTypeFilter !== 'all' || sportFilter !== 'all') && (
                   <div className="px-4 py-2 flex items-center gap-2" style={{ background: 'rgba(255,107,0,0.1)', borderBottom: '1px solid rgba(255,107,0,0.2)' }}>
@@ -661,9 +605,18 @@ export default function LeaderboardPage() {
                               )}
                             </td>
                             
-                            {/* Compare & Action */}
+                            {/* Share & Compare */}
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2">
+                              {/* Share Button - Expose/Praise */}
+                              <div onClick={(e) => e.stopPropagation()}>
+                                <QuickShareButton
+                                  expertName={entry.name}
+                                  expertSlug={entry.slug}
+                                  winPct={entry.winPct}
+                                  units={entry.units}
+                                />
+                              </div>
                               <button 
                                 onClick={(e) => { e.stopPropagation(); toggleCompare(entry); }}
                                 className="p-1.5 rounded-lg transition-all hover:bg-white/10"
@@ -689,7 +642,6 @@ export default function LeaderboardPage() {
                 </table>
               </div>
             </div>
-            )}
             
             {/* Admin Link */}
             <div className="mt-4 text-center">
@@ -706,14 +658,19 @@ export default function LeaderboardPage() {
           <div className="space-y-4">
             {/* 🔥 Hot Streaks */}
             <div className="rounded-2xl p-4" style={{ background: '#0c0c14', border: '1px solid rgba(0,255,136,0.2)' }}>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(0,255,136,0.15)' }}>
-                  <Flame className="w-4 h-4" style={{ color: '#00FF88' }} />
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(0,255,136,0.15)' }}>
+                    <Flame className="w-4 h-4" style={{ color: '#00FF88' }} />
+                  </div>
+                  <h3 className="font-bold text-sm" style={{ color: '#FFF' }}>🔥 Hot Streaks</h3>
                 </div>
-                <h3 className="font-bold text-sm" style={{ color: '#FFF' }}>🔥 Hot Streaks</h3>
+                <span className="text-[10px] px-2 py-0.5 rounded" style={{ background: 'rgba(0,255,136,0.1)', color: '#00FF88' }}>
+                  {hotStreaks.length} total
+                </span>
               </div>
               <div className="space-y-2">
-                {hotStreaks.map((c) => (
+                {(expandedHotStreaks ? hotStreaks : hotStreaks.slice(0, 5)).map((c) => (
                   <Link href={`/leaderboard/${c.slug}`} key={c.id}
                         className="flex items-center justify-between p-3 rounded-xl transition-all hover:bg-white/5"
                         style={{ background: 'rgba(0,255,136,0.05)' }}>
@@ -731,18 +688,42 @@ export default function LeaderboardPage() {
                   </Link>
                 ))}
               </div>
+              {hotStreaks.length > 5 && (
+                <button
+                  onClick={() => setExpandedHotStreaks(!expandedHotStreaks)}
+                  className="mt-3 w-full flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-semibold transition-all hover:bg-white/5"
+                  style={{ color: '#00FF88' }}
+                >
+                  {expandedHotStreaks ? (
+                    <>
+                      <ChevronUp className="w-3 h-3" />
+                      Show Less
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-3 h-3" />
+                      Show All {hotStreaks.length}
+                    </>
+                  )}
+                </button>
+              )}
             </div>
 
             {/* ❄️ Cold Streaks - FADE ALERT */}
             <div className="rounded-2xl p-4" style={{ background: '#0c0c14', border: '1px solid rgba(255,68,85,0.3)' }}>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(255,68,85,0.15)' }}>
-                  <TrendingDown className="w-4 h-4" style={{ color: '#FF4455' }} />
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(255,68,85,0.15)' }}>
+                    <TrendingDown className="w-4 h-4" style={{ color: '#FF4455' }} />
+                  </div>
+                  <h3 className="font-bold text-sm" style={{ color: '#FF4455' }}>❄️ FADE THESE</h3>
                 </div>
-                <h3 className="font-bold text-sm" style={{ color: '#FF4455' }}>❄️ FADE THESE</h3>
+                <span className="text-[10px] px-2 py-0.5 rounded" style={{ background: 'rgba(255,68,85,0.1)', color: '#FF4455' }}>
+                  {coldStreaks.length} total
+                </span>
               </div>
               <div className="space-y-2">
-                {coldStreaks.map((c) => (
+                {(expandedColdStreaks ? coldStreaks : coldStreaks.slice(0, 5)).map((c) => (
                   <Link href={`/leaderboard/${c.slug}`} key={c.id}
                         className="flex items-center justify-between p-3 rounded-xl transition-all hover:bg-white/5"
                         style={{ background: 'rgba(255,68,85,0.05)' }}>
@@ -760,6 +741,25 @@ export default function LeaderboardPage() {
                   </Link>
                 ))}
               </div>
+              {coldStreaks.length > 5 && (
+                <button
+                  onClick={() => setExpandedColdStreaks(!expandedColdStreaks)}
+                  className="mt-3 w-full flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-semibold transition-all hover:bg-white/5"
+                  style={{ color: '#FF4455' }}
+                >
+                  {expandedColdStreaks ? (
+                    <>
+                      <ChevronUp className="w-3 h-3" />
+                      Show Less
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-3 h-3" />
+                      Show All {coldStreaks.length}
+                    </>
+                  )}
+                </button>
+              )}
             </div>
 
             {/* 📺 Network Breakdown */}
@@ -801,12 +801,17 @@ export default function LeaderboardPage() {
             
             {/* Biggest Losers (Units) */}
             <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg, rgba(255,68,85,0.1) 0%, rgba(255,68,85,0.05) 100%)', border: '1px solid rgba(255,68,85,0.2)' }}>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-lg">💸</span>
-                <h3 className="font-bold text-sm" style={{ color: '#FF4455' }}>Biggest Losers</h3>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">💸</span>
+                  <h3 className="font-bold text-sm" style={{ color: '#FF4455' }}>Biggest Losers</h3>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded" style={{ background: 'rgba(255,68,85,0.1)', color: '#FF4455' }}>
+                  {worstByUnits.length} total
+                </span>
               </div>
               <div className="space-y-2">
-                {worstByUnits.map((c) => (
+                {(expandedLosers ? worstByUnits : worstByUnits.slice(0, 5)).map((c) => (
                   <Link href={`/leaderboard/${c.slug}`} key={c.id}
                         className="flex items-center justify-between p-2 rounded-lg transition-all hover:bg-white/5">
                     <div className="flex items-center gap-2">
@@ -819,9 +824,347 @@ export default function LeaderboardPage() {
                   </Link>
                 ))}
               </div>
+              {worstByUnits.length > 5 && (
+                <button
+                  onClick={() => setExpandedLosers(!expandedLosers)}
+                  className="mt-3 w-full flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-semibold transition-all hover:bg-white/5"
+                  style={{ color: '#FF4455' }}
+                >
+                  {expandedLosers ? (
+                    <>
+                      <ChevronUp className="w-3 h-3" />
+                      Show Less
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-3 h-3" />
+                      Show All {worstByUnits.length}
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+
+            {/* 🏆 HALL OF SHAME - Historical Appearances */}
+            <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg, rgba(128,0,128,0.15) 0%, rgba(255,68,85,0.1) 100%)', border: '1px solid rgba(255,68,85,0.3)' }}>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🏆</span>
+                  <div>
+                    <h3 className="font-bold text-sm" style={{ color: '#FF4455' }}>Hall of Shame</h3>
+                    <p className="text-[9px]" style={{ color: '#808090' }}>All-time list appearances</p>
+                  </div>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded" style={{ background: 'rgba(255,68,85,0.2)', color: '#FF4455' }}>
+                  {hallOfShame.length} cappers
+                </span>
+              </div>
+              <div className="space-y-2">
+                {(expandedHallOfShame ? hallOfShame : hallOfShame.slice(0, 5)).map((c, idx) => (
+                  <Link href={`/leaderboard/${c.slug}`} key={c.capperId}
+                        className="flex items-center justify-between p-3 rounded-xl transition-all hover:bg-white/5"
+                        style={{ 
+                          background: idx === 0 ? 'rgba(255,68,85,0.15)' : 'rgba(255,255,255,0.02)',
+                          border: idx === 0 ? '1px solid rgba(255,68,85,0.3)' : 'none'
+                        }}>
+                    <div className="flex items-center gap-2">
+                      <div className="relative">
+                        <span className="text-lg">{c.avatarEmoji}</span>
+                        {idx === 0 && (
+                          <span className="absolute -top-1 -right-1 text-[10px]">👑</span>
+                        )}
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold" style={{ color: '#FFF' }}>{c.name}</span>
+                        <div className="flex gap-2 text-[9px]" style={{ color: '#808090' }}>
+                          <span>❄️ {c.coldStreakAppearances}x</span>
+                          <span>🔥 {c.fadeAlertAppearances}x</span>
+                          <span>💸 {c.biggestLoserAppearances}x</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-sm font-black" style={{ color: '#FF4455' }}>
+                        {c.totalShameAppearances}
+                      </span>
+                      <div className="text-[9px]" style={{ color: '#808090' }}>total</div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+              {hallOfShame.length > 5 && (
+                <button
+                  onClick={() => setExpandedHallOfShame(!expandedHallOfShame)}
+                  className="mt-3 w-full flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-semibold transition-all hover:bg-white/5"
+                  style={{ color: '#FF4455' }}
+                >
+                  {expandedHallOfShame ? (
+                    <>
+                      <ChevronUp className="w-3 h-3" />
+                      Show Less
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-3 h-3" />
+                      View All {hallOfShame.length}
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+
+            {/* ⭐ HALL OF GLORY - Best Performers */}
+            <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg, rgba(255,215,0,0.1) 0%, rgba(0,255,136,0.1) 100%)', border: '1px solid rgba(255,215,0,0.3)' }}>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">⭐</span>
+                  <div>
+                    <h3 className="font-bold text-sm" style={{ color: '#FFD700' }}>Hall of Glory</h3>
+                    <p className="text-[9px]" style={{ color: '#808090' }}>Most hot streak appearances</p>
+                  </div>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded" style={{ background: 'rgba(255,215,0,0.2)', color: '#FFD700' }}>
+                  {hallOfGlory.length} cappers
+                </span>
+              </div>
+              <div className="space-y-2">
+                {(expandedHallOfGlory ? hallOfGlory : hallOfGlory.slice(0, 5)).map((c, idx) => (
+                  <Link href={`/leaderboard/${c.slug}`} key={c.capperId}
+                        className="flex items-center justify-between p-3 rounded-xl transition-all hover:bg-white/5"
+                        style={{ 
+                          background: idx === 0 ? 'rgba(255,215,0,0.15)' : 'rgba(255,255,255,0.02)',
+                          border: idx === 0 ? '1px solid rgba(255,215,0,0.3)' : 'none'
+                        }}>
+                    <div className="flex items-center gap-2">
+                      <div className="relative">
+                        <span className="text-lg">{c.avatarEmoji}</span>
+                        {idx === 0 && (
+                          <span className="absolute -top-1 -right-1 text-[10px]">🏆</span>
+                        )}
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold" style={{ color: '#FFF' }}>{c.name}</span>
+                        <div className="flex gap-2 text-[9px]" style={{ color: '#808090' }}>
+                          <span>🔥 {c.hotStreakAppearances}x</span>
+                          <span>🏆 {c.topPerformerAppearances}x</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-sm font-black" style={{ color: '#00FF88' }}>
+                        {c.totalGloryAppearances}
+                      </span>
+                      <div className="text-[9px]" style={{ color: '#808090' }}>total</div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+              {hallOfGlory.length > 5 && (
+                <button
+                  onClick={() => setExpandedHallOfGlory(!expandedHallOfGlory)}
+                  className="mt-3 w-full flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-semibold transition-all hover:bg-white/5"
+                  style={{ color: '#FFD700' }}
+                >
+                  {expandedHallOfGlory ? (
+                    <>
+                      <ChevronUp className="w-3 h-3" />
+                      Show Less
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-3 h-3" />
+                      View All {hallOfGlory.length}
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>
+        ) : (
+          /* PREDICTION MARKETS MODE - Completely separate from sports */
+          <div className="space-y-6">
+            {/* Markets Header */}
+            <div className="rounded-2xl p-6" style={{ background: 'linear-gradient(135deg, rgba(155,89,182,0.1) 0%, rgba(138,43,226,0.05) 100%)', border: '1px solid rgba(155,89,182,0.3)' }}>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-black flex items-center gap-2" style={{ color: '#9B59B6' }}>
+                    <Target className="w-6 h-6" />
+                    Prediction Market Experts
+                  </h2>
+                  <p className="text-sm mt-1" style={{ color: '#808090' }}>
+                    Top traders on Polymarket, Kalshi, PredictIt • Verified on-chain performance
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Link href="/markets" className="px-4 py-2 rounded-xl font-bold text-sm transition-all hover:opacity-80"
+                        style={{ background: 'rgba(155,89,182,0.2)', color: '#9B59B6', border: '1px solid rgba(155,89,182,0.3)' }}>
+                    Browse Markets →
+                  </Link>
+                </div>
+              </div>
+              
+              {/* Market Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                <div className="p-3 rounded-xl text-center" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  <div className="text-2xl font-black" style={{ color: '#FFD700' }}>{predictionCappers.length}</div>
+                  <div className="text-xs" style={{ color: '#808090' }}>Traders Tracked</div>
+                </div>
+                <div className="p-3 rounded-xl text-center" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  <div className="text-2xl font-black" style={{ color: '#00FF88' }}>
+                    {(predictionCappers.reduce((sum, c) => sum + c.clvBeatRate, 0) / predictionCappers.length).toFixed(1)}%
+                  </div>
+                  <div className="text-xs" style={{ color: '#808090' }}>Avg CLV Beat</div>
+                </div>
+                <div className="p-3 rounded-xl text-center" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  <div className="text-2xl font-black" style={{ color: '#00A8FF' }}>
+                    {predictionCappers.filter(c => c.verified).length}
+                  </div>
+                  <div className="text-xs" style={{ color: '#808090' }}>Verified</div>
+                </div>
+                <div className="p-3 rounded-xl text-center" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  <div className="text-2xl font-black" style={{ color: '#FF6B00' }}>
+                    {(predictionCappers.reduce((sum, c) => sum + c.followers, 0) / 1000).toFixed(0)}K
+                  </div>
+                  <div className="text-xs" style={{ color: '#808090' }}>Total Followers</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Markets Leaderboard Table */}
+            <div className="rounded-2xl overflow-hidden" style={{ background: '#0c0c14', border: '1px solid rgba(155,89,182,0.2)' }}>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr style={{ background: 'rgba(155,89,182,0.1)' }}>
+                      <th className="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-wider" style={{ color: '#9B59B6' }}>Rank</th>
+                      <th className="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-wider" style={{ color: '#9B59B6' }}>Trader</th>
+                      <th className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider" style={{ color: '#9B59B6' }}>Platform</th>
+                      <th className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider" style={{ color: '#9B59B6' }}>Markets</th>
+                      <th className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider" style={{ color: '#9B59B6' }}>CLV Beat</th>
+                      <th className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider" style={{ color: '#9B59B6' }}>Avg CLV</th>
+                      <th className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider hidden md:table-cell" style={{ color: '#9B59B6' }}>Focus</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {predictionCappers
+                      .sort((a, b) => b.clvBeatRate - a.clvBeatRate)
+                      .map((capper, idx) => {
+                        const sourceStyle = sourceStyles[capper.source.toLowerCase()] || sourceStyles.other
+                        return (
+                          <tr 
+                            key={capper.id} 
+                            className="group transition-all hover:bg-white/[0.03]"
+                            style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}
+                          >
+                            <td className="py-3 px-4">
+                              {idx < 3 ? (
+                                <div className="w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs"
+                                     style={{ 
+                                       background: idx === 0 ? 'linear-gradient(135deg, #FFD700, #FFA500)' : 
+                                                  idx === 1 ? 'linear-gradient(135deg, #C0C0C0, #A0A0A0)' :
+                                                  'linear-gradient(135deg, #CD7F32, #8B4513)',
+                                       color: '#000'
+                                     }}>
+                                  {idx + 1}
+                                </div>
+                              ) : (
+                                <span className="font-bold text-sm" style={{ color: '#606070' }}>{idx + 1}</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-3">
+                                <span className="text-2xl">{capper.avatarEmoji}</span>
+                                <div>
+                                  <span className="font-bold text-sm" style={{ color: '#FFF' }}>{capper.name}</span>
+                                  {capper.verified && (
+                                    <span className="ml-1 text-[8px] px-1 rounded" style={{ background: 'rgba(0,168,255,0.2)', color: '#00A8FF' }}>✓</span>
+                                  )}
+                                  <div className="text-[10px]" style={{ color: '#606070' }}>{capper.followers.toLocaleString()} followers</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold"
+                                    style={{ background: sourceStyle.bg, color: sourceStyle.color }}>
+                                {sourceStyle.icon} {capper.source}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-center font-bold" style={{ color: '#FFF' }}>
+                              {capper.specialties.length}
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              <span className="font-black" style={{ color: capper.clvBeatRate >= 60 ? '#00FF88' : capper.clvBeatRate >= 50 ? '#FFD700' : '#FF4455' }}>
+                                {capper.clvBeatRate.toFixed(1)}%
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              <span className="font-bold" style={{ color: capper.avgCLV >= 0 ? '#00FF88' : '#FF4455' }}>
+                                {capper.avgCLV >= 0 ? '+' : ''}{capper.avgCLV.toFixed(1)}%
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-center hidden md:table-cell">
+                              <div className="flex flex-wrap justify-center gap-1">
+                                {capper.specialties.slice(0, 2).map((s: MarketType) => (
+                                  <span key={s} className="text-[9px] px-1.5 py-0.5 rounded" 
+                                        style={{ background: 'rgba(155,89,182,0.15)', color: '#B07CC6' }}>
+                                    {s}
+                                  </span>
+                                ))}
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
+            {/* Analytics Summary */}
+            <div className="rounded-2xl p-4" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div className="flex items-center gap-2 mb-4">
+                <Brain className="w-5 h-5" style={{ color: '#9B59B6' }} />
+                <h3 className="font-bold" style={{ color: '#9B59B6' }}>Market Analytics Summary</h3>
+              </div>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  <div className="text-sm font-bold mb-2" style={{ color: '#FFF' }}>Overall Performance</div>
+                  <div className="text-xs space-y-1">
+                    <div style={{ color: '#808090' }}>
+                      Avg Win Rate: <span style={{ color: '#00FF88' }}>{analyticsSummary.avgWinRate.toFixed(1)}%</span>
+                    </div>
+                    <div style={{ color: '#808090' }}>
+                      Avg ROI: <span style={{ color: '#00FF88' }}>+{analyticsSummary.avgROI.toFixed(1)}%</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  <div className="text-sm font-bold mb-2" style={{ color: '#FFF' }}>Top Edge</div>
+                  <div className="text-xs space-y-1">
+                    <div style={{ color: '#808090' }}>
+                      Category: <span style={{ color: '#9B59B6' }}>{analyticsSummary.topEdgeCategory}</span>
+                    </div>
+                    <div style={{ color: '#808090' }}>
+                      Top Sport: <span style={{ color: '#FF6B00' }}>{analyticsSummary.topEdgeSport}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  <div className="text-sm font-bold mb-2" style={{ color: '#FFF' }}>Sample Data</div>
+                  <div className="text-xs space-y-1">
+                    <div style={{ color: '#808090' }}>
+                      Trends Tracked: <span style={{ color: '#00A8FF' }}>{analyticsSummary.totalTrendsTracked}</span>
+                    </div>
+                    <div style={{ color: '#808090' }}>
+                      Sample Size: <span style={{ color: '#00A8FF' }}>{analyticsSummary.totalSampleSize.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
       
       {/* Floating Compare Bar */}

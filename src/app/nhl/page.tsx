@@ -21,6 +21,7 @@ import {
   Shield
 } from 'lucide-react'
 import { getNHLTeams, type TeamAnalytics } from '@/lib/analytics-data'
+import { GamesSection } from '@/components/game'
 
 // Helper functions to calculate percentages from win/loss records
 const calcWinPct = (wins: number, losses: number): number => {
@@ -186,6 +187,9 @@ export default function NHLAnalyticsPage() {
           </div>
         </div>
       </section>
+      
+      {/* Live Games Section */}
+      <GamesSection sport="NHL" />
       
       {/* Main Content */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

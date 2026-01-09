@@ -66,17 +66,33 @@ export interface UnifiedGame {
     bookmakerCount: number
   }
   
-  // Sources
+  // Sources - tracking which sources provided data
   espnId?: string
   oddsApiId?: string
+  
+  // Data source metadata
+  sourceInfo?: {
+    primary: 'espn' | 'odds-api' | 'supabase'
+    backup?: 'espn' | 'odds-api' | 'supabase'
+    confidence: number // 0-100
+    fallbackUsed: boolean
+  }
   
   // Timestamps
   lastUpdated: string
 }
 
+// Import data source utilities
+import { 
+  dataSourceManager, 
+  resolveDuplicates,
+  matchGames,
+  type GameIdentifiers 
+} from './data-sources'
+
 // Sync games from ESPN and merge with odds
 export async function syncGames(sport: SportKey): Promise<UnifiedGame[]> {
-  const games: UnifiedGame[] = []
+  let games: UnifiedGame[] = []
   
   // 1. Fetch from ESPN (primary source for game data)
   const espnScoreboard = await getScoreboard(sport)
@@ -93,13 +109,48 @@ export async function syncGames(sport: SportKey): Promise<UnifiedGame[]> {
     }
   }
   
-  // 3. Merge ESPN games with odds data
-  for (const espnGame of espnGames) {
+  // 2.5. Resolve duplicate ESPN games using Odds API as backup
+  const espnWithIdentifiers = espnGames.map(g => ({
+    ...g,
+    homeTeam: g.home.name || '',
+    awayTeam: g.away.name || '',
+    scheduledTime: g.scheduledAt,
+    espnId: g.id,
+  }))
+  
+  const oddsIdentifiers: GameIdentifiers[] = oddsGames.map(g => ({
+    oddsApiId: g.id,
+    homeTeam: g.homeTeam,
+    awayTeam: g.awayTeam,
+    scheduledTime: g.scheduledAt,
+  }))
+  
+  const { resolved: resolvedEspnGames, duplicates } = resolveDuplicates(
+    espnWithIdentifiers,
+    oddsIdentifiers
+  )
+  
+  if (duplicates.length > 0) {
+    console.warn(`[DataLayer] Resolved ${duplicates.length} duplicate ESPN games for ${sport}`)
+  }
+  
+  // 3. Merge resolved ESPN games with odds data
+  for (const espnGame of resolvedEspnGames) {
     // Match by team names (ESPN and Odds API use slightly different formats)
     const matchingOdds = oddsGames.find(og => 
       fuzzyMatchTeam(og.homeTeam, espnGame.home.name || '') &&
       fuzzyMatchTeam(og.awayTeam, espnGame.away.name || '')
     )
+    
+    // Calculate match confidence if we found odds
+    let matchConfidence = 100
+    if (matchingOdds) {
+      const { confidence } = matchGames(
+        { homeTeam: espnGame.home.name || '', awayTeam: espnGame.away.name || '', scheduledTime: espnGame.scheduledAt, espnId: espnGame.id },
+        { homeTeam: matchingOdds.homeTeam, awayTeam: matchingOdds.awayTeam, scheduledTime: matchingOdds.scheduledAt, oddsApiId: matchingOdds.id }
+      )
+      matchConfidence = confidence
+    }
     
     const unified: UnifiedGame = {
       id: espnGame.id,
@@ -129,7 +180,7 @@ export async function syncGames(sport: SportKey): Promise<UnifiedGame[]> {
       weather: espnGame.weather ?? undefined,
       period: espnGame.period ?? undefined,
       clock: espnGame.clock,
-      // Use ESPN odds if available, otherwise use The Odds API
+      // Use Odds API as primary for odds, ESPN as backup
       odds: matchingOdds?.odds || espnGame.odds ? {
         spread: matchingOdds?.odds.spread ?? espnGame.odds?.spread ?? 0,
         spreadOdds: matchingOdds?.odds.spreadOdds ?? -110,
@@ -142,6 +193,13 @@ export async function syncGames(sport: SportKey): Promise<UnifiedGame[]> {
       consensus: matchingOdds?.consensus ?? undefined,
       espnId: espnGame.id,
       oddsApiId: matchingOdds?.id,
+      // Track data source hierarchy
+      sourceInfo: {
+        primary: 'espn',
+        backup: matchingOdds ? 'odds-api' : undefined,
+        confidence: matchConfidence,
+        fallbackUsed: !matchingOdds && !!espnGame.odds,
+      },
       lastUpdated: new Date().toISOString(),
     }
     
