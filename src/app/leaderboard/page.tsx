@@ -65,13 +65,14 @@ const networkStyles: Record<string, { bg: string, color: string }> = {
 }
 
 // Time period options with days mapping
-type TimePeriod = 'today' | '3days' | 'week' | '2weeks' | 'month' | 'season' | 'all'
+type TimePeriod = 'today' | '3days' | 'week' | '2weeks' | 'month' | '6months' | 'season' | 'all'
 const timePeriods: { id: TimePeriod, label: string, days: number | null }[] = [
   { id: 'today', label: 'Today', days: 1 },
   { id: '3days', label: '3 Days', days: 3 },
   { id: 'week', label: '7 Days', days: 7 },
   { id: '2weeks', label: '14 Days', days: 14 },
   { id: 'month', label: '30 Days', days: 30 },
+  { id: '6months', label: '6 Months', days: 180 },
   { id: 'season', label: 'Season', days: 120 },
   { id: 'all', label: 'All Time', days: null },
 ]
@@ -84,9 +85,10 @@ export default function LeaderboardPage() {
   const [sportFilter, setSportFilter] = useState<Sport | 'all'>('all')
   const [networkFilter, setNetworkFilter] = useState<string>('all')
   const [sortBy, setSortBy] = useState<'units' | 'winPct' | 'roi' | 'picks' | 'record' | 'streak'>('units')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc') // Default ascending (worst first)
   const [compareList, setCompareList] = useState<LeaderboardEntry[]>([])
   const [showComparison, setShowComparison] = useState(false)
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>('all')
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>('6months')
   const [expandedHotStreaks, setExpandedHotStreaks] = useState(false)
   const [expandedColdStreaks, setExpandedColdStreaks] = useState(false)
   const [expandedLosers, setExpandedLosers] = useState(false)
@@ -127,8 +129,13 @@ export default function LeaderboardPage() {
       entries = [...entries].sort((a, b) => a.winPct - b.winPct).slice(0, 10)
     }
     
+    // Apply sort direction (ascending = worst first for units, descending = best first)
+    if (sortDirection === 'asc') {
+      entries = [...entries].reverse()
+    }
+    
     return entries
-  }, [activeTab, betTypeFilter, sportFilter, sortBy, filterDays, networkFilter])
+  }, [activeTab, betTypeFilter, sportFilter, sortBy, filterDays, networkFilter, sortDirection])
 
   // Reset page when filters change
   useMemo(() => {
@@ -492,56 +499,95 @@ export default function LeaderboardPage() {
                         <th 
                           className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider hidden sm:table-cell cursor-pointer hover:text-white transition-colors group"
                           style={{ color: sortBy === 'record' ? '#00A8FF' : '#606070' }}
-                          onClick={() => setSortBy('record')}
+                          onClick={() => {
+                            if (sortBy === 'record') {
+                              setSortDirection(d => d === 'asc' ? 'desc' : 'asc')
+                            } else {
+                              setSortBy('record')
+                            }
+                          }}
                           title="Wins-Losses record for the selected time period. Click to sort."
                         >
                           <span className="inline-flex items-center gap-1">
                             Record
-                            {sortBy === 'record' && <span className="text-[8px]">▼</span>}
+                            {sortBy === 'record' && <span className="text-[8px]">{sortDirection === 'asc' ? '▲' : '▼'}</span>}
+                          </span>
+                        </th>
+                        <th 
+                          className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider hidden lg:table-cell"
+                          style={{ color: '#808090' }}
+                          title="All-time wins and losses regardless of time filter. Career record."
+                        >
+                          <span className="inline-flex items-center gap-1">
+                            Forever
                           </span>
                         </th>
                         <th 
                           className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
                           style={{ color: sortBy === 'winPct' ? '#00A8FF' : '#606070' }}
-                          onClick={() => setSortBy('winPct')}
+                          onClick={() => {
+                            if (sortBy === 'winPct') {
+                              setSortDirection(d => d === 'asc' ? 'desc' : 'asc')
+                            } else {
+                              setSortBy('winPct')
+                            }
+                          }}
                           title="Win percentage - total wins divided by total picks. Click to sort."
                         >
                           <span className="inline-flex items-center gap-1">
                             Win %
-                            {sortBy === 'winPct' && <span className="text-[8px]">▼</span>}
+                            {sortBy === 'winPct' && <span className="text-[8px]">{sortDirection === 'asc' ? '▲' : '▼'}</span>}
                           </span>
                         </th>
                         <th 
                           className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
                           style={{ color: sortBy === 'units' ? '#00A8FF' : '#606070' }}
-                          onClick={() => setSortBy('units')}
+                          onClick={() => {
+                            if (sortBy === 'units') {
+                              setSortDirection(d => d === 'asc' ? 'desc' : 'asc')
+                            } else {
+                              setSortBy('units')
+                            }
+                          }}
                           title="Net units won/lost. 1 unit = standard bet size. Positive means profit. Click to sort."
                         >
                           <span className="inline-flex items-center gap-1">
                             Units
-                            {sortBy === 'units' && <span className="text-[8px]">▼</span>}
+                            {sortBy === 'units' && <span className="text-[8px]">{sortDirection === 'asc' ? '▲' : '▼'}</span>}
                           </span>
                         </th>
                         <th 
                           className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider hidden md:table-cell cursor-pointer hover:text-white transition-colors"
                           style={{ color: sortBy === 'roi' ? '#00A8FF' : '#606070' }}
-                          onClick={() => setSortBy('roi')}
+                          onClick={() => {
+                            if (sortBy === 'roi') {
+                              setSortDirection(d => d === 'asc' ? 'desc' : 'asc')
+                            } else {
+                              setSortBy('roi')
+                            }
+                          }}
                           title="Return on Investment - percentage profit/loss relative to total units wagered. Click to sort."
                         >
                           <span className="inline-flex items-center gap-1">
                             ROI
-                            {sortBy === 'roi' && <span className="text-[8px]">▼</span>}
+                            {sortBy === 'roi' && <span className="text-[8px]">{sortDirection === 'asc' ? '▲' : '▼'}</span>}
                           </span>
                         </th>
                         <th 
                           className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
                           style={{ color: sortBy === 'streak' ? '#00A8FF' : '#606070' }}
-                          onClick={() => setSortBy('streak')}
+                          onClick={() => {
+                            if (sortBy === 'streak') {
+                              setSortDirection(d => d === 'asc' ? 'desc' : 'asc')
+                            } else {
+                              setSortBy('streak')
+                            }
+                          }}
                           title="Current win/loss streak. W = consecutive wins, L = consecutive losses. Click to sort."
                         >
                           <span className="inline-flex items-center gap-1">
                             Streak
-                            {sortBy === 'streak' && <span className="text-[8px]">▼</span>}
+                            {sortBy === 'streak' && <span className="text-[8px]">{sortDirection === 'asc' ? '▲' : '▼'}</span>}
                           </span>
                         </th>
                         <th className="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-wider hidden lg:table-cell" style={{ color: '#606070' }} title="Most recent pick made by this capper">Last Pick</th>
@@ -617,6 +663,13 @@ export default function LeaderboardPage() {
                             <td className="py-3 px-4 text-center hidden sm:table-cell">
                               <span className="font-mono text-xs font-semibold" style={{ color: '#A0A0B0' }}>
                                 {entry.record}
+                              </span>
+                            </td>
+                            
+                            {/* Forever Picks - All-time Record */}
+                            <td className="py-3 px-4 text-center hidden lg:table-cell">
+                              <span className="font-mono text-xs font-semibold" style={{ color: '#606070' }}>
+                                {entry.foreverRecord || 'N/A'}
                               </span>
                             </td>
                             

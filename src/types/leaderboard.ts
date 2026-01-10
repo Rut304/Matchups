@@ -158,6 +158,9 @@ export interface LeaderboardEntry {
   rankChange: number
   lastPick?: string
   
+  // Forever/All-time record
+  foreverRecord?: string // "W-L" all-time regardless of time filter
+  
   // For display
   lastPickResult?: 'win' | 'loss' | 'push'
   

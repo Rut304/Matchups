@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { 
   TrendingUp, 
   TrendingDown,
@@ -114,7 +115,7 @@ export default function Home() {
                 <p className="text-xs text-gray-500">ATS records, public betting %, and sharp money indicators</p>
               </div>
               <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                <Trophy className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
+                <Image src="/wrong-stamp.jpeg" alt="Wrong" width={32} height={24} className="mx-auto mb-2 -rotate-6" />
                 <div className="font-bold text-white text-sm mb-1">Expert Tracker</div>
                 <p className="text-xs text-gray-500">See how the "experts" actually perform — receipts included</p>
               </div>
@@ -129,7 +130,7 @@ export default function Home() {
               </Link>
               <Link href="/leaderboard"
                     className="inline-flex items-center gap-3 px-8 py-4 rounded-xl font-bold text-lg transition-all hover:scale-105 bg-gradient-to-r from-yellow-500 to-orange-500 text-black shadow-[0_0_30px_rgba(255,215,0,0.4)]">
-                <Trophy className="w-5 h-5" />
+                <Image src="/wrong-stamp.jpeg" alt="Wrong" width={28} height={20} className="-rotate-6" />
                 Expert Tracker 🧾
               </Link>
             </div>
@@ -246,7 +247,7 @@ export default function Home() {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg" style={{ background: 'rgba(255,215,0,0.15)' }}>
-                <Trophy style={{ color: '#FFD700', width: '24px', height: '24px' }} />
+                <Image src="/wrong-stamp.jpeg" alt="Wrong" width={32} height={24} className="-rotate-6" />
               </div>
               <div>
                 <h2 className="text-xl font-bold" style={{ color: '#FFF' }}>Expert Tracker</h2>

@@ -925,8 +925,12 @@ export function getLeaderboardEntries(filters?: {
       ? getCapperStatsByDays(capper.id, daysBack)
       : getCapperYearStats(capper.id, yearFilter)
     
-    // Get historical stats for context
+    // Get historical stats for context (all-time)
     const allTimeStats = capperStats[capper.id]
+    
+    // Get all-time record for "Forever Picks" column
+    const foreverStats = getCapperStatsByDays(capper.id, null) // null = all time
+    const foreverRecord = `${foreverStats.wins}-${foreverStats.losses}`
     
     return {
       id: capper.id,
@@ -949,6 +953,8 @@ export function getLeaderboardEntries(filters?: {
       rankChange: allTimeStats?.rankChange || 0,
       lastPick: timeStats.lastPick?.pickDescription,
       lastPickResult: timeStats.lastPick?.result as 'win' | 'loss' | 'push' | undefined,
+      // Forever/All-time record
+      foreverRecord,
       // Additional year context
       totalPicks: timeStats.totalPicks,
       yearFiltered: yearFilter !== 'all',
