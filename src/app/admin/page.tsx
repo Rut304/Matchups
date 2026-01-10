@@ -38,7 +38,7 @@ import {
 
 import Link from 'next/link'
 
-type TabType = 'overview' | 'data' | 'diagnostics' | 'users' | 'ads' | 'edge' | 'settings'
+type TabType = 'overview' | 'data' | 'diagnostics' | 'users' | 'ads' | 'edge' | 'infra' | 'settings'
 
 interface Job {
   id: string
@@ -298,6 +298,7 @@ export default function AdminPage() {
     { id: 'users', label: 'Users', icon: Users },
     { id: 'ads', label: 'Ads', icon: Megaphone },
     { id: 'edge', label: 'Edge Features', icon: TrendingUp },
+    { id: 'infra', label: 'Infrastructure', icon: Server },
     { id: 'settings', label: 'Settings', icon: Settings },
   ]
 
@@ -1507,6 +1508,262 @@ export default function AdminPage() {
                       Clear Cache
                     </Button>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Infrastructure Tab */}
+        {activeTab === 'infra' && (
+          <div className="space-y-6">
+            {/* System Health Overview */}
+            <Card variant="bordered">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Heart className="w-5 h-5 text-accent" />
+                  System Health
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="bg-background-tertiary rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle className="w-5 h-5 text-gain" />
+                      <span className="text-sm text-text-muted">API Status</span>
+                    </div>
+                    <p className="text-xl font-bold text-gain">Healthy</p>
+                    <p className="text-xs text-text-muted mt-1">All endpoints responding</p>
+                  </div>
+                  <div className="bg-background-tertiary rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Database className="w-5 h-5 text-highlight" />
+                      <span className="text-sm text-text-muted">Database</span>
+                    </div>
+                    <p className="text-xl font-bold text-highlight">Connected</p>
+                    <p className="text-xs text-text-muted mt-1">Supabase operational</p>
+                  </div>
+                  <div className="bg-background-tertiary rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Zap className="w-5 h-5 text-accent" />
+                      <span className="text-sm text-text-muted">Cache</span>
+                    </div>
+                    <p className="text-xl font-bold text-accent">Active</p>
+                    <p className="text-xs text-text-muted mt-1">Redis caching enabled</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <a 
+                    href="/admin/health" 
+                    className="flex items-center gap-2 px-4 py-2 bg-accent text-background-primary rounded-lg hover:bg-accent/90 transition-colors"
+                  >
+                    <Activity className="w-4 h-4" />
+                    Open Health Dashboard
+                  </a>
+                  <Button
+                    variant="secondary"
+                    onClick={() => fetchHealthChecks()}
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Refresh Status
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Data Sync Configuration */}
+            <Card variant="bordered">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <RefreshCw className="w-5 h-5 text-highlight" />
+                  Data Sync Configuration
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="bg-background-tertiary rounded-lg p-4">
+                    <h4 className="font-medium text-text-primary mb-3">Sync Schedule</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <p className="text-sm text-text-muted">Game Hours (Live)</p>
+                        <div className="flex items-center gap-2">
+                          <Zap className="w-4 h-4 text-accent" />
+                          <span className="text-text-primary font-medium">Every 5 minutes</span>
+                        </div>
+                        <p className="text-xs text-text-muted">Weekdays: 5 PM - 1 AM ET</p>
+                        <p className="text-xs text-text-muted">Weekends: 12 PM - 1 AM ET</p>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-sm text-text-muted">Off-Peak Hours</p>
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-text-muted" />
+                          <span className="text-text-primary font-medium">Every 15 minutes</span>
+                        </div>
+                        <p className="text-xs text-text-muted">Reduced frequency when no games</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-4">
+                    <Button
+                      variant="primary"
+                      onClick={async () => {
+                        setIsLoadingSettings(true)
+                        await fetch('/api/admin/sync', { method: 'POST' })
+                        setIsLoadingSettings(false)
+                      }}
+                      disabled={isLoadingSettings}
+                    >
+                      <Play className="w-4 h-4 mr-2" />
+                      Trigger Manual Sync
+                    </Button>
+                    <a 
+                      href="https://github.com/rut304s/Matchups/actions/workflows/data-sync.yml" 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-background-tertiary text-text-primary rounded-lg hover:bg-border transition-colors"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      View GitHub Action
+                    </a>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Live Play-by-Play Settings */}
+            <Card variant="bordered">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-gain" />
+                  Live Play-by-Play System
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="bg-background-tertiary rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h4 className="font-medium text-text-primary">Real-Time Updates</h4>
+                        <p className="text-sm text-text-muted">3-second polling for live games</p>
+                      </div>
+                      <div className="flex items-center gap-2 px-3 py-1 bg-gain/20 text-gain rounded-full">
+                        <Wifi className="w-4 h-4" />
+                        <span className="text-sm font-medium">Active</span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-text-primary">3s</p>
+                        <p className="text-xs text-text-muted">Poll Interval</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-text-primary">ESPN</p>
+                        <p className="text-xs text-text-muted">Data Source</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-text-primary">6</p>
+                        <p className="text-xs text-text-muted">Sports Supported</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-accent">Live</p>
+                        <p className="text-xs text-text-muted">Betting Edge Calc</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-background-tertiary rounded-lg p-4">
+                    <h4 className="font-medium text-text-primary mb-2">Supported Sports</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {['NFL', 'NBA', 'NHL', 'MLB', 'NCAAF', 'NCAAB'].map((sport) => (
+                        <span key={sport} className="px-3 py-1 bg-accent/20 text-accent rounded-full text-sm font-medium">
+                          {sport}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* GitHub Actions Status */}
+            <Card variant="bordered">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Terminal className="w-5 h-5 text-text-muted" />
+                  GitHub Actions
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {[
+                    { name: 'Health Monitoring', status: 'active', schedule: 'Every 15 min', url: 'health-monitoring.yml' },
+                    { name: 'Data Sync', status: 'active', schedule: '5 min (game hours)', url: 'data-sync.yml' },
+                    { name: 'CVE Scan', status: 'active', schedule: 'Daily', url: 'cve-scan.yml' },
+                    { name: 'Playwright E2E', status: 'active', schedule: 'On push', url: 'playwright.yml' },
+                  ].map((action) => (
+                    <div key={action.name} className="flex items-center justify-between p-3 bg-background-tertiary rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <CheckCircle className="w-4 h-4 text-gain" />
+                        <div>
+                          <p className="font-medium text-text-primary">{action.name}</p>
+                          <p className="text-xs text-text-muted">{action.schedule}</p>
+                        </div>
+                      </div>
+                      <a
+                        href={`https://github.com/rut304s/Matchups/actions/workflows/${action.url}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-sm text-accent hover:underline"
+                      >
+                        View <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Secrets Configuration */}
+            <Card variant="bordered">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Key className="w-5 h-5 text-highlight" />
+                  Secrets & Environment
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {[
+                    { name: 'NEXT_PUBLIC_SUPABASE_URL', status: 'configured', type: 'secret' },
+                    { name: 'NEXT_PUBLIC_SUPABASE_ANON_KEY', status: 'configured', type: 'secret' },
+                    { name: 'SUPABASE_SERVICE_ROLE_KEY', status: 'configured', type: 'secret' },
+                    { name: 'VERCEL_ORG_ID', status: 'configured', type: 'secret' },
+                    { name: 'VERCEL_PROJECT_ID', status: 'configured', type: 'secret' },
+                    { name: 'SITE_URL', status: 'configured', type: 'variable' },
+                  ].map((secret) => (
+                    <div key={secret.name} className="flex items-center justify-between p-3 bg-background-tertiary rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Shield className="w-4 h-4 text-gain" />
+                        <div>
+                          <p className="font-medium text-text-primary font-mono text-sm">{secret.name}</p>
+                          <p className="text-xs text-text-muted capitalize">{secret.type}</p>
+                        </div>
+                      </div>
+                      <span className="px-2 py-1 bg-gain/20 text-gain text-xs rounded-full">
+                        {secret.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 pt-4 border-t border-border">
+                  <a
+                    href="https://github.com/rut304s/Matchups/settings/secrets/actions"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm text-accent hover:underline"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Manage GitHub Secrets
+                  </a>
                 </div>
               </CardContent>
             </Card>
