@@ -94,6 +94,10 @@ export default function LeaderboardPage() {
   const [expandedHallOfGlory, setExpandedHallOfGlory] = useState(false)
   const [showFilters, setShowFilters] = useState(true)
   
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 25
+  
   // Get Hall of Shame/Glory data
   const hallOfShame = useMemo(() => getHallOfShame(), [])
   const hallOfGlory = useMemo(() => getHallOfGlory(), [])
@@ -125,6 +129,18 @@ export default function LeaderboardPage() {
     
     return entries
   }, [activeTab, betTypeFilter, sportFilter, sortBy, filterDays, networkFilter])
+
+  // Reset page when filters change
+  useMemo(() => {
+    setCurrentPage(1)
+  }, [activeTab, betTypeFilter, sportFilter, sortBy, filterDays, networkFilter])
+
+  // Pagination calculations
+  const totalPages = Math.ceil(displayEntries.length / ITEMS_PER_PAGE)
+  const paginatedEntries = displayEntries.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  )
 
   // Computed stats - SHOW ALL DATA
   const allEntries = getLeaderboardEntries({ capperType: 'all' })
@@ -483,8 +499,9 @@ export default function LeaderboardPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {displayEntries.map((entry, idx) => {
-                        const isTop3 = idx < 3 && activeTab !== 'fade'
+                      {paginatedEntries.map((entry, idx) => {
+                        const globalIdx = (currentPage - 1) * ITEMS_PER_PAGE + idx
+                        const isTop3 = globalIdx < 3 && activeTab !== 'fade'
                         const isFade = activeTab === 'fade'
                         
                         return (
@@ -500,17 +517,17 @@ export default function LeaderboardPage() {
                                 {isTop3 && !isFade ? (
                                   <div className="w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs"
                                        style={{ 
-                                         background: idx === 0 ? 'linear-gradient(135deg, #FFD700, #FFA500)' : 
-                                                    idx === 1 ? 'linear-gradient(135deg, #C0C0C0, #A0A0A0)' :
+                                         background: globalIdx === 0 ? 'linear-gradient(135deg, #FFD700, #FFA500)' : 
+                                                    globalIdx === 1 ? 'linear-gradient(135deg, #C0C0C0, #A0A0A0)' :
                                                     'linear-gradient(135deg, #CD7F32, #8B4513)',
                                          color: '#000',
-                                         boxShadow: idx === 0 ? '0 0 20px rgba(255,215,0,0.4)' : 'none'
+                                         boxShadow: globalIdx === 0 ? '0 0 20px rgba(255,215,0,0.4)' : 'none'
                                        }}>
-                                    {idx + 1}
+                                    {globalIdx + 1}
                                   </div>
                                 ) : (
                                   <span className="font-bold text-sm w-7 text-center" style={{ color: isFade ? '#FF4455' : '#606070' }}>
-                                    {idx + 1}
+                                    {globalIdx + 1}
                                   </span>
                                 )}
                                 {entry.rankChange !== 0 && (
@@ -641,6 +658,81 @@ export default function LeaderboardPage() {
                   </tbody>
                 </table>
               </div>
+              
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between px-4 py-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div className="text-xs" style={{ color: '#606070' }}>
+                    Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, displayEntries.length)} of {displayEntries.length} experts
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage(1)}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10"
+                      style={{ color: '#A0A0B0', border: '1px solid rgba(255,255,255,0.1)' }}
+                      title="First page"
+                    >
+                      First
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10"
+                      style={{ color: '#A0A0B0', border: '1px solid rgba(255,255,255,0.1)' }}
+                      title="Previous page"
+                    >
+                      ← Prev
+                    </button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum: number
+                        if (totalPages <= 5) {
+                          pageNum = i + 1
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i
+                        } else {
+                          pageNum = currentPage - 2 + i
+                        }
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => setCurrentPage(pageNum)}
+                            className="w-8 h-8 rounded-lg text-xs font-bold transition-all"
+                            style={{ 
+                              background: currentPage === pageNum ? 'rgba(0,168,255,0.2)' : 'transparent',
+                              color: currentPage === pageNum ? '#00A8FF' : '#606070',
+                              border: currentPage === pageNum ? '1px solid rgba(0,168,255,0.3)' : '1px solid transparent'
+                            }}
+                          >
+                            {pageNum}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <button
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10"
+                      style={{ color: '#A0A0B0', border: '1px solid rgba(255,255,255,0.1)' }}
+                      title="Next page"
+                    >
+                      Next →
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage(totalPages)}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10"
+                      style={{ color: '#A0A0B0', border: '1px solid rgba(255,255,255,0.1)' }}
+                      title="Last page"
+                    >
+                      Last
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
             
             {/* Admin Link */}
