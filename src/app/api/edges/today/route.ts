@@ -67,12 +67,10 @@ export async function GET(request: Request) {
           home_team,
           away_team,
           game_date,
-          spread,
-          public_home_pct,
-          sharp_home_pct,
-          opening_spread,
-          home_team_id,
-          away_team_id
+          close_spread,
+          public_spread_home_pct,
+          public_money_home_pct,
+          open_spread
         )
       `)
       .gte('created_at', startOfDay)
@@ -122,21 +120,23 @@ export async function GET(request: Request) {
           home_team: string
           away_team: string
           game_date: string
-          spread: number
-          public_home_pct: number
-          sharp_home_pct: number
-          opening_spread: number
+          close_spread: number
+          public_spread_home_pct: number
+          public_money_home_pct: number
+          open_spread: number
         }
         
         // Calculate line movement
-        const lineMove = game.opening_spread && game.spread 
-          ? (game.spread - game.opening_spread).toFixed(1)
+        const lineMove = game.open_spread && game.close_spread 
+          ? (game.close_spread - game.open_spread).toFixed(1)
           : undefined
         
-        // Check for reverse line movement
+        // Check for reverse line movement (ticket % high but money % low = sharps on other side)
+        const ticketPct = game.public_spread_home_pct || 50
+        const moneyPct = game.public_money_home_pct || 50
         const isRLM = Boolean(
-          (game.public_home_pct > 60 && game.sharp_home_pct < 40 && lineMove && parseFloat(lineMove) > 0) ||
-          (game.public_home_pct < 40 && game.sharp_home_pct > 60 && lineMove && parseFloat(lineMove) < 0)
+          (ticketPct > 60 && moneyPct < 40 && lineMove && parseFloat(lineMove) > 0) ||
+          (ticketPct < 40 && moneyPct > 60 && lineMove && parseFloat(lineMove) < 0)
         )
         
         // Get relevant trends for this sport
@@ -163,9 +163,9 @@ export async function GET(request: Request) {
           confidence: pick.confidence,
           trendCount,
           topTrends: sportTrends.slice(0, 2).map(t => t.trend_name),
-          publicPct: game.public_home_pct,
+          publicPct: ticketPct,
           publicSide: 'home' as const,
-          sharpSide: game.sharp_home_pct > 50 ? 'home' as const : 'away' as const,
+          sharpSide: moneyPct > ticketPct ? 'home' as const : 'away' as const,
           lineMovement: lineMove ? (parseFloat(lineMove) > 0 ? `+${lineMove}` : lineMove) : undefined,
           isRLM,
           h2hRecord: '3-2 ATS L5' // Would come from H2H query

@@ -1,0 +1,107 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - link "Matchups 100% FREE" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img [ref=e7]
+        - generic [ref=e9]:
+          - generic [ref=e10]: Matchups
+          - generic [ref=e11]: 100% FREE
+      - generic [ref=e12]:
+        - button "Sports" [ref=e14]:
+          - text: Sports
+          - img [ref=e15]
+        - button "Markets" [ref=e18]:
+          - img [ref=e19]
+          - text: Markets
+          - img [ref=e21]
+        - button "Tools" [ref=e24]:
+          - text: Tools
+          - img [ref=e25]
+        - link "Scores" [ref=e27] [cursor=pointer]:
+          - /url: /scores
+          - img [ref=e28]
+          - text: Scores
+        - link "Check the \"Experts\"" [ref=e30] [cursor=pointer]:
+          - /url: /leaderboard
+          - img [ref=e31]
+          - generic [ref=e37]: Check the "Experts"
+      - generic [ref=e38]:
+        - link "The Edge" [ref=e39] [cursor=pointer]:
+          - /url: /markets/edge
+          - img [ref=e40]
+          - generic [ref=e44]: The Edge
+        - link "Sus Plays" [ref=e45] [cursor=pointer]:
+          - /url: /sus
+          - img [ref=e46]
+          - generic [ref=e48]: Sus Plays
+        - link "Sign In" [ref=e49] [cursor=pointer]:
+          - /url: /auth
+          - img [ref=e50]
+          - generic [ref=e53]: Sign In
+  - main [ref=e55]:
+    - generic [ref=e57]:
+      - img [ref=e59]
+      - heading "Authentication Required" [level=2] [ref=e62]
+      - paragraph [ref=e63]: Please sign in to access the admin area.
+      - link "Sign In" [ref=e64] [cursor=pointer]:
+        - /url: /auth
+      - link "Back to Home" [ref=e65] [cursor=pointer]:
+        - /url: /
+        - img [ref=e66]
+        - text: Back to Home
+  - contentinfo [ref=e69]:
+    - generic [ref=e70]:
+      - generic [ref=e71]:
+        - generic [ref=e72]:
+          - heading "Sports" [level=4] [ref=e73]
+          - generic [ref=e74]:
+            - link "🏈 NFL" [ref=e75] [cursor=pointer]:
+              - /url: /nfl
+            - link "🏀 NBA" [ref=e76] [cursor=pointer]:
+              - /url: /nba
+            - link "🏒 NHL" [ref=e77] [cursor=pointer]:
+              - /url: /nhl
+            - link "⚾ MLB" [ref=e78] [cursor=pointer]:
+              - /url: /mlb
+        - generic [ref=e79]:
+          - heading "Features" [level=4] [ref=e80]
+          - generic [ref=e81]:
+            - link "📈 Markets" [ref=e82] [cursor=pointer]:
+              - /url: /markets
+            - link "📊 Trends" [ref=e83] [cursor=pointer]:
+              - /url: /trends
+            - link "🧾 Expert Tracker" [ref=e84] [cursor=pointer]:
+              - /url: /leaderboard
+        - generic [ref=e85]:
+          - heading "Company" [level=4] [ref=e86]
+          - generic [ref=e87]:
+            - link "About" [ref=e88] [cursor=pointer]:
+              - /url: "#"
+            - link "Contact" [ref=e89] [cursor=pointer]:
+              - /url: "#"
+            - link "Privacy" [ref=e90] [cursor=pointer]:
+              - /url: "#"
+            - link "Terms" [ref=e91] [cursor=pointer]:
+              - /url: "#"
+        - generic [ref=e92]:
+          - heading "Tools" [level=4] [ref=e93]
+          - generic [ref=e94]:
+            - link "Admin Dashboard" [ref=e95] [cursor=pointer]:
+              - /url: /admin
+              - img [ref=e96]
+              - text: Admin Dashboard
+            - link "📄 Documentation" [ref=e99] [cursor=pointer]:
+              - /url: /admin/docs
+      - generic [ref=e100]:
+        - generic [ref=e101]:
+          - generic [ref=e103]: ⚡
+          - generic [ref=e104]: Matchups
+        - paragraph [ref=e105]: © 2026 Matchups. Sports betting analysis & trends.
+  - button "Open Next.js Dev Tools" [ref=e111] [cursor=pointer]:
+    - img [ref=e112]
+  - alert [ref=e115]
+```

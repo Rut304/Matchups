@@ -7,7 +7,8 @@ import {
   User, TrendingUp, Target, DollarSign, Trophy, Star, 
   Plus, X, Bell, Settings, ChevronRight, Calendar,
   BarChart3, PieChart, Activity, Zap, Users, Heart,
-  CheckCircle, XCircle, Clock, ArrowUp, ArrowDown
+  CheckCircle, XCircle, Clock, ArrowUp, ArrowDown,
+  Brain, Trash2, Loader2
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/lib/auth-context'
@@ -68,18 +69,36 @@ interface UserPreferences {
   unit_size: number
 }
 
+interface UserSystem {
+  id: string
+  name: string
+  sport: string
+  bet_type: string
+  criteria: string[]
+  stats: {
+    record: string
+    winPct: number
+    roi: number
+    units: number
+  }
+  is_public: boolean
+  created_at: string
+}
+
 export default function DashboardPage() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
   const supabase = createClient()
   
-  const [activeTab, setActiveTab] = useState<'overview' | 'bets' | 'follows' | 'analytics'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'bets' | 'follows' | 'systems' | 'analytics'>('overview')
   const [bets, setBets] = useState<UserBet[]>([])
   const [follows, setFollows] = useState<UserFollow[]>([])
+  const [systems, setSystems] = useState<UserSystem[]>([])
   const [stats, setStats] = useState<BettingStats | null>(null)
   const [preferences, setPreferences] = useState<UserPreferences | null>(null)
   const [loading, setLoading] = useState(true)
   const [showAddBet, setShowAddBet] = useState(false)
+  const [systemsLoading, setSystemsLoading] = useState(false)
 
   // Fetch all user data
   const fetchData = useCallback(async () => {
@@ -131,6 +150,44 @@ export default function DashboardPage() {
       fetchData()
     }
   }, [user, authLoading, router, fetchData])
+
+  // Fetch user systems
+  const fetchSystems = useCallback(async () => {
+    if (!user) return
+    setSystemsLoading(true)
+    try {
+      const response = await fetch('/api/user/systems')
+      if (response.ok) {
+        const data = await response.json()
+        setSystems(data.systems || [])
+      }
+    } catch (error) {
+      console.error('Error fetching systems:', error)
+    } finally {
+      setSystemsLoading(false)
+    }
+  }, [user])
+
+  // Delete a system
+  const deleteSystem = async (systemId: string) => {
+    try {
+      const response = await fetch(`/api/user/systems/${systemId}`, {
+        method: 'DELETE'
+      })
+      if (response.ok) {
+        setSystems(prev => prev.filter(s => s.id !== systemId))
+      }
+    } catch (error) {
+      console.error('Error deleting system:', error)
+    }
+  }
+
+  // Fetch systems when tab changes to systems
+  useEffect(() => {
+    if (activeTab === 'systems' && user && systems.length === 0) {
+      fetchSystems()
+    }
+  }, [activeTab, user, systems.length, fetchSystems])
 
   // Format odds display
   const formatOdds = (odds: number) => {
@@ -209,6 +266,7 @@ export default function DashboardPage() {
               { id: 'overview', label: 'Overview', icon: Activity },
               { id: 'bets', label: 'My Bets', icon: Target },
               { id: 'follows', label: 'Following', icon: Heart },
+              { id: 'systems', label: 'My Systems', icon: Brain },
               { id: 'analytics', label: 'Analytics', icon: BarChart3 },
             ].map((tab) => (
               <button
@@ -601,6 +659,121 @@ export default function DashboardPage() {
                         Unfollow
                       </button>
                     </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Systems Tab */}
+        {activeTab === 'systems' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white">My Betting Systems</h2>
+              <Link 
+                href="/systems"
+                className="px-4 py-2 rounded-xl font-medium text-sm"
+                style={{ background: 'linear-gradient(135deg, #FF6B00, #FF3366)', color: '#FFF' }}
+              >
+                <Plus className="w-4 h-4 inline mr-1" />
+                Create System
+              </Link>
+            </div>
+            
+            {systemsLoading ? (
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#FF6B00' }} />
+              </div>
+            ) : systems.length === 0 ? (
+              <div className="text-center py-16 rounded-2xl" style={{ background: '#12121A' }}>
+                <Brain className="w-16 h-16 mx-auto mb-4" style={{ color: '#404050' }} />
+                <h3 className="text-xl font-bold text-white mb-2">No systems yet</h3>
+                <p className="mb-6" style={{ color: '#808090' }}>Create AI-powered betting systems and track their performance</p>
+                <Link 
+                  href="/systems"
+                  className="inline-block px-6 py-3 rounded-xl font-bold"
+                  style={{ background: 'linear-gradient(135deg, #FF6B00, #FF3366)', color: '#FFF' }}
+                >
+                  Build Your First System
+                </Link>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {systems.map((system) => (
+                  <div key={system.id} className="p-5 rounded-2xl" style={{ background: '#12121A' }}>
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <h3 className="font-bold text-white">{system.name}</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,107,0,0.2)', color: '#FF6B00' }}>
+                            {system.sport.toUpperCase()}
+                          </span>
+                          <span className="text-xs" style={{ color: '#808090' }}>
+                            {system.bet_type.toUpperCase()}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => deleteSystem(system.id)}
+                        className="p-1.5 rounded-lg hover:bg-red-900/30 transition-colors"
+                        style={{ color: '#FF4455' }}
+                        title="Delete system"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                    
+                    {/* System Stats */}
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div>
+                        <p className="text-xs" style={{ color: '#606070' }}>Record</p>
+                        <p className="font-bold text-white">{system.stats?.record || '0-0-0'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs" style={{ color: '#606070' }}>Win %</p>
+                        <p className="font-bold" style={{ color: (system.stats?.winPct || 0) >= 52 ? '#00FF88' : '#FFF' }}>
+                          {system.stats?.winPct?.toFixed(1) || '0.0'}%
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs" style={{ color: '#606070' }}>ROI</p>
+                        <p className="font-bold" style={{ color: (system.stats?.roi || 0) >= 0 ? '#00FF88' : '#FF4455' }}>
+                          {(system.stats?.roi || 0) >= 0 ? '+' : ''}{system.stats?.roi?.toFixed(1) || '0.0'}%
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs" style={{ color: '#606070' }}>Units</p>
+                        <p className="font-bold" style={{ color: (system.stats?.units || 0) >= 0 ? '#00FF88' : '#FF4455' }}>
+                          {(system.stats?.units || 0) >= 0 ? '+' : ''}{system.stats?.units?.toFixed(1) || '0.0'}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Criteria */}
+                    {system.criteria && system.criteria.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {system.criteria.slice(0, 2).map((c, i) => (
+                          <span key={i} className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.05)', color: '#808090' }}>
+                            {c.length > 25 ? c.substring(0, 25) + '...' : c}
+                          </span>
+                        ))}
+                        {system.criteria.length > 2 && (
+                          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.05)', color: '#808090' }}>
+                            +{system.criteria.length - 2} more
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* View Details Link */}
+                    <Link 
+                      href="/systems"
+                      className="mt-4 flex items-center justify-center gap-1 w-full py-2 rounded-lg text-sm font-medium"
+                      style={{ background: 'rgba(255,107,0,0.1)', color: '#FF6B00' }}
+                    >
+                      View System <ChevronRight className="w-4 h-4" />
+                    </Link>
                   </div>
                 ))}
               </div>

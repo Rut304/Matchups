@@ -1251,6 +1251,136 @@ export default function AdminPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Global Confidence Thresholds */}
+            <Card variant="bordered">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="w-5 h-5 text-accent" />
+                  AI Edge Score Thresholds
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-text-muted mb-4">
+                  Configure when picks are displayed based on their AI confidence score (0-100).
+                  Higher thresholds = fewer but stronger picks.
+                </p>
+                <div className="space-y-4">
+                  {/* Minimum Edge Threshold */}
+                  <div className="p-4 rounded-lg bg-background-tertiary">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <p className="font-bold text-text-primary">Minimum Edge Threshold</p>
+                        <p className="text-xs text-text-muted">Below this = not displayed as an edge</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={settings.edge_rlm_min_confidence || 60}
+                          onChange={(e) => saveSettings({ edge_rlm_min_confidence: parseInt(e.target.value) || 60 })}
+                          disabled={!settings.edge_features_enabled}
+                          className="w-20 px-3 py-2 text-sm rounded bg-background border border-border text-text-primary"
+                        />
+                        <span className="text-sm font-bold" style={{ color: '#808090' }}>%</span>
+                      </div>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-background overflow-hidden">
+                      <div 
+                        className="h-full rounded-full transition-all"
+                        style={{ 
+                          width: `${settings.edge_rlm_min_confidence || 60}%`,
+                          background: 'linear-gradient(90deg, #FF4455, #FFD700)'
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Strong Edge Threshold */}
+                  <div className="p-4 rounded-lg bg-background-tertiary">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <p className="font-bold text-text-primary">Strong Edge Threshold</p>
+                        <p className="text-xs text-text-muted">Highlighted as &ldquo;Strong Edge&rdquo;</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={settings.edge_steam_min_confidence || 75}
+                          onChange={(e) => saveSettings({ edge_steam_min_confidence: parseInt(e.target.value) || 75 })}
+                          disabled={!settings.edge_features_enabled}
+                          className="w-20 px-3 py-2 text-sm rounded bg-background border border-border text-text-primary"
+                        />
+                        <span className="text-sm font-bold" style={{ color: '#00FF88' }}>%</span>
+                      </div>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-background overflow-hidden">
+                      <div 
+                        className="h-full rounded-full transition-all"
+                        style={{ 
+                          width: `${settings.edge_steam_min_confidence || 75}%`,
+                          background: 'linear-gradient(90deg, #FFD700, #00FF88)'
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Elite Edge Threshold */}
+                  <div className="p-4 rounded-lg bg-background-tertiary">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <p className="font-bold text-text-primary">Elite Edge Threshold</p>
+                        <p className="text-xs text-text-muted">Top-tier picks, highlighted prominently</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={settings.edge_sharp_public_min_confidence || 90}
+                          onChange={(e) => saveSettings({ edge_sharp_public_min_confidence: parseInt(e.target.value) || 90 })}
+                          disabled={!settings.edge_features_enabled}
+                          className="w-20 px-3 py-2 text-sm rounded bg-background border border-border text-text-primary"
+                        />
+                        <span className="text-sm font-bold" style={{ color: '#FF6B00' }}>%</span>
+                      </div>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-background overflow-hidden">
+                      <div 
+                        className="h-full rounded-full transition-all"
+                        style={{ 
+                          width: `${settings.edge_sharp_public_min_confidence || 90}%`,
+                          background: 'linear-gradient(90deg, #00FF88, #FF6B00)'
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Legend */}
+                  <div className="flex flex-wrap gap-4 pt-2 border-t border-border">
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full" style={{ background: '#808090' }} />
+                      <span className="text-xs text-text-muted">Below threshold (hidden)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full" style={{ background: '#FFD700' }} />
+                      <span className="text-xs text-text-muted">Moderate edge</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full" style={{ background: '#00FF88' }} />
+                      <span className="text-xs text-text-muted">Strong edge</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full" style={{ background: '#FF6B00' }} />
+                      <span className="text-xs text-text-muted">Elite edge</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
             
             {/* Quick Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

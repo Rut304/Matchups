@@ -29,8 +29,8 @@ export async function GET(
     }
   }
   
-  // If no sport provided, search across all sports
-  const sports: SportKey[] = ['NFL', 'NBA', 'NHL', 'MLB']
+  // If no sport provided, search across all sports (including college)
+  const sports: SportKey[] = ['NFL', 'NBA', 'NHL', 'MLB', 'NCAAF', 'NCAAB', 'WNBA', 'WNCAAB']
   
   for (const s of sports) {
     try {

@@ -174,17 +174,47 @@ export async function GET(request: Request) {
       }
     })
     
+    // Filter by target date - ESPN sometimes returns games across multiple days
+    // Compare only the date portion in Eastern Time
+    const targetDateObj = new Date(targetDate + 'T00:00:00')
+    const dateFilteredGames = allGames.filter(g => {
+      const gameDate = new Date(g.startTime)
+      // Convert game time to Eastern and compare date only
+      const gameDateET = new Date(gameDate.toLocaleString('en-US', { timeZone: 'America/New_York' }))
+      const gameYear = gameDateET.getFullYear()
+      const gameMonth = gameDateET.getMonth()
+      const gameDay = gameDateET.getDate()
+      
+      return gameYear === targetDateObj.getFullYear() &&
+             gameMonth === targetDateObj.getMonth() &&
+             gameDay === targetDateObj.getDate()
+    })
+    
     // Filter by status if requested
-    let filteredGames = allGames
+    let filteredGames = dateFilteredGames
     if (status && status !== 'all') {
-      filteredGames = allGames.filter(g => g.status === status)
+      filteredGames = dateFilteredGames.filter(g => g.status === status)
     }
     
-    // Sort: live games first, then by start time
+    // Sort: live games first, then scheduled (upcoming), then final
+    // Within each group, sort by start time (recent first for final, earliest first for scheduled)
     filteredGames.sort((a, b) => {
-      if (a.status === 'live' && b.status !== 'live') return -1
-      if (b.status === 'live' && a.status !== 'live') return 1
-      return new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+      // Priority: live > scheduled > final
+      const statusPriority = { live: 0, scheduled: 1, delayed: 2, postponed: 3, final: 4 }
+      const aPriority = statusPriority[a.status] ?? 5
+      const bPriority = statusPriority[b.status] ?? 5
+      
+      if (aPriority !== bPriority) return aPriority - bPriority
+      
+      // Within same status, sort by time
+      const aTime = new Date(a.startTime).getTime()
+      const bTime = new Date(b.startTime).getTime()
+      
+      // For final games, show most recent first (descending)
+      if (a.status === 'final') return bTime - aTime
+      
+      // For live and scheduled, show earliest first (ascending)
+      return aTime - bTime
     })
     
     return NextResponse.json({

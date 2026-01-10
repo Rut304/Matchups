@@ -1,0 +1,865 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - link "Matchups 100% FREE" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img [ref=e7]
+        - generic [ref=e9]:
+          - generic [ref=e10]: Matchups
+          - generic [ref=e11]: 100% FREE
+      - generic [ref=e12]:
+        - button "Sports" [ref=e14]:
+          - text: Sports
+          - img [ref=e15]
+        - button "Markets" [ref=e18]:
+          - img [ref=e19]
+          - text: Markets
+          - img [ref=e21]
+        - button "Tools" [ref=e24]:
+          - text: Tools
+          - img [ref=e25]
+        - link "Scores" [ref=e27] [cursor=pointer]:
+          - /url: /scores
+          - img [ref=e28]
+          - text: Scores
+        - link "Check the \"Experts\"" [ref=e30] [cursor=pointer]:
+          - /url: /leaderboard
+          - img [ref=e31]
+          - generic [ref=e37]: Check the "Experts"
+      - generic [ref=e38]:
+        - link "The Edge" [ref=e39] [cursor=pointer]:
+          - /url: /markets/edge
+          - img [ref=e40]
+          - generic [ref=e44]: The Edge
+        - link "Sus Plays" [ref=e45] [cursor=pointer]:
+          - /url: /sus
+          - img [ref=e46]
+          - generic [ref=e48]: Sus Plays
+        - link "Sign In" [ref=e49] [cursor=pointer]:
+          - /url: /auth
+          - img [ref=e50]
+          - generic [ref=e53]: Sign In
+  - main [ref=e55]:
+    - generic [ref=e56]:
+      - generic [ref=e59]:
+        - generic [ref=e60]:
+          - generic [ref=e61]:
+            - img "Wrong Stamp" [ref=e62]
+            - heading "EXPERT TRACKER" [level=1] [ref=e63]
+            - generic [ref=e64]: 🔍
+          - paragraph [ref=e65]: The so-called "experts" don't want you to see this • Receipts Exposed • No More Hiding
+          - paragraph [ref=e66]: Every pick from ESPN, FOX, TNT & more — tracked and verified
+        - generic [ref=e67]:
+          - generic [ref=e68]:
+            - img [ref=e70]
+            - generic [ref=e72]: "15"
+            - generic [ref=e73]: Cappers Tracked
+          - generic [ref=e74]:
+            - img [ref=e76]
+            - generic [ref=e79]: 54.5%
+            - generic [ref=e80]: TV Avg Win %
+          - generic [ref=e81]:
+            - img [ref=e83]
+            - generic [ref=e86]: 83.7%
+            - generic [ref=e87]: Sharp Avg Win %
+          - generic [ref=e88]:
+            - img [ref=e90]
+            - generic [ref=e92]: 78,244
+            - generic [ref=e93]: Picks Analyzed
+        - generic [ref=e94]:
+          - link "💰 Billy Walters +6.9u" [ref=e95] [cursor=pointer]:
+            - /url: /leaderboard/billy-walters
+            - generic [ref=e96]: 💰
+            - generic [ref=e97]:
+              - generic [ref=e98]:
+                - generic [ref=e99]: Billy Walters
+                - img [ref=e100]
+              - generic [ref=e102]: +6.9u
+          - link "🏀 JJ Redick +5.9u" [ref=e103] [cursor=pointer]:
+            - /url: /leaderboard/jj-redick
+            - generic [ref=e104]: 🏀
+            - generic [ref=e105]:
+              - generic [ref=e107]: JJ Redick
+              - generic [ref=e108]: +5.9u
+          - link "🎯 Tony Romo +5.8u" [ref=e109] [cursor=pointer]:
+            - /url: /leaderboard/tony-romo
+            - generic [ref=e110]: 🎯
+            - generic [ref=e111]:
+              - generic [ref=e113]: Tony Romo
+              - generic [ref=e114]: +5.8u
+      - generic [ref=e115]:
+        - generic [ref=e117]:
+          - button "🏈 Sports Betting" [ref=e118]:
+            - generic [ref=e119]: 🏈
+            - text: Sports Betting
+          - button "📊 Prediction Markets" [ref=e120]:
+            - generic [ref=e121]: 📊
+            - text: Prediction Markets
+        - generic [ref=e122]:
+          - generic [ref=e123]:
+            - generic [ref=e124]:
+              - generic [ref=e125]:
+                - generic [ref=e126]: "VIEW:"
+                - generic [ref=e127]:
+                  - button "📺 Celebrities" [ref=e128]
+                  - button "💰 Sharps" [ref=e129]
+                  - button "👥 Community" [ref=e130]
+                  - button "🔥 Fade Alert" [ref=e131]
+                  - button "🌐 All" [ref=e132]
+              - generic [ref=e133]:
+                - generic [ref=e134]:
+                  - img [ref=e135]
+                  - generic [ref=e139]: "BET TYPE:"
+                  - generic [ref=e140]:
+                    - button "Spread" [ref=e141]
+                    - button "ML" [ref=e142]
+                    - button "O/U" [ref=e143]
+                    - button "Props" [ref=e144]
+                    - button "Parlay" [ref=e145]
+                    - button "All" [ref=e146]
+                - generic [ref=e147]:
+                  - generic [ref=e148]: "SPORT:"
+                  - generic [ref=e149]:
+                    - button "🌐" [ref=e150]
+                    - button "🏈" [ref=e151]
+                    - button "🏀" [ref=e152]
+                    - button "⚾" [ref=e153]
+                    - button "🏒" [ref=e154]
+                    - button "🎓" [ref=e155]
+                - generic [ref=e156]:
+                  - generic [ref=e157]: "SORT:"
+                  - generic [ref=e158]:
+                    - button "Units" [ref=e159]
+                    - button "Win %" [ref=e160]
+                    - button "ROI" [ref=e161]
+                - generic [ref=e162]:
+                  - img [ref=e163]
+                  - generic [ref=e165]: "TIME:"
+                  - generic [ref=e166]:
+                    - button "Today" [ref=e167]
+                    - button "3 Days" [ref=e168]
+                    - button "7 Days" [ref=e169]
+                    - button "14 Days" [ref=e170]
+                    - button "30 Days" [ref=e171]
+                    - button "Season" [ref=e172]
+                    - button "All Time" [ref=e173]
+                - generic [ref=e174]:
+                  - img [ref=e175]
+                  - generic [ref=e178]: "NETWORK:"
+                  - generic [ref=e179]:
+                    - button "All" [ref=e180]
+                    - button "ESPN" [ref=e181]
+                    - button "FS1" [ref=e182]
+                    - button "TNT" [ref=e183]
+                    - button "CBS" [ref=e184]
+                    - button "Podcast" [ref=e185]
+                    - button "Twitter" [ref=e186]
+                    - button "Independent" [ref=e187]
+            - table [ref=e190]:
+              - rowgroup [ref=e191]:
+                - row "Rank Capper Record Win % Units ROI Streak Last Pick" [ref=e192]:
+                  - columnheader "Rank" [ref=e193]
+                  - columnheader "Capper" [ref=e194]
+                  - columnheader "Record" [ref=e195]
+                  - columnheader "Win %" [ref=e196]
+                  - columnheader "Units" [ref=e197]
+                  - columnheader "ROI" [ref=e198]
+                  - columnheader "Streak" [ref=e199]
+                  - columnheader "Last Pick" [ref=e200]
+                  - columnheader [ref=e201]
+              - rowgroup [ref=e202]:
+                - row "1 3 🏀 JJ Redick ✓ ESPN • NBA Analyst 9-1 90.0% +7.9 +79.0% WWWWL Celtics -4.5 ✅" [ref=e203] [cursor=pointer]:
+                  - cell "1 3" [ref=e204]:
+                    - generic [ref=e205]:
+                      - generic [ref=e206]: "1"
+                      - generic [ref=e207]:
+                        - img [ref=e208]
+                        - text: "3"
+                  - cell "🏀 JJ Redick ✓ ESPN • NBA Analyst" [ref=e210]:
+                    - generic [ref=e211]:
+                      - generic [ref=e212]: 🏀
+                      - generic [ref=e213]:
+                        - generic [ref=e214]:
+                          - generic [ref=e215]: JJ Redick
+                          - generic [ref=e216]: ✓
+                        - generic [ref=e217]:
+                          - generic [ref=e218]: ESPN
+                          - generic [ref=e219]: • NBA Analyst
+                  - cell "9-1" [ref=e220]
+                  - cell "90.0%" [ref=e221]:
+                    - generic [ref=e222]: 90.0%
+                  - cell "+7.9" [ref=e223]:
+                    - generic [ref=e224]: "+7.9"
+                  - cell "+79.0%" [ref=e225]:
+                    - generic [ref=e226]: +79.0%
+                  - cell "WWWWL" [ref=e227]
+                  - cell "Celtics -4.5 ✅" [ref=e228]:
+                    - generic [ref=e229]:
+                      - generic [ref=e230]: Celtics -4.5
+                      - generic [ref=e231]: ✅
+                  - cell [ref=e232]:
+                    - generic [ref=e233]:
+                      - link "Share this expert" [ref=e235]:
+                        - /url: https://twitter.com/intent/tweet?text=%F0%9F%93%88%20JJ%20Redick%3A%2090.0%25%20win%20rate%2C%20%2B7.9%20units.%20Stats%20at%20matchups.app%2Fleaderboard%2Fjj-redick
+                        - img [ref=e236]
+                      - button "Add to comparison" [ref=e242]:
+                        - img [ref=e243]
+                      - img [ref=e244]
+                - row "2 6 🎯 Tony Romo ✓ CBS • NFL Analyst 10-2 83.3% +7.8 +65.0% WWWWW Chiefs -3 (Wild Card) ✅" [ref=e246] [cursor=pointer]:
+                  - cell "2 6" [ref=e247]:
+                    - generic [ref=e248]:
+                      - generic [ref=e249]: "2"
+                      - generic [ref=e250]:
+                        - img [ref=e251]
+                        - text: "6"
+                  - cell "🎯 Tony Romo ✓ CBS • NFL Analyst" [ref=e253]:
+                    - generic [ref=e254]:
+                      - generic [ref=e255]: 🎯
+                      - generic [ref=e256]:
+                        - generic [ref=e257]:
+                          - generic [ref=e258]: Tony Romo
+                          - generic [ref=e259]: ✓
+                        - generic [ref=e260]:
+                          - generic [ref=e261]: CBS
+                          - generic [ref=e262]: • NFL Analyst
+                  - cell "10-2" [ref=e263]
+                  - cell "83.3%" [ref=e264]:
+                    - generic [ref=e265]: 83.3%
+                  - cell "+7.8" [ref=e266]:
+                    - generic [ref=e267]: "+7.8"
+                  - cell "+65.0%" [ref=e268]:
+                    - generic [ref=e269]: +65.0%
+                  - cell "WWWWW" [ref=e270]
+                  - cell "Chiefs -3 (Wild Card) ✅" [ref=e271]:
+                    - generic [ref=e272]:
+                      - generic [ref=e273]: Chiefs -3 (Wild Card)
+                      - generic [ref=e274]: ✅
+                  - cell [ref=e275]:
+                    - generic [ref=e276]:
+                      - link "Share this expert" [ref=e278]:
+                        - /url: https://twitter.com/intent/tweet?text=%F0%9F%93%88%20Tony%20Romo%3A%2083.3%25%20win%20rate%2C%20%2B7.8%20units.%20Stats%20at%20matchups.app%2Fleaderboard%2Ftony-romo
+                        - img [ref=e279]
+                      - button "Add to comparison" [ref=e285]:
+                        - img [ref=e286]
+                      - img [ref=e287]
+                - row "3 1 🎙️ Pat McAfee ✓ ESPN • Pat McAfee Show 7-1 87.5% +5.9 +73.8% WWWLW Colts +6 (Wild Card) ✅" [ref=e289] [cursor=pointer]:
+                  - cell "3 1" [ref=e290]:
+                    - generic [ref=e291]:
+                      - generic [ref=e292]: "3"
+                      - generic [ref=e293]:
+                        - img [ref=e294]
+                        - text: "1"
+                  - cell "🎙️ Pat McAfee ✓ ESPN • Pat McAfee Show" [ref=e296]:
+                    - generic [ref=e297]:
+                      - generic [ref=e298]: 🎙️
+                      - generic [ref=e299]:
+                        - generic [ref=e300]:
+                          - generic [ref=e301]: Pat McAfee
+                          - generic [ref=e302]: ✓
+                        - generic [ref=e303]:
+                          - generic [ref=e304]: ESPN
+                          - generic [ref=e305]: • Pat McAfee Show
+                  - cell "7-1" [ref=e306]
+                  - cell "87.5%" [ref=e307]:
+                    - generic [ref=e308]: 87.5%
+                  - cell "+5.9" [ref=e309]:
+                    - generic [ref=e310]: "+5.9"
+                  - cell "+73.8%" [ref=e311]:
+                    - generic [ref=e312]: +73.8%
+                  - cell "WWWLW" [ref=e313]
+                  - cell "Colts +6 (Wild Card) ✅" [ref=e314]:
+                    - generic [ref=e315]:
+                      - generic [ref=e316]: Colts +6 (Wild Card)
+                      - generic [ref=e317]: ✅
+                  - cell [ref=e318]:
+                    - generic [ref=e319]:
+                      - link "Share this expert" [ref=e321]:
+                        - /url: https://twitter.com/intent/tweet?text=%F0%9F%93%88%20Pat%20McAfee%3A%2087.5%25%20win%20rate%2C%20%2B5.9%20units.%20Stats%20at%20matchups.app%2Fleaderboard%2Fpat-mcafee
+                        - img [ref=e322]
+                      - button "Add to comparison" [ref=e328]:
+                        - img [ref=e329]
+                      - img [ref=e330]
+                - row "4 2 ⭐ Troy Aikman ✓ ESPN • MNF Analyst 6-2 75.0% +3.8 +47.5% WWWWW Eagles -5 (Wild Card) ✅" [ref=e332] [cursor=pointer]:
+                  - cell "4 2" [ref=e333]:
+                    - generic [ref=e334]:
+                      - generic [ref=e335]: "4"
+                      - generic [ref=e336]:
+                        - img [ref=e337]
+                        - text: "2"
+                  - cell "⭐ Troy Aikman ✓ ESPN • MNF Analyst" [ref=e339]:
+                    - generic [ref=e340]:
+                      - generic [ref=e341]: ⭐
+                      - generic [ref=e342]:
+                        - generic [ref=e343]:
+                          - generic [ref=e344]: Troy Aikman
+                          - generic [ref=e345]: ✓
+                        - generic [ref=e346]:
+                          - generic [ref=e347]: ESPN
+                          - generic [ref=e348]: • MNF Analyst
+                  - cell "6-2" [ref=e349]
+                  - cell "75.0%" [ref=e350]:
+                    - generic [ref=e351]: 75.0%
+                  - cell "+3.8" [ref=e352]:
+                    - generic [ref=e353]: "+3.8"
+                  - cell "+47.5%" [ref=e354]:
+                    - generic [ref=e355]: +47.5%
+                  - cell "WWWWW" [ref=e356]
+                  - cell "Eagles -5 (Wild Card) ✅" [ref=e357]:
+                    - generic [ref=e358]:
+                      - generic [ref=e359]: Eagles -5 (Wild Card)
+                      - generic [ref=e360]: ✅
+                  - cell [ref=e361]:
+                    - generic [ref=e362]:
+                      - link "Share this expert" [ref=e364]:
+                        - /url: https://twitter.com/intent/tweet?text=%F0%9F%93%88%20Troy%20Aikman%3A%2075.0%25%20win%20rate%2C%20%2B3.8%20units.%20Stats%20at%20matchups.app%2Fleaderboard%2Ftroy-aikman
+                        - img [ref=e365]
+                      - button "Add to comparison" [ref=e371]:
+                        - img [ref=e372]
+                      - img [ref=e373]
+                - row "5 2 💚 Draymond Green ✓ TNT • Inside the NBA 4-2 66.7% +1.8 +30.0% WWWLW Warriors +5 ✅" [ref=e375] [cursor=pointer]:
+                  - cell "5 2" [ref=e376]:
+                    - generic [ref=e377]:
+                      - generic [ref=e378]: "5"
+                      - generic [ref=e379]:
+                        - img [ref=e380]
+                        - text: "2"
+                  - cell "💚 Draymond Green ✓ TNT • Inside the NBA" [ref=e382]:
+                    - generic [ref=e383]:
+                      - generic [ref=e384]: 💚
+                      - generic [ref=e385]:
+                        - generic [ref=e386]:
+                          - generic [ref=e387]: Draymond Green
+                          - generic [ref=e388]: ✓
+                        - generic [ref=e389]:
+                          - generic [ref=e390]: TNT
+                          - generic [ref=e391]: • Inside the NBA
+                  - cell "4-2" [ref=e392]
+                  - cell "66.7%" [ref=e393]:
+                    - generic [ref=e394]: 66.7%
+                  - cell "+1.8" [ref=e395]:
+                    - generic [ref=e396]: "+1.8"
+                  - cell "+30.0%" [ref=e397]:
+                    - generic [ref=e398]: +30.0%
+                  - cell "WWWLW" [ref=e399]
+                  - cell "Warriors +5 ✅" [ref=e400]:
+                    - generic [ref=e401]:
+                      - generic [ref=e402]: Warriors +5
+                      - generic [ref=e403]: ✅
+                  - cell [ref=e404]:
+                    - generic [ref=e405]:
+                      - link "Share this expert" [ref=e407]:
+                        - /url: https://twitter.com/intent/tweet?text=%F0%9F%93%88%20Draymond%20Green%3A%2066.7%25%20win%20rate%2C%20%2B1.8%20units.%20Stats%20at%20matchups.app%2Fleaderboard%2Fdraymond-green
+                        - img [ref=e408]
+                      - button "Add to comparison" [ref=e414]:
+                        - img [ref=e415]
+                      - img [ref=e416]
+                - row "6 2 🏈 Shannon Sharpe ✓ ESPN • First Take 5-3 62.5% +1.7 +21.2% WLWWW Chiefs -3.5 ✅" [ref=e418] [cursor=pointer]:
+                  - cell "6 2" [ref=e419]:
+                    - generic [ref=e420]:
+                      - generic [ref=e421]: "6"
+                      - generic [ref=e422]:
+                        - img [ref=e423]
+                        - text: "2"
+                  - cell "🏈 Shannon Sharpe ✓ ESPN • First Take" [ref=e425]:
+                    - generic [ref=e426]:
+                      - generic [ref=e427]: 🏈
+                      - generic [ref=e428]:
+                        - generic [ref=e429]:
+                          - generic [ref=e430]: Shannon Sharpe
+                          - generic [ref=e431]: ✓
+                        - generic [ref=e432]:
+                          - generic [ref=e433]: ESPN
+                          - generic [ref=e434]: • First Take
+                  - cell "5-3" [ref=e435]
+                  - cell "62.5%" [ref=e436]:
+                    - generic [ref=e437]: 62.5%
+                  - cell "+1.7" [ref=e438]:
+                    - generic [ref=e439]: "+1.7"
+                  - cell "+21.2%" [ref=e440]:
+                    - generic [ref=e441]: +21.2%
+                  - cell "WLWWW" [ref=e442]
+                  - cell "Chiefs -3.5 ✅" [ref=e443]:
+                    - generic [ref=e444]:
+                      - generic [ref=e445]: Chiefs -3.5
+                      - generic [ref=e446]: ✅
+                  - cell [ref=e447]:
+                    - generic [ref=e448]:
+                      - link "Share this expert" [ref=e450]:
+                        - /url: https://twitter.com/intent/tweet?text=%F0%9F%93%88%20Shannon%20Sharpe%3A%2062.5%25%20win%20rate%2C%20%2B1.7%20units.%20Stats%20at%20matchups.app%2Fleaderboard%2Fshannon-sharpe
+                        - img [ref=e451]
+                      - button "Add to comparison" [ref=e457]:
+                        - img [ref=e458]
+                      - img [ref=e459]
+                - row "7 1 🐱 Big Cat (PMT) ✓ Podcast • Pardon My Take 3-3 50.0% -0.3 -5.0% LLLWW Bears +14 (Wild Card) ❌" [ref=e461] [cursor=pointer]:
+                  - cell "7 1" [ref=e462]:
+                    - generic [ref=e463]:
+                      - generic [ref=e464]: "7"
+                      - generic [ref=e465]:
+                        - img [ref=e466]
+                        - text: "1"
+                  - cell "🐱 Big Cat (PMT) ✓ Podcast • Pardon My Take" [ref=e468]:
+                    - generic [ref=e469]:
+                      - generic [ref=e470]: 🐱
+                      - generic [ref=e471]:
+                        - generic [ref=e472]:
+                          - generic [ref=e473]: Big Cat (PMT)
+                          - generic [ref=e474]: ✓
+                        - generic [ref=e475]:
+                          - generic [ref=e476]: Podcast
+                          - generic [ref=e477]: • Pardon My Take
+                  - cell "3-3" [ref=e478]
+                  - cell "50.0%" [ref=e479]:
+                    - generic [ref=e480]: 50.0%
+                  - cell "-0.3" [ref=e481]
+                  - cell "-5.0%" [ref=e482]:
+                    - generic [ref=e483]: "-5.0%"
+                  - cell "LLLWW" [ref=e484]
+                  - cell "Bears +14 (Wild Card) ❌" [ref=e485]:
+                    - generic [ref=e486]:
+                      - generic [ref=e487]: Bears +14 (Wild Card)
+                      - generic [ref=e488]: ❌
+                  - cell [ref=e489]:
+                    - generic [ref=e490]:
+                      - link "Expose this expert" [ref=e492]:
+                        - /url: https://twitter.com/intent/tweet?text=%F0%9F%93%89%20Big%20Cat%20(PMT)%3A%2050.0%25%20win%20rate%2C%20-0.3%20units.%20Receipts%20at%20matchups.app%2Fleaderboard%2Fpmt-big-cat
+                        - img [ref=e493]
+                      - button "Add to comparison" [ref=e499]:
+                        - img [ref=e500]
+                      - img [ref=e501]
+                - row "8 4 🍕 Dave Portnoy ✓ Barstool • Founder 2-6 25.0% -4.6 -57.5% LLLWL Eagles -6 ❌" [ref=e503] [cursor=pointer]:
+                  - cell "8 4" [ref=e504]:
+                    - generic [ref=e505]:
+                      - generic [ref=e506]: "8"
+                      - generic [ref=e507]:
+                        - img [ref=e508]
+                        - text: "4"
+                  - cell "🍕 Dave Portnoy ✓ Barstool • Founder" [ref=e510]:
+                    - generic [ref=e511]:
+                      - generic [ref=e512]: 🍕
+                      - generic [ref=e513]:
+                        - generic [ref=e514]:
+                          - generic [ref=e515]: Dave Portnoy
+                          - generic [ref=e516]: ✓
+                        - generic [ref=e517]:
+                          - generic [ref=e518]: Barstool
+                          - generic [ref=e519]: • Founder
+                  - cell "2-6" [ref=e520]
+                  - cell "25.0%" [ref=e521]:
+                    - generic [ref=e522]: 25.0%
+                  - cell "-4.6" [ref=e523]
+                  - cell "-57.5%" [ref=e524]:
+                    - generic [ref=e525]: "-57.5%"
+                  - cell "LLLWL" [ref=e526]
+                  - cell "Eagles -6 ❌" [ref=e527]:
+                    - generic [ref=e528]:
+                      - generic [ref=e529]: Eagles -6
+                      - generic [ref=e530]: ❌
+                  - cell [ref=e531]:
+                    - generic [ref=e532]:
+                      - link "Expose this expert" [ref=e534]:
+                        - /url: https://twitter.com/intent/tweet?text=%F0%9F%93%89%20Dave%20Portnoy%3A%2025.0%25%20win%20rate%2C%20-4.6%20units.%20Receipts%20at%20matchups.app%2Fleaderboard%2Fdave-portnoy
+                        - img [ref=e535]
+                      - button "Add to comparison" [ref=e541]:
+                        - img [ref=e542]
+                      - img [ref=e543]
+                - row "9 4 🏆 Charles Barkley ✓ TNT • Inside the NBA 2-8 20.0% -6.8 -68.0% LLLLW Suns -3 vs Lakers ❌" [ref=e545] [cursor=pointer]:
+                  - cell "9 4" [ref=e546]:
+                    - generic [ref=e547]:
+                      - generic [ref=e548]: "9"
+                      - generic [ref=e549]:
+                        - img [ref=e550]
+                        - text: "4"
+                  - cell "🏆 Charles Barkley ✓ TNT • Inside the NBA" [ref=e552]:
+                    - generic [ref=e553]:
+                      - generic [ref=e554]: 🏆
+                      - generic [ref=e555]:
+                        - generic [ref=e556]:
+                          - generic [ref=e557]: Charles Barkley
+                          - generic [ref=e558]: ✓
+                        - generic [ref=e559]:
+                          - generic [ref=e560]: TNT
+                          - generic [ref=e561]: • Inside the NBA
+                  - cell "2-8" [ref=e562]
+                  - cell "20.0%" [ref=e563]:
+                    - generic [ref=e564]: 20.0%
+                  - cell "-6.8" [ref=e565]
+                  - cell "-68.0%" [ref=e566]:
+                    - generic [ref=e567]: "-68.0%"
+                  - cell "LLLLW" [ref=e568]
+                  - cell "Suns -3 vs Lakers ❌" [ref=e569]:
+                    - generic [ref=e570]:
+                      - generic [ref=e571]: Suns -3 vs Lakers
+                      - generic [ref=e572]: ❌
+                  - cell [ref=e573]:
+                    - generic [ref=e574]:
+                      - link "Expose this expert" [ref=e576]:
+                        - /url: https://twitter.com/intent/tweet?text=%F0%9F%93%89%20Charles%20Barkley%3A%2020.0%25%20win%20rate%2C%20-6.8%20units.%20Receipts%20at%20matchups.app%2Fleaderboard%2Fcharles-barkley
+                        - img [ref=e577]
+                      - button "Add to comparison" [ref=e583]:
+                        - img [ref=e584]
+                      - img [ref=e585]
+                - row "10 5 🎤 Skip Bayless ✓ FS1 • Undisputed 1-9 10.0% -8.9 -89.0% LLLLL Cowboys ML (Wild Card) ❌" [ref=e587] [cursor=pointer]:
+                  - cell "10 5" [ref=e588]:
+                    - generic [ref=e589]:
+                      - generic [ref=e590]: "10"
+                      - generic [ref=e591]:
+                        - img [ref=e592]
+                        - text: "5"
+                  - cell "🎤 Skip Bayless ✓ FS1 • Undisputed" [ref=e594]:
+                    - generic [ref=e595]:
+                      - generic [ref=e596]: 🎤
+                      - generic [ref=e597]:
+                        - generic [ref=e598]:
+                          - generic [ref=e599]: Skip Bayless
+                          - generic [ref=e600]: ✓
+                        - generic [ref=e601]:
+                          - generic [ref=e602]: FS1
+                          - generic [ref=e603]: • Undisputed
+                  - cell "1-9" [ref=e604]
+                  - cell "10.0%" [ref=e605]:
+                    - generic [ref=e606]: 10.0%
+                  - cell "-8.9" [ref=e607]
+                  - cell "-89.0%" [ref=e608]:
+                    - generic [ref=e609]: "-89.0%"
+                  - cell "LLLLL" [ref=e610]
+                  - cell "Cowboys ML (Wild Card) ❌" [ref=e611]:
+                    - generic [ref=e612]:
+                      - generic [ref=e613]: Cowboys ML (Wild Card)
+                      - generic [ref=e614]: ❌
+                  - cell [ref=e615]:
+                    - generic [ref=e616]:
+                      - link "Expose this expert" [ref=e618]:
+                        - /url: https://twitter.com/intent/tweet?text=%F0%9F%93%89%20Skip%20Bayless%3A%2010.0%25%20win%20rate%2C%20-8.9%20units.%20Receipts%20at%20matchups.app%2Fleaderboard%2Fskip-bayless
+                        - img [ref=e619]
+                      - button "Add to comparison" [ref=e625]:
+                        - img [ref=e626]
+                      - img [ref=e627]
+                - row "11 3 📺 Stephen A. Smith ✓ ESPN • First Take Host 2-10 16.7% -9.0 -75.0% LLLWL Cowboys +7 (Wild Card) ❌" [ref=e629] [cursor=pointer]:
+                  - cell "11 3" [ref=e630]:
+                    - generic [ref=e631]:
+                      - generic [ref=e632]: "11"
+                      - generic [ref=e633]:
+                        - img [ref=e634]
+                        - text: "3"
+                  - cell "📺 Stephen A. Smith ✓ ESPN • First Take Host" [ref=e636]:
+                    - generic [ref=e637]:
+                      - generic [ref=e638]: 📺
+                      - generic [ref=e639]:
+                        - generic [ref=e640]:
+                          - generic [ref=e641]: Stephen A. Smith
+                          - generic [ref=e642]: ✓
+                        - generic [ref=e643]:
+                          - generic [ref=e644]: ESPN
+                          - generic [ref=e645]: • First Take Host
+                  - cell "2-10" [ref=e646]
+                  - cell "16.7%" [ref=e647]:
+                    - generic [ref=e648]: 16.7%
+                  - cell "-9.0" [ref=e649]
+                  - cell "-75.0%" [ref=e650]:
+                    - generic [ref=e651]: "-75.0%"
+                  - cell "LLLWL" [ref=e652]
+                  - cell "Cowboys +7 (Wild Card) ❌" [ref=e653]:
+                    - generic [ref=e654]:
+                      - generic [ref=e655]: Cowboys +7 (Wild Card)
+                      - generic [ref=e656]: ❌
+                  - cell [ref=e657]:
+                    - generic [ref=e658]:
+                      - link "Expose this expert" [ref=e660]:
+                        - /url: https://twitter.com/intent/tweet?text=%F0%9F%93%89%20Stephen%20A.%20Smith%3A%2016.7%25%20win%20rate%2C%20-9.0%20units.%20Receipts%20at%20matchups.app%2Fleaderboard%2Fstephen-a-smith
+                        - img [ref=e661]
+                      - button "Add to comparison" [ref=e667]:
+                        - img [ref=e668]
+                      - img [ref=e669]
+            - 'link "Admin: Manage Picks" [ref=e672] [cursor=pointer]':
+              - /url: /admin/picks
+              - img [ref=e673]
+              - text: "Admin: Manage Picks"
+          - generic [ref=e676]:
+            - generic [ref=e678]:
+              - generic [ref=e679]:
+                - img [ref=e681]
+                - heading "🔥 Hot Streaks" [level=3] [ref=e683]
+              - generic [ref=e684]: 0 total
+            - generic [ref=e686]:
+              - generic [ref=e687]:
+                - img [ref=e689]
+                - heading "❄️ FADE THESE" [level=3] [ref=e692]
+              - generic [ref=e693]: 0 total
+            - generic [ref=e694]:
+              - generic [ref=e695]:
+                - img [ref=e697]
+                - heading "📺 By Network" [level=3] [ref=e700]
+              - generic [ref=e701]:
+                - generic [ref=e702]:
+                  - generic [ref=e703]:
+                    - generic [ref=e704]: 📺
+                    - generic [ref=e705]: ESPN
+                  - generic [ref=e709]: 48.2%
+                - generic [ref=e710]:
+                  - generic [ref=e711]:
+                    - generic [ref=e712]: 🦊
+                    - generic [ref=e713]: FS1/FOX
+                  - generic [ref=e717]: 41.4%
+                - generic [ref=e718]:
+                  - generic [ref=e719]:
+                    - generic [ref=e720]: 🏀
+                    - generic [ref=e721]: TNT
+                  - generic [ref=e725]: 47.5%
+                - generic [ref=e726]:
+                  - generic [ref=e727]:
+                    - generic [ref=e728]: 📻
+                    - generic [ref=e729]: CBS
+                  - generic [ref=e733]: 55.9%
+                - generic [ref=e734]:
+                  - generic [ref=e735]:
+                    - generic [ref=e736]: 🎙️
+                    - generic [ref=e737]: Podcast
+                  - generic [ref=e741]: 53.3%
+            - generic [ref=e742]:
+              - generic [ref=e743]:
+                - generic [ref=e744]:
+                  - generic [ref=e745]: 💸
+                  - heading "Biggest Losers" [level=3] [ref=e746]
+                - generic [ref=e747]: 15 total
+              - generic [ref=e748]:
+                - link "📺 Stephen A. Smith -6.8u" [ref=e749] [cursor=pointer]:
+                  - /url: /leaderboard/stephen-a-smith
+                  - generic [ref=e750]:
+                    - generic [ref=e751]: 📺
+                    - generic [ref=e752]: Stephen A. Smith
+                  - generic [ref=e753]: "-6.8u"
+                - link "🎤 Skip Bayless -6.7u" [ref=e754] [cursor=pointer]:
+                  - /url: /leaderboard/skip-bayless
+                  - generic [ref=e755]:
+                    - generic [ref=e756]: 🎤
+                    - generic [ref=e757]: Skip Bayless
+                  - generic [ref=e758]: "-6.7u"
+                - link "🏆 Charles Barkley -4.6u" [ref=e759] [cursor=pointer]:
+                  - /url: /leaderboard/charles-barkley
+                  - generic [ref=e760]:
+                    - generic [ref=e761]: 🏆
+                    - generic [ref=e762]: Charles Barkley
+                  - generic [ref=e763]: "-4.6u"
+                - link "🍕 Dave Portnoy -2.4u" [ref=e764] [cursor=pointer]:
+                  - /url: /leaderboard/dave-portnoy
+                  - generic [ref=e765]:
+                    - generic [ref=e766]: 🍕
+                    - generic [ref=e767]: Dave Portnoy
+                  - generic [ref=e768]: "-2.4u"
+                - link "💚 Draymond Green -0.2u" [ref=e769] [cursor=pointer]:
+                  - /url: /leaderboard/draymond-green
+                  - generic [ref=e770]:
+                    - generic [ref=e771]: 💚
+                    - generic [ref=e772]: Draymond Green
+                  - generic [ref=e773]: "-0.2u"
+              - button "Show All 15" [ref=e774]:
+                - img [ref=e775]
+                - text: Show All 15
+            - generic [ref=e777]:
+              - generic [ref=e778]:
+                - generic [ref=e779]:
+                  - generic [ref=e780]: 🏆
+                  - generic [ref=e781]:
+                    - heading "Hall of Shame" [level=3] [ref=e782]
+                    - paragraph [ref=e783]: All-time list appearances
+                - generic [ref=e784]: 27 cappers
+              - generic [ref=e785]:
+                - link "🎤 👑 Skip Bayless ❄️ 24x 🔥 28x 💸 20x 72 total" [ref=e786] [cursor=pointer]:
+                  - /url: /leaderboard/skip-bayless
+                  - generic [ref=e787]:
+                    - generic [ref=e788]:
+                      - text: 🎤
+                      - generic [ref=e789]: 👑
+                    - generic [ref=e790]:
+                      - text: Skip Bayless
+                      - generic [ref=e791]:
+                        - generic [ref=e792]: ❄️ 24x
+                        - generic [ref=e793]: 🔥 28x
+                        - generic [ref=e794]: 💸 20x
+                  - generic [ref=e795]:
+                    - text: "72"
+                    - generic [ref=e796]: total
+                - link "🍕 Dave Portnoy ❄️ 20x 🔥 24x 💸 16x 60 total" [ref=e797] [cursor=pointer]:
+                  - /url: /leaderboard/dave-portnoy
+                  - generic [ref=e798]:
+                    - generic [ref=e799]: 🍕
+                    - generic [ref=e800]:
+                      - text: Dave Portnoy
+                      - generic [ref=e801]:
+                        - generic [ref=e802]: ❄️ 20x
+                        - generic [ref=e803]: 🔥 24x
+                        - generic [ref=e804]: 💸 16x
+                  - generic [ref=e805]:
+                    - text: "60"
+                    - generic [ref=e806]: total
+                - link "📺 Stephen A. Smith ❄️ 18x 🔥 22x 💸 14x 54 total" [ref=e807] [cursor=pointer]:
+                  - /url: /leaderboard/stephen-a-smith
+                  - generic [ref=e808]:
+                    - generic [ref=e809]: 📺
+                    - generic [ref=e810]:
+                      - text: Stephen A. Smith
+                      - generic [ref=e811]:
+                        - generic [ref=e812]: ❄️ 18x
+                        - generic [ref=e813]: 🔥 22x
+                        - generic [ref=e814]: 💸 14x
+                  - generic [ref=e815]:
+                    - text: "54"
+                    - generic [ref=e816]: total
+                - link "🔥 Kendrick Perkins ❄️ 16x 🔥 18x 💸 12x 46 total" [ref=e817] [cursor=pointer]:
+                  - /url: /leaderboard/perk
+                  - generic [ref=e818]:
+                    - generic [ref=e819]: 🔥
+                    - generic [ref=e820]:
+                      - text: Kendrick Perkins
+                      - generic [ref=e821]:
+                        - generic [ref=e822]: ❄️ 16x
+                        - generic [ref=e823]: 🔥 18x
+                        - generic [ref=e824]: 💸 12x
+                  - generic [ref=e825]:
+                    - text: "46"
+                    - generic [ref=e826]: total
+                - link "🏆 Charles Barkley ❄️ 16x 🔥 18x 💸 10x 44 total" [ref=e827] [cursor=pointer]:
+                  - /url: /leaderboard/charles-barkley
+                  - generic [ref=e828]:
+                    - generic [ref=e829]: 🏆
+                    - generic [ref=e830]:
+                      - text: Charles Barkley
+                      - generic [ref=e831]:
+                        - generic [ref=e832]: ❄️ 16x
+                        - generic [ref=e833]: 🔥 18x
+                        - generic [ref=e834]: 💸 10x
+                  - generic [ref=e835]:
+                    - text: "44"
+                    - generic [ref=e836]: total
+              - button "View All 27" [ref=e837]:
+                - img [ref=e838]
+                - text: View All 27
+            - generic [ref=e840]:
+              - generic [ref=e841]:
+                - generic [ref=e842]:
+                  - generic [ref=e843]: ⭐
+                  - generic [ref=e844]:
+                    - heading "Hall of Glory" [level=3] [ref=e845]
+                    - paragraph [ref=e846]: Most hot streak appearances
+                - generic [ref=e847]: 27 cappers
+              - generic [ref=e848]:
+                - link "💰 🏆 Billy Walters 🔥 32x 🏆 30x 62 total" [ref=e849] [cursor=pointer]:
+                  - /url: /leaderboard/billy-walters
+                  - generic [ref=e850]:
+                    - generic [ref=e851]:
+                      - text: 💰
+                      - generic [ref=e852]: 🏆
+                    - generic [ref=e853]:
+                      - text: Billy Walters
+                      - generic [ref=e854]:
+                        - generic [ref=e855]: 🔥 32x
+                        - generic [ref=e856]: 🏆 30x
+                  - generic [ref=e857]:
+                    - text: "62"
+                    - generic [ref=e858]: total
+                - link "📊 Haralabos Voulgaris 🔥 28x 🏆 26x 54 total" [ref=e859] [cursor=pointer]:
+                  - /url: /leaderboard/haralabos-voulgaris
+                  - generic [ref=e860]:
+                    - generic [ref=e861]: 📊
+                    - generic [ref=e862]:
+                      - text: Haralabos Voulgaris
+                      - generic [ref=e863]:
+                        - generic [ref=e864]: 🔥 28x
+                        - generic [ref=e865]: 🏆 26x
+                  - generic [ref=e866]:
+                    - text: "54"
+                    - generic [ref=e867]: total
+                - link "📈 ElTracker 🔥 26x 🏆 24x 50 total" [ref=e868] [cursor=pointer]:
+                  - /url: /leaderboard/el-tracker
+                  - generic [ref=e869]:
+                    - generic [ref=e870]: 📈
+                    - generic [ref=e871]:
+                      - text: ElTracker
+                      - generic [ref=e872]:
+                        - generic [ref=e873]: 🔥 26x
+                        - generic [ref=e874]: 🏆 24x
+                  - generic [ref=e875]:
+                    - text: "50"
+                    - generic [ref=e876]: total
+                - link "📈 Warren Sharp 🔥 24x 🏆 22x 46 total" [ref=e877] [cursor=pointer]:
+                  - /url: /leaderboard/warren-sharp
+                  - generic [ref=e878]:
+                    - generic [ref=e879]: 📈
+                    - generic [ref=e880]:
+                      - text: Warren Sharp
+                      - generic [ref=e881]:
+                        - generic [ref=e882]: 🔥 24x
+                        - generic [ref=e883]: 🏆 22x
+                  - generic [ref=e884]:
+                    - text: "46"
+                    - generic [ref=e885]: total
+                - link "🎮 Gadget 🔥 22x 🏆 20x 42 total" [ref=e886] [cursor=pointer]:
+                  - /url: /leaderboard/gadget-guru
+                  - generic [ref=e887]:
+                    - generic [ref=e888]: 🎮
+                    - generic [ref=e889]:
+                      - text: Gadget
+                      - generic [ref=e890]:
+                        - generic [ref=e891]: 🔥 22x
+                        - generic [ref=e892]: 🏆 20x
+                  - generic [ref=e893]:
+                    - text: "42"
+                    - generic [ref=e894]: total
+              - button "View All 27" [ref=e895]:
+                - img [ref=e896]
+                - text: View All 27
+  - contentinfo [ref=e899]:
+    - generic [ref=e900]:
+      - generic [ref=e901]:
+        - generic [ref=e902]:
+          - heading "Sports" [level=4] [ref=e903]
+          - generic [ref=e904]:
+            - link "🏈 NFL" [ref=e905] [cursor=pointer]:
+              - /url: /nfl
+            - link "🏀 NBA" [ref=e906] [cursor=pointer]:
+              - /url: /nba
+            - link "🏒 NHL" [ref=e907] [cursor=pointer]:
+              - /url: /nhl
+            - link "⚾ MLB" [ref=e908] [cursor=pointer]:
+              - /url: /mlb
+        - generic [ref=e909]:
+          - heading "Features" [level=4] [ref=e910]
+          - generic [ref=e911]:
+            - link "📈 Markets" [ref=e912] [cursor=pointer]:
+              - /url: /markets
+            - link "📊 Trends" [ref=e913] [cursor=pointer]:
+              - /url: /trends
+            - link "🧾 Expert Tracker" [ref=e914] [cursor=pointer]:
+              - /url: /leaderboard
+        - generic [ref=e915]:
+          - heading "Company" [level=4] [ref=e916]
+          - generic [ref=e917]:
+            - link "About" [ref=e918] [cursor=pointer]:
+              - /url: "#"
+            - link "Contact" [ref=e919] [cursor=pointer]:
+              - /url: "#"
+            - link "Privacy" [ref=e920] [cursor=pointer]:
+              - /url: "#"
+            - link "Terms" [ref=e921] [cursor=pointer]:
+              - /url: "#"
+        - generic [ref=e922]:
+          - heading "Tools" [level=4] [ref=e923]
+          - generic [ref=e924]:
+            - link "Admin Dashboard" [ref=e925] [cursor=pointer]:
+              - /url: /admin
+              - img [ref=e926]
+              - text: Admin Dashboard
+            - link "📄 Documentation" [ref=e929] [cursor=pointer]:
+              - /url: /admin/docs
+      - generic [ref=e930]:
+        - generic [ref=e931]:
+          - generic [ref=e933]: ⚡
+          - generic [ref=e934]: Matchups
+        - paragraph [ref=e935]: © 2026 Matchups. Sports betting analysis & trends.
+  - button "Open Next.js Dev Tools" [ref=e941] [cursor=pointer]:
+    - img [ref=e942]
+  - alert [ref=e945]
+```

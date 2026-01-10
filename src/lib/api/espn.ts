@@ -153,7 +153,56 @@ export async function getGameDetails(sport: SportKey, gameId: string): Promise<E
   if (!res.ok) return null
   
   const data = await res.json()
-  return data
+  
+  // The summary endpoint returns a different structure than the scoreboard
+  // Transform it to match the ESPNGame format that transformESPNGame expects
+  const competition = data.header?.competitions?.[0]
+  if (!competition) return null
+  
+  // Map competitors to include team.logo field that transformESPNGame expects
+  const mappedCompetitors = competition.competitors?.map((c: {
+    id: string
+    homeAway: string
+    team: {
+      id: string
+      abbreviation: string
+      displayName: string
+      shortDisplayName?: string
+      name: string
+      location: string
+      color?: string
+      alternateColor?: string
+      logos?: Array<{ href: string }>
+    }
+    score?: string
+    record?: Array<{ type: string; summary: string }>
+  }) => ({
+    ...c,
+    team: {
+      ...c.team,
+      logo: c.team.logos?.[0]?.href,
+    },
+    records: c.record,
+  })) || []
+  
+  // Determine odds source - pickcenter is an array, odds may be empty array
+  const oddsArray = (data.odds && data.odds.length > 0) ? data.odds : data.pickcenter
+  
+  return {
+    id: competition.id,
+    date: competition.date,
+    name: `${competition.competitors?.find((c: { homeAway: string }) => c.homeAway === 'away')?.team?.displayName || ''} at ${competition.competitors?.find((c: { homeAway: string }) => c.homeAway === 'home')?.team?.displayName || ''}`,
+    shortName: `${competition.competitors?.find((c: { homeAway: string }) => c.homeAway === 'away')?.team?.abbreviation || ''} @ ${competition.competitors?.find((c: { homeAway: string }) => c.homeAway === 'home')?.team?.abbreviation || ''}`,
+    status: competition.status || { type: { state: 'pre', completed: false }, period: 0, displayClock: '' },
+    competitions: [{
+      ...competition,
+      competitors: mappedCompetitors,
+      venue: data.gameInfo?.venue,
+      odds: oddsArray,
+      broadcasts: competition.broadcasts,
+      weather: data.gameInfo?.weather,
+    }],
+  } as ESPNGame
 }
 
 export async function getNews(sport: SportKey, limit = 10): Promise<Array<{ headline: string; description: string; link: string; published: string }>> {

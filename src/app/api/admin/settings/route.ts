@@ -28,6 +28,10 @@ export interface SiteSettings {
   ai_analysis_enabled: boolean
   live_scores_enabled: boolean
   notification_emails: string[]
+  // Edge/Confidence Settings
+  edge_confidence_threshold: number // Minimum score to show as "edge" (default 60)
+  edge_strong_threshold: number // Score to show as "strong edge" (default 75)
+  edge_elite_threshold: number // Score to show as "elite edge" (default 90)
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
@@ -46,7 +50,11 @@ const DEFAULT_SETTINGS: SiteSettings = {
   auto_refresh_interval_minutes: 15,
   ai_analysis_enabled: true,
   live_scores_enabled: true,
-  notification_emails: []
+  notification_emails: [],
+  // Edge/Confidence defaults
+  edge_confidence_threshold: 60,
+  edge_strong_threshold: 75,
+  edge_elite_threshold: 90
 }
 
 export async function GET() {

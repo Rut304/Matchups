@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
+import { useAuth } from '@/lib/auth-context'
 import { 
   Brain,
   Zap,
@@ -18,6 +19,8 @@ import {
   Calendar,
   DollarSign,
   Percent,
+  Trash2,
+  Loader2,
   Activity,
   ChevronRight,
   ChevronDown,
@@ -25,7 +28,6 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
-  Loader2,
   History,
   Bookmark,
   Share2,
@@ -379,6 +381,8 @@ export default function SystemsPage() {
   const [activeSystem, setActiveSystem] = useState<SystemResult | null>(null)
   const [savedSystems, setSavedSystems] = useState<SystemResult[]>([])
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isLoadingSystems, setIsLoadingSystems] = useState(false)
 
   const toggleSituation = (situation: string) => {
     setSelectedSituations(prev => 
@@ -475,11 +479,108 @@ export default function SystemsPage() {
     setIsBuilding(false)
   }, [sport, betType, selectedSituations, customPrompt])
 
-  const saveSystem = () => {
-    if (activeSystem) {
-      setSavedSystems(prev => [...prev, activeSystem])
+  const saveSystem = async () => {
+    if (!activeSystem) return
+    
+    setIsSaving(true)
+    try {
+      const response = await fetch('/api/user/systems', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: activeSystem.name,
+          sport: activeSystem.sport,
+          bet_type: activeSystem.betType,
+          criteria: activeSystem.criteria,
+          stats: activeSystem.stats,
+          backtest: activeSystem.backtest,
+          is_public: false
+        })
+      })
+      
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to save system')
+      }
+      
+      const data = await response.json()
+      // Update local state with saved system including database ID
+      const savedSystem = { ...activeSystem, id: data.system.id }
+      setSavedSystems(prev => [...prev, savedSystem])
+      setActiveSystem(null) // Clear builder after save
+    } catch (error) {
+      console.error('Failed to save system:', error)
+      alert(error instanceof Error ? error.message : 'Failed to save system')
+    } finally {
+      setIsSaving(false)
     }
   }
+
+  const deleteSystem = async (systemId: string) => {
+    try {
+      const response = await fetch(`/api/user/systems/${systemId}`, {
+        method: 'DELETE'
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete system')
+      }
+      
+      setSavedSystems(prev => prev.filter(s => s.id !== systemId))
+    } catch (error) {
+      console.error('Failed to delete system:', error)
+    }
+  }
+
+  const fetchSavedSystems = useCallback(async () => {
+    setIsLoadingSystems(true)
+    try {
+      const response = await fetch('/api/user/systems')
+      if (response.ok) {
+        const data = await response.json()
+        // Map database records to SystemResult format
+        const systems: SystemResult[] = data.systems.map((sys: {
+          id: string
+          name: string
+          sport: Sport
+          bet_type: BetType
+          criteria: string[]
+          stats: SystemResult['stats']
+          backtest?: BacktestResult
+        }) => ({
+          id: sys.id,
+          name: sys.name,
+          sport: sys.sport,
+          betType: sys.bet_type,
+          criteria: sys.criteria || [],
+          stats: sys.stats || {
+            record: '0-0-0',
+            winPct: 0,
+            roi: 0,
+            units: 0,
+            avgOdds: -110,
+            clv: 0,
+            maxDrawdown: 0,
+            sharpeRatio: 0,
+            kellyPct: 0
+          },
+          backtest: sys.backtest,
+          recentPicks: [],
+          upcomingPicks: []
+        }))
+        setSavedSystems(systems)
+      }
+    } catch (error) {
+      console.error('Failed to fetch systems:', error)
+    } finally {
+      setIsLoadingSystems(false)
+    }
+  }, [])
+
+  // Fetch saved systems on mount
+  useEffect(() => {
+    fetchSavedSystems()
+  }, [fetchSavedSystems])
 
   return (
     <main className="min-h-screen" style={{ background: '#06060c' }}>
@@ -631,10 +732,19 @@ export default function SystemsPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={saveSystem}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold"
+                      disabled={isSaving}
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold disabled:opacity-50"
                       style={{ background: 'rgba(255,107,0,0.2)', color: '#FF6B00' }}
                     >
-                      <Bookmark style={{ width: '14px', height: '14px' }} /> Save
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="animate-spin" style={{ width: '14px', height: '14px' }} /> Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Bookmark style={{ width: '14px', height: '14px' }} /> Save
+                        </>
+                      )}
                     </button>
                     <button
                       className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold"
@@ -973,19 +1083,34 @@ export default function SystemsPage() {
                   <Bookmark style={{ color: '#FF6B00', width: '18px', height: '18px' }} />
                   My Systems
                 </h3>
-                <div className="space-y-2">
-                  {savedSystems.map(system => (
-                    <button
-                      key={system.id}
-                      onClick={() => setActiveSystem(system)}
-                      className="w-full text-left p-3 rounded-lg"
-                      style={{ background: 'rgba(255,255,255,0.03)' }}
-                    >
-                      <p className="text-sm font-semibold" style={{ color: '#FFF' }}>{system.name}</p>
-                      <p className="text-xs" style={{ color: '#808090' }}>{system.stats.record} • {system.stats.winPct}%</p>
-                    </button>
-                  ))}
-                </div>
+                {isLoadingSystems ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="animate-spin" style={{ width: '20px', height: '20px', color: '#FF6B00' }} />
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {savedSystems.map(system => (
+                      <div key={system.id} className="flex items-center gap-2">
+                        <button
+                          onClick={() => setActiveSystem(system)}
+                          className="flex-1 text-left p-3 rounded-lg"
+                          style={{ background: 'rgba(255,255,255,0.03)' }}
+                        >
+                          <p className="text-sm font-semibold" style={{ color: '#FFF' }}>{system.name}</p>
+                          <p className="text-xs" style={{ color: '#808090' }}>{system.stats.record} • {system.stats.winPct}%</p>
+                        </button>
+                        <button
+                          onClick={() => deleteSystem(system.id)}
+                          className="p-2 rounded-lg hover:bg-red-900/30 transition-colors"
+                          style={{ color: '#FF4455' }}
+                          title="Delete system"
+                        >
+                          <Trash2 style={{ width: '16px', height: '16px' }} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
