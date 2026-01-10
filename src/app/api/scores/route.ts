@@ -53,7 +53,9 @@ const sportEmojis: Record<string, string> = {
   NHL: '🏒',
   MLB: '⚾',
   NCAAF: '🏈',
-  NCAAB: '🏀'
+  NCAAB: '🏀',
+  WNBA: '🏀',
+  WNCAAB: '🏀'
 }
 
 // Get current date in Eastern Time
@@ -150,7 +152,7 @@ export async function GET(request: Request) {
     // Determine which sports to fetch
     const sportsToFetch: SportKey[] = sport && sport in ESPN_SPORTS 
       ? [sport]
-      : ['NFL', 'NBA', 'NHL', 'MLB'] // Default major sports
+      : ['NFL', 'NBA', 'NHL', 'MLB', 'NCAAF', 'NCAAB', 'WNBA', 'WNCAAB'] // All supported sports
     
     // Fetch all sports in parallel
     const results = await Promise.allSettled(

@@ -14,6 +14,8 @@ export const ESPN_SPORTS = {
   MLB: { sport: 'baseball', league: 'mlb' },
   NCAAF: { sport: 'football', league: 'college-football' },
   NCAAB: { sport: 'basketball', league: 'mens-college-basketball' },
+  WNBA: { sport: 'basketball', league: 'wnba' },
+  WNCAAB: { sport: 'basketball', league: 'womens-college-basketball' },
 } as const
 
 export type SportKey = keyof typeof ESPN_SPORTS

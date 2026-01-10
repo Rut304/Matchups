@@ -50,7 +50,7 @@ interface GameData {
   }
 }
 
-type SportFilter = 'ALL' | 'NFL' | 'NBA' | 'NHL' | 'MLB'
+type SportFilter = 'ALL' | 'NFL' | 'NBA' | 'NHL' | 'MLB' | 'NCAAF' | 'NCAAB' | 'WNBA' | 'WNCAAB'
 type StatusFilter = 'all' | 'live' | 'scheduled' | 'final'
 
 const sportFilters: { key: SportFilter; label: string; emoji: string; color: string }[] = [
@@ -59,6 +59,10 @@ const sportFilters: { key: SportFilter; label: string; emoji: string; color: str
   { key: 'NBA', label: 'NBA', emoji: '🏀', color: '#C9082A' },
   { key: 'NHL', label: 'NHL', emoji: '🏒', color: '#000000' },
   { key: 'MLB', label: 'MLB', emoji: '⚾', color: '#002D72' },
+  { key: 'NCAAF', label: 'NCAAF', emoji: '🏈', color: '#a50034' },
+  { key: 'NCAAB', label: 'NCAAB', emoji: '🏀', color: '#0021A5' },
+  { key: 'WNBA', label: 'WNBA', emoji: '🏀', color: '#FF6900' },
+  { key: 'WNCAAB', label: 'WNCAAB', emoji: '🏀', color: '#6B2C91' },
 ]
 
 const statusFilters: { key: StatusFilter; label: string; color: string }[] = [
@@ -251,7 +255,7 @@ function GameCard({ game }: { game: GameData }) {
 
       {/* Hover effect link */}
       <Link 
-        href={`/${game.sport.toLowerCase()}/game/${game.id}`}
+        href={`/game/${game.id}?sport=${game.sport.toLowerCase()}`}
         className="absolute inset-0 opacity-0 group-hover:opacity-100 flex items-center justify-center bg-black/60 transition-opacity"
       >
         <span className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 text-white text-sm font-semibold">

@@ -22,47 +22,7 @@ import {
   Info
 } from 'lucide-react'
 import { EdgeDashboardWithFiltersWrapper } from '@/components/edge'
-
-// Today's biggest games - ranked by estimated betting handle
-// In production, this would come from ESPN + Odds API betting percentages
-const biggestGames = [
-  {
-    id: 'nfl-det-min-1', sport: 'NFL', sportIcon: '🏈',
-    rank: 1,
-    away: { abbr: 'MIN', name: 'Vikings', record: '14-3' },
-    home: { abbr: 'DET', name: 'Lions', record: '15-2' },
-    time: '1:00 PM ET', spread: 'DET -3.5', total: 'O/U 51.5',
-    estimatedHandle: '$48M',
-    betPctHome: 68,
-    publicPick: 'DET -3.5',
-    sharpAction: 'MIN +3.5',
-    headline: 'NFC Divisional - Rematch from Week 18'
-  },
-  {
-    id: 'nfl-kc-buf-1', sport: 'NFL', sportIcon: '🏈',
-    rank: 2,
-    away: { abbr: 'KC', name: 'Chiefs', record: '15-2' },
-    home: { abbr: 'BUF', name: 'Bills', record: '13-4' },
-    time: '4:25 PM ET', spread: 'BUF -2.5', total: 'O/U 47.5',
-    estimatedHandle: '$52M',
-    betPctHome: 54,
-    publicPick: 'BUF -2.5',
-    sharpAction: 'KC +2.5',
-    headline: 'AFC Championship Preview - Mahomes vs Allen IV'
-  },
-  {
-    id: 'nba-bos-lal-1', sport: 'NBA', sportIcon: '🏀',
-    rank: 3,
-    away: { abbr: 'BOS', name: 'Celtics', record: '28-9' },
-    home: { abbr: 'LAL', name: 'Lakers', record: '22-15' },
-    time: '8:30 PM ET', spread: 'BOS -4.5', total: 'O/U 222.5',
-    estimatedHandle: '$18M',
-    betPctHome: 42,
-    publicPick: 'LAL +4.5',
-    sharpAction: 'BOS -4.5',
-    headline: 'ABC Primetime - Historic Rivalry'
-  },
-]
+import { TopMatchups } from '@/components/home/TopMatchups'
 
 // Top Leaderboard Data
 const topCappers = [
@@ -199,7 +159,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* BIGGEST GAMES TODAY - Real value */}
+      {/* TOP MATCHUPS - DYNAMIC FROM API */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -207,8 +167,8 @@ export default function Home() {
               <Flame className="w-5 h-5 text-orange-400" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">Biggest Games Today</h2>
-              <p className="text-xs text-gray-500">Ranked by estimated betting handle</p>
+              <h2 className="text-xl font-bold text-white">Top Matchups</h2>
+              <p className="text-xs text-gray-500">Biggest games with live odds • Playoffs highlighted</p>
             </div>
           </div>
           <Link href="/scores" className="flex items-center gap-1 text-sm font-semibold text-orange-400 hover:text-orange-300">
@@ -216,70 +176,61 @@ export default function Home() {
           </Link>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-4">
-          {biggestGames.map((game) => (
-            <Link key={game.id} href={`/game/${game.id}`}
-                  className="block rounded-2xl p-5 transition-all hover:scale-[1.02] bg-[#0c0c14] border border-white/10 hover:border-orange-500/30">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center text-xs font-bold text-orange-400">
-                    {game.rank}
-                  </span>
-                  <span className="text-lg">{game.sportIcon}</span>
-                  <span className="text-xs text-gray-500">{game.time}</span>
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* Dynamic Top Matchups */}
+          <div>
+            <TopMatchups />
+          </div>
+          
+          {/* Quick Stats Sidebar */}
+          <div className="space-y-4">
+            {/* Live Games Alert */}
+            <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                <span className="text-sm font-bold text-red-400">Live & Upcoming</span>
+              </div>
+              <p className="text-xs text-gray-400">
+                NFL Divisional Playoffs, CFP Semifinal, and more action today. Click any game for full matchup analysis.
+              </p>
+            </div>
+            
+            {/* Playoff Tracker */}
+            <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
+              <div className="flex items-center gap-2 mb-3">
+                <Trophy className="w-5 h-5 text-yellow-400" />
+                <span className="text-sm font-bold text-yellow-400">Playoff Watch</span>
+              </div>
+              <div className="space-y-2 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400">🏈 NFL Divisional</span>
+                  <span className="text-white">Jan 10-12</span>
                 </div>
-                <div className="text-right">
-                  <div className="text-xs text-gray-500">Est. Handle</div>
-                  <div className="font-bold text-green-400">{game.estimatedHandle}</div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400">🏈 CFP Semifinal</span>
+                  <span className="text-white">Jan 9-10</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400">🏈 CFP Championship</span>
+                  <span className="text-white">Jan 20</span>
                 </div>
               </div>
-              
-              {/* Matchup */}
-              <div className="flex items-center justify-between mb-3">
-                <div className="text-center flex-1">
-                  <div className="text-2xl font-black text-white">{game.away.abbr}</div>
-                  <div className="text-xs text-gray-500">{game.away.record}</div>
-                </div>
-                <div className="px-4 text-gray-600 text-sm">@</div>
-                <div className="text-center flex-1">
-                  <div className="text-2xl font-black text-white">{game.home.abbr}</div>
-                  <div className="text-xs text-gray-500">{game.home.record}</div>
-                </div>
+            </div>
+            
+            {/* Sharp vs Public */}
+            <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex items-center gap-2 mb-3">
+                <Target className="w-5 h-5 text-purple-400" />
+                <span className="text-sm font-bold text-white">Sharp vs Public</span>
               </div>
-              
-              {/* Lines */}
-              <div className="flex items-center justify-center gap-4 mb-3 text-sm">
-                <span className="px-3 py-1 rounded-lg bg-white/5 text-gray-300">{game.spread}</span>
-                <span className="px-3 py-1 rounded-lg bg-white/5 text-gray-300">{game.total}</span>
-              </div>
-              
-              {/* Public vs Sharp */}
-              <div className="p-3 rounded-xl bg-white/5 space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-500 flex items-center gap-1">
-                    <Users className="w-3 h-3" /> Public ({game.betPctHome}%)
-                  </span>
-                  <span className="text-blue-400 font-semibold">{game.publicPick}</span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-500 flex items-center gap-1">
-                    <Target className="w-3 h-3" /> Sharp Money
-                  </span>
-                  <span className="text-green-400 font-semibold">{game.sharpAction}</span>
-                </div>
-              </div>
-              
-              {/* Headline */}
-              <div className="mt-3 text-xs text-gray-500 text-center">{game.headline}</div>
-            </Link>
-          ))}
-        </div>
-        
-        {/* Data source note */}
-        <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-600">
-          <Info className="w-3 h-3" />
-          <span>Handle estimates based on market volume data. Public % from betting consensus.</span>
+              <p className="text-xs text-gray-400 mb-3">
+                Click into any matchup to see detailed betting splits, sharp money indicators, and contrarian plays.
+              </p>
+              <Link href="/trends" className="text-xs font-semibold text-purple-400 hover:text-purple-300">
+                View Betting Trends →
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 

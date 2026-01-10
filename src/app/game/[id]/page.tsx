@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { 
   ArrowLeft,
@@ -33,14 +33,16 @@ import {
   Info
 } from 'lucide-react'
 import { getGameById, type GameDetail } from '@/lib/api/games'
-import { BoxScore } from '@/components/game'
+import { BoxScore, LiveGameDashboard } from '@/components/game'
 
 // Tabs for the game detail view
-type Tab = 'overview' | 'trends' | 'betting' | 'matchup' | 'analytics' | 'ai' | 'results'
+type Tab = 'overview' | 'trends' | 'betting' | 'matchup' | 'analytics' | 'ai' | 'results' | 'live'
 
 export default function GameDetailPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const gameId = params.id as string
+  const sport = searchParams.get('sport') || undefined
   
   const [activeTab, setActiveTab] = useState<Tab>('overview')
   const [game, setGame] = useState<GameDetail | null>(null)
@@ -48,16 +50,18 @@ export default function GameDetailPage() {
   
   useEffect(() => {
     const loadGame = async () => {
-      const data = await getGameById(gameId)
+      const data = await getGameById(gameId, sport)
       setGame(data)
       setLoading(false)
-      // Auto-switch to results tab for completed games
+      // Auto-switch to appropriate tab based on game status
       if (data?.status === 'final') {
         setActiveTab('results')
+      } else if (data?.status === 'live') {
+        setActiveTab('live')
       }
     }
     loadGame()
-  }, [gameId])
+  }, [gameId, sport])
 
   if (loading) {
     return (
@@ -93,6 +97,9 @@ export default function GameDetailPage() {
   }
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
+    ...(game.status === 'live' ? [
+      { id: 'live' as Tab, label: 'LIVE', icon: <Activity style={{ width: '16px', height: '16px' }} /> },
+    ] : []),
     ...(game.status === 'final' ? [
       { id: 'results' as Tab, label: 'Results', icon: <Trophy style={{ width: '16px', height: '16px' }} /> },
     ] : []),
@@ -226,6 +233,26 @@ export default function GameDetailPage() {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Content - 2 cols */}
           <div className="lg:col-span-2 space-y-6">
+            {activeTab === 'live' && game.status === 'live' && (
+              <LiveGameDashboard
+                gameId={game.id}
+                sport={game.sport}
+                homeTeam={{
+                  name: game.home.name,
+                  abbr: game.home.abbr,
+                  record: game.home.record
+                }}
+                awayTeam={{
+                  name: game.away.name,
+                  abbr: game.away.abbr,
+                  record: game.away.record
+                }}
+                currentScore={{ home: 0, away: 0 }}
+                period="2Q"
+                clock="8:45"
+                status="live"
+              />
+            )}
             {activeTab === 'results' && game.status === 'final' && <BoxScore game={game} />}
             {activeTab === 'overview' && <OverviewTab game={game} />}
             {activeTab === 'trends' && <TrendsTab game={game} />}

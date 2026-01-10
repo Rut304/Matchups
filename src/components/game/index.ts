@@ -1,3 +1,5 @@
 export { GameView, GameList, ScoreTicker } from './GameView'
 export { GamesSection, LiveScoresTicker } from './GamesSection'
 export { BoxScore } from './BoxScore'
+export { PlayByPlay } from './PlayByPlay'
+export { LiveGameDashboard } from './LiveGameDashboard'

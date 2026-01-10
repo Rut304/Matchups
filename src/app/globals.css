@@ -242,3 +242,124 @@ body {
   border-radius: 4px;
   box-shadow: 0 0 15px rgba(255, 51, 102, 0.4);
 }
+
+/* Game Detail Page Styles */
+.game-page {
+  background: #06060c;
+  min-height: 100vh;
+}
+
+.game-card {
+  background: #0c0c14;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.game-card-accent {
+  background: #0c0c14;
+  border: 1px solid rgba(255, 107, 0, 0.3);
+}
+
+.text-primary {
+  color: #FFFFFF;
+}
+
+.text-secondary {
+  color: #A0A0B0;
+}
+
+.text-muted {
+  color: #808090;
+}
+
+.text-dimmed {
+  color: #606070;
+}
+
+.text-accent {
+  color: #FF6B00;
+}
+
+.text-success {
+  color: #00FF88;
+}
+
+.text-danger {
+  color: #FF4455;
+}
+
+.text-warning {
+  color: #FFAA00;
+}
+
+.bg-accent-soft {
+  background: rgba(255, 107, 0, 0.1);
+}
+
+.bg-success-soft {
+  background: rgba(0, 255, 136, 0.1);
+}
+
+.bg-danger-soft {
+  background: rgba(255, 68, 85, 0.1);
+}
+
+.bg-warning-soft {
+  background: rgba(255, 170, 0, 0.2);
+}
+
+.bg-card-inner {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.bg-loader {
+  background: rgba(255, 107, 0, 0.2);
+}
+
+.border-card {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.border-top-card {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.status-badge-hot {
+  background: rgba(255, 107, 0, 0.2);
+  color: #FF6B00;
+}
+
+.status-badge-out {
+  background: rgba(255, 68, 85, 0.2);
+  color: #FF4455;
+}
+
+.status-badge-questionable {
+  background: rgba(255, 170, 0, 0.2);
+  color: #FFAA00;
+}
+
+.tab-active {
+  background: #FF6B00;
+  color: #FFFFFF;
+}
+
+.tab-inactive {
+  background: rgba(255, 255, 255, 0.05);
+  color: #808090;
+}
+
+.progress-bar {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.progress-fill-success {
+  background: #00FF88;
+}
+
+.progress-fill-warning {
+  background: #FF6B00;
+}
+
+.progress-fill-danger {
+  background: #FF4455;
+}
