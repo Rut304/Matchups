@@ -2,11 +2,14 @@
 // MATCHUP ANALYTICS API
 // GET /api/matchup/[gameId]/analytics
 // Returns aggregated edges, trends, H2H history, AI insights for a game
+// Now integrated with comprehensive betting intelligence
 // =============================================================================
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { findMatchingTrends, getTeamVsTeamHistory, type GameContext } from '@/lib/trend-matcher'
+import { getMatchupIntelligence, getTopDataPoints, formatEdgeScore } from '@/lib/betting-intelligence'
+import { getGameOUAnalysis } from '@/lib/ou-analysis'
 
 export const dynamic = 'force-dynamic'
 
@@ -67,6 +70,11 @@ interface MatchupAnalytics {
     sharpSignal: number
     valueIndicator: number
   }
+  
+  // NEW: Comprehensive betting intelligence
+  bettingIntelligence?: any
+  ouAnalysis?: any
+  topDataPoints?: any[]
 }
 
 export async function GET(
@@ -75,6 +83,11 @@ export async function GET(
 ) {
   try {
     const { gameId } = await params
+    const { searchParams } = new URL(request.url)
+    const includeIntelligence = searchParams.get('intelligence') !== 'false'
+    const includeOU = searchParams.get('ou') !== 'false'
+    const includeAI = searchParams.get('ai') === 'true'
+    
     const supabase = await createClient()
 
     // 1. Get game details from historical_games or live data
@@ -237,6 +250,43 @@ export async function GET(
         generatedAt: aiInsights.created_at
       } : null,
       edgeScore
+    }
+
+    // 9. Add comprehensive betting intelligence if requested
+    if (includeIntelligence) {
+      try {
+        const intelligence = await getMatchupIntelligence(
+          gameId,
+          gameData.sport,
+          { name: gameData.home_team, abbr: gameData.home_team_abbrev || '' },
+          { name: gameData.away_team, abbr: gameData.away_team_abbrev || '' },
+          { includeAI, includeLive: false }
+        )
+        response.bettingIntelligence = intelligence
+        response.topDataPoints = getTopDataPoints(intelligence)
+      } catch (e) {
+        console.error('Failed to get betting intelligence:', e)
+      }
+    }
+
+    // 10. Add O/U analysis if requested
+    if (includeOU) {
+      try {
+        const currentTotal = gameData.close_total || gameData.open_total || 46
+        const openTotal = gameData.open_total || currentTotal
+        
+        const ouAnalysis = await getGameOUAnalysis(
+          gameId,
+          gameData.sport,
+          { name: gameData.home_team, abbr: gameData.home_team_abbrev || '' },
+          { name: gameData.away_team, abbr: gameData.away_team_abbrev || '' },
+          currentTotal,
+          openTotal
+        )
+        response.ouAnalysis = ouAnalysis
+      } catch (e) {
+        console.error('Failed to get O/U analysis:', e)
+      }
     }
 
     return NextResponse.json(response)
