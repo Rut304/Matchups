@@ -83,10 +83,10 @@ export default function LeaderboardPage() {
   const [betTypeFilter, setBetTypeFilter] = useState<BetType | 'all'>('all')
   const [sportFilter, setSportFilter] = useState<Sport | 'all'>('all')
   const [networkFilter, setNetworkFilter] = useState<string>('all')
-  const [sortBy, setSortBy] = useState<'units' | 'winPct' | 'roi' | 'picks'>('units')
+  const [sortBy, setSortBy] = useState<'units' | 'winPct' | 'roi' | 'picks' | 'record' | 'streak'>('units')
   const [compareList, setCompareList] = useState<LeaderboardEntry[]>([])
   const [showComparison, setShowComparison] = useState(false)
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>('season')
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>('all')
   const [expandedHotStreaks, setExpandedHotStreaks] = useState(false)
   const [expandedColdStreaks, setExpandedColdStreaks] = useState(false)
   const [expandedLosers, setExpandedLosers] = useState(false)
@@ -489,12 +489,62 @@ export default function LeaderboardPage() {
                       <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
                         <th className="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-wider" style={{ color: '#606070' }}>Rank</th>
                         <th className="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-wider" style={{ color: '#606070' }}>Capper</th>
-                        <th className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider hidden sm:table-cell" style={{ color: '#606070' }}>Record</th>
-                        <th className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider" style={{ color: '#606070' }}>Win %</th>
-                        <th className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider" style={{ color: '#606070' }}>Units</th>
-                        <th className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider hidden md:table-cell" style={{ color: '#606070' }}>ROI</th>
-                        <th className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider" style={{ color: '#606070' }}>Streak</th>
-                        <th className="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-wider hidden lg:table-cell" style={{ color: '#606070' }}>Last Pick</th>
+                        <th 
+                          className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider hidden sm:table-cell cursor-pointer hover:text-white transition-colors group"
+                          style={{ color: sortBy === 'record' ? '#00A8FF' : '#606070' }}
+                          onClick={() => setSortBy('record')}
+                          title="Wins-Losses record for the selected time period. Click to sort."
+                        >
+                          <span className="inline-flex items-center gap-1">
+                            Record
+                            {sortBy === 'record' && <span className="text-[8px]">▼</span>}
+                          </span>
+                        </th>
+                        <th 
+                          className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
+                          style={{ color: sortBy === 'winPct' ? '#00A8FF' : '#606070' }}
+                          onClick={() => setSortBy('winPct')}
+                          title="Win percentage - total wins divided by total picks. Click to sort."
+                        >
+                          <span className="inline-flex items-center gap-1">
+                            Win %
+                            {sortBy === 'winPct' && <span className="text-[8px]">▼</span>}
+                          </span>
+                        </th>
+                        <th 
+                          className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
+                          style={{ color: sortBy === 'units' ? '#00A8FF' : '#606070' }}
+                          onClick={() => setSortBy('units')}
+                          title="Net units won/lost. 1 unit = standard bet size. Positive means profit. Click to sort."
+                        >
+                          <span className="inline-flex items-center gap-1">
+                            Units
+                            {sortBy === 'units' && <span className="text-[8px]">▼</span>}
+                          </span>
+                        </th>
+                        <th 
+                          className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider hidden md:table-cell cursor-pointer hover:text-white transition-colors"
+                          style={{ color: sortBy === 'roi' ? '#00A8FF' : '#606070' }}
+                          onClick={() => setSortBy('roi')}
+                          title="Return on Investment - percentage profit/loss relative to total units wagered. Click to sort."
+                        >
+                          <span className="inline-flex items-center gap-1">
+                            ROI
+                            {sortBy === 'roi' && <span className="text-[8px]">▼</span>}
+                          </span>
+                        </th>
+                        <th 
+                          className="text-center py-3 px-4 text-[10px] font-bold uppercase tracking-wider cursor-pointer hover:text-white transition-colors"
+                          style={{ color: sortBy === 'streak' ? '#00A8FF' : '#606070' }}
+                          onClick={() => setSortBy('streak')}
+                          title="Current win/loss streak. W = consecutive wins, L = consecutive losses. Click to sort."
+                        >
+                          <span className="inline-flex items-center gap-1">
+                            Streak
+                            {sortBy === 'streak' && <span className="text-[8px]">▼</span>}
+                          </span>
+                        </th>
+                        <th className="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-wider hidden lg:table-cell" style={{ color: '#606070' }} title="Most recent pick made by this capper">Last Pick</th>
                         <th className="py-3 px-4" style={{ width: '40px' }}></th>
                       </tr>
                     </thead>
@@ -659,80 +709,80 @@ export default function LeaderboardPage() {
                 </table>
               </div>
               
-              {/* Pagination Controls */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between px-4 py-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                  <div className="text-xs" style={{ color: '#606070' }}>
-                    Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, displayEntries.length)} of {displayEntries.length} experts
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setCurrentPage(1)}
-                      disabled={currentPage === 1}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10"
-                      style={{ color: '#A0A0B0', border: '1px solid rgba(255,255,255,0.1)' }}
-                      title="First page"
-                    >
-                      First
-                    </button>
-                    <button
-                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10"
-                      style={{ color: '#A0A0B0', border: '1px solid rgba(255,255,255,0.1)' }}
-                      title="Previous page"
-                    >
-                      ← Prev
-                    </button>
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        let pageNum: number
-                        if (totalPages <= 5) {
-                          pageNum = i + 1
-                        } else if (currentPage <= 3) {
-                          pageNum = i + 1
-                        } else if (currentPage >= totalPages - 2) {
-                          pageNum = totalPages - 4 + i
-                        } else {
-                          pageNum = currentPage - 2 + i
-                        }
-                        return (
-                          <button
-                            key={pageNum}
-                            onClick={() => setCurrentPage(pageNum)}
-                            className="w-8 h-8 rounded-lg text-xs font-bold transition-all"
-                            style={{ 
-                              background: currentPage === pageNum ? 'rgba(0,168,255,0.2)' : 'transparent',
-                              color: currentPage === pageNum ? '#00A8FF' : '#606070',
-                              border: currentPage === pageNum ? '1px solid rgba(0,168,255,0.3)' : '1px solid transparent'
-                            }}
-                          >
-                            {pageNum}
-                          </button>
-                        )
-                      })}
-                    </div>
-                    <button
-                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                      disabled={currentPage === totalPages}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10"
-                      style={{ color: '#A0A0B0', border: '1px solid rgba(255,255,255,0.1)' }}
-                      title="Next page"
-                    >
-                      Next →
-                    </button>
-                    <button
-                      onClick={() => setCurrentPage(totalPages)}
-                      disabled={currentPage === totalPages}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10"
-                      style={{ color: '#A0A0B0', border: '1px solid rgba(255,255,255,0.1)' }}
-                      title="Last page"
-                    >
-                      Last
-                    </button>
-                  </div>
+              {/* Pagination Controls - Always show */}
+              <div className="flex items-center justify-between px-4 py-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                <div className="text-xs" style={{ color: '#606070' }}>
+                  Showing {displayEntries.length === 0 ? 0 : ((currentPage - 1) * ITEMS_PER_PAGE) + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, displayEntries.length)} of {displayEntries.length} experts
                 </div>
-              )}
+                {totalPages > 1 && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10"
+                    style={{ color: '#A0A0B0', border: '1px solid rgba(255,255,255,0.1)' }}
+                    title="First page"
+                  >
+                    First
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10"
+                    style={{ color: '#A0A0B0', border: '1px solid rgba(255,255,255,0.1)' }}
+                    title="Previous page"
+                  >
+                    ← Prev
+                  </button>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum: number
+                      if (totalPages <= 5) {
+                        pageNum = i + 1
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i
+                      } else {
+                        pageNum = currentPage - 2 + i
+                      }
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => setCurrentPage(pageNum)}
+                          className="w-8 h-8 rounded-lg text-xs font-bold transition-all"
+                          style={{ 
+                            background: currentPage === pageNum ? 'rgba(0,168,255,0.2)' : 'transparent',
+                            color: currentPage === pageNum ? '#00A8FF' : '#606070',
+                            border: currentPage === pageNum ? '1px solid rgba(0,168,255,0.3)' : '1px solid transparent'
+                          }}
+                        >
+                          {pageNum}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10"
+                    style={{ color: '#A0A0B0', border: '1px solid rgba(255,255,255,0.1)' }}
+                    title="Next page"
+                  >
+                    Next →
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10"
+                    style={{ color: '#A0A0B0', border: '1px solid rgba(255,255,255,0.1)' }}
+                    title="Last page"
+                  >
+                    Last
+                  </button>
+                </div>
+                )}
+              </div>
             </div>
             
             {/* Admin Link */}

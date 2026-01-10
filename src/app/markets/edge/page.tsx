@@ -146,7 +146,7 @@ const mockEdgeSignals: EdgeSignal[] = [
   {
     id: '5',
     type: 'arbitrage',
-    market: 'Chiefs win Super Bowl 2026',
+    market: 'Super Bowl Champion 2026',
     platform: 'polymarket',
     currentPrice: 18,
     fairValue: 18,
@@ -182,7 +182,7 @@ const mockEdgeSignals: EdgeSignal[] = [
 const mockNewsEvents: NewsEvent[] = [
   {
     id: '1',
-    headline: 'Fed Chair signals data-dependent approach ahead of January meeting',
+    headline: 'Fed Chair signals data-dependent approach ahead of next FOMC meeting',
     source: 'WSJ',
     timestamp: '14 min ago',
     impactedMarkets: ['Fed Cuts Rates in January 2026', 'Recession declared in 2026'],
@@ -191,21 +191,21 @@ const mockNewsEvents: NewsEvent[] = [
   },
   {
     id: '2',
-    headline: 'Reuters: Ukraine-Russia officials resume Geneva negotiations',
+    headline: 'Reuters: Diplomatic officials resume multilateral trade negotiations',
     source: 'Reuters',
     timestamp: '28 min ago',
     impactedMarkets: ['Ukraine Ceasefire by March 2026'],
     sentiment: 'positive',
-    expectedImpact: 'High - Ceasefire markets lagging expected 5-10% move'
+    expectedImpact: 'High - Related markets lagging expected 5-10% move'
   },
   {
     id: '3',
-    headline: 'Chiefs RB injury update: Expected to play in divisional round',
+    headline: 'NFL: Key injury updates ahead of playoff weekend',
     source: 'ESPN',
     timestamp: '1 hr ago',
-    impactedMarkets: ['Chiefs win Super Bowl 2026'],
-    sentiment: 'positive',
-    expectedImpact: 'Low - Already priced in'
+    impactedMarkets: ['Super Bowl champion market'],
+    sentiment: 'neutral',
+    expectedImpact: 'Low - Markets efficiently priced'
   }
 ]
 
@@ -272,6 +272,15 @@ export default function EdgePage() {
               >
                 <RefreshCw className={`w-5 h-5 text-gray-400 ${isRefreshing ? 'animate-spin' : ''}`} />
               </button>
+            </div>
+          </div>
+          
+          {/* Demo Data Banner */}
+          <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center gap-3">
+            <Info className="w-5 h-5 text-amber-400 flex-shrink-0" />
+            <div className="text-sm text-amber-200">
+              <span className="font-bold">Demo Mode:</span> This page displays example edge signals for illustration purposes. 
+              Real-time data integration coming soon.
             </div>
           </div>
         </div>

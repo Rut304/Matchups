@@ -965,6 +965,21 @@ export function getLeaderboardEntries(filters?: {
       case 'winPct': return b.winPct - a.winPct
       case 'roi': return b.roi - a.roi
       case 'picks': return (b.totalPicks ?? 0) - (a.totalPicks ?? 0)
+      case 'record': {
+        // Sort by total wins
+        const aWins = parseInt(a.record.split('-')[0]) || 0
+        const bWins = parseInt(b.record.split('-')[0]) || 0
+        return bWins - aWins
+      }
+      case 'streak': {
+        // Sort by streak length (W streaks positive, L streaks negative)
+        const getStreakValue = (streak: string) => {
+          if (!streak || streak === 'N/A') return 0
+          const num = parseInt(streak.slice(1)) || 0
+          return streak.startsWith('W') ? num : -num
+        }
+        return getStreakValue(b.streak) - getStreakValue(a.streak)
+      }
       default: return b.units - a.units
     }
   })
