@@ -98,7 +98,11 @@ function GameCard({ game, compact }: { game: LiveGame; compact?: boolean }) {
   const formatTime = (dateStr: string) => {
     try {
       const date = new Date(dateStr)
-      return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+      return date.toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        timeZone: 'America/New_York'
+      }) + ' ET'
     } catch {
       return ''
     }

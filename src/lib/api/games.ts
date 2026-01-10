@@ -1036,7 +1036,11 @@ function formatGameDate(isoString: string): string {
 
 function formatGameTime(isoString: string): string {
   const date = new Date(isoString)
-  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })
+  return date.toLocaleTimeString('en-US', { 
+    hour: 'numeric', 
+    minute: '2-digit', 
+    timeZone: 'America/New_York'
+  }) + ' ET'
 }
 
 export async function getGamesByDate(date: string, sport?: string): Promise<GameDetail[]> {

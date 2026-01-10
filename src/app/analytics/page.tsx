@@ -633,7 +633,11 @@ export default function AnalyticsPage() {
                       <div className="flex items-center gap-3 mt-2 text-[10px]" style={{ color: '#606070' }}>
                         <span>{article.source}</span>
                         <span>•</span>
-                        <span>{new Date(article.publishedAt).toLocaleTimeString()}</span>
+                        <span>{new Date(article.publishedAt).toLocaleTimeString('en-US', { 
+                          hour: 'numeric', 
+                          minute: '2-digit',
+                          timeZone: 'America/New_York'
+                        })} ET</span>
                       </div>
                     </div>
                   </div>
@@ -762,7 +766,11 @@ export default function AnalyticsPage() {
                       <span className="text-xs" style={{ color: '#808090' }}>{matchup.broadcast}</span>
                     </div>
                     <span className="text-xs" style={{ color: '#606070' }}>
-                      {new Date(matchup.gameTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(matchup.gameTime).toLocaleTimeString('en-US', { 
+                        hour: 'numeric', 
+                        minute: '2-digit',
+                        timeZone: 'America/New_York'
+                      })} ET
                     </span>
                   </div>
                   

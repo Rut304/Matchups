@@ -301,7 +301,11 @@ export function PlayByPlay({
             </button>
           </div>
           <div className="text-xs text-muted">
-            Updated {liveOdds ? new Date(liveOdds.lastUpdate).toLocaleTimeString() : 'now'}
+            Updated {liveOdds ? new Date(liveOdds.lastUpdate).toLocaleTimeString('en-US', { 
+              hour: 'numeric', 
+              minute: '2-digit',
+              timeZone: 'America/New_York'
+            }) + ' ET' : 'now'}
           </div>
         </div>
       </div>

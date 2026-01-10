@@ -48,7 +48,11 @@ export function GamesSection({ sport, title, limit, showViewAll = true }: GamesS
           {lastUpdated && (
             <span className="text-xs text-zinc-500 flex items-center gap-1">
               <Clock className="w-3 h-3" />
-              {lastUpdated.toLocaleTimeString()}
+              {lastUpdated.toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit',
+                timeZone: 'America/New_York'
+              })} ET
             </span>
           )}
           <button 

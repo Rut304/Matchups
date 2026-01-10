@@ -510,7 +510,11 @@ export function LiveGameDashboard({
                     {alert.type === 'odds' && <DollarSign className="w-3 h-3 text-warning" />}
                     {alert.type === 'milestone' && <Flame className="w-3 h-3 text-accent" />}
                     <span className="text-xs text-muted">
-                      {alert.timestamp.toLocaleTimeString()}
+                      {alert.timestamp.toLocaleTimeString('en-US', { 
+                        hour: 'numeric', 
+                        minute: '2-digit',
+                        timeZone: 'America/New_York'
+                      })} ET
                     </span>
                   </div>
                   <p className="text-sm text-primary">{alert.message}</p>

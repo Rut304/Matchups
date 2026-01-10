@@ -60,8 +60,8 @@ export function GameView({ game, expanded = false }: GameViewProps) {
                 {new Date(liveData.scheduledAt).toLocaleTimeString('en-US', { 
                   hour: 'numeric', 
                   minute: '2-digit',
-                  timeZoneName: 'short'
-                })}
+                  timeZone: 'America/New_York'
+                })} ET
               </span>
             )}
             {liveData.period && liveData.clock && (
