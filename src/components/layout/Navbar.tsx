@@ -597,9 +597,14 @@ export function Navbar() {
       </div>
 
       {/* Mobile Navigation - Full Screen */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-x-0 top-16 bottom-0 bg-[#0a0a12]/98 backdrop-blur-xl overflow-y-auto z-60">
-          <div className="px-4 py-6 space-y-6">
+      <div 
+        className={cn(
+          "lg:hidden fixed inset-x-0 top-16 bottom-0 bg-[#0a0a12] backdrop-blur-xl overflow-y-auto transition-transform duration-300 ease-in-out",
+          mobileMenuOpen ? "translate-x-0" : "translate-x-full"
+        )}
+        style={{ zIndex: 100 }}
+      >
+        <div className="px-4 py-6 space-y-6">
             {/* FREE Banner */}
             <div className="text-center py-3 rounded-xl bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30">
               <span className="text-green-400 font-bold text-lg">✨ 100% FREE - No Sign Up Required ✨</span>
@@ -753,7 +758,6 @@ export function Navbar() {
             </div>
           </div>
         </div>
-      )}
     </nav>
   )
 }

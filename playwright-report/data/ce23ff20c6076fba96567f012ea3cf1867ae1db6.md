@@ -1,0 +1,449 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - link [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img [ref=e7]
+      - button [ref=e10]:
+        - img [ref=e11]
+    - generic [ref=e12]:
+      - generic [ref=e13]: ✨ 100% FREE - No Sign Up Required ✨
+      - generic [ref=e14]:
+        - link "Sus Plays" [ref=e15] [cursor=pointer]:
+          - /url: /sus
+          - img [ref=e16]
+          - text: Sus Plays
+        - link "Expert Tracker" [ref=e18] [cursor=pointer]:
+          - /url: /leaderboard
+          - img [ref=e19]
+          - text: Expert Tracker
+      - generic [ref=e25]:
+        - generic [ref=e26]: Sports
+        - generic [ref=e27]:
+          - link "🏈 NFL" [ref=e28] [cursor=pointer]:
+            - /url: /nfl
+            - generic [ref=e29]: 🏈
+            - generic [ref=e30]: NFL
+          - link "🏀 NBA" [ref=e31] [cursor=pointer]:
+            - /url: /nba
+            - generic [ref=e32]: 🏀
+            - generic [ref=e33]: NBA
+          - link "🏒 NHL" [ref=e34] [cursor=pointer]:
+            - /url: /nhl
+            - generic [ref=e35]: 🏒
+            - generic [ref=e36]: NHL
+          - link "⚾ MLB" [ref=e37] [cursor=pointer]:
+            - /url: /mlb
+            - generic [ref=e38]: ⚾
+            - generic [ref=e39]: MLB
+          - link "🏀 WNBA" [ref=e40] [cursor=pointer]:
+            - /url: /wnba
+            - generic [ref=e41]: 🏀
+            - generic [ref=e42]: WNBA
+          - link "🏈 NCAAF" [ref=e43] [cursor=pointer]:
+            - /url: /ncaaf
+            - generic [ref=e44]: 🏈
+            - generic [ref=e45]: NCAAF
+          - link "🏀 NCAAB" [ref=e46] [cursor=pointer]:
+            - /url: /ncaab
+            - generic [ref=e47]: 🏀
+            - generic [ref=e48]: NCAAB
+          - link "🏀 WNCAAB" [ref=e49] [cursor=pointer]:
+            - /url: /wncaab
+            - generic [ref=e50]: 🏀
+            - generic [ref=e51]: WNCAAB
+      - generic [ref=e52]:
+        - generic [ref=e53]: Prediction Markets
+        - generic [ref=e54]:
+          - link "🎯 All Markets" [ref=e55] [cursor=pointer]:
+            - /url: /markets
+            - generic [ref=e56]: 🎯
+            - generic [ref=e57]: All Markets
+          - link "🗳️ Politics" [ref=e58] [cursor=pointer]:
+            - /url: /markets/politics
+            - generic [ref=e59]: 🗳️
+            - generic [ref=e60]: Politics
+          - link "₿ Crypto" [ref=e61] [cursor=pointer]:
+            - /url: /markets/crypto
+            - generic [ref=e62]: ₿
+            - generic [ref=e63]: Crypto
+          - link "🎬 Entertainment" [ref=e64] [cursor=pointer]:
+            - /url: /markets/entertainment
+            - generic [ref=e65]: 🎬
+            - generic [ref=e66]: Entertainment
+          - link "🤖 Tech & AI" [ref=e67] [cursor=pointer]:
+            - /url: /markets/tech
+            - generic [ref=e68]: 🤖
+            - generic [ref=e69]: Tech & AI
+          - link "📈 Economics" [ref=e70] [cursor=pointer]:
+            - /url: /markets/economics
+            - generic [ref=e71]: 📈
+            - generic [ref=e72]: Economics
+      - generic [ref=e73]:
+        - generic [ref=e74]: Quick Links
+        - generic [ref=e75]:
+          - link "Live Scores" [ref=e76] [cursor=pointer]:
+            - /url: /scores
+            - img [ref=e77]
+            - generic [ref=e79]: Live Scores
+          - link "All Markets" [ref=e80] [cursor=pointer]:
+            - /url: /markets
+            - img [ref=e81]
+            - generic [ref=e83]: All Markets
+      - generic [ref=e84]:
+        - generic [ref=e85]: Tools & Analytics
+        - generic [ref=e86]:
+          - link "Line Shop" [ref=e87] [cursor=pointer]:
+            - /url: /lineshop
+            - img [ref=e88]
+            - generic [ref=e91]: Line Shop
+          - link "Calculators" [ref=e92] [cursor=pointer]:
+            - /url: /calculators
+            - img [ref=e93]
+            - generic [ref=e95]: Calculators
+          - link "Alerts" [ref=e96] [cursor=pointer]:
+            - /url: /alerts
+            - img [ref=e97]
+            - generic [ref=e100]: Alerts
+          - link "Trends" [ref=e101] [cursor=pointer]:
+            - /url: /trends
+            - img [ref=e102]
+            - generic [ref=e105]: Trends
+          - link "Analytics" [ref=e106] [cursor=pointer]:
+            - /url: /analytics
+            - img [ref=e107]
+            - generic [ref=e110]: Analytics
+      - generic [ref=e111]:
+        - generic [ref=e112]: Account
+        - link "Sign In / Sign Up" [ref=e113] [cursor=pointer]:
+          - /url: /auth
+          - img [ref=e114]
+          - generic [ref=e117]: Sign In / Sign Up
+  - main [ref=e119]:
+    - generic [ref=e120]:
+      - generic [ref=e123]:
+        - generic [ref=e124]:
+          - generic [ref=e125]: 🏈
+          - generic [ref=e126]:
+            - heading "NFL Analytics" [level=1] [ref=e127]
+            - paragraph [ref=e128]: Deep dive into team betting trends, ATS records, and edge-finding data
+        - generic [ref=e129]:
+          - generic [ref=e130]:
+            - generic [ref=e131]: Best ATS
+            - generic [ref=e132]: DET
+            - generic [ref=e133]: 70.6%
+          - generic [ref=e134]:
+            - generic [ref=e135]: Best Over
+            - generic [ref=e136]: DET
+            - generic [ref=e137]: 58.8%
+          - generic [ref=e138]:
+            - generic [ref=e139]: Best Under
+            - generic [ref=e140]: KC
+            - generic [ref=e141]: 58.8%
+          - generic [ref=e142]:
+            - generic [ref=e143]: Hot Streaks
+            - generic [ref=e144]: "3"
+            - generic [ref=e145]: teams
+      - generic [ref=e147]:
+        - generic [ref=e148]:
+          - generic [ref=e149]:
+            - img [ref=e150]
+            - heading "Today's Games" [level=2] [ref=e152]
+          - generic [ref=e153]:
+            - generic [ref=e154]:
+              - img [ref=e155]
+              - text: 12:53 PM ET
+            - button "Refresh" [ref=e158]:
+              - img [ref=e159]
+        - generic [ref=e164]:
+          - button [ref=e165]:
+            - img [ref=e166]
+          - textbox [ref=e169]: 2026-01-10
+          - button [ref=e170]:
+            - img [ref=e171]
+        - generic [ref=e173]:
+          - button "All (2)" [ref=e174]
+          - button "Live (0)" [ref=e175]
+          - button "Upcoming (2)" [ref=e176]
+          - button "Final (0)" [ref=e177]
+        - generic [ref=e178]:
+          - generic [ref=e180] [cursor=pointer]:
+            - generic [ref=e181]:
+              - generic [ref=e183]: 4:30 PM ET
+              - generic [ref=e184]: FOX
+            - generic [ref=e185]:
+              - generic [ref=e186]:
+                - generic [ref=e187]:
+                  - img "Los Angeles Rams" [ref=e188]
+                  - generic [ref=e189]:
+                    - text: Los Angeles Rams
+                    - generic [ref=e190]: (12-5)
+                - generic [ref=e191]: "0"
+              - generic [ref=e192]:
+                - generic [ref=e193]:
+                  - img "Carolina Panthers" [ref=e194]
+                  - generic [ref=e195]:
+                    - text: Carolina Panthers
+                    - generic [ref=e196]: (8-9)
+                - generic [ref=e197]: "0"
+            - generic [ref=e198]:
+              - generic [ref=e199]: "Spread: +10"
+              - generic [ref=e200]: "O/U: 45.5"
+              - generic [ref=e201]: "ML: 0"
+          - generic [ref=e203] [cursor=pointer]:
+            - generic [ref=e204]:
+              - generic [ref=e206]: 8:00 PM ET
+              - generic [ref=e207]: Prime Video
+            - generic [ref=e208]:
+              - generic [ref=e209]:
+                - generic [ref=e210]:
+                  - img "Green Bay Packers" [ref=e211]
+                  - generic [ref=e212]:
+                    - text: Green Bay Packers
+                    - generic [ref=e213]: (9-7-1)
+                - generic [ref=e214]: "0"
+              - generic [ref=e215]:
+                - generic [ref=e216]:
+                  - img "Chicago Bears" [ref=e217]
+                  - generic [ref=e218]:
+                    - text: Chicago Bears
+                    - generic [ref=e219]: (11-6)
+                - generic [ref=e220]: "0"
+            - generic [ref=e221]:
+              - generic [ref=e222]: "Spread: +1.5"
+              - generic [ref=e223]: "O/U: 44.5"
+              - generic [ref=e224]: "ML: 0"
+        - link "View all NFL games" [ref=e225] [cursor=pointer]:
+          - /url: /scores?sport=nfl
+          - text: View all NFL games
+          - img [ref=e226]
+      - generic [ref=e229]:
+        - generic [ref=e230]:
+          - generic [ref=e232]:
+            - generic [ref=e233]:
+              - img [ref=e234]
+              - textbox "Search teams..." [ref=e237]
+            - generic [ref=e238]:
+              - button "ATS" [ref=e239]
+              - button "O/U" [ref=e240]
+              - button "ML" [ref=e241]
+            - combobox [ref=e242] [cursor=pointer]:
+              - option "All Games" [selected]
+              - option "Home Only"
+              - option "Away Only"
+              - option "As Favorite"
+              - option "As Underdog"
+            - combobox [ref=e243] [cursor=pointer]:
+              - option "Full Season" [selected]
+              - option "Last 30 Days"
+              - option "Last 2 Weeks"
+              - option "Last Week"
+          - generic [ref=e244]:
+            - generic [ref=e245]:
+              - heading "Against The Spread Records" [level=2] [ref=e246]
+              - generic [ref=e247]:
+                - generic [ref=e248]: "Sort by:"
+                - button "Win %" [ref=e249]
+                - button "Profit" [ref=e250]
+            - generic [ref=e251]:
+              - generic [ref=e252] [cursor=pointer]:
+                - generic [ref=e253]:
+                  - generic [ref=e254]: 🦁
+                  - generic [ref=e255]:
+                    - generic [ref=e256]:
+                      - generic [ref=e257]: Detroit Lions
+                      - img [ref=e258]
+                    - generic [ref=e260]: NFC North
+                - generic [ref=e261]:
+                  - generic [ref=e262]: 12-5
+                  - generic [ref=e263]: Record
+                - generic [ref=e264]:
+                  - generic [ref=e265]: 70.6%
+                  - generic [ref=e266]: Win %
+                - generic [ref=e267]:
+                  - generic [ref=e268]: +4.1u
+                  - generic [ref=e269]: Profit
+                - img [ref=e270]
+              - generic [ref=e272] [cursor=pointer]:
+                - generic [ref=e273]:
+                  - generic [ref=e274]: 🦬
+                  - generic [ref=e275]:
+                    - generic [ref=e276]:
+                      - generic [ref=e277]: Buffalo Bills
+                      - img [ref=e278]
+                    - generic [ref=e280]: AFC East
+                - generic [ref=e281]:
+                  - generic [ref=e282]: 11-6
+                  - generic [ref=e283]: Record
+                - generic [ref=e284]:
+                  - generic [ref=e285]: 64.7%
+                  - generic [ref=e286]: Win %
+                - generic [ref=e287]:
+                  - generic [ref=e288]: +2.9u
+                  - generic [ref=e289]: Profit
+                - img [ref=e290]
+              - generic [ref=e292] [cursor=pointer]:
+                - generic [ref=e293]:
+                  - generic [ref=e294]: 🦅
+                  - generic [ref=e295]:
+                    - generic [ref=e296]:
+                      - generic [ref=e297]: Philadelphia Eagles
+                      - img [ref=e298]
+                    - generic [ref=e300]: NFC East
+                - generic [ref=e301]:
+                  - generic [ref=e302]: 10-7
+                  - generic [ref=e303]: Record
+                - generic [ref=e304]:
+                  - generic [ref=e305]: 58.8%
+                  - generic [ref=e306]: Win %
+                - generic [ref=e307]:
+                  - generic [ref=e308]: +1.8u
+                  - generic [ref=e309]: Profit
+                - img [ref=e310]
+              - generic [ref=e312] [cursor=pointer]:
+                - generic [ref=e313]:
+                  - generic [ref=e314]: 🏈
+                  - generic [ref=e315]:
+                    - generic [ref=e317]: Kansas City Chiefs
+                    - generic [ref=e318]: AFC West
+                - generic [ref=e319]:
+                  - generic [ref=e320]: 9-8
+                  - generic [ref=e321]: Record
+                - generic [ref=e322]:
+                  - generic [ref=e323]: 52.9%
+                  - generic [ref=e324]: Win %
+                - generic [ref=e325]:
+                  - generic [ref=e326]: +0.6u
+                  - generic [ref=e327]: Profit
+                - img [ref=e328]
+        - generic [ref=e330]:
+          - generic [ref=e331]:
+            - generic [ref=e332]:
+              - img [ref=e333]
+              - heading "Hot Streaks (ATS)" [level=2] [ref=e335]
+            - generic [ref=e336]:
+              - generic [ref=e337] [cursor=pointer]:
+                - generic [ref=e338]:
+                  - generic [ref=e339]: 🦁
+                  - generic [ref=e340]: DET
+                - generic [ref=e341]: W11
+              - generic [ref=e342] [cursor=pointer]:
+                - generic [ref=e343]:
+                  - generic [ref=e344]: 🦬
+                  - generic [ref=e345]: BUF
+                - generic [ref=e346]: W5
+              - generic [ref=e347] [cursor=pointer]:
+                - generic [ref=e348]:
+                  - generic [ref=e349]: 🦅
+                  - generic [ref=e350]: PHI
+                - generic [ref=e351]: W7
+            - generic [ref=e352]:
+              - img [ref=e353]
+              - heading "Cold Streaks (ATS)" [level=2] [ref=e366]
+            - paragraph [ref=e367]: No cold streaks right now
+          - generic [ref=e368]:
+            - generic [ref=e369]:
+              - img [ref=e370]
+              - heading "Top ATS Teams" [level=2] [ref=e374]
+            - generic [ref=e375]:
+              - generic [ref=e376] [cursor=pointer]:
+                - generic [ref=e377]:
+                  - generic [ref=e378]: "1"
+                  - generic [ref=e379]: 🦁
+                  - generic [ref=e380]: Detroit Lions
+                - generic [ref=e381]:
+                  - generic [ref=e382]: 70.6%
+                  - generic [ref=e383]: 12-5
+              - generic [ref=e384] [cursor=pointer]:
+                - generic [ref=e385]:
+                  - generic [ref=e386]: "2"
+                  - generic [ref=e387]: 🦬
+                  - generic [ref=e388]: Buffalo Bills
+                - generic [ref=e389]:
+                  - generic [ref=e390]: 64.7%
+                  - generic [ref=e391]: 11-6
+              - generic [ref=e392] [cursor=pointer]:
+                - generic [ref=e393]:
+                  - generic [ref=e394]: "3"
+                  - generic [ref=e395]: 🦅
+                  - generic [ref=e396]: Philadelphia Eagles
+                - generic [ref=e397]:
+                  - generic [ref=e398]: 58.8%
+                  - generic [ref=e399]: 10-7
+              - generic [ref=e400] [cursor=pointer]:
+                - generic [ref=e401]:
+                  - generic [ref=e402]: "4"
+                  - generic [ref=e403]: 🏈
+                  - generic [ref=e404]: Kansas City Chiefs
+                - generic [ref=e405]:
+                  - generic [ref=e406]: 52.9%
+                  - generic [ref=e407]: 9-8
+          - generic [ref=e408]:
+            - generic [ref=e409]:
+              - img [ref=e410]
+              - heading "Edge Finder Tips" [level=2] [ref=e412]
+            - list [ref=e413]:
+              - listitem [ref=e414]:
+                - generic [ref=e415]: •
+                - text: Teams on 3+ ATS win streaks historically continue covering 54% of the time
+              - listitem [ref=e416]:
+                - generic [ref=e417]: •
+                - text: Home underdogs with 3+ point spreads cover 56% in divisional games
+              - listitem [ref=e418]:
+                - generic [ref=e419]: •
+                - text: Unders hit 58% in primetime games during winter months
+  - contentinfo [ref=e421]:
+    - generic [ref=e422]:
+      - generic [ref=e423]:
+        - generic [ref=e424]:
+          - heading "Sports" [level=4] [ref=e425]
+          - generic [ref=e426]:
+            - link "🏈 NFL" [ref=e427] [cursor=pointer]:
+              - /url: /nfl
+            - link "🏀 NBA" [ref=e428] [cursor=pointer]:
+              - /url: /nba
+            - link "🏒 NHL" [ref=e429] [cursor=pointer]:
+              - /url: /nhl
+            - link "⚾ MLB" [ref=e430] [cursor=pointer]:
+              - /url: /mlb
+        - generic [ref=e431]:
+          - heading "Features" [level=4] [ref=e432]
+          - generic [ref=e433]:
+            - link "📈 Markets" [ref=e434] [cursor=pointer]:
+              - /url: /markets
+            - link "📊 Trends" [ref=e435] [cursor=pointer]:
+              - /url: /trends
+            - link "🧾 Expert Tracker" [ref=e436] [cursor=pointer]:
+              - /url: /leaderboard
+        - generic [ref=e437]:
+          - heading "Company" [level=4] [ref=e438]
+          - generic [ref=e439]:
+            - link "About" [ref=e440] [cursor=pointer]:
+              - /url: "#"
+            - link "Contact" [ref=e441] [cursor=pointer]:
+              - /url: "#"
+            - link "Privacy" [ref=e442] [cursor=pointer]:
+              - /url: "#"
+            - link "Terms" [ref=e443] [cursor=pointer]:
+              - /url: "#"
+        - generic [ref=e444]:
+          - heading "Tools" [level=4] [ref=e445]
+          - generic [ref=e446]:
+            - link "Admin Dashboard" [ref=e447] [cursor=pointer]:
+              - /url: /admin
+              - img [ref=e448]
+              - text: Admin Dashboard
+            - link "📄 Documentation" [ref=e451] [cursor=pointer]:
+              - /url: /admin/docs
+      - generic [ref=e452]:
+        - generic [ref=e453]:
+          - generic [ref=e455]: ⚡
+          - generic [ref=e456]: Matchups
+        - paragraph [ref=e457]: © 2026 Matchups. Sports betting analysis & trends.
+  - button "Open Next.js Dev Tools" [ref=e463] [cursor=pointer]:
+    - img [ref=e464]
+  - alert [ref=e467]
+```

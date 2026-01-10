@@ -2,15 +2,41 @@
 
 import { useState, useEffect } from 'react'
 import { type UnifiedGame } from '@/lib/api/data-layer'
+import { getGameEdgeAlerts, type EdgeAlert } from '@/lib/edge-features'
+
+interface MatchupAnalytics {
+  trends?: {
+    matched: number
+    aggregateConfidence: number
+    topPick?: { selection: string; confidence: number; supportingTrends: number } | null
+    spreadTrends?: { description: string; confidence: number }[]
+  }
+  h2h?: {
+    gamesPlayed: number
+    homeATSRecord: string
+    avgTotal: number
+  }
+  edgeScore?: {
+    overall: number
+    trendAlignment: number
+    sharpSignal: number
+  }
+  topDataPoints?: { label: string; value: string; confidence: number }[]
+}
 
 interface GameViewProps {
   game: UnifiedGame
   expanded?: boolean
+  showEdge?: boolean
+  showAnalytics?: boolean
 }
 
-export function GameView({ game, expanded = false }: GameViewProps) {
+export function GameView({ game, expanded = false, showEdge = true, showAnalytics = true }: GameViewProps) {
   const [isExpanded, setIsExpanded] = useState(expanded)
   const [liveData, setLiveData] = useState(game)
+  const [edgeAlerts, setEdgeAlerts] = useState<EdgeAlert[]>([])
+  const [analytics, setAnalytics] = useState<MatchupAnalytics | null>(null)
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false)
   
   // Auto-refresh for live games
   useEffect(() => {
@@ -30,6 +56,35 @@ export function GameView({ game, expanded = false }: GameViewProps) {
     
     return () => clearInterval(interval)
   }, [game.id, game.status])
+  
+  // Load edge alerts for the game
+  useEffect(() => {
+    if (!showEdge) return
+    const alerts = getGameEdgeAlerts(game.id, game.sport || 'NFL')
+    setEdgeAlerts(alerts)
+  }, [game.id, game.sport, showEdge])
+  
+  // Fetch full analytics when expanded
+  useEffect(() => {
+    if (!isExpanded || !showAnalytics || analytics) return
+    
+    const fetchAnalytics = async () => {
+      setLoadingAnalytics(true)
+      try {
+        const res = await fetch(`/api/matchup/${game.id}/analytics?intelligence=true&ou=false`)
+        if (res.ok) {
+          const data = await res.json()
+          setAnalytics(data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch analytics:', error)
+      } finally {
+        setLoadingAnalytics(false)
+      }
+    }
+    
+    fetchAnalytics()
+  }, [isExpanded, showAnalytics, analytics, game.id])
   
   const isLive = liveData.status === 'live'
   const isFinal = liveData.status === 'final'
@@ -144,6 +199,27 @@ export function GameView({ game, expanded = false }: GameViewProps) {
             <span>ML: {liveData.odds.homeML > 0 ? '+' : ''}{liveData.odds.homeML}</span>
           </div>
         )}
+        
+        {/* Edge Alert Badge - Show when game has edge alerts */}
+        {edgeAlerts.length > 0 && !isFinal && (
+          <div className="flex items-center gap-2 mt-2">
+            {edgeAlerts.some(a => a.severity === 'critical') && (
+              <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs font-medium rounded flex items-center gap-1">
+                🚨 Edge Alert
+              </span>
+            )}
+            {edgeAlerts.some(a => a.type === 'rlm') && (
+              <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 text-xs font-medium rounded">
+                RLM
+              </span>
+            )}
+            {edgeAlerts.some(a => a.type === 'sharp-public') && (
+              <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs font-medium rounded">
+                Sharp Split
+              </span>
+            )}
+          </div>
+        )}
       </div>
       
       {/* Expanded View */}
@@ -204,6 +280,121 @@ export function GameView({ game, expanded = false }: GameViewProps) {
                   Total: <span className="text-white">{liveData.consensus.total?.toFixed(1)}</span>
                 </span>
               </div>
+            </div>
+          )}
+          
+          {/* Edge Alerts - THE EDGE */}
+          {edgeAlerts.length > 0 && !isFinal && (
+            <div>
+              <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                <span className="text-amber-400">⚡</span> The Edge
+              </h4>
+              <div className="space-y-2">
+                {edgeAlerts.map(alert => (
+                  <div 
+                    key={alert.id}
+                    className={`rounded-lg p-3 ${
+                      alert.severity === 'critical' 
+                        ? 'bg-red-500/10 border border-red-500/30' 
+                        : alert.severity === 'major'
+                        ? 'bg-amber-500/10 border border-amber-500/30'
+                        : 'bg-zinc-800'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="font-semibold text-white text-sm">{alert.title}</div>
+                        <div className="text-xs text-zinc-400 mt-1">{alert.description}</div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className={`text-xs font-medium ${
+                          alert.confidence >= 75 ? 'text-green-400' : 
+                          alert.confidence >= 50 ? 'text-amber-400' : 'text-zinc-400'
+                        }`}>
+                          {alert.confidence}% conf
+                        </div>
+                        {alert.expectedValue && (
+                          <div className="text-xs text-green-400">
+                            +{alert.expectedValue}% EV
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Analytics Section - Trends, H2H, AI Insights */}
+          {showAnalytics && !isFinal && (
+            <div>
+              {loadingAnalytics ? (
+                <div className="text-xs text-zinc-500 animate-pulse">Loading analysis...</div>
+              ) : analytics ? (
+                <div className="space-y-3">
+                  {/* Top Pick / AI Recommendation */}
+                  {analytics.trends?.topPick && (
+                    <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-green-400">🎯</span>
+                        <h4 className="text-xs font-semibold text-green-400 uppercase">Top Pick</h4>
+                      </div>
+                      <div className="text-white font-semibold">{analytics.trends.topPick.selection}</div>
+                      <div className="text-xs text-zinc-400 mt-1">
+                        {analytics.trends.topPick.confidence}% confidence • {analytics.trends.topPick.supportingTrends} supporting trends
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Matched Trends Summary */}
+                  {analytics.trends && analytics.trends.matched > 0 && (
+                    <div>
+                      <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                        <span className="text-blue-400">📊</span> Trends ({analytics.trends.matched} matched)
+                      </h4>
+                      <div className="space-y-1">
+                        {analytics.trends.spreadTrends?.slice(0, 3).map((trend, i) => (
+                          <div key={i} className="text-xs text-zinc-400 flex items-center gap-2">
+                            <span className={trend.confidence >= 70 ? 'text-green-400' : 'text-amber-400'}>•</span>
+                            <span>{trend.description}</span>
+                            <span className="text-zinc-600 ml-auto">{trend.confidence}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* H2H Summary */}
+                  {analytics.h2h && analytics.h2h.gamesPlayed > 0 && (
+                    <div>
+                      <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-1 flex items-center gap-2">
+                        <span className="text-purple-400">🏆</span> Head-to-Head
+                      </h4>
+                      <div className="text-xs text-zinc-400">
+                        {analytics.h2h.gamesPlayed} games • ATS: {analytics.h2h.homeATSRecord} • Avg Total: {analytics.h2h.avgTotal?.toFixed(1)}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Edge Score */}
+                  {analytics.edgeScore && analytics.edgeScore.overall > 0 && (
+                    <div className="flex items-center gap-3 pt-2 border-t border-zinc-800">
+                      <div className="text-xs text-zinc-500">Edge Score:</div>
+                      <div className={`text-sm font-bold ${
+                        analytics.edgeScore.overall >= 70 ? 'text-green-400' :
+                        analytics.edgeScore.overall >= 50 ? 'text-amber-400' : 'text-zinc-400'
+                      }`}>
+                        {analytics.edgeScore.overall}/100
+                      </div>
+                      <div className="flex gap-2 text-xs text-zinc-500">
+                        <span>Trends: {analytics.edgeScore.trendAlignment}</span>
+                        <span>Sharp: {analytics.edgeScore.sharpSignal}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : null}
             </div>
           )}
           
