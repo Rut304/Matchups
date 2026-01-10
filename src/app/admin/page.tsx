@@ -423,6 +423,10 @@ export default function AdminPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                  <Link href="/admin/health" className="flex flex-col items-center gap-2 px-4 py-4 bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 hover:border-green-500/50 rounded-xl transition-all hover:scale-105 text-text-primary">
+                    <Heart className="w-6 h-6 text-green-500" />
+                    <span className="text-sm font-medium">System Health</span>
+                  </Link>
                   <Link href="/admin/manage" className="flex flex-col items-center gap-2 px-4 py-4 bg-gradient-to-br from-orange-500/20 to-red-500/20 border border-orange-500/30 hover:border-orange-500/50 rounded-xl transition-all hover:scale-105 text-text-primary">
                     <AlertTriangle className="w-6 h-6 text-orange-500" />
                     <span className="text-sm font-medium">Sus Videos</span>

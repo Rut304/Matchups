@@ -936,6 +936,11 @@ function transformAPIGameToDetail(apiGame: Record<string, unknown>, sport: strin
     `UNDER in ${Math.floor(40 + Math.random() * 25)}% of road games`,
   ]
   
+  // NOTE: We don't generate fake analytics data - if we don't have real data, we show "not available"
+  // Analytics data should come from verified sources (Supabase, third-party APIs)
+  // The homeAnalytics and awayAnalytics will be undefined for API-fetched games
+  // until we integrate real historical analytics data
+  
   return {
     id: apiGame.id as string,
     sport: sport.toUpperCase(),
@@ -1011,6 +1016,7 @@ function transformAPIGameToDetail(apiGame: Record<string, unknown>, sport: strin
     },
     homeTrends,
     awayTrends,
+    // Analytics data not available for API-fetched games without real historical data
     homeAnalytics: undefined,
     awayAnalytics: undefined,
   }

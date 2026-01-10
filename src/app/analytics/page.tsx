@@ -1,13 +1,14 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { 
   ArrowLeft, TrendingUp, TrendingDown, Target, Zap, AlertTriangle, Clock,
   BarChart3, Filter, ChevronRight, Flame, Brain, LineChart, DollarSign,
   Users, Timer, Sparkles, Shield, Activity, RefreshCw, CheckCircle2, XCircle,
   Newspaper, CloudRain, ThermometerSun, AlertCircle, TrendingUp as Trending,
-  Bot, Lightbulb, ArrowUpRight, Eye, Crosshair, Play, Pause
+  Bot, Lightbulb, ArrowUpRight, Eye, Crosshair, Play, Pause, ChevronLeft,
+  CalendarDays
 } from 'lucide-react'
 import { 
   trendInsights, lineMovements, publicSharpSplits, predictionCappers,
@@ -27,10 +28,46 @@ import {
 
 type Tab = 'edge' | 'news' | 'matchups' | 'ai' | 'linepredictor'
 
+// Date utilities - All dates in Eastern Time
+function getEasternDate(offsetDays = 0): Date {
+  const now = new Date()
+  const eastern = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }))
+  eastern.setDate(eastern.getDate() + offsetDays)
+  eastern.setHours(0, 0, 0, 0)
+  return eastern
+}
+
+function formatDateString(date: Date): string {
+  return date.toISOString().split('T')[0]
+}
+
+function formatDisplayDate(date: Date): string {
+  const today = getEasternDate()
+  const yesterday = getEasternDate(-1)
+  const tomorrow = getEasternDate(1)
+  
+  const dateStr = formatDateString(date)
+  
+  if (dateStr === formatDateString(today)) return 'Today'
+  if (dateStr === formatDateString(yesterday)) return 'Yesterday'
+  if (dateStr === formatDateString(tomorrow)) return 'Tomorrow'
+  
+  return date.toLocaleDateString('en-US', { 
+    weekday: 'short', 
+    month: 'short', 
+    day: 'numeric',
+    year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
+  })
+}
+
 export default function AnalyticsPage() {
   const [activeTab, setActiveTab] = useState<Tab>('edge')
   const [sportFilter, setSportFilter] = useState<string>('all')
   const [expandedItem, setExpandedItem] = useState<string | null>(null)
+  const [selectedDate, setSelectedDate] = useState<Date>(getEasternDate())
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  
+  const isToday = formatDateString(selectedDate) === formatDateString(getEasternDate())
 
   const highEdgeTrends = getHighEdgeTrends(6)
   const topCLVCappers = getTopCLVCappers(5)
@@ -55,6 +92,23 @@ export default function AnalyticsPage() {
     { id: 'matchups' as Tab, label: '🏟️ Matchups', count: sportsSummary.totalMatchups },
     { id: 'ai' as Tab, label: '🤖 AI Discovery', count: newsSummary.newTrends }
   ]
+
+  const goToPreviousDay = () => {
+    const newDate = new Date(selectedDate)
+    newDate.setDate(newDate.getDate() - 1)
+    setSelectedDate(newDate)
+  }
+
+  const goToNextDay = () => {
+    const newDate = new Date(selectedDate)
+    newDate.setDate(newDate.getDate() + 1)
+    setSelectedDate(newDate)
+  }
+
+  const handleRefresh = () => {
+    setIsRefreshing(true)
+    setTimeout(() => setIsRefreshing(false), 1000)
+  }
 
   return (
     <div className="min-h-screen" style={{ background: '#050508' }}>
@@ -91,18 +145,56 @@ export default function AnalyticsPage() {
               </div>
             </div>
             
-            {/* Live Stats Bar */}
-            <div className="flex gap-2 flex-wrap">
-              <div className="px-3 py-2 rounded-xl flex items-center gap-2" style={{ background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.2)' }}>
-                <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#00FF88' }} />
-                <span className="text-xs font-bold" style={{ color: '#00FF88' }}>{newsSummary.highImpact} High Impact</span>
+            {/* Date Navigation */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={goToPreviousDay}
+                  className="p-2 rounded-xl hover:bg-white/10 transition-all"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <ChevronLeft className="w-5 h-5" style={{ color: '#808090' }} />
+                </button>
+                
+                <div className="flex items-center gap-2 px-4 py-2 rounded-xl min-w-[180px] justify-center"
+                     style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <CalendarDays className="w-4 h-4" style={{ color: '#FF6B00' }} />
+                  <span className="font-semibold" style={{ color: '#FFF' }}>{formatDisplayDate(selectedDate)}</span>
+                  {isToday && (
+                    <span className="ml-2 px-2 py-0.5 rounded text-xs font-bold"
+                          style={{ background: 'rgba(0,255,136,0.2)', color: '#00FF88' }}>
+                      LIVE
+                    </span>
+                  )}
+                </div>
+                
+                <button
+                  onClick={goToNextDay}
+                  className="p-2 rounded-xl hover:bg-white/10 transition-all"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <ChevronRight className="w-5 h-5" style={{ color: '#808090' }} />
+                </button>
               </div>
-              <div className="px-3 py-2 rounded-xl" style={{ background: 'rgba(255,68,85,0.1)', border: '1px solid rgba(255,68,85,0.2)' }}>
-                <span className="text-xs font-bold" style={{ color: '#FF4455' }}>🚨 {criticalInjuries.length} Critical Injuries</span>
-              </div>
-              <div className="px-3 py-2 rounded-xl" style={{ background: 'rgba(255,215,0,0.1)', border: '1px solid rgba(255,215,0,0.2)' }}>
-                <span className="text-xs font-bold" style={{ color: '#FFD700' }}>🤖 {newsSummary.newTrends} New AI Trends</span>
-              </div>
+              
+              <button 
+                onClick={handleRefresh}
+                className="p-2 rounded-xl hover:bg-white/10 transition-all"
+                style={{ background: 'rgba(255,255,255,0.05)' }}>
+                <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} style={{ color: '#808090' }} />
+              </button>
+            </div>
+          </div>
+          
+          {/* Live Stats Bar */}
+          <div className="flex gap-2 flex-wrap mt-4">
+            <div className="px-3 py-2 rounded-xl flex items-center gap-2" style={{ background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.2)' }}>
+              <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#00FF88' }} />
+              <span className="text-xs font-bold" style={{ color: '#00FF88' }}>{newsSummary.highImpact} High Impact</span>
+            </div>
+            <div className="px-3 py-2 rounded-xl" style={{ background: 'rgba(255,68,85,0.1)', border: '1px solid rgba(255,68,85,0.2)' }}>
+              <span className="text-xs font-bold" style={{ color: '#FF4455' }}>🚨 {criticalInjuries.length} Critical Injuries</span>
+            </div>
+            <div className="px-3 py-2 rounded-xl" style={{ background: 'rgba(255,215,0,0.1)', border: '1px solid rgba(255,215,0,0.2)' }}>
+              <span className="text-xs font-bold" style={{ color: '#FFD700' }}>🤖 {newsSummary.newTrends} New AI Trends</span>
             </div>
           </div>
 
