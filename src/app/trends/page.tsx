@@ -305,11 +305,18 @@ function TrendsContent() {
                 </div>
               </div>
               
-              <button onClick={handleRefresh}
-                      className="self-start md:self-auto p-2 rounded-lg transition-all hover:bg-white/10"
-                      style={{ background: 'rgba(255,255,255,0.05)' }}>
-                <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} style={{ color: '#808090' }} />
-              </button>
+              <div className="flex items-center gap-2">
+                <Link href="/trends/all" 
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all hover:bg-white/10"
+                      style={{ background: 'rgba(255,215,0,0.1)', color: '#FFD700', border: '1px solid rgba(255,215,0,0.2)' }}>
+                  📋 All Trends Database
+                </Link>
+                <button onClick={handleRefresh}
+                        className="p-2 rounded-lg transition-all hover:bg-white/10"
+                        style={{ background: 'rgba(255,255,255,0.05)' }}>
+                  <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} style={{ color: '#808090' }} />
+                </button>
+              </div>
             </div>
 
             {/* View Mode Toggle - Today vs Historical */}
