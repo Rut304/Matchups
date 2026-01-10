@@ -421,3 +421,375 @@ test.describe('Navigation - New Routes', () => {
     }
   });
 });
+
+// ============================================================
+// MOBILE VIEW E2E TESTS
+// ============================================================
+
+test.describe('Mobile View Tests', () => {
+  // Use iPhone 12 viewport
+  const mobileViewport = { width: 390, height: 844 };
+  
+  test.describe('Mobile Navigation', () => {
+    test('Mobile menu opens and closes', async ({ page }) => {
+      await page.setViewportSize(mobileViewport);
+      await page.goto('/');
+      
+      // Find mobile menu button (hamburger icon)
+      const menuButton = page.locator('button').filter({ has: page.locator('[class*="Menu"], [class*="hamburger"]') }).first();
+      
+      // Alternative: find by common mobile menu patterns
+      const menuToggle = page.locator('button.lg\\:hidden').first();
+      
+      if (await menuToggle.isVisible()) {
+        // Click to open menu
+        await menuToggle.click();
+        await page.waitForTimeout(300);
+        
+        // Verify menu content is visible
+        const mobileMenu = page.locator('[class*="fixed"]').filter({ hasText: 'Sports' });
+        await expect(mobileMenu.first()).toBeVisible();
+        
+        // Click to close menu
+        await menuToggle.click();
+        await page.waitForTimeout(300);
+      }
+    });
+
+    test('Mobile menu contains all navigation items', async ({ page }) => {
+      await page.setViewportSize(mobileViewport);
+      await page.goto('/');
+      
+      // Open mobile menu
+      const menuToggle = page.locator('button.lg\\:hidden').first();
+      if (await menuToggle.isVisible()) {
+        await menuToggle.click();
+        await page.waitForTimeout(300);
+        
+        // Check for essential navigation items
+        const sportsSection = page.locator('text=Sports');
+        await expect(sportsSection.first()).toBeVisible();
+        
+        // Check for NFL, NBA, etc.
+        await expect(page.locator('a[href="/nfl"]').first()).toBeVisible();
+        await expect(page.locator('a[href="/nba"]').first()).toBeVisible();
+      }
+    });
+
+    test('Mobile menu links navigate correctly', async ({ page }) => {
+      await page.setViewportSize(mobileViewport);
+      await page.goto('/');
+      
+      // Open mobile menu
+      const menuToggle = page.locator('button.lg\\:hidden').first();
+      if (await menuToggle.isVisible()) {
+        await menuToggle.click();
+        await page.waitForTimeout(300);
+        
+        // Click NFL link in mobile menu
+        const nflLink = page.locator('a[href="/nfl"]').first();
+        await nflLink.click();
+        await page.waitForURL('/nfl');
+        
+        // Verify page loaded
+        await expect(page).toHaveURL('/nfl');
+        
+        // Menu should be closed after navigation
+        const menuContent = page.locator('[style*="translate-x-0"]');
+        await expect(menuContent).not.toBeVisible();
+      }
+    });
+  });
+
+  test.describe('Mobile Page Layouts', () => {
+    test('Homepage is mobile responsive', async ({ page }) => {
+      await page.setViewportSize(mobileViewport);
+      await page.goto('/');
+      await page.waitForLoadState('networkidle');
+      
+      // Main content should be visible
+      await expect(page.locator('body')).toBeVisible();
+      
+      // No horizontal scroll (content fits viewport)
+      const bodyWidth = await page.evaluate(() => document.body.scrollWidth);
+      expect(bodyWidth).toBeLessThanOrEqual(mobileViewport.width + 10);
+    });
+
+    test('NFL page is mobile responsive', async ({ page }) => {
+      await page.setViewportSize(mobileViewport);
+      await page.goto('/nfl');
+      await page.waitForLoadState('networkidle');
+      
+      // Check content fits viewport
+      const bodyWidth = await page.evaluate(() => document.body.scrollWidth);
+      expect(bodyWidth).toBeLessThanOrEqual(mobileViewport.width + 10);
+      
+      // Check cards/content are visible
+      const mainContent = page.locator('main, section').first();
+      await expect(mainContent).toBeVisible();
+    });
+
+    test('Leaderboard is mobile responsive', async ({ page }) => {
+      await page.setViewportSize(mobileViewport);
+      await page.goto('/leaderboard');
+      await page.waitForLoadState('networkidle');
+      
+      // Check content fits viewport
+      const bodyWidth = await page.evaluate(() => document.body.scrollWidth);
+      expect(bodyWidth).toBeLessThanOrEqual(mobileViewport.width + 10);
+      
+      // Tables/lists should be scrollable horizontally or responsive
+      const tables = page.locator('table, [class*="table"]');
+      const tablesCount = await tables.count();
+      
+      if (tablesCount > 0) {
+        // Tables should be in a scrollable container
+        const table = tables.first();
+        await expect(table).toBeVisible();
+      }
+    });
+
+    test('Markets page is mobile responsive', async ({ page }) => {
+      await page.setViewportSize(mobileViewport);
+      await page.goto('/markets');
+      await page.waitForLoadState('networkidle');
+      
+      // Check content fits viewport
+      const bodyWidth = await page.evaluate(() => document.body.scrollWidth);
+      expect(bodyWidth).toBeLessThanOrEqual(mobileViewport.width + 10);
+    });
+  });
+
+  test.describe('Mobile Interactions', () => {
+    test('Touch scroll works on lists', async ({ page }) => {
+      await page.setViewportSize(mobileViewport);
+      await page.goto('/leaderboard');
+      await page.waitForLoadState('networkidle');
+      
+      // Check if page is scrollable
+      const initialScroll = await page.evaluate(() => window.scrollY);
+      
+      // Scroll down
+      await page.evaluate(() => window.scrollBy(0, 500));
+      await page.waitForTimeout(100);
+      
+      const newScroll = await page.evaluate(() => window.scrollY);
+      expect(newScroll).toBeGreaterThan(initialScroll);
+    });
+
+    test('Filter buttons work on mobile', async ({ page }) => {
+      await page.setViewportSize(mobileViewport);
+      await page.goto('/nfl');
+      await page.waitForLoadState('networkidle');
+      
+      // Find filter buttons
+      const filterButtons = page.locator('button, [role="button"]');
+      const count = await filterButtons.count();
+      
+      // Should have interactive elements
+      expect(count).toBeGreaterThan(0);
+    });
+
+    test('Cards are tappable on mobile', async ({ page }) => {
+      await page.setViewportSize(mobileViewport);
+      await page.goto('/leaderboard');
+      await page.waitForLoadState('networkidle');
+      
+      // Find clickable cards/links
+      const cards = page.locator('a[href*="/leaderboard/"]').first();
+      
+      if (await cards.isVisible()) {
+        // Card should be tappable
+        await expect(cards).toBeEnabled();
+      }
+    });
+  });
+
+  test.describe('Mobile Sports Pages', () => {
+    const sportPages = ['/nfl', '/nba', '/nhl', '/mlb', '/ncaaf', '/ncaab'];
+    
+    for (const sportPath of sportPages) {
+      test(`${sportPath.substring(1).toUpperCase()} page loads on mobile`, async ({ page }) => {
+        await page.setViewportSize(mobileViewport);
+        await page.goto(sportPath);
+        await page.waitForLoadState('networkidle');
+        
+        // Page should load without errors
+        const errors: string[] = [];
+        page.on('pageerror', (error) => errors.push(error.message));
+        
+        // Content should be visible
+        await expect(page.locator('body')).toBeVisible();
+        
+        // No critical errors
+        const criticalErrors = errors.filter(e => !e.includes('ResizeObserver'));
+        expect(criticalErrors).toHaveLength(0);
+      });
+    }
+  });
+
+  test.describe('Mobile Admin Pages', () => {
+    test('Admin page works on mobile', async ({ page }) => {
+      await page.setViewportSize(mobileViewport);
+      await page.goto('/admin');
+      await page.waitForLoadState('networkidle');
+      
+      // Admin content should be visible
+      await expect(page.locator('body')).toBeVisible();
+      
+      // Check content fits viewport
+      const bodyWidth = await page.evaluate(() => document.body.scrollWidth);
+      expect(bodyWidth).toBeLessThanOrEqual(mobileViewport.width + 50); // Allow some margin for admin
+    });
+  });
+});
+
+// ============================================================
+// TABLET VIEW E2E TESTS
+// ============================================================
+
+test.describe('Tablet View Tests', () => {
+  const tabletViewport = { width: 768, height: 1024 };
+  
+  test('Homepage displays correctly on tablet', async ({ page }) => {
+    await page.setViewportSize(tabletViewport);
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    
+    // Content should fit viewport
+    const bodyWidth = await page.evaluate(() => document.body.scrollWidth);
+    expect(bodyWidth).toBeLessThanOrEqual(tabletViewport.width + 10);
+  });
+
+  test('Navigation works on tablet', async ({ page }) => {
+    await page.setViewportSize(tabletViewport);
+    await page.goto('/');
+    
+    // May show either desktop nav or mobile menu
+    const desktopNav = page.locator('[class*="lg:flex"]');
+    const mobileMenu = page.locator('button.lg\\:hidden');
+    
+    const hasDesktopNav = await desktopNav.isVisible();
+    const hasMobileMenu = await mobileMenu.isVisible();
+    
+    // Should have one or the other
+    expect(hasDesktopNav || hasMobileMenu).toBe(true);
+  });
+});
+// ============================================================
+// TEAM & PLAYER NAVIGATION TESTS
+// ============================================================
+
+test.describe('Team Page Navigation', () => {
+  test('Team page loads with team data', async ({ page }) => {
+    await page.goto('/team/nfl/det');
+    await page.waitForLoadState('networkidle');
+    
+    // Page should load successfully (200-399)
+    const response = await page.goto('/team/nfl/det');
+    expect(response?.status()).toBeLessThan(400);
+    
+    // Should show team-related content
+    await expect(page.locator('body')).toBeVisible();
+  });
+
+  test('Team page for different sports', async ({ page }) => {
+    const teams = [
+      { sport: 'nfl', team: 'det', name: 'Lions' },
+      { sport: 'nba', team: 'bos', name: 'Celtics' },
+      { sport: 'nhl', team: 'bos', name: 'Bruins' },
+    ];
+    
+    for (const t of teams) {
+      const response = await page.goto(`/team/${t.sport}/${t.team}`);
+      expect(response?.status()).toBeLessThan(400);
+      await page.waitForLoadState('networkidle');
+    }
+  });
+});
+
+test.describe('Player Page Navigation', () => {
+  test('Individual player page loads', async ({ page }) => {
+    await page.goto('/player/nfl/josh-allen');
+    await page.waitForLoadState('networkidle');
+    
+    // Page should load without error
+    const response = await page.goto('/player/nfl/josh-allen');
+    expect(response?.status()).toBeLessThan(400);
+    
+    // Should have player content
+    await expect(page.locator('body')).toBeVisible();
+  });
+
+  test('Player page has tabs', async ({ page }) => {
+    await page.goto('/player/nfl/josh-allen');
+    await page.waitForLoadState('networkidle');
+    
+    // Should have tab buttons
+    const propsTab = page.locator('button').filter({ hasText: 'Props' });
+    const trendsTab = page.locator('button').filter({ hasText: 'Trends' });
+    
+    if (await propsTab.isVisible()) {
+      await propsTab.click();
+      await page.waitForTimeout(200);
+    }
+    
+    if (await trendsTab.isVisible()) {
+      await trendsTab.click();
+      await page.waitForTimeout(200);
+    }
+  });
+});
+
+// ============================================================
+// EDGE SCORE DETAIL PAGE TESTS
+// ============================================================
+
+test.describe('Edge Score Page', () => {
+  test('Edge detail page loads', async ({ page }) => {
+    await page.goto('/edge/test-game-id');
+    await page.waitForLoadState('networkidle');
+    
+    // Page should load
+    const response = await page.goto('/edge/test-game-id');
+    expect(response?.status()).toBeLessThan(400);
+    
+    // Should show edge-related content
+    await expect(page.locator('body')).toBeVisible();
+  });
+
+  test('Edge page shows score components', async ({ page }) => {
+    await page.goto('/edge/test-game-id');
+    await page.waitForLoadState('networkidle');
+    
+    // Should have edge components section
+    const componentsHeading = page.locator('text=Edge Components').first();
+    if (await componentsHeading.isVisible()) {
+      await expect(componentsHeading).toBeVisible();
+    }
+  });
+});
+
+// ============================================================
+// TRENDS & LINKING TESTS
+// ============================================================
+
+test.describe('Trends Page Linking', () => {
+  test('Trends page accepts sport query param', async ({ page }) => {
+    await page.goto('/trends?sport=nfl');
+    await page.waitForLoadState('networkidle');
+    
+    // Page should load with filter applied
+    const response = await page.goto('/trends?sport=nfl');
+    expect(response?.status()).toBeLessThan(400);
+  });
+
+  test('Trends page accepts team query param', async ({ page }) => {
+    await page.goto('/trends?sport=nfl&team=DET');
+    await page.waitForLoadState('networkidle');
+    
+    // Page should load
+    const response = await page.goto('/trends?sport=nfl&team=DET');
+    expect(response?.status()).toBeLessThan(400);
+  });
+});

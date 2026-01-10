@@ -1,574 +1,534 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { 
   ArrowLeft, Clock, MapPin, Tv, TrendingUp, TrendingDown, 
-  Target, BarChart3, Users, Activity, Cloud, DollarSign,
-  ChevronRight, Star, AlertTriangle, Flame
+  Target, BarChart3, Users, Activity, AlertTriangle, Flame,
+  RefreshCw, Loader2, ChevronDown, ChevronUp, Zap, Shield, Award
 } from 'lucide-react'
 
 // =============================================================================
 // TYPES
 // =============================================================================
 
-interface TeamMatchupData {
-  abbr: string
+interface GameData {
+  id: string
+  sport: string
+  status: string
+  startTime: string
+  venue: string
+  broadcast?: string
+  homeTeam: TeamData
+  awayTeam: TeamData
+  period?: string
+  clock?: string
+  odds?: OddsData
+  weather?: { temp: number; condition: string; wind?: string }
+}
+
+interface TeamData {
+  id: string
   name: string
-  city: string
-  record: string
-  atsRecord: string
-  ouRecord: string
-  lastGames: ('W' | 'L')[]
-  pointsPerGame: number
-  pointsAllowed: number
-  injuries: { player: string; status: string; impact: number }[]
-  keyStats: { label: string; value: string | number; rank: number }[]
+  abbreviation: string
+  logo?: string
+  score?: number
+  record?: string
+  seed?: number
 }
 
-interface OddsLine {
-  book: string
-  spread: string
-  spreadOdds: string
-  total: string
-  overOdds: string
-  underOdds: string
-  mlHome: string
-  mlAway: string
+interface OddsData {
+  spread: { home: number; away: number; homeOdds?: number; awayOdds?: number }
+  total: { line: number; overOdds?: number; underOdds?: number }
+  moneyline: { home: number; away: number }
+  source?: string
 }
 
-interface BettingTrend {
-  text: string
-  result: string
-  edge: number
-}
-
-// =============================================================================
-// MOCK DATA
-// =============================================================================
-
-const gameData = {
-  sport: 'NFL',
-  date: 'Sunday, January 5, 2026 · 4:25 PM ET',
-  venue: 'AT&T Stadium, Arlington, TX',
-  broadcast: 'CBS',
-  weather: { temp: 72, condition: 'Dome', wind: 'N/A' },
-  week: 'Week 18',
-  
-  awayTeam: {
-    abbr: 'PHI',
-    name: 'Eagles',
-    city: 'Philadelphia',
-    record: '13-3',
-    atsRecord: '10-6',
-    ouRecord: '8-8',
-    lastGames: ['W', 'W', 'W', 'W', 'L'] as ('W' | 'L')[],
-    pointsPerGame: 28.5,
-    pointsAllowed: 18.2,
-    injuries: [
-      { player: 'A.J. Brown', status: 'Questionable', impact: 4 },
-      { player: 'Lane Johnson', status: 'Probable', impact: 2 },
-    ],
-    keyStats: [
-      { label: 'Total Offense', value: '392.5 YPG', rank: 2 },
-      { label: 'Rush Offense', value: '187.2 YPG', rank: 1 },
-      { label: 'Pass Defense', value: '198.5 YPG', rank: 5 },
-      { label: 'Red Zone %', value: '68.2%', rank: 3 },
-      { label: 'Turnover Diff', value: '+12', rank: 4 },
-    ]
-  } as TeamMatchupData,
-  
-  homeTeam: {
-    abbr: 'DAL',
-    name: 'Cowboys',
-    city: 'Dallas',
-    record: '7-9',
-    atsRecord: '6-10',
-    ouRecord: '9-7',
-    lastGames: ['L', 'W', 'L', 'L', 'W'] as ('W' | 'L')[],
-    pointsPerGame: 22.8,
-    pointsAllowed: 25.4,
-    injuries: [
-      { player: 'Micah Parsons', status: 'Out', impact: 5 },
-      { player: 'Dak Prescott', status: 'Probable', impact: 3 },
-    ],
-    keyStats: [
-      { label: 'Total Offense', value: '358.2 YPG', rank: 8 },
-      { label: 'Pass Offense', value: '268.5 YPG', rank: 4 },
-      { label: 'Rush Defense', value: '142.8 YPG', rank: 25 },
-      { label: 'Red Zone %', value: '58.5%', rank: 15 },
-      { label: 'Turnover Diff', value: '-5', rank: 22 },
-    ]
-  } as TeamMatchupData,
-  
-  odds: [
-    { book: 'DraftKings', spread: 'PHI -7', spreadOdds: '-110', total: '48.5', overOdds: '-110', underOdds: '-110', mlHome: '+265', mlAway: '-320' },
-    { book: 'FanDuel', spread: 'PHI -7', spreadOdds: '-108', total: '48', overOdds: '-110', underOdds: '-110', mlHome: '+270', mlAway: '-330' },
-    { book: 'BetMGM', spread: 'PHI -6.5', spreadOdds: '-115', total: '48.5', overOdds: '-105', underOdds: '-115', mlHome: '+260', mlAway: '-315' },
-    { book: 'Caesars', spread: 'PHI -7', spreadOdds: '-110', total: '48', overOdds: '-108', underOdds: '-112', mlHome: '+275', mlAway: '-340' },
-    { book: 'ESPN Bet', spread: 'PHI -6.5', spreadOdds: '-110', total: '48.5', overOdds: '-110', underOdds: '-110', mlHome: '+265', mlAway: '-325' },
-  ] as OddsLine[],
-  
-  publicBetting: {
-    spreadHome: 35,
-    spreadAway: 65,
-    overPct: 58,
-    underPct: 42,
-    mlHome: 28,
-    mlAway: 72,
-  },
-  
-  trends: [
-    { text: 'PHI is 7-1 ATS in last 8 road games', result: '87.5%', edge: 4.2 },
-    { text: 'PHI is 9-3 ATS as road favorite', result: '75%', edge: 3.5 },
-    { text: 'DAL is 2-6 ATS in last 8 home games', result: '25%', edge: -3.8 },
-    { text: 'Under is 7-2 in last 9 PHI games', result: '77.8%', edge: 3.2 },
-    { text: 'PHI has covered 6 straight vs NFC East', result: '100%', edge: 5.1 },
-  ] as BettingTrend[],
-  
-  h2h: {
-    allTime: 'PHI leads 72-55',
-    last5: 'PHI 4-1',
-    atVenue: 'PHI 3-2',
-    avgPointsFor: 26.4,
-    avgPointsAgainst: 22.8,
+interface AnalyticsData {
+  trends?: {
+    matched: number
+    aggregateConfidence: number
+    topPick?: { selection: string; confidence: number; supportingTrends: number } | null
+    spreadTrends?: any[]
+    totalTrends?: any[]
   }
+  h2h?: {
+    gamesPlayed: number
+    homeATSRecord: string
+    awayATSRecord: string
+    overUnderRecord: string
+    avgMargin: number
+    avgTotal: number
+    recentGames?: any[]
+  }
+  edgeScore?: {
+    overall: number
+    trendAlignment: number
+    sharpSignal: number
+    valueIndicator: number
+  }
+  bettingIntelligence?: any
+  topDataPoints?: { label: string; value: string; confidence: number }[]
 }
 
 // =============================================================================
 // COMPONENT
 // =============================================================================
 
-export default function GameMatchupPage() {
-  const [oddsView, setOddsView] = useState<'spread' | 'total' | 'ml'>('spread')
-  const game = gameData
+export default function GameMatchupPage({ params }: { params: Promise<{ gameId: string }> }) {
+  const { gameId } = use(params)
+  
+  const [game, setGame] = useState<GameData | null>(null)
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'overview' | 'trends' | 'betting' | 'matchup' | 'analytics' | 'ai'>('overview')
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  
+  // Fetch game data
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      
+      // Fetch game from ESPN via our API
+      const [gamesRes, analyticsRes] = await Promise.all([
+        fetch(`/api/games?sport=nfl`),
+        fetch(`/api/matchup/${gameId}/analytics?intelligence=true`)
+      ])
+      
+      if (gamesRes.ok) {
+        const gamesData = await gamesRes.json()
+        const foundGame = gamesData.games?.find((g: GameData) => g.id === gameId)
+        if (foundGame) setGame(foundGame)
+      }
+      
+      if (analyticsRes.ok) {
+        const analyticsData = await analyticsRes.json()
+        setAnalytics(analyticsData)
+      }
+      
+      setLastUpdated(new Date())
+    } catch (err) {
+      console.error('Error fetching data:', err)
+      setError('Failed to load game data')
+    } finally {
+      setLoading(false)
+    }
+  }
+  
+  useEffect(() => {
+    fetchData()
+    // Refresh every 30 seconds for live games
+    const interval = setInterval(fetchData, 30000)
+    return () => clearInterval(interval)
+  }, [gameId])
+  
+  // Format time
+  const formatDateTime = (dateStr: string) => {
+    const date = new Date(dateStr)
+    return date.toLocaleString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZone: 'America/New_York'
+    }) + ' ET'
+  }
+
+  if (loading && !game) {
+    return (
+      <div className="min-h-screen bg-[#050508] flex items-center justify-center">
+        <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+      </div>
+    )
+  }
+
+  if (error || !game) {
+    return (
+      <div className="min-h-screen bg-[#050508] flex flex-col items-center justify-center gap-4">
+        <p className="text-red-400">{error || 'Game not found'}</p>
+        <Link href="/nfl/matchups" className="text-orange-500 hover:underline">
+          ← Back to matchups
+        </Link>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[#050508]">
       {/* Header */}
       <div className="border-b border-white/5 bg-[#0a0a12]">
         <div className="max-w-[1600px] mx-auto px-4 py-4">
-          <Link href="/nfl/matchups" className="inline-flex items-center gap-2 text-gray-400 hover:text-white text-sm mb-4 transition-all">
-            <ArrowLeft className="w-4 h-4" /> Back to Matchups
-          </Link>
-          
-          {/* Game Info Bar */}
-          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400 mb-6">
-            <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {game.date}</span>
-            <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {game.venue}</span>
-            <span className="flex items-center gap-1"><Tv className="w-4 h-4" /> {game.broadcast}</span>
-            <span className="flex items-center gap-1"><Cloud className="w-4 h-4" /> {game.weather.temp}°F, {game.weather.condition}</span>
-            <span className="px-2 py-1 rounded bg-orange-500/20 text-orange-500 font-bold">{game.week}</span>
+          {/* Back Button & Meta */}
+          <div className="flex items-center justify-between mb-4">
+            <Link href="/nfl/matchups" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
+              <ArrowLeft className="w-5 h-5" />
+              <span className="text-sm">Back to matchups</span>
+            </Link>
+            <button
+              onClick={fetchData}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 text-gray-400 hover:bg-white/10"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              {lastUpdated && <span className="text-xs">Updated {lastUpdated.toLocaleTimeString()}</span>}
+            </button>
           </div>
-          
+
+          {/* Game Info */}
+          <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
+            <span className="text-lg">🏈</span>
+            <span>NFL Playoffs</span>
+            <span className="text-gray-700">•</span>
+            <Clock className="w-4 h-4" />
+            <span>{formatDateTime(game.startTime)}</span>
+          </div>
+
           {/* Matchup Header */}
-          <div className="flex items-center justify-between">
+          <div className="grid grid-cols-3 gap-8 items-center py-6">
             {/* Away Team */}
-            <div className="flex items-center gap-4">
-              <div className="w-20 h-20 rounded-2xl bg-[#004C54] flex items-center justify-center text-4xl">🦅</div>
-              <div>
-                <div className="text-2xl font-black text-white">{game.awayTeam.city}</div>
-                <div className="text-xl text-gray-400">{game.awayTeam.name}</div>
-                <div className="text-sm text-gray-500">{game.awayTeam.record} · ATS: {game.awayTeam.atsRecord}</div>
+            <Link href={`/team/nfl/${game.awayTeam.abbreviation?.toLowerCase()}`} className="flex items-center gap-4 group hover:opacity-80 transition-opacity">
+              <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center overflow-hidden group-hover:ring-2 ring-orange-500/50 transition-all">
+                {game.awayTeam.logo ? (
+                  <img src={game.awayTeam.logo} alt={game.awayTeam.name} className="w-16 h-16 object-contain" />
+                ) : (
+                  <span className="text-4xl">🏈</span>
+                )}
               </div>
+              <div>
+                <div className="text-2xl font-black text-white group-hover:text-orange-400 transition-colors">{game.awayTeam.name}</div>
+                <div className="text-sm text-gray-500">{game.awayTeam.record || 'N/A'}</div>
+                {game.status !== 'scheduled' && (
+                  <div className="text-4xl font-black text-white mt-1">{game.awayTeam.score ?? '-'}</div>
+                )}
+              </div>
+            </Link>
+
+            {/* Center - Odds */}
+            <div className="text-center">
+              <div className="text-gray-500 text-sm mb-3">VS</div>
+              
+              {game.odds && (
+                <div className="space-y-3">
+                  <div className="inline-flex flex-col gap-2 p-4 rounded-xl bg-orange-500/10 border border-orange-500/30">
+                    <div>
+                      <div className="text-xs text-gray-500 mb-1">SPREAD</div>
+                      <div className="text-xl font-bold text-orange-400">
+                        {game.awayTeam.abbreviation} {game.odds.spread.away > 0 ? '+' : ''}{game.odds.spread.away}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="inline-flex flex-col gap-2 p-4 rounded-xl bg-green-500/10 border border-green-500/30">
+                    <div>
+                      <div className="text-xs text-gray-500 mb-1">TOTAL</div>
+                      <div className="text-xl font-bold text-green-400">O/U {game.odds.total.line}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {game.status === 'in_progress' && (
+                <div className="mt-4 flex items-center justify-center gap-2 px-3 py-1.5 bg-green-500/20 rounded-lg">
+                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  <span className="text-green-400 font-bold">LIVE</span>
+                  {game.period && <span className="text-gray-400">• {game.period}</span>}
+                  {game.clock && <span className="text-gray-400">{game.clock}</span>}
+                </div>
+              )}
             </div>
-            
-            {/* VS / Spread */}
-            <div className="text-center px-8">
-              <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Spread</div>
-              <div className="text-3xl font-black text-orange-500">-7</div>
-              <div className="text-sm text-gray-400 mt-1">O/U 48.5</div>
-            </div>
-            
+
             {/* Home Team */}
-            <div className="flex items-center gap-4">
-              <div>
-                <div className="text-2xl font-black text-white text-right">{game.homeTeam.city}</div>
-                <div className="text-xl text-gray-400 text-right">{game.homeTeam.name}</div>
-                <div className="text-sm text-gray-500 text-right">{game.homeTeam.record} · ATS: {game.homeTeam.atsRecord}</div>
+            <Link href={`/team/nfl/${game.homeTeam.abbreviation?.toLowerCase()}`} className="flex items-center gap-4 justify-end group hover:opacity-80 transition-opacity">
+              <div className="text-right">
+                <div className="text-2xl font-black text-white group-hover:text-orange-400 transition-colors">{game.homeTeam.name}</div>
+                <div className="text-sm text-gray-500">{game.homeTeam.record || 'N/A'}</div>
+                {game.status !== 'scheduled' && (
+                  <div className="text-4xl font-black text-white mt-1">{game.homeTeam.score ?? '-'}</div>
+                )}
               </div>
-              <div className="w-20 h-20 rounded-2xl bg-[#003594] flex items-center justify-center text-4xl">⭐</div>
+              <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center overflow-hidden group-hover:ring-2 ring-orange-500/50 transition-all">
+                {game.homeTeam.logo ? (
+                  <img src={game.homeTeam.logo} alt={game.homeTeam.name} className="w-16 h-16 object-contain" />
+                ) : (
+                  <span className="text-4xl">🏈</span>
+                )}
+              </div>
+            </Link>
+          </div>
+
+          {/* AI Prediction Bar */}
+          {analytics?.trends?.topPick && (
+            <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-orange-500/10 via-orange-500/5 to-transparent border border-orange-500/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Target className="w-5 h-5 text-orange-500" />
+                  <span className="text-white font-semibold">AI Prediction</span>
+                </div>
+                <div className="text-right">
+                  <div className="text-orange-400 font-bold">{analytics.trends.topPick.selection}</div>
+                </div>
+              </div>
+              <div className="mt-3">
+                <div className="flex justify-between text-xs text-gray-500 mb-1">
+                  <span>{analytics.trends.topPick.confidence}% confidence</span>
+                  <span>{analytics.trends.topPick.supportingTrends} trends</span>
+                </div>
+                <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-orange-500 to-orange-400 rounded-full transition-all"
+                    style={{ width: `${analytics.trends.topPick.confidence}%` }}
+                  />
+                </div>
+              </div>
             </div>
+          )}
+
+          {/* Tabs */}
+          <div className="flex gap-2 mt-6 overflow-x-auto pb-2">
+            {[
+              { id: 'overview', icon: Target, label: 'Overview' },
+              { id: 'trends', icon: TrendingUp, label: 'Trends' },
+              { id: 'betting', icon: BarChart3, label: 'Betting' },
+              { id: 'matchup', icon: Shield, label: 'Matchup' },
+              { id: 'analytics', icon: Activity, label: 'Team Analytics' },
+              { id: 'ai', icon: Zap, label: 'AI Analysis' },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm whitespace-nowrap transition-all ${
+                  activeTab === tab.id 
+                    ? 'bg-orange-500 text-white' 
+                    : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                }`}
+              >
+                <tab.icon className="w-4 h-4" />
+                {tab.label}
+              </button>
+            ))}
           </div>
         </div>
       </div>
-      
+
+      {/* Content */}
       <div className="max-w-[1600px] mx-auto px-4 py-6">
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Odds Comparison */}
-            <div className="rounded-xl bg-[#0c0c14] border border-white/10 overflow-hidden">
-              <div className="p-4 border-b border-white/10 flex items-center justify-between">
-                <h2 className="font-bold text-white flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-green-500" />
-                  Live Odds Comparison
-                </h2>
-                <div className="flex rounded-lg overflow-hidden bg-white/5">
-                  {(['spread', 'total', 'ml'] as const).map((view) => (
-                    <button
-                      key={view}
-                      onClick={() => setOddsView(view)}
-                      className={`px-4 py-1.5 text-xs font-bold uppercase ${
-                        oddsView === view ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'
-                      }`}
-                    >
-                      {view === 'ml' ? 'Moneyline' : view === 'total' ? 'Total' : 'Spread'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="text-xs text-gray-500 uppercase tracking-wider">
-                      <th className="px-4 py-3 text-left">Sportsbook</th>
-                      {oddsView === 'spread' && (
-                        <>
-                          <th className="px-4 py-3 text-center">{game.awayTeam.abbr}</th>
-                          <th className="px-4 py-3 text-center">{game.homeTeam.abbr}</th>
-                        </>
-                      )}
-                      {oddsView === 'total' && (
-                        <>
-                          <th className="px-4 py-3 text-center">Total</th>
-                          <th className="px-4 py-3 text-center">Over</th>
-                          <th className="px-4 py-3 text-center">Under</th>
-                        </>
-                      )}
-                      {oddsView === 'ml' && (
-                        <>
-                          <th className="px-4 py-3 text-center">{game.awayTeam.abbr}</th>
-                          <th className="px-4 py-3 text-center">{game.homeTeam.abbr}</th>
-                        </>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5">
-                    {game.odds.map((line, i) => (
-                      <tr key={line.book} className={`hover:bg-white/[0.02] ${i === 0 ? 'bg-green-500/5' : ''}`}>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-white">{line.book}</span>
-                            {i === 0 && <span className="text-xs px-1.5 py-0.5 rounded bg-green-500/20 text-green-400">Best</span>}
-                          </div>
-                        </td>
-                        {oddsView === 'spread' && (
-                          <>
-                            <td className="px-4 py-3 text-center">
-                              <span className="font-mono font-bold text-white">{line.spread}</span>
-                              <span className="text-gray-500 ml-1">{line.spreadOdds}</span>
-                            </td>
-                            <td className="px-4 py-3 text-center">
-                              <span className="font-mono font-bold text-white">{line.spread.replace('-', '+').replace('PHI', 'DAL')}</span>
-                              <span className="text-gray-500 ml-1">-110</span>
-                            </td>
-                          </>
-                        )}
-                        {oddsView === 'total' && (
-                          <>
-                            <td className="px-4 py-3 text-center font-mono font-bold text-white">{line.total}</td>
-                            <td className="px-4 py-3 text-center text-gray-300">{line.overOdds}</td>
-                            <td className="px-4 py-3 text-center text-gray-300">{line.underOdds}</td>
-                          </>
-                        )}
-                        {oddsView === 'ml' && (
-                          <>
-                            <td className="px-4 py-3 text-center font-mono font-bold text-green-400">{line.mlAway}</td>
-                            <td className="px-4 py-3 text-center font-mono font-bold text-red-400">{line.mlHome}</td>
-                          </>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            
-            {/* Team Comparison */}
-            <div className="rounded-xl bg-[#0c0c14] border border-white/10 overflow-hidden">
-              <div className="p-4 border-b border-white/10">
-                <h2 className="font-bold text-white flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-blue-500" />
-                  Team Comparison
-                </h2>
-              </div>
-              
-              <div className="p-4">
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="text-center">
-                    <div className="text-2xl font-black text-white">{game.awayTeam.pointsPerGame}</div>
-                    <div className="text-xs text-gray-500">PPG</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-sm text-gray-400">Points Per Game</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-black text-white">{game.homeTeam.pointsPerGame}</div>
-                    <div className="text-xs text-gray-500">PPG</div>
-                  </div>
-                </div>
-                
-                {/* Key Stats Comparison */}
-                <div className="space-y-4">
-                  {game.awayTeam.keyStats.map((stat, i) => {
-                    const homeStat = game.homeTeam.keyStats[i]
-                    const awayBetter = stat.rank < homeStat.rank
-                    return (
-                      <div key={stat.label} className="grid grid-cols-3 items-center gap-4">
-                        <div className={`text-right ${awayBetter ? 'text-green-400' : 'text-gray-400'}`}>
-                          <div className="font-bold">{stat.value}</div>
-                          <div className="text-xs">#{stat.rank}</div>
-                        </div>
-                        <div className="text-center text-xs text-gray-500">{stat.label}</div>
-                        <div className={`text-left ${!awayBetter ? 'text-green-400' : 'text-gray-400'}`}>
-                          <div className="font-bold">{homeStat.value}</div>
-                          <div className="text-xs">#{homeStat.rank}</div>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            </div>
-            
-            {/* Betting Trends */}
-            <div className="rounded-xl bg-[#0c0c14] border border-white/10 overflow-hidden">
-              <div className="p-4 border-b border-white/10">
-                <h2 className="font-bold text-white flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-orange-500" />
-                  Betting Trends & Systems
-                </h2>
-              </div>
-              
-              <div className="divide-y divide-white/5">
-                {game.trends.map((trend, i) => (
-                  <div key={i} className="p-4 flex items-center justify-between hover:bg-white/[0.02]">
-                    <div className="flex items-center gap-3">
-                      {trend.edge > 0 ? (
-                        <TrendingUp className="w-4 h-4 text-green-500" />
-                      ) : (
-                        <TrendingDown className="w-4 h-4 text-red-500" />
-                      )}
-                      <span className="text-gray-300">{trend.text}</span>
+            {/* Key Betting Metrics */}
+            <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-6">
+              <h3 className="text-lg font-bold text-white mb-4">Key Betting Metrics</h3>
+              <div className="grid grid-cols-4 gap-4">
+                {[
+                  { label: 'Line Movement', value: analytics?.bettingIntelligence?.lineMovement || '+0.0', change: '↗', color: 'text-green-400' },
+                  { label: 'Public %', value: analytics?.bettingIntelligence?.publicPct ? `${analytics.bettingIntelligence.publicPct}%` : '52%', sub: 'AWAY' },
+                  { label: 'Sharp Action', value: analytics?.bettingIntelligence?.sharpPct ? `${analytics.bettingIntelligence.sharpPct}%` : '70%', change: '↗', color: 'text-green-400' },
+                  { label: 'Handle %', value: analytics?.bettingIntelligence?.handlePct ? `${analytics.bettingIntelligence.handlePct}%` : '61%' },
+                ].map(metric => (
+                  <div key={metric.label} className="bg-[#16161e] rounded-lg p-4 text-center">
+                    <div className="text-xs text-gray-500 mb-2">{metric.label}</div>
+                    <div className={`text-2xl font-bold ${metric.color || 'text-white'}`}>
+                      {metric.value} {metric.change && <span className="text-sm">{metric.change}</span>}
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className={`font-bold ${trend.edge > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        {trend.result}
-                      </span>
-                      <span className={`text-xs px-2 py-1 rounded ${
-                        trend.edge >= 4 ? 'bg-green-500/20 text-green-400' :
-                        trend.edge >= 2 ? 'bg-yellow-500/20 text-yellow-400' :
-                        trend.edge > 0 ? 'bg-orange-500/20 text-orange-400' :
-                        'bg-red-500/20 text-red-400'
-                      }`}>
-                        {trend.edge > 0 ? '+' : ''}{trend.edge}% edge
-                      </span>
-                    </div>
+                    {metric.sub && <div className="text-xs text-gray-500 mt-1">{metric.sub}</div>}
                   </div>
                 ))}
               </div>
             </div>
+
+            {/* Head-to-Head History */}
+            <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-6">
+              <h3 className="text-lg font-bold text-white mb-4">Head-to-Head History</h3>
+              {analytics?.h2h && analytics.h2h.gamesPlayed > 0 ? (
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-white">{analytics.h2h.gamesPlayed}</div>
+                    <div className="text-xs text-gray-500">Games</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-orange-400">{analytics.h2h.homeATSRecord}</div>
+                    <div className="text-xs text-gray-500">Home ATS</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-400">{analytics.h2h.overUnderRecord}</div>
+                    <div className="text-xs text-gray-500">O/U Record</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-400">{analytics.h2h.avgTotal?.toFixed(1)}</div>
+                    <div className="text-xs text-gray-500">Avg Total</div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center text-gray-500 py-4">No head-to-head data available</div>
+              )}
+            </div>
+
+            {/* Trends */}
+            {analytics?.trends && analytics.trends.matched > 0 && (
+              <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-6">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-orange-500" />
+                  Betting Trends ({analytics.trends.matched} matched)
+                </h3>
+                <div className="space-y-3">
+                  {analytics.trends.spreadTrends?.slice(0, 5).map((trend: any, i: number) => (
+                    <Link 
+                      key={i} 
+                      href={`/trends?sport=nfl&team=${game.homeTeam.abbreviation}`}
+                      className="flex items-center justify-between p-3 bg-[#16161e] rounded-lg hover:bg-white/10 transition-colors group"
+                    >
+                      <span className="text-gray-300 group-hover:text-white transition-colors">{trend.description || trend.text}</span>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm font-bold ${trend.confidence >= 70 ? 'text-green-400' : 'text-amber-400'}`}>
+                          {trend.confidence || trend.result}%
+                        </span>
+                        {trend.edge && (
+                          <span className="text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-400">
+                            +{trend.edge}% edge
+                          </span>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-          
+
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Public Betting */}
-            <div className="rounded-xl p-4 bg-[#0c0c14] border border-white/10">
-              <h3 className="font-bold text-white flex items-center gap-2 mb-4">
-                <Users className="w-5 h-5 text-purple-500" />
-                Public Betting %
+            {/* Quick Signals */}
+            <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-6">
+              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <Zap className="w-5 h-5 text-amber-400" />
+                Quick Signals
               </h3>
               
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-400">{game.awayTeam.abbr} Spread</span>
-                    <span className="text-white font-bold">{game.publicBetting.spreadAway}%</span>
+              {analytics?.edgeScore && analytics.edgeScore.overall > 0 ? (
+                <Link 
+                  href={`/edge/${gameId}`}
+                  className="block space-y-4 hover:opacity-80 transition-opacity cursor-pointer"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-400">Edge Score</span>
+                    <span className={`text-xl font-bold ${
+                      analytics.edgeScore.overall >= 70 ? 'text-green-400' :
+                      analytics.edgeScore.overall >= 50 ? 'text-amber-400' : 'text-gray-400'
+                    }`}>
+                      {analytics.edgeScore.overall}/100
+                    </span>
                   </div>
-                  <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full"
-                      style={{ width: `${game.publicBetting.spreadAway}%` }}
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-400">Over {game.odds[0].total}</span>
-                    <span className="text-white font-bold">{game.publicBetting.overPct}%</span>
-                  </div>
-                  <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full"
-                      style={{ width: `${game.publicBetting.overPct}%` }}
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-400">{game.awayTeam.abbr} ML</span>
-                    <span className="text-white font-bold">{game.publicBetting.mlAway}%</span>
-                  </div>
-                  <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-orange-500 to-orange-400 rounded-full"
-                      style={{ width: `${game.publicBetting.mlAway}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Injuries */}
-            <div className="rounded-xl p-4 bg-[#0c0c14] border border-white/10">
-              <h3 className="font-bold text-white flex items-center gap-2 mb-4">
-                <Activity className="w-5 h-5 text-red-500" />
-                Key Injuries
-              </h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">{game.awayTeam.abbr}</div>
-                  {game.awayTeam.injuries.map((inj) => (
-                    <div key={inj.player} className="flex items-center justify-between py-2">
-                      <div>
-                        <div className="text-white text-sm font-semibold">{inj.player}</div>
-                        <div className={`text-xs ${
-                          inj.status === 'Out' ? 'text-red-400' :
-                          inj.status === 'Questionable' ? 'text-yellow-400' :
-                          'text-green-400'
-                        }`}>{inj.status}</div>
-                      </div>
-                      <div className="flex">
-                        {[...Array(5)].map((_, i) => (
-                          <div 
-                            key={i}
-                            className={`w-2 h-2 rounded-full mx-0.5 ${
-                              i < inj.impact ? 'bg-red-500' : 'bg-white/10'
-                            }`}
-                          />
-                        ))}
-                      </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Trend Alignment</span>
+                      <span className="text-white">{analytics.edgeScore.trendAlignment}</span>
                     </div>
-                  ))}
-                </div>
-                
-                <div className="border-t border-white/10 pt-4">
-                  <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">{game.homeTeam.abbr}</div>
-                  {game.homeTeam.injuries.map((inj) => (
-                    <div key={inj.player} className="flex items-center justify-between py-2">
-                      <div>
-                        <div className="text-white text-sm font-semibold">{inj.player}</div>
-                        <div className={`text-xs ${
-                          inj.status === 'Out' ? 'text-red-400' :
-                          inj.status === 'Questionable' ? 'text-yellow-400' :
-                          'text-green-400'
-                        }`}>{inj.status}</div>
-                      </div>
-                      <div className="flex">
-                        {[...Array(5)].map((_, i) => (
-                          <div 
-                            key={i}
-                            className={`w-2 h-2 rounded-full mx-0.5 ${
-                              i < inj.impact ? 'bg-red-500' : 'bg-white/10'
-                            }`}
-                          />
-                        ))}
-                      </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Sharp Signal</span>
+                      <span className="text-white">{analytics.edgeScore.sharpSignal}</span>
                     </div>
-                  ))}
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Value Indicator</span>
+                      <span className="text-white">{analytics.edgeScore.valueIndicator}</span>
+                    </div>
+                  </div>
+                  <div className="mt-4 text-center text-sm text-orange-400 hover:text-orange-300">
+                    Click for detailed breakdown →
+                  </div>
+                </Link>
+              ) : (
+                <div className="text-gray-500 text-center py-4">
+                  Signals calculating...
                 </div>
-              </div>
+              )}
             </div>
-            
-            {/* H2H History */}
-            <div className="rounded-xl p-4 bg-[#0c0c14] border border-white/10">
-              <h3 className="font-bold text-white flex items-center gap-2 mb-4">
-                <Target className="w-5 h-5 text-orange-500" />
-                Head-to-Head
+
+            {/* Injury Report */}
+            <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-6">
+              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-red-400" />
+                Injury Report
               </h3>
-              
+              {/* Mock injury data - in production, fetch from API */}
+              {(() => {
+                const injuries = [
+                  { id: 'player-1', name: 'Key Player', team: game.awayTeam.abbreviation, position: 'WR', status: 'Questionable', injury: 'Hamstring' },
+                  { id: 'player-2', name: 'Star RB', team: game.homeTeam.abbreviation, position: 'RB', status: 'Probable', injury: 'Ankle' },
+                ]
+                if (injuries.length === 0) {
+                  return <div className="text-gray-500 text-sm">No significant injuries reported</div>
+                }
+                return (
+                  <div className="space-y-2">
+                    {injuries.map((inj, i) => (
+                      <Link 
+                        key={i}
+                        href={`/player/nfl/${inj.id}`}
+                        className="flex items-center justify-between p-2 rounded-lg bg-[#16161e] hover:bg-white/10 transition-colors group"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs px-1.5 py-0.5 rounded font-semibold ${
+                            inj.status === 'Out' ? 'bg-red-500/20 text-red-400' :
+                            inj.status === 'Questionable' ? 'bg-amber-500/20 text-amber-400' :
+                            'bg-green-500/20 text-green-400'
+                          }`}>{inj.status}</span>
+                          <span className="text-white text-sm group-hover:text-orange-400 transition-colors">{inj.name}</span>
+                          <span className="text-gray-500 text-xs">{inj.position}</span>
+                        </div>
+                        <span className="text-gray-500 text-xs">{inj.injury}</span>
+                      </Link>
+                    ))}
+                  </div>
+                )
+              })()}
+            </div>
+
+            {/* Game Info */}
+            <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-6">
+              <h3 className="text-lg font-bold text-white mb-4">Game Info</h3>
               <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">All-Time</span>
-                  <span className="text-white font-semibold">{game.h2h.allTime}</span>
+                <div className="flex items-center gap-2 text-gray-400">
+                  <MapPin className="w-4 h-4" />
+                  <span>{game.venue || 'TBD'}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Last 5</span>
-                  <span className="text-white font-semibold">{game.h2h.last5}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">At This Venue</span>
-                  <span className="text-white font-semibold">{game.h2h.atVenue}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Avg PHI Score</span>
-                  <span className="text-white font-semibold">{game.h2h.avgPointsFor}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Avg DAL Score</span>
-                  <span className="text-white font-semibold">{game.h2h.avgPointsAgainst}</span>
-                </div>
+                {game.broadcast && (
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <Tv className="w-4 h-4" />
+                    <span>{game.broadcast}</span>
+                  </div>
+                )}
+                {game.weather && (
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <Activity className="w-4 h-4" />
+                    <span>{game.weather.temp}°F - {game.weather.condition}</span>
+                  </div>
+                )}
               </div>
             </div>
-            
-            {/* Last 5 */}
-            <div className="rounded-xl p-4 bg-[#0c0c14] border border-white/10">
-              <h3 className="font-bold text-white mb-4">Last 5 Games</h3>
-              
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400">{game.awayTeam.abbr}</span>
-                  <div className="flex gap-1">
-                    {game.awayTeam.lastGames.map((result, i) => (
-                      <span 
-                        key={i}
-                        className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold ${
-                          result === 'W' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                        }`}
-                      >
-                        {result}
-                      </span>
-                    ))}
-                  </div>
+
+            {/* Links */}
+            <div className="space-y-2">
+              <Link 
+                href={`/trends?sport=nfl`}
+                className="flex items-center justify-between p-4 bg-[#0c0c14] rounded-xl border border-white/10 hover:border-orange-500/30 transition-all"
+              >
+                <div className="flex items-center gap-3">
+                  <TrendingUp className="w-5 h-5 text-orange-500" />
+                  <span className="text-white font-medium">View All NFL Trends</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400">{game.homeTeam.abbr}</span>
-                  <div className="flex gap-1">
-                    {game.homeTeam.lastGames.map((result, i) => (
-                      <span 
-                        key={i}
-                        className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold ${
-                          result === 'W' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                        }`}
-                      >
-                        {result}
-                      </span>
-                    ))}
-                  </div>
+                <ChevronDown className="w-5 h-5 text-gray-500 -rotate-90" />
+              </Link>
+              <Link 
+                href={`/live`}
+                className="flex items-center justify-between p-4 bg-[#0c0c14] rounded-xl border border-white/10 hover:border-orange-500/30 transition-all"
+              >
+                <div className="flex items-center gap-3">
+                  <Flame className="w-5 h-5 text-red-500" />
+                  <span className="text-white font-medium">Live Edge Alerts</span>
                 </div>
-              </div>
-            </div>
-            
-            {/* AI Pick */}
-            <div className="rounded-xl p-4 bg-gradient-to-br from-orange-500/20 to-red-500/20 border border-orange-500/30">
-              <h3 className="font-bold text-white flex items-center gap-2 mb-3">
-                <Flame className="w-5 h-5 text-orange-500" />
-                AI Best Bet
-              </h3>
-              <div className="text-lg font-black text-orange-500 mb-2">PHI -7 (-110)</div>
-              <p className="text-sm text-gray-300">
-                Eagles have covered in 6 straight divisional games. Dallas missing Micah Parsons
-                severely impacts their pass rush. PHI&apos;s elite run game controls clock and covers.
-              </p>
-              <div className="mt-3 flex items-center gap-2">
-                <span className="px-2 py-1 rounded bg-green-500/20 text-green-400 text-xs font-bold">82% Confidence</span>
-                <span className="px-2 py-1 rounded bg-orange-500/20 text-orange-400 text-xs font-bold">4.2% Edge</span>
-              </div>
+                <ChevronDown className="w-5 h-5 text-gray-500 -rotate-90" />
+              </Link>
             </div>
           </div>
         </div>

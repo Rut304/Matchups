@@ -271,7 +271,7 @@ export default function NHLGoalieAnalysisPage() {
               <Link href="/nhl" className="px-3 py-2 rounded-lg bg-white/5 text-gray-400 text-sm hover:bg-white/10 hover:text-white transition-all">
                 Team Stats →
               </Link>
-              <Link href="/nhl/players" className="px-3 py-2 rounded-lg bg-white/5 text-gray-400 text-sm hover:bg-white/10 hover:text-white transition-all">
+              <Link href="/nhl/skaters" className="px-3 py-2 rounded-lg bg-white/5 text-gray-400 text-sm hover:bg-white/10 hover:text-white transition-all">
                 Skater Stats →
               </Link>
             </div>

@@ -28,8 +28,10 @@ import {
   Newspaper,
   Calendar,
   Shield,
-  Eye
+  Eye,
+  Loader2
 } from 'lucide-react'
+import { fetchEdgeSignals, fetchNewsEvents, type EdgeSignal, type NewsEvent } from '@/lib/services/edge-service'
 
 /**
  * THE EDGE - AI-Powered Prediction Market Analytics
@@ -40,174 +42,9 @@ import {
  * 3. News Correlation Tracking (Information Aggregation)
  * 4. Cross-Platform Arbitrage (Efficient Market Hypothesis)
  * 5. Time Preference Exploitation (Long-dated market bias)
+ * 
+ * Data Sources: Polymarket API (live), Kalshi API (when available)
  */
-
-// Mock data structure for live edges
-interface EdgeSignal {
-  id: string
-  type: 'bias' | 'volume' | 'news' | 'arbitrage' | 'time'
-  market: string
-  platform: 'polymarket' | 'kalshi'
-  currentPrice: number
-  fairValue: number  // Our estimated fair value
-  edge: number       // Difference
-  confidence: number
-  signal: 'buy' | 'sell' | 'watch'
-  reason: string
-  evidence: string
-  newsCorrelation?: string
-  lastUpdated: string
-  category: string
-  volume24h: number
-  expiresAt?: string
-}
-
-interface NewsEvent {
-  id: string
-  headline: string
-  source: string
-  timestamp: string
-  impactedMarkets: string[]
-  sentiment: 'positive' | 'negative' | 'neutral'
-  expectedImpact: string
-}
-
-// Mock edge signals - in production would come from API analysis
-const mockEdgeSignals: EdgeSignal[] = [
-  {
-    id: '1',
-    type: 'bias',
-    market: 'Trump wins 2028 Republican Primary',
-    platform: 'polymarket',
-    currentPrice: 8,
-    fairValue: 4.5,
-    edge: 3.5,
-    confidence: 78,
-    signal: 'sell',
-    reason: 'Favorite-Longshot Bias Detected',
-    evidence: 'Market prices at 8% but historical analysis of early primary markets shows 3%+ overpricing for frontrunners 2+ years out. Page & Clemen (2013) documented this bias at extreme probabilities.',
-    lastUpdated: '2 min ago',
-    category: 'Politics',
-    volume24h: 2400000,
-    expiresAt: 'Nov 2028'
-  },
-  {
-    id: '2',
-    type: 'volume',
-    market: 'Fed Cuts Rates in January 2026',
-    platform: 'kalshi',
-    currentPrice: 12,
-    fairValue: 18,
-    edge: -6,
-    confidence: 72,
-    signal: 'buy',
-    reason: 'Smart Money Volume Spike',
-    evidence: '340% volume increase in last 4 hours without corresponding news. Pattern matches informed trading before FOMC announcements historically.',
-    lastUpdated: '8 min ago',
-    category: 'Economics',
-    volume24h: 890000,
-    expiresAt: 'Jan 29, 2026'
-  },
-  {
-    id: '3',
-    type: 'news',
-    market: 'Ukraine Ceasefire by March 2026',
-    platform: 'polymarket',
-    currentPrice: 24,
-    fairValue: 32,
-    edge: -8,
-    confidence: 68,
-    signal: 'buy',
-    reason: 'Lagging News Integration',
-    evidence: 'Market slow to integrate Reuters report on peace talks resumption (12:45 PM ET). Similar patterns historically resolved within 4-6 hours.',
-    newsCorrelation: 'Reuters: "Ukraine-Russia officials resume Geneva talks"',
-    lastUpdated: '23 min ago',
-    category: 'World Events',
-    volume24h: 1200000,
-    expiresAt: 'Mar 31, 2026'
-  },
-  {
-    id: '4',
-    type: 'time',
-    market: 'Bitcoin above $200k by Dec 2026',
-    platform: 'polymarket',
-    currentPrice: 52,
-    fairValue: 38,
-    edge: 14,
-    confidence: 65,
-    signal: 'sell',
-    reason: 'Time Preference Bias',
-    evidence: 'Long-dated crypto markets biased toward 50%. Historical analysis shows crypto price predictions regress 15-20% toward base rate over 12+ month horizons.',
-    lastUpdated: '45 min ago',
-    category: 'Crypto',
-    volume24h: 3100000,
-    expiresAt: 'Dec 31, 2026'
-  },
-  {
-    id: '5',
-    type: 'arbitrage',
-    market: 'Super Bowl Champion 2026',
-    platform: 'polymarket',
-    currentPrice: 18,
-    fairValue: 18,
-    edge: 0,
-    confidence: 85,
-    signal: 'watch',
-    reason: 'Cross-Platform Efficiency',
-    evidence: 'Polymarket (18%) and Kalshi (17.5%) within spread. Vegas implied odds at 16%. Market efficiently priced.',
-    lastUpdated: '5 min ago',
-    category: 'Sports',
-    volume24h: 4500000,
-    expiresAt: 'Feb 2026'
-  },
-  {
-    id: '6',
-    type: 'bias',
-    market: 'Recession declared in 2026',
-    platform: 'kalshi',
-    currentPrice: 15,
-    fairValue: 22,
-    edge: -7,
-    confidence: 71,
-    signal: 'buy',
-    reason: 'Underpriced Tail Risk',
-    evidence: 'Market historically underprices negative economic outcomes. Current pricing implies 15% but macro indicators suggest 20-25% base rate.',
-    lastUpdated: '1 hr ago',
-    category: 'Economics',
-    volume24h: 780000,
-    expiresAt: 'Dec 31, 2026'
-  }
-]
-
-const mockNewsEvents: NewsEvent[] = [
-  {
-    id: '1',
-    headline: 'Fed Chair signals data-dependent approach ahead of next FOMC meeting',
-    source: 'WSJ',
-    timestamp: '14 min ago',
-    impactedMarkets: ['Fed Cuts Rates in January 2026', 'Recession declared in 2026'],
-    sentiment: 'neutral',
-    expectedImpact: 'Moderate - Markets may reprice rate cut probability'
-  },
-  {
-    id: '2',
-    headline: 'Reuters: Diplomatic officials resume multilateral trade negotiations',
-    source: 'Reuters',
-    timestamp: '28 min ago',
-    impactedMarkets: ['Ukraine Ceasefire by March 2026'],
-    sentiment: 'positive',
-    expectedImpact: 'High - Related markets lagging expected 5-10% move'
-  },
-  {
-    id: '3',
-    headline: 'NFL: Key injury updates ahead of playoff weekend',
-    source: 'ESPN',
-    timestamp: '1 hr ago',
-    impactedMarkets: ['Super Bowl champion market'],
-    sentiment: 'neutral',
-    expectedImpact: 'Low - Markets efficiently priced'
-  }
-]
 
 // Historical backtest results for our edge strategies
 const backtestResults = {
@@ -229,24 +66,52 @@ export default function EdgePage() {
   const [filter, setFilter] = useState<'all' | 'buy' | 'sell' | 'watch'>('all')
   const [typeFilter, setTypeFilter] = useState<'all' | 'bias' | 'volume' | 'news' | 'arbitrage' | 'time'>('all')
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [lastRefresh, setLastRefresh] = useState(new Date())
+  const [edgeSignals, setEdgeSignals] = useState<EdgeSignal[]>([])
+  const [newsEvents, setNewsEvents] = useState<NewsEvent[]>([])
+  const [isLiveData, setIsLiveData] = useState(false)
+
+  // Fetch real data on mount
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  const loadData = async () => {
+    setIsLoading(true)
+    try {
+      const [signals, news] = await Promise.all([
+        fetchEdgeSignals(20),
+        fetchNewsEvents()
+      ])
+      setEdgeSignals(signals)
+      setNewsEvents(news)
+      setIsLiveData(signals.length > 0 && signals[0].lastUpdated === 'Live')
+    } catch (error) {
+      console.error('Error loading edge data:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const handleRefresh = async () => {
     setIsRefreshing(true)
-    await new Promise(r => setTimeout(r, 1500))
+    await loadData()
     setLastRefresh(new Date())
     setIsRefreshing(false)
   }
 
-  const filteredSignals = mockEdgeSignals.filter(s => {
+  const filteredSignals = edgeSignals.filter(s => {
     if (filter !== 'all' && s.signal !== filter) return false
     if (typeFilter !== 'all' && s.type !== typeFilter) return false
     return true
   })
 
-  const buySignals = mockEdgeSignals.filter(s => s.signal === 'buy').length
-  const sellSignals = mockEdgeSignals.filter(s => s.signal === 'sell').length
-  const avgConfidence = Math.round(mockEdgeSignals.reduce((a, s) => a + s.confidence, 0) / mockEdgeSignals.length)
+  const buySignals = edgeSignals.filter(s => s.signal === 'buy').length
+  const sellSignals = edgeSignals.filter(s => s.signal === 'sell').length
+  const avgConfidence = edgeSignals.length > 0 
+    ? Math.round(edgeSignals.reduce((a, s) => a + s.confidence, 0) / edgeSignals.length)
+    : 0
 
   return (
     <div className="min-h-screen pt-20 pb-12 bg-[#050508]">
@@ -313,7 +178,7 @@ export default function EdgePage() {
               <Newspaper className="w-4 h-4 text-orange-400" />
               <span className="text-xs text-gray-400">News Alerts</span>
             </div>
-            <div className="text-2xl font-black text-orange-400">{mockNewsEvents.length}</div>
+            <div className="text-2xl font-black text-orange-400">{newsEvents.length}</div>
           </div>
         </div>
 
@@ -459,7 +324,7 @@ export default function EdgePage() {
               </div>
               
               <div className="space-y-3">
-                {mockNewsEvents.map((event) => (
+                {newsEvents.map((event) => (
                   <div key={event.id} className="p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-all">
                     <div className="flex items-start gap-2 mb-2">
                       <span className={`w-2 h-2 rounded-full mt-1.5 ${

@@ -1035,7 +1035,7 @@ export default function NBAPlayerStatsPage() {
             <div className="rounded-xl border border-white/10 p-5" style={{ background: 'rgba(255,255,255,0.02)' }}>
               <h3 className="text-sm font-bold text-white mb-4">Quick Links</h3>
               <div className="space-y-2">
-                <Link href="/nba/matchups" className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                <Link href="/scores?sport=nba" className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
                   <span className="text-sm text-white">Today&apos;s Matchups</span>
                   <ChevronDown className="w-4 h-4 text-gray-400 rotate-[-90deg]" />
                 </Link>

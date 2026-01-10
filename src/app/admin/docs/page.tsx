@@ -1,56 +1,254 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Server, GitBranch, Layers, Database, Globe, Zap } from 'lucide-react'
+import { 
+  ArrowLeft, Server, GitBranch, Layers, Database, Globe, Zap, 
+  Users, BarChart3, Activity, Shield, Clock, Code, RefreshCw,
+  CheckCircle, Play, Workflow, BookOpen, ExternalLink, Copy
+} from 'lucide-react'
 
 export default function AdminDocsPage() {
+  const [copiedCommand, setCopiedCommand] = useState<string | null>(null)
+  
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text)
+    setCopiedCommand(id)
+    setTimeout(() => setCopiedCommand(null), 2000)
+  }
+
   return (
     <div className="min-h-screen" style={{ background: '#050508' }}>
       {/* Header */}
       <section className="border-b" style={{ borderColor: 'rgba(255,255,255,0.06)', background: '#0a0a12' }}>
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Link href="/admin" className="flex items-center gap-2 text-sm mb-4" style={{ color: '#808090' }}>
             <ArrowLeft style={{ width: '16px', height: '16px' }} />
             Back to Admin
           </Link>
-          <h1 className="text-3xl font-black" style={{ color: '#FFF' }}>📄 Documentation</h1>
-          <p style={{ color: '#808090' }}>Infrastructure, workflow, and technical reference</p>
+          <h1 className="text-3xl font-black" style={{ color: '#FFF' }}>📄 Matchups Documentation</h1>
+          <p style={{ color: '#808090' }}>Complete technical reference, workflow diagrams, and system architecture</p>
         </div>
       </section>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* Table of Contents */}
+        <div className="rounded-2xl p-6 mb-8" style={{ background: '#0c0c14', border: '1px solid rgba(255,107,0,0.3)' }}>
+          <div className="flex items-center gap-2 mb-4">
+            <BookOpen style={{ color: '#FF6B00', width: '24px', height: '24px' }} />
+            <h2 className="text-xl font-bold" style={{ color: '#FFF' }}>Table of Contents</h2>
+          </div>
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
+            {[
+              { label: '🌐 Production URL', href: '#production' },
+              { label: '🏗️ System Architecture', href: '#architecture' },
+              { label: '📊 Data Flow Diagram', href: '#dataflow' },
+              { label: '💾 Database Schema', href: '#database' },
+              { label: '📁 Project Structure', href: '#structure' },
+              { label: '🔌 API & Data Sources', href: '#apis' },
+              { label: '✨ Features Overview', href: '#features' },
+              { label: '⚙️ Tech Stack', href: '#techstack' },
+              { label: '🚀 Deployment', href: '#deployment' },
+            ].map(item => (
+              <a key={item.href} href={item.href} 
+                 className="px-4 py-2 rounded-lg text-sm hover:bg-white/5 transition-colors"
+                 style={{ background: 'rgba(255,255,255,0.02)', color: '#A0A0B0' }}>
+                {item.label}
+              </a>
+            ))}
+          </div>
+        </div>
+        
         {/* Production URL */}
-        <div className="rounded-2xl p-6 mb-8" style={{ background: '#0c0c14', border: '1px solid rgba(0,255,136,0.3)' }}>
+        <div id="production" className="rounded-2xl p-6 mb-8" style={{ background: '#0c0c14', border: '1px solid rgba(0,255,136,0.3)' }}>
           <div className="flex items-center gap-2 mb-4">
             <Globe style={{ color: '#00FF88', width: '24px', height: '24px' }} />
-            <h2 className="text-xl font-bold" style={{ color: '#FFF' }}>Production URL</h2>
+            <h2 className="text-xl font-bold" style={{ color: '#FFF' }}>🌐 Production URL</h2>
           </div>
           <div className="p-4 rounded-lg font-mono text-lg" style={{ background: 'rgba(0,255,136,0.1)' }}>
-            <a href="https://matchups-rut304s-projects.vercel.app" target="_blank" rel="noopener noreferrer"
-               style={{ color: '#00FF88' }}>
-              https://matchups-rut304s-projects.vercel.app
+            <a href="https://matchups-eta.vercel.app" target="_blank" rel="noopener noreferrer"
+               className="flex items-center gap-2" style={{ color: '#00FF88' }}>
+              https://matchups-eta.vercel.app
+              <ExternalLink className="w-4 h-4" />
             </a>
           </div>
           <p className="mt-3 text-sm" style={{ color: '#808090' }}>
-            This is the permanent Vercel subdomain until a custom domain is configured.
+            Deployed on Vercel Edge Network with automatic CI/CD from GitHub.
           </p>
         </div>
 
-        {/* Infrastructure Overview */}
-        <div className="rounded-2xl p-6 mb-8" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
+        {/* System Architecture Flowchart */}
+        <div id="architecture" className="rounded-2xl p-6 mb-8" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
           <div className="flex items-center gap-2 mb-6">
-            <Server style={{ color: '#FF6B00', width: '24px', height: '24px' }} />
-            <h2 className="text-xl font-bold" style={{ color: '#FFF' }}>Infrastructure Stack</h2>
+            <Workflow style={{ color: '#FF6B00', width: '24px', height: '24px' }} />
+            <h2 className="text-xl font-bold" style={{ color: '#FFF' }}>🏗️ System Architecture Flowchart</h2>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="p-4 rounded-xl font-mono text-xs sm:text-sm overflow-x-auto" style={{ background: 'rgba(255,255,255,0.02)' }}>
+            <pre style={{ color: '#A0A0B0' }}>
+{`
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                              MATCHUPS SYSTEM ARCHITECTURE                                │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+
+                              ┌─────────────────────┐
+                              │    USER BROWSER     │
+                              │  (Mobile/Desktop)   │
+                              └──────────┬──────────┘
+                                         │
+                                         │ HTTPS Request
+                                         ▼
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                                   VERCEL EDGE NETWORK                                    │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐   │
+│  │   CDN Cache     │  │   Edge Runtime  │  │  ISR Rendering  │  │ Image Optimizer │   │
+│  │  (Static SSG)   │  │  (SSR/API)      │  │  (Incremental)  │  │   (next/image)  │   │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  └─────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+                                         │
+                        ┌────────────────┴────────────────┐
+                        │                                  │
+                        ▼                                  ▼
+┌─────────────────────────────────────┐    ┌─────────────────────────────────────┐
+│         NEXT.JS APP ROUTER          │    │          EXTERNAL APIS              │
+│  ┌───────────────────────────────┐  │    │  ┌───────────────────────────────┐  │
+│  │     Server Components        │  │    │  │     ESPN Sports API           │  │
+│  │  • Data fetching at edge     │  │    │  │  • Live game scores           │  │
+│  │  • SEO optimized rendering   │  │    │  │  • Schedules & standings      │  │
+│  │  • No client JS overhead     │  │    │  │  • Team/player data           │  │
+│  └───────────────────────────────┘  │    │  └───────────────────────────────┘  │
+│  ┌───────────────────────────────┐  │    │  ┌───────────────────────────────┐  │
+│  │     Client Components        │  │    │  │     The Odds API              │  │
+│  │  • Interactive UI elements   │  │    │  │  • Real-time betting odds     │  │
+│  │  • React hooks & state       │  │    │  │  • Line movements             │  │
+│  │  • Live polling/refresh      │  │    │  │  • Multiple sportsbooks       │  │
+│  └───────────────────────────────┘  │    │  └───────────────────────────────┘  │
+│  ┌───────────────────────────────┐  │    │  ┌───────────────────────────────┐  │
+│  │      API Routes              │  │    │  │     Polymarket API            │  │
+│  │  • /api/games                │  │    │  │  • Prediction markets         │  │
+│  │  • /api/odds                 │  │    │  │  • Political & sports events  │  │
+│  │  • /api/cappers              │  │    │  │  • Real-time odds             │  │
+│  └───────────────────────────────┘  │    │  └───────────────────────────────┘  │
+└─────────────────────────────────────┘    │  ┌───────────────────────────────┐  │
+                        │                   │  │     Kalshi API                │  │
+                        │                   │  │  • Event contracts            │  │
+                        │                   │  │  • Market data                │  │
+                        │                   │  │  • Trading volume             │  │
+                        │                   │  └───────────────────────────────┘  │
+                        ▼                   └─────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                                SUPABASE (PostgreSQL)                                     │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐   │
+│  │     cappers     │  │      picks      │  │   capper_stats  │  │  site_settings  │   │
+│  │  • 124+ pros    │  │  • 15k+ picks   │  │  • Live stats   │  │  • Edge toggles │   │
+│  │  • Profiles     │  │  • Historical   │  │  • Auto-calc    │  │  • AI configs   │   │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  └─────────────────┘   │
+│                                                                                          │
+│  ┌─────────────────────────────────────────────────────────────────────────────────┐   │
+│  │                         PostgreSQL Triggers & Functions                          │   │
+│  │   picks_stats_update: Auto-recalculate win_rate, ROI, streak on pick insert     │   │
+│  └─────────────────────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+`}
+            </pre>
+          </div>
+        </div>
+
+        {/* Data Flow Diagram */}
+        <div id="dataflow" className="rounded-2xl p-6 mb-8" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="flex items-center gap-2 mb-6">
+            <Activity style={{ color: '#00FF88', width: '24px', height: '24px' }} />
+            <h2 className="text-xl font-bold" style={{ color: '#FFF' }}>📊 Data Flow Diagram</h2>
+          </div>
+          
+          <div className="p-4 rounded-xl font-mono text-xs sm:text-sm overflow-x-auto" style={{ background: 'rgba(255,255,255,0.02)' }}>
+            <pre style={{ color: '#A0A0B0' }}>
+{`
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                              USER JOURNEY DATA FLOW                                      │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+
+STEP 1: User visits /nfl or /nba or /leaderboard
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+   User Request                  Next.js App Router              Vercel Edge
+   ───────────►                  ─────────────────►              ────────────►
+                                 Route matching:                  Cache check:
+                                 • /nfl → page.tsx               • Hit: Return cached
+                                 • Server Component               • Miss: SSR render
+
+STEP 2: Data Fetching (Server Components)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+   ┌────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+   │  page.tsx  │ ──► │  useGames()  │ ──► │  ESPN API    │ ──► │  Live Scores │
+   │  (SSR)     │     │  hook        │     │  Fetch       │     │  + Odds      │
+   └────────────┘     └──────────────┘     └──────────────┘     └──────────────┘
+         │
+         │            ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+         └──────────► │ getCappers() │ ──► │  Supabase    │ ──► │ Leaderboard  │
+                      │  server fn   │     │  Query       │     │  Rankings    │
+                      └──────────────┘     └──────────────┘     └──────────────┘
+
+STEP 3: Client Hydration & Interactivity
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+   Server HTML ──► Browser Render ──► React Hydration ──► Interactive UI
+        │                                                       │
+        └───── Static shell loads instantly (good LCP) ────────┘
+                                                                │
+                                                                ▼
+   ┌─────────────────────────────────────────────────────────────────────────┐
+   │                        CLIENT INTERACTIVITY                              │
+   │  • Filter toggles (Sport, Date, Bet Type)                               │
+   │  • Sort controls (Win %, ROI, Streak)                                   │
+   │  • Live polling for scores (30s intervals)                              │
+   │  • Mobile menu navigation                                               │
+   │  • Infinite scroll pagination                                           │
+   └─────────────────────────────────────────────────────────────────────────┘
+
+STEP 4: Leaderboard Data Pipeline
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+   ┌───────────────┐     ┌───────────────┐     ┌───────────────┐
+   │   seed-      │     │   picks       │     │   Postgres    │
+   │   cappers.ts │ ──► │   table       │ ──► │   Trigger     │
+   │   (124 pros) │     │   insert      │     │   (auto-calc) │
+   └───────────────┘     └───────────────┘     └───────────────┘
+                                                      │
+                                                      ▼
+                              ┌─────────────────────────────────────┐
+                              │         capper_stats table          │
+                              │  • total_picks (count)              │
+                              │  • win_rate (calculated %)          │
+                              │  • total_profit (sum units)         │
+                              │  • current_streak (W/L tracking)    │
+                              │  • best_streak (max ever)           │
+                              └─────────────────────────────────────┘
+`}
+            </pre>
+          </div>
+        </div>
+
+        {/* Infrastructure Stack */}
+        <div id="techstack" className="rounded-2xl p-6 mb-8" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="flex items-center gap-2 mb-6">
+            <Server style={{ color: '#FF6B00', width: '24px', height: '24px' }} />
+            <h2 className="text-xl font-bold" style={{ color: '#FFF' }}>⚙️ Technology Stack</h2>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
-              { icon: '⚡', name: 'Next.js 16.1.1', desc: 'React framework with App Router', color: '#FFF' },
-              { icon: '🔺', name: 'Vercel', desc: 'Edge deployment & hosting', color: '#FFF' },
-              { icon: '🗄️', name: 'Supabase', desc: 'PostgreSQL database & auth', color: '#00FF88' },
-              { icon: '🎨', name: 'Tailwind CSS', desc: 'Utility-first styling', color: '#00A8FF' },
-              { icon: '📝', name: 'TypeScript', desc: 'Type-safe development', color: '#3178C6' },
-              { icon: '🧪', name: 'Playwright', desc: 'E2E testing (23 tests)', color: '#FF6B00' },
+              { icon: '⚡', name: 'Next.js 16.1.1', desc: 'App Router, RSC, Server Actions', color: '#FFF', tech: 'react 19, turbopack' },
+              { icon: '🔺', name: 'Vercel', desc: 'Edge deployment & hosting', color: '#FFF', tech: 'CDN, ISR, Image Opt' },
+              { icon: '🗄️', name: 'Supabase', desc: 'PostgreSQL database', color: '#00FF88', tech: 'PostgREST, Triggers' },
+              { icon: '🎨', name: 'Tailwind CSS', desc: 'Utility-first styling', color: '#38BDF8', tech: 'JIT, dark mode' },
+              { icon: '📝', name: 'TypeScript', desc: 'Type-safe development', color: '#3178C6', tech: 'strict mode' },
+              { icon: '🧪', name: 'Playwright', desc: 'E2E testing framework', color: '#45BA4B', tech: 'multi-browser' },
+              { icon: '🔍', name: 'ESLint', desc: 'Code linting', color: '#4B32C3', tech: 'next/core-web-vitals' },
+              { icon: '💳', name: 'Stripe', desc: 'Payment processing', color: '#635BFF', tech: 'subscriptions ready' },
+              { icon: '🤖', name: 'Gemini AI', desc: 'AI predictions', color: '#FF6B00', tech: 'edge analysis' },
             ].map((tech) => (
               <div key={tech.name} className="p-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)' }}>
                 <div className="flex items-center gap-3">
@@ -58,6 +256,150 @@ export default function AdminDocsPage() {
                   <div>
                     <div className="font-bold" style={{ color: tech.color }}>{tech.name}</div>
                     <div className="text-sm" style={{ color: '#808090' }}>{tech.desc}</div>
+                    {tech.tech && <div className="text-xs mt-1" style={{ color: '#606070' }}>{tech.tech}</div>}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Features Overview */}
+        <div id="features" className="rounded-2xl p-6 mb-8" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="flex items-center gap-2 mb-6">
+            <CheckCircle style={{ color: '#00FF88', width: '24px', height: '24px' }} />
+            <h2 className="text-xl font-bold" style={{ color: '#FFF' }}>✨ Features Overview</h2>
+          </div>
+          
+          <div className="grid sm:grid-cols-2 gap-4">
+            {[
+              { 
+                title: '🏆 Capper Leaderboards', 
+                desc: '124+ professional sports bettors ranked by win rate, ROI, and streak',
+                viral: true,
+                features: ['Real-time stats', 'Sport filters', 'Profile pages', 'Historical picks']
+              },
+              { 
+                title: '📊 Live Odds & Scores', 
+                desc: 'Real-time data from ESPN, The Odds API for all major sports',
+                features: ['Live score ticker', 'Line movements', 'Multi-book odds', '30s auto-refresh']
+              },
+              { 
+                title: '📈 Prediction Markets', 
+                desc: 'Polymarket & Kalshi integration for political and sports events',
+                features: ['Real-time prices', 'Volume tracking', 'Market categories', 'Trending events']
+              },
+              { 
+                title: '🎯 Edge Detection', 
+                desc: 'AI-powered betting edges and sharp money indicators',
+                features: ['Line value alerts', 'Steam moves', 'Sharp action', 'Consensus plays']
+              },
+              { 
+                title: '📱 Mobile-First Design', 
+                desc: 'Responsive UI optimized for mobile sports betting experience',
+                features: ['Touch-friendly', 'Fast loading', 'PWA ready', 'Dark mode']
+              },
+              { 
+                title: '🔐 Admin Dashboard', 
+                desc: 'Full control over site settings, data, and analytics',
+                features: ['Seeding tools', 'Edge toggles', 'System status', 'Documentation']
+              },
+            ].map((feature) => (
+              <div key={feature.title} className="p-4 rounded-xl relative" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                {feature.viral && (
+                  <span className="absolute -top-2 -right-2 px-2 py-1 text-xs font-bold rounded-full bg-green-500/20 text-green-400">
+                    VIRAL 🔥
+                  </span>
+                )}
+                <div className="font-bold mb-2" style={{ color: '#FFF' }}>{feature.title}</div>
+                <p className="text-sm mb-3" style={{ color: '#808090' }}>{feature.desc}</p>
+                <div className="flex flex-wrap gap-2">
+                  {feature.features.map(f => (
+                    <span key={f} className="px-2 py-1 text-xs rounded" style={{ background: 'rgba(255,255,255,0.05)', color: '#A0A0B0' }}>
+                      {f}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* API & Data Sources */}
+        <div id="apis" className="rounded-2xl p-6 mb-8" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="flex items-center gap-2 mb-6">
+            <RefreshCw style={{ color: '#FF6B00', width: '24px', height: '24px' }} />
+            <h2 className="text-xl font-bold" style={{ color: '#FFF' }}>🔌 API & Data Sources</h2>
+          </div>
+          
+          <div className="space-y-4">
+            {[
+              {
+                name: 'ESPN API',
+                url: 'site.api.espn.com',
+                provides: ['Live scores', 'Game schedules', 'Team standings', 'Player stats'],
+                color: '#FF3366',
+                usedBy: ['NFL', 'NBA', 'NHL', 'MLB pages']
+              },
+              {
+                name: 'The Odds API',
+                url: 'api.the-odds-api.com',
+                provides: ['Betting odds', 'Line movements', 'Multiple sportsbooks', 'Historical lines'],
+                color: '#00FF88',
+                usedBy: ['All sports pages', 'Edge detection']
+              },
+              {
+                name: 'Polymarket',
+                url: 'polymarket.com/api',
+                provides: ['Prediction markets', 'Political events', 'Sports futures', 'Real-time prices'],
+                color: '#7C3AED',
+                usedBy: ['Markets page']
+              },
+              {
+                name: 'Kalshi',
+                url: 'api.kalshi.com',
+                provides: ['Event contracts', 'Binary options', 'Market depth', 'Settlement data'],
+                color: '#3B82F6',
+                usedBy: ['Markets page']
+              },
+              {
+                name: 'Supabase (Internal)',
+                url: 'supabase.co/project',
+                provides: ['Capper profiles', 'Historical picks', 'Site settings', 'Analytics'],
+                color: '#00FF88',
+                usedBy: ['Leaderboard', 'Admin', 'Profile pages']
+              },
+            ].map((api) => (
+              <div key={api.name} className="p-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full" style={{ background: api.color }} />
+                    <span className="font-bold" style={{ color: '#FFF' }}>{api.name}</span>
+                  </div>
+                  <code className="text-xs px-2 py-1 rounded" style={{ background: 'rgba(255,255,255,0.05)', color: '#606070' }}>
+                    {api.url}
+                  </code>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-2 mt-3">
+                  <div>
+                    <span className="text-xs font-bold" style={{ color: '#808090' }}>PROVIDES:</span>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {api.provides.map(p => (
+                        <span key={p} className="px-2 py-0.5 text-xs rounded" style={{ background: `${api.color}20`, color: api.color }}>
+                          {p}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold" style={{ color: '#808090' }}>USED BY:</span>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {api.usedBy.map(u => (
+                        <span key={u} className="px-2 py-0.5 text-xs rounded" style={{ background: 'rgba(255,255,255,0.05)', color: '#A0A0B0' }}>
+                          {u}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>

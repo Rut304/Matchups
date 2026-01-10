@@ -20,32 +20,19 @@ import {
   Flame,
   Snowflake,
   ChevronDown,
-  Brain,
-  AlertTriangle,
-  ThumbsUp,
   ThumbsDown,
-  Zap,
-  PieChart,
-  Activity,
-  Clock,
-  Star,
-  TrendingUp as Trending,
   Info,
-  LineChart,
-  Percent,
+  Clock,
   Tv,
   Shield
 } from 'lucide-react'
 import { 
   getCapperBySlug, 
-  getCapperStats, 
   getCapperPicks, 
   getCapperStatsBySport,
   getCapperStatsByBetType,
   capperStats,
-  cappers
 } from '@/lib/leaderboard-data'
-import { getCapperSummary, generateAISummary, CapperAnalyticsSummary } from '@/lib/analytics-data'
 import { BetType, Sport, PickResult } from '@/types/leaderboard'
 
 export default function CapperProfilePage() {
@@ -56,14 +43,13 @@ export default function CapperProfilePage() {
   const stats = capper ? capperStats[capper.id] : null
   const statsBySport = capper ? getCapperStatsBySport(capper.id) : []
   const statsByBetType = capper ? getCapperStatsByBetType(capper.id) : []
-  const aiSummary = capper ? getCapperSummary(capper.id) : undefined
   
   // Filters for picks
   const [sportFilter, setSportFilter] = useState<Sport | 'all'>('all')
   const [betTypeFilter, setBetTypeFilter] = useState<BetType | 'all'>('all')
   const [resultFilter, setResultFilter] = useState<PickResult | 'all'>('all')
   const [showAllPicks, setShowAllPicks] = useState(false)
-  const [activeTab, setActiveTab] = useState<'overview' | 'picks' | 'analytics' | 'trends'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'picks'>('overview')
   
   const picks = useMemo(() => {
     if (!capper) return []
@@ -180,49 +166,12 @@ export default function CapperProfilePage() {
             
             {/* Action Buttons */}
             <div className="flex items-center gap-2">
-              {aiSummary?.recommendation === 'fade' && (
-                <span className="px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2"
-                      style={{ background: 'rgba(255,68,85,0.2)', color: '#FF4455', border: '1px solid rgba(255,68,85,0.3)' }}>
-                  <ThumbsDown className="w-4 h-4" /> Fade This Capper
-                </span>
-              )}
-              {aiSummary?.recommendation === 'follow' && (
-                <span className="px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2"
-                      style={{ background: 'rgba(0,255,136,0.2)', color: '#00FF88', border: '1px solid rgba(0,255,136,0.3)' }}>
-                  <ThumbsUp className="w-4 h-4" /> Follow This Capper
-                </span>
-              )}
               <button className="p-3 rounded-xl transition-all hover:bg-white/10"
                       style={{ background: 'rgba(255,255,255,0.05)' }}>
                 <Share2 className="w-5 h-5" style={{ color: '#808090' }} />
               </button>
             </div>
           </div>
-          
-          {/* AI Summary Section */}
-          {aiSummary && (
-            <div className="mt-6 p-5 rounded-2xl" 
-                 style={{ 
-                   background: 'rgba(138,43,226,0.1)', 
-                   border: '1px solid rgba(138,43,226,0.2)',
-                   boxShadow: '0 0 40px rgba(138,43,226,0.1)'
-                 }}>
-              <div className="flex items-center gap-2 mb-3">
-                <Brain className="w-5 h-5" style={{ color: '#9B59B6' }} />
-                <span className="font-bold" style={{ color: '#9B59B6' }}>AI Analysis</span>
-                <span className="text-xs px-2 py-0.5 rounded" style={{ background: 'rgba(138,43,226,0.2)', color: '#9B59B6' }}>
-                  Powered by Gemini
-                </span>
-              </div>
-              <div className="space-y-2">
-                {aiSummary.keyInsights.map((insight, i) => (
-                  <p key={i} className="text-sm leading-relaxed" style={{ color: '#E0E0E0' }}>
-                    {insight}
-                  </p>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </section>
       
@@ -230,7 +179,7 @@ export default function CapperProfilePage() {
       <div className="sticky top-16 z-40" style={{ background: '#050508', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex gap-1 py-2 overflow-x-auto">
-            {(['overview', 'analytics', 'picks', 'trends'] as const).map((tab) => (
+            {(['overview', 'picks'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -242,9 +191,7 @@ export default function CapperProfilePage() {
                 }}
               >
                 {tab === 'overview' && '📊 Overview'}
-                {tab === 'analytics' && '🧠 Deep Analytics'}
                 {tab === 'picks' && '📋 Pick History'}
-                {tab === 'trends' && '📈 Trends'}
               </button>
             ))}
           </div>
@@ -412,42 +359,6 @@ export default function CapperProfilePage() {
               </div>
             </div>
             
-            {/* Quick Recommendation */}
-            {aiSummary && (
-              <div className="mb-8 p-5 rounded-2xl"
-                   style={{ 
-                     background: aiSummary.recommendation === 'fade' ? 'rgba(255,68,85,0.1)' : 
-                                aiSummary.recommendation === 'follow' ? 'rgba(0,255,136,0.1)' : 'rgba(255,215,0,0.1)',
-                     border: `1px solid ${aiSummary.recommendation === 'fade' ? 'rgba(255,68,85,0.2)' : 
-                              aiSummary.recommendation === 'follow' ? 'rgba(0,255,136,0.2)' : 'rgba(255,215,0,0.2)'}`
-                   }}>
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center"
-                       style={{ 
-                         background: aiSummary.recommendation === 'fade' ? 'rgba(255,68,85,0.2)' : 
-                                    aiSummary.recommendation === 'follow' ? 'rgba(0,255,136,0.2)' : 'rgba(255,215,0,0.2)'
-                       }}>
-                    {aiSummary.recommendation === 'fade' && <ThumbsDown className="w-6 h-6" style={{ color: '#FF4455' }} />}
-                    {aiSummary.recommendation === 'follow' && <ThumbsUp className="w-6 h-6" style={{ color: '#00FF88' }} />}
-                    {aiSummary.recommendation === 'selective' && <Target className="w-6 h-6" style={{ color: '#FFD700' }} />}
-                    {aiSummary.recommendation === 'avoid' && <AlertTriangle className="w-6 h-6" style={{ color: '#FF6B00' }} />}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-bold text-lg capitalize mb-1"
-                         style={{ 
-                           color: aiSummary.recommendation === 'fade' ? '#FF4455' : 
-                                  aiSummary.recommendation === 'follow' ? '#00FF88' : '#FFD700'
-                         }}>
-                      Recommendation: {aiSummary.recommendation}
-                    </div>
-                    <p className="text-sm" style={{ color: '#A0A0B0' }}>
-                      {aiSummary.recommendationReason}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-            
             {/* Recent Picks Preview */}
             <div className="rounded-2xl overflow-hidden" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
               <div className="p-5 border-b flex items-center justify-between" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
@@ -591,179 +502,6 @@ export default function CapperProfilePage() {
           </>
         )}
         
-        {/* Analytics Tab */}
-        {activeTab === 'analytics' && aiSummary && (
-          <div className="space-y-6">
-            {/* Strengths & Weaknesses */}
-            <div className="grid lg:grid-cols-2 gap-6">
-              {/* Strengths */}
-              <div className="rounded-2xl p-5" style={{ background: '#0c0c14', border: '1px solid rgba(0,255,136,0.2)' }}>
-                <div className="flex items-center gap-2 mb-4">
-                  <ThumbsUp className="w-5 h-5" style={{ color: '#00FF88' }} />
-                  <h2 className="font-bold text-lg" style={{ color: '#00FF88' }}>Strengths</h2>
-                </div>
-                <ul className="space-y-2">
-                  {aiSummary.strengths.map((s, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm" style={{ color: '#E0E0E0' }}>
-                      <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: '#00FF88' }} />
-                      {s}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              
-              {/* Weaknesses */}
-              <div className="rounded-2xl p-5" style={{ background: '#0c0c14', border: '1px solid rgba(255,68,85,0.2)' }}>
-                <div className="flex items-center gap-2 mb-4">
-                  <ThumbsDown className="w-5 h-5" style={{ color: '#FF4455' }} />
-                  <h2 className="font-bold text-lg" style={{ color: '#FF4455' }}>Weaknesses</h2>
-                </div>
-                <ul className="space-y-2">
-                  {aiSummary.weaknesses.map((w, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm" style={{ color: '#E0E0E0' }}>
-                      <XCircle className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: '#FF4455' }} />
-                      {w}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-            
-            {/* Betting Patterns */}
-            <div className="rounded-2xl p-5" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <div className="flex items-center gap-2 mb-4">
-                <PieChart className="w-5 h-5" style={{ color: '#9B59B6' }} />
-                <h2 className="font-bold text-lg" style={{ color: '#FFF' }}>Betting Patterns</h2>
-              </div>
-              
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <PatternCard 
-                  label="Favorite Bias" 
-                  value={aiSummary.patterns.favoriteBias}
-                  description="% of picks on favorites"
-                  isHigh={aiSummary.patterns.favoriteBias > 65}
-                />
-                <PatternCard 
-                  label="Home Bias" 
-                  value={aiSummary.patterns.homeBias}
-                  description="% of picks on home teams"
-                  isHigh={aiSummary.patterns.homeBias > 55}
-                />
-                <PatternCard 
-                  label="Over Bias" 
-                  value={aiSummary.patterns.overBias}
-                  description="% of over vs under picks"
-                  isHigh={aiSummary.patterns.overBias > 55}
-                />
-                <PatternCard 
-                  label="Avg Odds Played" 
-                  value={aiSummary.patterns.avgOdds}
-                  description="Average odds on picks"
-                  isOdds
-                />
-              </div>
-              
-              {aiSummary.patterns.clvBeatRate && (
-                <div className="mt-4 p-4 rounded-xl" style={{ background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.2)' }}>
-                  <div className="flex items-center gap-2">
-                    <Activity className="w-5 h-5" style={{ color: '#00FF88' }} />
-                    <span className="font-bold" style={{ color: '#00FF88' }}>CLV Beat Rate: {aiSummary.patterns.clvBeatRate}%</span>
-                  </div>
-                  <p className="text-xs mt-1" style={{ color: '#808090' }}>
-                    This capper beats closing line value {aiSummary.patterns.clvBeatRate}% of the time - the mark of a true sharp.
-                  </p>
-                </div>
-              )}
-            </div>
-            
-            {/* Recent Form */}
-            <div className="rounded-2xl p-5" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <div className="flex items-center gap-2 mb-4">
-                <Clock className="w-5 h-5" style={{ color: '#00A8FF' }} />
-                <h2 className="font-bold text-lg" style={{ color: '#FFF' }}>Recent Form</h2>
-              </div>
-              
-              <div className="grid sm:grid-cols-3 gap-4">
-                <FormCard 
-                  period="Last 7 Days"
-                  record={aiSummary.recentForm.last7days.record}
-                  roi={aiSummary.recentForm.last7days.roi}
-                />
-                <FormCard 
-                  period="Last 30 Days"
-                  record={aiSummary.recentForm.last30days.record}
-                  roi={aiSummary.recentForm.last30days.roi}
-                />
-                <FormCard 
-                  period="This Season"
-                  record={aiSummary.recentForm.lastSeason.record}
-                  roi={aiSummary.recentForm.lastSeason.roi}
-                />
-              </div>
-            </div>
-            
-            {/* Best & Worst */}
-            <div className="grid lg:grid-cols-2 gap-6">
-              {/* Best Bet Types */}
-              {aiSummary.bestBetTypes.length > 0 && (
-                <div className="rounded-2xl p-5" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Star className="w-5 h-5" style={{ color: '#FFD700' }} />
-                    <h2 className="font-bold text-lg" style={{ color: '#FFF' }}>Best Bet Types</h2>
-                  </div>
-                  <div className="space-y-3">
-                    {aiSummary.bestBetTypes.map((bt, i) => (
-                      <div key={i} className="flex items-center justify-between p-3 rounded-xl"
-                           style={{ background: 'rgba(0,255,136,0.05)' }}>
-                        <span className="font-semibold capitalize" style={{ color: '#FFF' }}>
-                          {bt.type.replace('_', '/')}
-                        </span>
-                        <div className="flex items-center gap-4">
-                          <span className="font-mono text-sm" style={{ color: '#00FF88' }}>{bt.winPct}%</span>
-                          <span className="font-mono text-sm" style={{ color: '#00FF88' }}>+{bt.roi}% ROI</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Worst Bet Types */}
-              {aiSummary.worstBetTypes.length > 0 && (
-                <div className="rounded-2xl p-5" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
-                  <div className="flex items-center gap-2 mb-4">
-                    <AlertTriangle className="w-5 h-5" style={{ color: '#FF4455' }} />
-                    <h2 className="font-bold text-lg" style={{ color: '#FFF' }}>Worst Bet Types</h2>
-                  </div>
-                  <div className="space-y-3">
-                    {aiSummary.worstBetTypes.map((bt, i) => (
-                      <div key={i} className="flex items-center justify-between p-3 rounded-xl"
-                           style={{ background: 'rgba(255,68,85,0.05)' }}>
-                        <span className="font-semibold capitalize" style={{ color: '#FFF' }}>
-                          {bt.type.replace('_', '/')}
-                        </span>
-                        <div className="flex items-center gap-4">
-                          <span className="font-mono text-sm" style={{ color: '#FF4455' }}>{bt.winPct}%</span>
-                          <span className="font-mono text-sm" style={{ color: '#FF4455' }}>{bt.roi}% ROI</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-        
-        {/* Analytics Tab - No AI Summary */}
-        {activeTab === 'analytics' && !aiSummary && (
-          <div className="text-center py-16">
-            <Brain className="w-16 h-16 mx-auto mb-4" style={{ color: '#606070' }} />
-            <h2 className="text-xl font-bold mb-2" style={{ color: '#FFF' }}>Analytics Coming Soon</h2>
-            <p style={{ color: '#808090' }}>We&apos;re gathering more data to generate detailed analytics for this capper.</p>
-          </div>
-        )}
-        
         {/* Picks Tab */}
         {activeTab === 'picks' && (
           <div className="rounded-2xl overflow-hidden" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
@@ -886,15 +624,6 @@ export default function CapperProfilePage() {
                 Load More Picks
               </button>
             )}
-          </div>
-        )}
-        
-        {/* Trends Tab */}
-        {activeTab === 'trends' && (
-          <div className="text-center py-16">
-            <Trending className="w-16 h-16 mx-auto mb-4" style={{ color: '#606070' }} />
-            <h2 className="text-xl font-bold mb-2" style={{ color: '#FFF' }}>Trends Coming Soon</h2>
-            <p style={{ color: '#808090' }}>Historical trend analysis and performance charts are in development.</p>
           </div>
         )}
       </section>

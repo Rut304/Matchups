@@ -883,11 +883,11 @@ export default function NHLSkatersPage() {
                   <span className="text-sm text-white">Goalie Stats</span>
                   <ChevronDown className="w-4 h-4 text-gray-400 rotate-[-90deg]" />
                 </Link>
-                <Link href="/nhl/matchups" className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                <Link href="/scores?sport=nhl" className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
                   <span className="text-sm text-white">Today&apos;s Matchups</span>
                   <ChevronDown className="w-4 h-4 text-gray-400 rotate-[-90deg]" />
                 </Link>
-                <Link href="/nhl/teams" className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                <Link href="/nhl" className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
                   <span className="text-sm text-white">Team Stats</span>
                   <ChevronDown className="w-4 h-4 text-gray-400 rotate-[-90deg]" />
                 </Link>

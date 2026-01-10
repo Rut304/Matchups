@@ -170,9 +170,9 @@ export default function NFLAnalyticsPage() {
         </div>
       </section>
       
-      {/* Real Games - Live from ESPN */}
+      {/* Real Games - Live from ESPN with Date Navigation */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <GamesSection sport="NFL" title="🏈 Today's NFL Games" />
+        <GamesSection sport="NFL" showDateNav={true} />
       </section>
       
       {/* Main Content */}
