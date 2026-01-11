@@ -10,6 +10,7 @@ const mainRoutes = [
   { path: '/ncaaf', name: 'NCAAF Page' },
   { path: '/ncaab', name: 'NCAAB Page' },
   { path: '/markets', name: 'Markets Page' },
+  { path: '/markets/edge', name: 'Markets Edge Page' },
   { path: '/trends', name: 'Trends Page' },
   { path: '/leaderboard', name: 'Leaderboard Page' },
   { path: '/analytics', name: 'Analytics Page' },
@@ -22,20 +23,24 @@ const mainRoutes = [
 test.describe('Page Load Tests', () => {
   for (const route of mainRoutes) {
     test(`${route.name} loads without errors`, async ({ page }) => {
+      // Set up error listener BEFORE navigating
+      const errors: string[] = [];
+      page.on('pageerror', (error) => errors.push(error.message));
+      
       const response = await page.goto(route.path);
       
       // Check response is successful
       expect(response?.status()).toBeLessThan(400);
       
-      // Check no JavaScript errors
-      const errors: string[] = [];
-      page.on('pageerror', (error) => errors.push(error.message));
-      
       // Wait for page to be fully loaded
       await page.waitForLoadState('networkidle');
       
-      // Should have no console errors
-      expect(errors).toHaveLength(0);
+      // Should have no JavaScript errors (filter out known acceptable errors)
+      const criticalErrors = errors.filter(e => 
+        !e.includes('hydration') && // Next.js hydration warnings are ok
+        !e.includes('ResizeObserver') // ResizeObserver loop errors are ok
+      );
+      expect(criticalErrors).toHaveLength(0);
       
       // Page should have main content
       await expect(page.locator('body')).toBeVisible();

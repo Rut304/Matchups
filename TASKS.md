@@ -11,6 +11,7 @@
 The `/game/[id]` page is completely broken with these issues:
 
 ### Issues to Fix FIRST
+
 1. **Scores showing "NaN-NaN"** - Score transformation broken in team-schedule.ts
 2. **All odds showing 0** - Not reading from gameSummary.odds correctly  
 3. **All results showing "T"** - Winner/loser logic broken
@@ -21,11 +22,13 @@ The `/game/[id]` page is completely broken with these issues:
 8. **H2H history empty** - getHeadToHead() string matching fails
 
 ### Key Files to Debug
+
 - `/src/app/game/[id]/page.tsx` - Main page (1400+ lines)
 - `/src/lib/api/team-schedule.ts` - transformESPNEvent() function
 - `/src/app/api/games/[id]/summary/route.ts` - Summary API
 
 ### Debug Commands
+
 ```bash
 curl "https://matchups-eta.vercel.app/api/games/401772980/summary?sport=NFL" | jq '.lineMovement, .predictor'
 ```

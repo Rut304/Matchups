@@ -1,4 +1,5 @@
 # Matchups - Agent Handoff Document
+
 **Last Updated:** January 11, 2026  
 **Status:** Game Matchup Page Broken - Critical Priority
 
@@ -9,6 +10,7 @@
 ### Game Matchup Page (`/game/[id]`) is Completely Broken
 
 **What's Wrong:**
+
 1. **Scores showing "NaN-NaN"** - Score transformation failing
 2. **Odds showing 0s** - Spread: 0, Total: 0, ML: 0 instead of real lines
 3. **Results showing "T"** - All games showing as Ties
@@ -26,6 +28,7 @@
 ## 📁 Project Architecture
 
 ### Tech Stack
+
 - **Framework:** Next.js 15 (App Router)
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS
@@ -34,6 +37,7 @@
 - **AI:** Google Gemini API (configured but not integrated)
 
 ### Key Directories
+
 ```
 /src
 ├── app/                    # Next.js App Router pages
@@ -122,18 +126,24 @@ betting_splits (
 ## 🔧 What Was Recently Fixed (But Still Broken)
 
 ### 1. Team Schedule - seasontype Parameter
+
 **File:** `/src/lib/api/team-schedule.ts`
+
 - Added `seasontype=2` (regular) and `seasontype=3` (postseason) to ESPN calls
 - Merges both to get full season during playoffs
 - **Status:** API works, but UI shows NaN scores
 
 ### 2. Line Movement Extraction  
+
 **File:** `/src/app/api/games/[id]/summary/route.ts`
+
 - Fixed to read from `pointSpread.home.open/close` structure
 - **Status:** API returns correct data, UI doesn't display it
 
 ### 3. Last 5 Games
+
 **File:** `/src/app/api/games/[id]/summary/route.ts`
+
 - Added extraction from ESPN `lastFiveGames` array
 - **Status:** API works, UI shows NaN-NaN
 
@@ -146,18 +156,21 @@ betting_splits (
 This 1400+ line file has multiple issues:
 
 1. **Score Transformation** (~line 350):
+
 ```typescript
 // The schedule data comes back but scores aren't being parsed correctly
 // Look for transformESPNEvent function in team-schedule.ts
 ```
 
-2. **Odds Display** (~line 500):
+1. **Odds Display** (~line 500):
+
 ```typescript
 // gameSummary.odds exists but values show as 0
 // Check if odds?.spread, odds?.overUnder are being read
 ```
 
-3. **Result Determination** (~line 380):
+1. **Result Determination** (~line 380):
+
 ```typescript
 // All games showing "T" - the result logic is broken
 // Check TeamGameResult interface and result field
@@ -190,6 +203,7 @@ curl "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/25/schedu
 ## 🎯 What Needs to Be Done
 
 ### Priority 1: Fix Game Matchup Page Data Display
+
 1. Debug why scores show "NaN-NaN" - trace from API to UI
 2. Fix odds display (currently all 0s)
 3. Fix result display (all showing "T")
@@ -198,12 +212,14 @@ curl "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/25/schedu
 6. Display injuries from summary API
 
 ### Priority 2: Add Missing Features
+
 1. **Head-to-Head History** - `getHeadToHead()` exists but doesn't work
 2. **Live Play-by-Play** - Needs ESPN play-by-play API integration
 3. **Live Alerts** - Scoring alerts, momentum shifts
 4. **AI Insights** - Connect Gemini API (`/src/lib/gemini.ts`)
 
 ### Priority 3: Line Shop Real Data
+
 - `/src/app/lineshop/page.tsx` uses mock data
 - Need to connect The Odds API client (`/src/lib/api/the-odds-api.ts`)
 
@@ -233,6 +249,7 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=...
 ## 📊 ESPN API Data Structure Reference
 
 ### Summary API Response (`/summary?event={id}`)
+
 ```typescript
 {
   pickcenter: [{
@@ -266,6 +283,7 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=...
 ```
 
 ### Team Schedule Event
+
 ```typescript
 {
   id: '401772828',
@@ -321,9 +339,9 @@ npm run type-check
 
 ## 🚀 Production URLs
 
-- **Site:** https://matchups-eta.vercel.app
-- **Supabase:** https://cdfdmkntdsfylososgwo.supabase.co
-- **GitHub:** https://github.com/Rut304/Matchups
+- **Site:** <https://matchups-eta.vercel.app>
+- **Supabase:** <https://cdfdmkntdsfylososgwo.supabase.co>
+- **GitHub:** <https://github.com/Rut304/Matchups>
 
 ---
 

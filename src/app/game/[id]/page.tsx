@@ -66,6 +66,99 @@ interface TeamScheduleData {
   error: string | null
 }
 
+// Real ESPN Summary Data Types
+interface ESPNLeader {
+  category: string
+  abbreviation: string
+  athlete: {
+    id: string
+    displayName: string
+    shortName: string
+    headshot: string | null
+    position: string
+    jersey: string
+  }
+  displayValue: string
+  value: number
+}
+
+interface ESPNInjury {
+  athlete: {
+    id: string
+    displayName: string
+    shortName: string
+    headshot: string | null
+    position: string
+  }
+  status: string
+  type: string
+  details: {
+    type: string
+    location: string
+    detail: string
+    side: string
+    returnDate?: string
+  } | null
+}
+
+interface GameSummaryData {
+  injuries: {
+    homeTeam: ESPNInjury[]
+    awayTeam: ESPNInjury[]
+    impactSummary: {
+      homeOutPlayers: number
+      awayOutPlayers: number
+    }
+  }
+  leaders: {
+    homeTeam: {
+      name: string
+      abbreviation: string
+      leaders: ESPNLeader[]
+    }
+    awayTeam: {
+      name: string
+      abbreviation: string
+      leaders: ESPNLeader[]
+    }
+  }
+  odds: {
+    provider: { name: string }
+    spread: number
+    overUnder: number
+    homeTeamOdds: {
+      favorite: boolean
+      moneyLine: number
+      spreadOdds: number
+      spreadRecord?: { summary: string }
+    }
+    awayTeamOdds: {
+      favorite: boolean
+      moneyLine: number
+      spreadOdds: number
+      spreadRecord?: { summary: string }
+    }
+  } | null
+  predictor: {
+    homeWinProbability: number
+    awayWinProbability: number
+  } | null
+  atsRecords: {
+    homeTeam: { ats: string; ou: string } | null
+    awayTeam: { ats: string; ou: string } | null
+  }
+  lineMovement: {
+    openingSpread: string | null
+    currentSpread: string | null
+    openingTotal: number | null
+    currentTotal: number | null
+    spreadMove: number | null
+    totalMove: number | null
+  }
+  loading: boolean
+  error: string | null
+}
+
 export default function GameDetailPage() {
   const params = useParams()
   const searchParams = useSearchParams()
@@ -80,7 +173,9 @@ export default function GameDetailPage() {
     awaySchedule: true,
     trends: true,
     props: true,
-    edge: true
+    edge: true,
+    leaders: true,
+    injuries: true
   })
   
   // Real team schedule data from ESPN
@@ -89,6 +184,18 @@ export default function GameDetailPage() {
   })
   const [awaySchedule, setAwaySchedule] = useState<TeamScheduleData>({ 
     games: [], loading: true, error: null 
+  })
+  
+  // Real ESPN summary data (injuries, leaders, odds, predictor)
+  const [gameSummary, setGameSummary] = useState<GameSummaryData>({
+    injuries: { homeTeam: [], awayTeam: [], impactSummary: { homeOutPlayers: 0, awayOutPlayers: 0 } },
+    leaders: { homeTeam: { name: '', abbreviation: '', leaders: [] }, awayTeam: { name: '', abbreviation: '', leaders: [] } },
+    odds: null,
+    predictor: null,
+    atsRecords: { homeTeam: null, awayTeam: null },
+    lineMovement: { openingSpread: null, currentSpread: null, openingTotal: null, currentTotal: null, spreadMove: null, totalMove: null },
+    loading: true,
+    error: null
   })
   
   const toggleSection = (section: string) => {
@@ -148,6 +255,39 @@ export default function GameDetailPage() {
     
     fetchSchedules()
   }, [game, sport])
+
+  // Fetch real ESPN summary data (injuries, leaders, odds, predictor)
+  useEffect(() => {
+    if (!gameId) return
+    
+    const fetchSummary = async () => {
+      try {
+        const response = await fetch(`/api/games/${gameId}/summary?sport=${sport}`)
+        if (!response.ok) {
+          throw new Error('Failed to fetch summary')
+        }
+        const data = await response.json()
+        if (data.success) {
+          setGameSummary({
+            injuries: data.injuries || { homeTeam: [], awayTeam: [], impactSummary: { homeOutPlayers: 0, awayOutPlayers: 0 } },
+            leaders: data.leaders || { homeTeam: { name: '', abbreviation: '', leaders: [] }, awayTeam: { name: '', abbreviation: '', leaders: [] } },
+            odds: data.odds || null,
+            predictor: data.predictor || null,
+            atsRecords: data.atsRecords || { homeTeam: null, awayTeam: null },
+            lineMovement: data.lineMovement || { openingSpread: null, currentSpread: null, openingTotal: null, currentTotal: null, spreadMove: null, totalMove: null },
+            loading: false,
+            error: null
+          })
+        } else {
+          setGameSummary(prev => ({ ...prev, loading: false, error: data.error }))
+        }
+      } catch (err) {
+        setGameSummary(prev => ({ ...prev, loading: false, error: 'Failed to load game summary' }))
+      }
+    }
+    
+    fetchSummary()
+  }, [gameId, sport])
 
   if (loading) {
     return (
@@ -379,32 +519,55 @@ export default function GameDetailPage() {
             <div className="col-span-3 text-center space-y-3">
               <div className="text-xl font-bold text-slate-600 mb-2">VS</div>
               
-              {/* Spread */}
+              {/* Spread - Use gameSummary.odds if available (real ESPN data) */}
               <div className="rounded-xl p-4 bg-gradient-to-r from-orange-500/10 to-orange-600/5 border border-orange-500/20">
                 <p className="text-xs text-slate-500 mb-1">SPREAD</p>
                 <p className="text-2xl font-black font-mono text-orange-400">
-                  {game.spread.favorite} {game.spread.line > 0 ? '+' : ''}{game.spread.line}
+                  {gameSummary.odds ? (
+                    <>
+                      {gameSummary.odds.homeTeamOdds?.favorite ? game.home.abbr : game.away.abbr}{' '}
+                      {gameSummary.odds.homeTeamOdds?.favorite ? '-' : '+'}{Math.abs(gameSummary.odds.spread).toFixed(1)}
+                    </>
+                  ) : game.spread.line !== 0 ? (
+                    <>{game.spread.favorite} {game.spread.line > 0 ? '+' : ''}{game.spread.line}</>
+                  ) : (
+                    'TBD'
+                  )}
                 </p>
               </div>
               
-              {/* Total */}
+              {/* Total - Use gameSummary.odds if available */}
               <div className="rounded-xl p-4 bg-gradient-to-r from-green-500/10 to-green-600/5 border border-green-500/20">
                 <p className="text-xs text-slate-500 mb-1">TOTAL</p>
-                <p className="text-2xl font-black font-mono text-green-400">O/U {game.total}</p>
+                <p className="text-2xl font-black font-mono text-green-400">
+                  O/U {gameSummary.odds?.overUnder || game.total || 'TBD'}
+                </p>
               </div>
               
-              {/* Moneyline */}
+              {/* Moneyline - Use gameSummary.odds if available */}
               <div className="grid grid-cols-2 gap-2">
                 <div className="rounded-lg p-2 bg-slate-800/50 border border-slate-700">
-                  <p className="text-xs text-slate-500">{game.away.abbr}</p>
-                  <p className="text-lg font-bold text-white font-mono">
-                    {game.moneyline.away > 0 ? '+' : ''}{game.moneyline.away}
+                  <p className="text-xs text-slate-500">{game.away.abbr || 'AWAY'}</p>
+                  <p className={`text-lg font-bold font-mono ${
+                    (gameSummary.odds?.awayTeamOdds?.moneyLine || game.moneyline.away) > 0 ? 'text-green-400' : 'text-white'
+                  }`}>
+                    {gameSummary.odds?.awayTeamOdds?.moneyLine ? (
+                      <>{gameSummary.odds.awayTeamOdds.moneyLine > 0 ? '+' : ''}{gameSummary.odds.awayTeamOdds.moneyLine}</>
+                    ) : game.moneyline.away !== 0 ? (
+                      <>{game.moneyline.away > 0 ? '+' : ''}{game.moneyline.away}</>
+                    ) : 'TBD'}
                   </p>
                 </div>
                 <div className="rounded-lg p-2 bg-slate-800/50 border border-slate-700">
-                  <p className="text-xs text-slate-500">{game.home.abbr}</p>
-                  <p className="text-lg font-bold text-white font-mono">
-                    {game.moneyline.home > 0 ? '+' : ''}{game.moneyline.home}
+                  <p className="text-xs text-slate-500">{game.home.abbr || 'HOME'}</p>
+                  <p className={`text-lg font-bold font-mono ${
+                    (gameSummary.odds?.homeTeamOdds?.moneyLine || game.moneyline.home) > 0 ? 'text-green-400' : 'text-white'
+                  }`}>
+                    {gameSummary.odds?.homeTeamOdds?.moneyLine ? (
+                      <>{gameSummary.odds.homeTeamOdds.moneyLine > 0 ? '+' : ''}{gameSummary.odds.homeTeamOdds.moneyLine}</>
+                    ) : game.moneyline.home !== 0 ? (
+                      <>{game.moneyline.home > 0 ? '+' : ''}{game.moneyline.home}</>
+                    ) : 'TBD'}
                   </p>
                 </div>
               </div>
@@ -423,29 +586,79 @@ export default function GameDetailPage() {
             </div>
           </div>
 
-          {/* AI Prediction Bar */}
+          {/* AI/ESPN Prediction Bar - Use gameSummary.predictor for real ESPN data */}
           <div className="mt-6 pt-4 border-t border-slate-800">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <Brain className="w-5 h-5 text-orange-500" />
-                <span className="font-semibold text-white">AI Prediction</span>
+                <span className="font-semibold text-white">
+                  {gameSummary.predictor ? 'ESPN Predictor' : 'AI Prediction'}
+                </span>
+                {gameSummary.predictor && (
+                  <span className="px-2 py-0.5 text-xs rounded bg-blue-500/20 text-blue-400">Live Data</span>
+                )}
               </div>
-              <span className="font-bold text-orange-400">{game.aiPick}</span>
+              <span className="font-bold text-orange-400">
+                {gameSummary.predictor ? (
+                  <>
+                    {gameSummary.predictor.homeWinProbability > gameSummary.predictor.awayWinProbability 
+                      ? `${game.home.abbr || game.home.name} ${gameSummary.predictor.homeWinProbability.toFixed(1)}%` 
+                      : `${game.away.abbr || game.away.name} ${gameSummary.predictor.awayWinProbability.toFixed(1)}%`}
+                  </>
+                ) : game.aiPick}
+              </span>
             </div>
-            <div className="h-3 rounded-full overflow-hidden bg-slate-800">
-              <div 
-                className="h-full rounded-full transition-all"
-                style={{ 
-                  width: `${game.aiConfidence}%`,
-                  background: game.aiConfidence >= 70 
-                    ? 'linear-gradient(90deg, #22c55e, #4ade80)' 
-                    : game.aiConfidence >= 55 
-                    ? 'linear-gradient(90deg, #f97316, #fb923c)' 
-                    : 'linear-gradient(90deg, #ef4444, #f87171)'
-                }}
-              />
+            {/* Win Probability Bar */}
+            <div className="h-4 rounded-full overflow-hidden bg-slate-800 flex">
+              {gameSummary.predictor ? (
+                <>
+                  <div 
+                    className="h-full transition-all flex items-center justify-center text-xs font-bold"
+                    style={{ 
+                      width: `${gameSummary.predictor.awayWinProbability}%`,
+                      background: 'linear-gradient(90deg, #f97316, #fb923c)'
+                    }}
+                  >
+                    {gameSummary.predictor.awayWinProbability > 15 && (
+                      <span className="text-white drop-shadow">{game.away.abbr}</span>
+                    )}
+                  </div>
+                  <div 
+                    className="h-full transition-all flex items-center justify-center text-xs font-bold"
+                    style={{ 
+                      width: `${gameSummary.predictor.homeWinProbability}%`,
+                      background: 'linear-gradient(90deg, #22c55e, #4ade80)'
+                    }}
+                  >
+                    {gameSummary.predictor.homeWinProbability > 15 && (
+                      <span className="text-white drop-shadow">{game.home.abbr}</span>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div 
+                  className="h-full rounded-full transition-all"
+                  style={{ 
+                    width: `${game.aiConfidence}%`,
+                    background: game.aiConfidence >= 70 
+                      ? 'linear-gradient(90deg, #22c55e, #4ade80)' 
+                      : game.aiConfidence >= 55 
+                      ? 'linear-gradient(90deg, #f97316, #fb923c)' 
+                      : 'linear-gradient(90deg, #ef4444, #f87171)'
+                  }}
+                />
+              )}
             </div>
-            <p className="text-sm mt-1 text-slate-500">{game.aiConfidence}% confidence</p>
+            <div className="flex justify-between text-sm mt-1 text-slate-500">
+              {gameSummary.predictor ? (
+                <>
+                  <span>{game.away.abbr || game.away.name}: {gameSummary.predictor.awayWinProbability.toFixed(1)}%</span>
+                  <span>{game.home.abbr || game.home.name}: {gameSummary.predictor.homeWinProbability.toFixed(1)}%</span>
+                </>
+              ) : (
+                <span>{game.aiConfidence}% confidence</span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -576,6 +789,253 @@ export default function GameDetailPage() {
                       </li>
                     ))}
                   </ul>
+                </div>
+              )}
+            </div>
+
+            {/* =========================================== */}
+            {/* ESPN TEAM LEADERS - REAL DATA */}
+            {/* =========================================== */}
+            <div className="rounded-2xl p-6 bg-slate-900/50 border border-slate-800">
+              <button 
+                onClick={() => toggleSection('leaders')}
+                className="flex items-center justify-between w-full text-left"
+              >
+                <h3 className="flex items-center gap-2 text-lg font-bold text-white">
+                  <Star className="w-5 h-5 text-yellow-500" />
+                  Key Players (ESPN Data)
+                  {gameSummary.predictor && (
+                    <span className="ml-2 px-2 py-0.5 text-xs rounded bg-blue-500/20 text-blue-400">
+                      Win Prob: {game.home.abbr} {gameSummary.predictor.homeWinProbability.toFixed(1)}% | {game.away.abbr} {gameSummary.predictor.awayWinProbability.toFixed(1)}%
+                    </span>
+                  )}
+                </h3>
+                {expandedSections.leaders ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+              </button>
+              
+              {expandedSections.leaders && (
+                <div className="mt-4">
+                  {gameSummary.loading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <RefreshCw className="w-6 h-6 text-orange-500 animate-spin mr-2" />
+                      <span className="text-slate-400">Loading real player data from ESPN...</span>
+                    </div>
+                  ) : gameSummary.error ? (
+                    <div className="text-center py-6">
+                      <AlertTriangle className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                      <p className="text-slate-500">{gameSummary.error}</p>
+                    </div>
+                  ) : (
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {/* Away Team Leaders */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-slate-400 mb-3 flex items-center gap-2">
+                          <span className="text-xl">{game.away.emoji}</span> {gameSummary.leaders.awayTeam.name || game.away.name}
+                        </h4>
+                        <div className="space-y-2">
+                          {gameSummary.leaders.awayTeam.leaders.length > 0 ? (
+                            gameSummary.leaders.awayTeam.leaders.slice(0, 5).map((leader, i) => (
+                              <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-slate-800/30">
+                                {leader.athlete.headshot && (
+                                  <Image 
+                                    src={leader.athlete.headshot} 
+                                    alt={leader.athlete.displayName}
+                                    width={40}
+                                    height={40}
+                                    className="rounded-full"
+                                    unoptimized
+                                  />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-semibold text-white truncate">
+                                    {leader.athlete.displayName}
+                                    {leader.athlete.jersey && <span className="text-slate-500 ml-1">#{leader.athlete.jersey}</span>}
+                                  </p>
+                                  <p className="text-xs text-slate-400">{leader.category}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-sm font-bold text-orange-400">{leader.displayValue}</p>
+                                  <p className="text-xs text-slate-500">{leader.athlete.position}</p>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-slate-500 text-sm py-2">No leader data available</p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Home Team Leaders */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-slate-400 mb-3 flex items-center gap-2">
+                          <span className="text-xl">{game.home.emoji}</span> {gameSummary.leaders.homeTeam.name || game.home.name}
+                        </h4>
+                        <div className="space-y-2">
+                          {gameSummary.leaders.homeTeam.leaders.length > 0 ? (
+                            gameSummary.leaders.homeTeam.leaders.slice(0, 5).map((leader, i) => (
+                              <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-slate-800/30">
+                                {leader.athlete.headshot && (
+                                  <Image 
+                                    src={leader.athlete.headshot} 
+                                    alt={leader.athlete.displayName}
+                                    width={40}
+                                    height={40}
+                                    className="rounded-full"
+                                    unoptimized
+                                  />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-semibold text-white truncate">
+                                    {leader.athlete.displayName}
+                                    {leader.athlete.jersey && <span className="text-slate-500 ml-1">#{leader.athlete.jersey}</span>}
+                                  </p>
+                                  <p className="text-xs text-slate-400">{leader.category}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-sm font-bold text-orange-400">{leader.displayValue}</p>
+                                  <p className="text-xs text-slate-500">{leader.athlete.position}</p>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-slate-500 text-sm py-2">No leader data available</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Data source attribution */}
+                  <p className="text-xs text-slate-600 mt-4 flex items-center gap-1">
+                    <Database className="w-3 h-3" />
+                    Player stats from ESPN. Updated in real-time.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* =========================================== */}
+            {/* ESPN INJURY REPORT - REAL DATA */}
+            {/* =========================================== */}
+            <div className="rounded-2xl p-6 bg-slate-900/50 border border-slate-800">
+              <button 
+                onClick={() => toggleSection('injuries')}
+                className="flex items-center justify-between w-full text-left"
+              >
+                <h3 className="flex items-center gap-2 text-lg font-bold text-white">
+                  <AlertTriangle className="w-5 h-5 text-red-500" />
+                  Full Injury Report (ESPN Data)
+                  {!gameSummary.loading && (
+                    <span className="ml-2 px-2 py-0.5 text-xs rounded bg-red-500/20 text-red-400">
+                      {gameSummary.injuries.impactSummary.homeOutPlayers + gameSummary.injuries.impactSummary.awayOutPlayers} Players Out
+                    </span>
+                  )}
+                </h3>
+                {expandedSections.injuries ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+              </button>
+              
+              {expandedSections.injuries && (
+                <div className="mt-4">
+                  {gameSummary.loading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <RefreshCw className="w-6 h-6 text-orange-500 animate-spin mr-2" />
+                      <span className="text-slate-400">Loading injury data from ESPN...</span>
+                    </div>
+                  ) : (
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {/* Away Team Injuries */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-slate-400 mb-3 flex items-center gap-2">
+                          <span className="text-xl">{game.away.emoji}</span> {game.away.name} Injuries
+                        </h4>
+                        <div className="space-y-2">
+                          {gameSummary.injuries.awayTeam.length > 0 ? (
+                            gameSummary.injuries.awayTeam.map((injury, i) => (
+                              <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-slate-800/30">
+                                <div className="flex items-center gap-3">
+                                  {injury.athlete.headshot && (
+                                    <Image 
+                                      src={injury.athlete.headshot} 
+                                      alt={injury.athlete.displayName}
+                                      width={32}
+                                      height={32}
+                                      className="rounded-full"
+                                      unoptimized
+                                    />
+                                  )}
+                                  <div>
+                                    <p className="text-sm font-semibold text-white">{injury.athlete.displayName}</p>
+                                    <p className="text-xs text-slate-400">
+                                      {injury.athlete.position} • {injury.type || 'Unknown injury'}
+                                    </p>
+                                  </div>
+                                </div>
+                                <span className={`px-2 py-1 rounded text-xs font-bold ${
+                                  injury.status === 'Out' || injury.status === 'Injured Reserve' ? 'bg-red-500/20 text-red-400' :
+                                  injury.status === 'Doubtful' ? 'bg-orange-500/20 text-orange-400' :
+                                  injury.status === 'Questionable' ? 'bg-yellow-500/20 text-yellow-400' :
+                                  'bg-green-500/20 text-green-400'
+                                }`}>
+                                  {injury.status}
+                                </span>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-slate-500 text-sm py-2">No injuries reported</p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Home Team Injuries */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-slate-400 mb-3 flex items-center gap-2">
+                          <span className="text-xl">{game.home.emoji}</span> {game.home.name} Injuries
+                        </h4>
+                        <div className="space-y-2">
+                          {gameSummary.injuries.homeTeam.length > 0 ? (
+                            gameSummary.injuries.homeTeam.map((injury, i) => (
+                              <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-slate-800/30">
+                                <div className="flex items-center gap-3">
+                                  {injury.athlete.headshot && (
+                                    <Image 
+                                      src={injury.athlete.headshot} 
+                                      alt={injury.athlete.displayName}
+                                      width={32}
+                                      height={32}
+                                      className="rounded-full"
+                                      unoptimized
+                                    />
+                                  )}
+                                  <div>
+                                    <p className="text-sm font-semibold text-white">{injury.athlete.displayName}</p>
+                                    <p className="text-xs text-slate-400">
+                                      {injury.athlete.position} • {injury.type || 'Unknown injury'}
+                                    </p>
+                                  </div>
+                                </div>
+                                <span className={`px-2 py-1 rounded text-xs font-bold ${
+                                  injury.status === 'Out' || injury.status === 'Injured Reserve' ? 'bg-red-500/20 text-red-400' :
+                                  injury.status === 'Doubtful' ? 'bg-orange-500/20 text-orange-400' :
+                                  injury.status === 'Questionable' ? 'bg-yellow-500/20 text-yellow-400' :
+                                  'bg-green-500/20 text-green-400'
+                                }`}>
+                                  {injury.status}
+                                </span>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-slate-500 text-sm py-2">No injuries reported</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Data source attribution */}
+                  <p className="text-xs text-slate-600 mt-4 flex items-center gap-1">
+                    <Database className="w-3 h-3" />
+                    Injury data from ESPN. Updated in real-time.
+                  </p>
                 </div>
               )}
             </div>
@@ -771,22 +1231,32 @@ export default function GameDetailPage() {
               </div>
             </div>
 
-            {/* Injury Report */}
+            {/* Injury Report - Real ESPN Data */}
             <div className="rounded-2xl p-5 bg-slate-900/50 border border-slate-800">
               <h3 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
                 <AlertTriangle className="w-5 h-5 text-red-500" />
-                Injury Report
+                Key Injuries (ESPN)
               </h3>
-              {game.injuries && game.injuries.length > 0 ? (
+              {gameSummary.loading ? (
+                <div className="flex items-center justify-center py-4">
+                  <RefreshCw className="w-4 h-4 text-orange-500 animate-spin mr-2" />
+                  <span className="text-slate-500 text-sm">Loading...</span>
+                </div>
+              ) : [...gameSummary.injuries.homeTeam, ...gameSummary.injuries.awayTeam]
+                .filter(inj => inj.status === 'Out' || inj.status === 'Injured Reserve' || inj.status === 'Doubtful' || inj.status === 'Questionable')
+                .slice(0, 5).length > 0 ? (
                 <div className="space-y-3">
-                  {game.injuries.map((injury, i) => (
+                  {[...gameSummary.injuries.homeTeam, ...gameSummary.injuries.awayTeam]
+                    .filter(inj => inj.status === 'Out' || inj.status === 'Injured Reserve' || inj.status === 'Doubtful' || inj.status === 'Questionable')
+                    .slice(0, 5)
+                    .map((injury, i) => (
                     <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-slate-800/30">
                       <div>
-                        <p className="text-sm font-semibold text-white">{injury.player}</p>
-                        <p className="text-xs text-slate-400">{injury.team} • {injury.position} • {injury.injury}</p>
+                        <p className="text-sm font-semibold text-white">{injury.athlete.displayName}</p>
+                        <p className="text-xs text-slate-400">{injury.athlete.position} • {injury.type || 'Unknown'}</p>
                       </div>
                       <span className={`px-2 py-1 rounded text-xs font-bold ${
-                        injury.status === 'Out' ? 'bg-red-500/20 text-red-400' :
+                        injury.status === 'Out' || injury.status === 'Injured Reserve' ? 'bg-red-500/20 text-red-400' :
                         injury.status === 'Doubtful' ? 'bg-orange-500/20 text-orange-400' :
                         injury.status === 'Questionable' ? 'bg-yellow-500/20 text-yellow-400' :
                         'bg-green-500/20 text-green-400'
@@ -801,11 +1271,120 @@ export default function GameDetailPage() {
               )}
             </div>
 
-            {/* Opening vs Current Lines */}
+            {/* ESPN Odds & Line Movement */}
             <div className="rounded-2xl p-5 bg-slate-900/50 border border-slate-800">
               <h3 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
                 <LineChart className="w-5 h-5 text-blue-500" />
-                Line Movement
+                ESPN Odds & Lines
+              </h3>
+              {gameSummary.loading ? (
+                <div className="flex items-center justify-center py-4">
+                  <RefreshCw className="w-4 h-4 text-orange-500 animate-spin mr-2" />
+                  <span className="text-slate-500 text-sm">Loading...</span>
+                </div>
+              ) : gameSummary.odds ? (
+                <div className="space-y-4">
+                  {/* Provider */}
+                  <p className="text-xs text-slate-500">{gameSummary.odds.provider?.name || 'Sportsbook'}</p>
+                  
+                  {/* Spread */}
+                  <div>
+                    <div className="flex justify-between text-xs text-slate-500 mb-1">
+                      <span>Spread</span>
+                      {gameSummary.lineMovement.spreadMove !== null && gameSummary.lineMovement.spreadMove !== 0 && (
+                        <span className={gameSummary.lineMovement.spreadMove > 0 ? 'text-red-400' : 'text-green-400'}>
+                          {gameSummary.lineMovement.spreadMove > 0 ? '▲' : '▼'} Moved
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="flex-1 p-2 rounded bg-slate-800/50 text-center">
+                        <p className="text-xs text-slate-500">Open</p>
+                        <p className="font-bold text-white">{gameSummary.lineMovement.openingSpread || 'N/A'}</p>
+                      </div>
+                      <div className="flex items-center">
+                        <ChevronRight className="w-4 h-4 text-slate-600" />
+                      </div>
+                      <div className="flex-1 p-2 rounded bg-slate-800/50 text-center">
+                        <p className="text-xs text-slate-500">Current</p>
+                        <p className="font-bold text-orange-400">
+                          {gameSummary.odds.homeTeamOdds?.favorite ? '-' : '+'}{Math.abs(gameSummary.odds.spread).toFixed(1)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Total */}
+                  <div>
+                    <div className="flex justify-between text-xs text-slate-500 mb-1">
+                      <span>Total</span>
+                      {gameSummary.lineMovement.totalMove !== null && gameSummary.lineMovement.totalMove !== 0 && (
+                        <span className={gameSummary.lineMovement.totalMove > 0 ? 'text-red-400' : 'text-green-400'}>
+                          {gameSummary.lineMovement.totalMove > 0 ? '▲' : '▼'} {Math.abs(gameSummary.lineMovement.totalMove).toFixed(1)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="flex-1 p-2 rounded bg-slate-800/50 text-center">
+                        <p className="text-xs text-slate-500">Open</p>
+                        <p className="font-bold text-white">{gameSummary.lineMovement.openingTotal || 'N/A'}</p>
+                      </div>
+                      <div className="flex items-center">
+                        <ChevronRight className="w-4 h-4 text-slate-600" />
+                      </div>
+                      <div className="flex-1 p-2 rounded bg-slate-800/50 text-center">
+                        <p className="text-xs text-slate-500">Current</p>
+                        <p className="font-bold text-green-400">{gameSummary.odds.overUnder}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Moneyline */}
+                  <div>
+                    <p className="text-xs text-slate-500 mb-2">Moneyline</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="p-2 rounded bg-slate-800/50 text-center">
+                        <p className="text-xs text-slate-500">{game.away.abbr}</p>
+                        <p className={`font-bold ${gameSummary.odds.awayTeamOdds?.moneyLine > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          {gameSummary.odds.awayTeamOdds?.moneyLine > 0 ? '+' : ''}{gameSummary.odds.awayTeamOdds?.moneyLine}
+                        </p>
+                      </div>
+                      <div className="p-2 rounded bg-slate-800/50 text-center">
+                        <p className="text-xs text-slate-500">{game.home.abbr}</p>
+                        <p className={`font-bold ${gameSummary.odds.homeTeamOdds?.moneyLine > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          {gameSummary.odds.homeTeamOdds?.moneyLine > 0 ? '+' : ''}{gameSummary.odds.homeTeamOdds?.moneyLine}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ATS Records */}
+                  {(gameSummary.atsRecords.homeTeam || gameSummary.atsRecords.awayTeam) && (
+                    <div>
+                      <p className="text-xs text-slate-500 mb-2">ATS Records</p>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div className="text-center">
+                          <p className="text-slate-500">{game.away.abbr}</p>
+                          <p className="text-white font-semibold">{gameSummary.atsRecords.awayTeam?.ats || 'N/A'}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-slate-500">{game.home.abbr}</p>
+                          <p className="text-white font-semibold">{gameSummary.atsRecords.homeTeam?.ats || 'N/A'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-slate-500">No odds available</p>
+              )}
+            </div>
+
+            {/* Opening vs Current Lines - Original */}
+            <div className="rounded-2xl p-5 bg-slate-900/50 border border-slate-800">
+              <h3 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
+                <LineChart className="w-5 h-5 text-blue-500" />
+                Original Line Movement
               </h3>
               <div className="space-y-4">
                 <div>

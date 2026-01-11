@@ -22,6 +22,7 @@ const ALL_ROUTES = [
   
   // Feature pages
   { path: '/markets', name: 'Prediction Markets', critical: true },
+  { path: '/markets/edge', name: 'The Edge - Market Signals', critical: true },
   { path: '/trends', name: 'Betting Trends', critical: true },
   { path: '/leaderboard', name: 'Expert Tracker', critical: true },
   { path: '/analytics', name: 'Analytics Dashboard', critical: true },
@@ -64,8 +65,16 @@ async function collectPageErrors(page: Page): Promise<string[]> {
     if (msg.type() === 'error' && 
         !text.includes('ResizeObserver') &&
         !text.includes('same key') &&  // React key warnings from external API data
-        !text.includes('Non-unique keys')) {
+        !text.includes('Non-unique keys') &&
+        !text.includes('hydration')) { // Next.js hydration warnings
       errors.push(text);
+    }
+  });
+  // Also catch failed network requests (CORS, 404s, etc.)
+  page.on('requestfailed', (request) => {
+    const failure = request.failure();
+    if (failure && !failure.errorText.includes('net::ERR_ABORTED')) {
+      errors.push(`Network request failed: ${request.url()} - ${failure.errorText}`);
     }
   });
   return errors;

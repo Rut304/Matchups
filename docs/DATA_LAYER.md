@@ -152,6 +152,7 @@ export async function GET(request: Request) {
 ### 1. ESPN API (Primary)
 
 **Endpoints:**
+
 ```
 Scoreboard:  /apis/site/v2/sports/{sport}/{league}/scoreboard
 Summary:     /apis/site/v2/sports/{sport}/{league}/summary?event={id}
@@ -159,6 +160,7 @@ Schedule:    /apis/site/v2/sports/{sport}/{league}/teams/{id}/schedule
 ```
 
 **Data Available:**
+
 - Live scores and game status
 - Team information and records
 - Basic betting lines (spread, total, ML)
@@ -172,6 +174,7 @@ Schedule:    /apis/site/v2/sports/{sport}/{league}/teams/{id}/schedule
 ### 2. The Odds API
 
 **Endpoints:**
+
 ```
 Odds:        /v4/sports/{sport}/odds
 Events:      /v4/sports/{sport}/events
@@ -179,6 +182,7 @@ Scores:      /v4/sports/{sport}/scores
 ```
 
 **Data Available:**
+
 - Multi-book odds comparison
 - Live odds updates
 - Historical odds
@@ -191,6 +195,7 @@ Scores:      /v4/sports/{sport}/scores
 ### 3. Supabase (Database)
 
 **Tables:**
+
 ```sql
 historical_games    -- Past game results with betting outcomes
 betting_splits      -- Public betting percentages
@@ -199,7 +204,8 @@ user_picks          -- User betting history
 cappers             -- Expert/celebrity tracker data
 ```
 
-**Client Files:** 
+**Client Files:**
+
 - `/src/lib/supabase/client.ts` (browser)
 - `/src/lib/supabase/server.ts` (server)
 

@@ -30,17 +30,14 @@ const POLYMARKET_API = 'https://clob.polymarket.com/markets'
 const KALSHI_API = 'https://trading-api.kalshi.com/v2/markets'
 
 interface PolymarketMarket {
-  id: string
+  condition_id: string
   question: string
   description: string
-  outcomes: string[]
-  outcome_prices: string[]
-  volume: string
-  liquidity: string
+  tokens: Array<{ outcome: string; price?: number }>
+  tags?: string[]
   end_date_iso: string
   active: boolean
   closed: boolean
-  category: string
 }
 
 interface KalshiMarket {
@@ -73,26 +70,45 @@ async function fetchPolymarketMarkets(category?: string): Promise<PredictionMark
       return []
     }
     
-    const data: PolymarketMarket[] = await res.json()
+    const response = await res.json()
+    // Polymarket returns { data: [...], count, limit, next_cursor }
+    const data: PolymarketMarket[] = response.data || response || []
+    
+    if (!Array.isArray(data)) {
+      console.error('Polymarket returned non-array data:', typeof data)
+      return []
+    }
+    
+    // Extract category from tags if available
+    const getCategory = (tags?: string[]): string => {
+      if (!tags?.length) return 'other'
+      const sportsTags = ['sports', 'nfl', 'nba', 'mlb', 'nhl', 'ncaa']
+      const tag = tags.find(t => sportsTags.includes(t.toLowerCase()))
+      return tag?.toLowerCase() || tags[0]?.toLowerCase() || 'other'
+    }
     
     return data
-      .filter(m => !category || m.category?.toLowerCase() === category.toLowerCase())
+      .filter(m => {
+        if (!category) return true
+        const marketCategory = getCategory(m.tags)
+        return marketCategory.toLowerCase() === category.toLowerCase()
+      })
       .slice(0, 50)
       .map(m => ({
-        id: `polymarket-${m.id}`,
+        id: `polymarket-${m.condition_id}`,
         platform: 'polymarket' as const,
-        category: m.category || 'other',
+        category: getCategory(m.tags),
         title: m.question,
         description: m.description || '',
-        yesPrice: parseFloat(m.outcome_prices?.[0] || '0.5'),
-        noPrice: parseFloat(m.outcome_prices?.[1] || '0.5'),
-        volume24h: parseFloat(m.volume || '0'),
-        liquidity: parseFloat(m.liquidity || '0'),
+        yesPrice: m.tokens?.[0]?.price || 0.5,
+        noPrice: m.tokens?.[1]?.price || 0.5,
+        volume24h: 0, // Not directly available in this endpoint
+        liquidity: 0,
         endDate: m.end_date_iso,
         resolved: m.closed,
         outcome: null,
-        change24h: Math.random() * 10 - 5, // Would need historical data
-        trending: parseFloat(m.volume || '0') > 100000,
+        change24h: 0,
+        trending: false,
       }))
   } catch (error) {
     console.error('Failed to fetch Polymarket markets:', error)
