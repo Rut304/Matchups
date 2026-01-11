@@ -82,6 +82,12 @@ interface SiteSettings {
   auto_refresh_interval_minutes: number
   ai_analysis_enabled: boolean
   live_scores_enabled: boolean
+  // Marketplace Settings
+  marketplace_enabled: boolean
+  marketplace_monetization_enabled: boolean
+  marketplace_min_win_rate: number
+  marketplace_min_picks: number
+  marketplace_platform_fee_percent: number
   // Edge Features
   edge_features_enabled: boolean
   edge_rlm_enabled: boolean
@@ -110,6 +116,12 @@ const DEFAULT_SETTINGS: SiteSettings = {
   adsense_slot_inline: null,
   adsense_slot_footer: null,
   maintenance_mode: false,
+  // Marketplace defaults
+  marketplace_enabled: true,
+  marketplace_monetization_enabled: false,
+  marketplace_min_win_rate: 52,
+  marketplace_min_picks: 5,
+  marketplace_platform_fee_percent: 10,
   // Edge Features defaults
   edge_features_enabled: true,
   edge_rlm_enabled: true,
@@ -1461,6 +1473,106 @@ export default function AdminPage() {
                       </button>
                     </div>
                   ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Marketplace Settings */}
+            <Card variant="bordered">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-purple-500" />
+                  Marketplace Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Marketplace Toggles */}
+                  {[
+                    { key: 'marketplace_enabled', label: 'Marketplace Enabled', desc: 'Allow users to browse and share systems' },
+                    { key: 'marketplace_monetization_enabled', label: 'Monetization', desc: 'Allow paid system listings (Stripe integration required)' },
+                  ].map((setting) => (
+                    <div key={setting.key} className="flex items-center justify-between p-3 bg-background-tertiary rounded-lg">
+                      <div>
+                        <p className="font-medium text-text-primary">{setting.label}</p>
+                        <p className="text-xs text-text-muted">{setting.desc}</p>
+                      </div>
+                      <button
+                        onClick={() => saveSettings({ [setting.key]: !settings[setting.key as keyof SiteSettings] })}
+                        disabled={isSavingSettings}
+                        title={`Toggle ${setting.label}`}
+                        className={`relative w-12 h-6 rounded-full transition-colors ${
+                          settings[setting.key as keyof SiteSettings] ? 'bg-accent' : 'bg-border'
+                        }`}
+                      >
+                        <span
+                          className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
+                            settings[setting.key as keyof SiteSettings] ? 'left-7' : 'left-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  ))}
+                  
+                  {/* Quality Gate Settings */}
+                  <div className="border-t border-border pt-4 mt-4">
+                    <h4 className="font-medium text-text-primary mb-3">Quality Gates</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="p-3 bg-background-tertiary rounded-lg">
+                        <label className="block text-sm text-text-muted mb-2">Min Picks Required</label>
+                        <input
+                          type="number"
+                          value={settings.marketplace_min_picks || 5}
+                          onChange={(e) => setSettings({ ...settings, marketplace_min_picks: parseInt(e.target.value) || 5 })}
+                          onBlur={() => saveSettings({ marketplace_min_picks: settings.marketplace_min_picks })}
+                          className="w-full px-3 py-2 bg-background-secondary border border-border rounded-lg text-text-primary"
+                          min={1}
+                          max={100}
+                        />
+                        <p className="text-xs text-text-muted mt-1">Minimum picks before a system can be published</p>
+                      </div>
+                      <div className="p-3 bg-background-tertiary rounded-lg">
+                        <label className="block text-sm text-text-muted mb-2">Min Win Rate %</label>
+                        <input
+                          type="number"
+                          value={settings.marketplace_min_win_rate || 52}
+                          onChange={(e) => setSettings({ ...settings, marketplace_min_win_rate: parseFloat(e.target.value) || 52 })}
+                          onBlur={() => saveSettings({ marketplace_min_win_rate: settings.marketplace_min_win_rate })}
+                          className="w-full px-3 py-2 bg-background-secondary border border-border rounded-lg text-text-primary"
+                          min={50}
+                          max={100}
+                          step={0.1}
+                        />
+                        <p className="text-xs text-text-muted mt-1">Minimum win rate to publish to marketplace</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Monetization Settings (only show if enabled) */}
+                  {settings.marketplace_monetization_enabled && (
+                    <div className="border-t border-border pt-4 mt-4">
+                      <h4 className="font-medium text-text-primary mb-3">Monetization Settings</h4>
+                      <div className="p-3 bg-background-tertiary rounded-lg">
+                        <label className="block text-sm text-text-muted mb-2">Platform Fee %</label>
+                        <input
+                          type="number"
+                          value={settings.marketplace_platform_fee_percent || 10}
+                          onChange={(e) => setSettings({ ...settings, marketplace_platform_fee_percent: parseFloat(e.target.value) || 10 })}
+                          onBlur={() => saveSettings({ marketplace_platform_fee_percent: settings.marketplace_platform_fee_percent })}
+                          className="w-full px-3 py-2 bg-background-secondary border border-border rounded-lg text-text-primary"
+                          min={0}
+                          max={50}
+                          step={0.5}
+                        />
+                        <p className="text-xs text-text-muted mt-1">Percentage of each sale retained as platform fee</p>
+                      </div>
+                      <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                        <p className="text-sm text-yellow-400">
+                          ⚠️ Stripe Connect integration required for payouts. Configure in your Stripe dashboard.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

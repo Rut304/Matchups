@@ -297,3 +297,342 @@ export async function getTodaysGames(): Promise<Record<SportKey, ReturnType<type
   
   return results as Record<SportKey, ReturnType<typeof transformESPNGame>[]>
 }
+
+// ===========================================
+// EXTENDED ESPN API - INJURIES, NEWS, ATS, PLAY-BY-PLAY
+// ===========================================
+
+const ESPN_WEB_API = 'https://site.web.api.espn.com/apis/site/v2/sports'
+
+export interface ESPNInjury {
+  athlete: {
+    id: string
+    displayName: string
+    position: { abbreviation: string }
+    headshot?: { href: string }
+  }
+  status: string // 'Out', 'Doubtful', 'Questionable', 'Probable', 'Day-To-Day'
+  type: {
+    description: string // injury type
+    abbreviation: string
+  }
+  details?: {
+    detail: string
+    returnDate?: string
+  }
+  date: string
+}
+
+export interface ESPNTeamInjuries {
+  team: ESPNTeam
+  injuries: ESPNInjury[]
+}
+
+export interface ESPNArticle {
+  headline: string
+  description: string
+  published: string
+  type: string
+  premium: boolean
+  links: { web: { href: string } }
+  images?: Array<{ url: string; caption?: string }>
+  categories?: Array<{ type: string; description: string; teamId?: string; athleteId?: string }>
+}
+
+export interface ESPNOddsDetailed {
+  provider: { name: string; priority: number }
+  details: string
+  spread: number
+  overUnder: number
+  homeTeamOdds: {
+    favorite: boolean
+    moneyLine?: number
+    spreadOdds?: number
+    winPercentage?: number
+    averageScore?: number
+    spreadRecord?: { wins: number; losses: number; pushes: number; summary: string }
+  }
+  awayTeamOdds: {
+    favorite: boolean
+    moneyLine?: number
+    spreadOdds?: number
+    winPercentage?: number
+    averageScore?: number
+    spreadRecord?: { wins: number; losses: number; pushes: number; summary: string }
+  }
+}
+
+export interface ESPNPlay {
+  id: string
+  type: { id: string; text: string }
+  text: string
+  homeScore: number
+  awayScore: number
+  period: { number: number; displayValue: string }
+  clock: { displayValue: string }
+  scoringPlay: boolean
+  team?: { id: string; displayName: string }
+  wallclock?: string
+}
+
+export interface ESPNGameSummary {
+  header: {
+    id: string
+    competitions: Array<{
+      id: string
+      date: string
+      competitors: Array<{
+        id: string
+        homeAway: string
+        team: ESPNTeam & { logos?: Array<{ href: string }> }
+        score?: string
+        record?: Array<{ type: string; summary: string }>
+      }>
+      status: { type: { state: string; completed: boolean }; period: number; displayClock: string }
+    }>
+  }
+  boxscore?: {
+    teams: Array<{
+      team: ESPNTeam
+      statistics: Array<{ name: string; displayValue: string; abbreviation: string; label: string }>
+      homeAway: string
+    }>
+    players?: Array<{
+      team: { id: string; displayName: string }
+      statistics: Array<{
+        name: string
+        labels: string[]
+        athletes: Array<{
+          athlete: { id: string; displayName: string; position: { abbreviation: string } }
+          stats: string[]
+        }>
+      }>
+    }>
+  }
+  gameInfo?: {
+    venue: { id: string; fullName: string; address: { city: string; state: string } }
+    attendance?: number
+    weather?: { temperature: number; displayValue: string }
+    officials?: Array<{ fullName: string; position: { name: string } }>
+  }
+  pickcenter?: ESPNOddsDetailed[]
+  odds?: ESPNOddsDetailed[]
+  againstTheSpread?: Array<{
+    team: ESPNTeam
+    records: Array<{ type: string; summary: string }>
+  }>
+  plays?: ESPNPlay[]
+  drives?: Array<{
+    id: string
+    description: string
+    team: { displayName: string; abbreviation: string }
+    start: { period: { number: number }; yardLine: number }
+    end: { period: { number: number }; yardLine: number }
+    plays: ESPNPlay[]
+    result: string
+    yards: number
+    isScore: boolean
+  }>
+  injuries?: Array<ESPNTeamInjuries>
+  news?: { header: string; articles: ESPNArticle[] }
+  standings?: unknown
+  leaders?: unknown
+}
+
+/**
+ * Get full game summary with box scores, play-by-play, ATS records, injuries, news
+ */
+export async function getFullGameSummary(sport: SportKey, gameId: string): Promise<ESPNGameSummary | null> {
+  const { sport: s, league } = ESPN_SPORTS[sport]
+  const url = `${ESPN_WEB_API}/${s}/${league}/summary?event=${gameId}`
+  
+  try {
+    const res = await fetch(url, { next: { revalidate: 30 } })
+    if (!res.ok) return null
+    return await res.json()
+  } catch (error) {
+    console.error('ESPN getFullGameSummary error:', error)
+    return null
+  }
+}
+
+/**
+ * Get ATS (Against the Spread) records for teams in a game
+ * ESPN includes this in pickcenter with teamrankings/consensus providers
+ */
+export async function getATSRecords(sport: SportKey, gameId: string): Promise<{
+  home: { wins: number; losses: number; pushes: number; summary: string } | null
+  away: { wins: number; losses: number; pushes: number; summary: string } | null
+  homeOU?: { over: number; under: number; push: number } | null
+  awayOU?: { over: number; under: number; push: number } | null
+}> {
+  const summary = await getFullGameSummary(sport, gameId)
+  
+  if (!summary) return { home: null, away: null }
+  
+  const oddsArray = summary.pickcenter || summary.odds || []
+  // Prefer teamrankings (has spread records), then consensus
+  const odds = oddsArray.find((o: ESPNOddsDetailed) => o.provider.name === 'teamrankings')
+    || oddsArray.find((o: ESPNOddsDetailed) => o.provider.name === 'consensus')
+    || oddsArray[0]
+  
+  if (!odds) return { home: null, away: null }
+  
+  return {
+    home: odds.homeTeamOdds.spreadRecord || null,
+    away: odds.awayTeamOdds.spreadRecord || null,
+  }
+}
+
+/**
+ * Get detailed odds including win percentages and average scores
+ */
+export async function getDetailedOdds(sport: SportKey, gameId: string): Promise<ESPNOddsDetailed | null> {
+  const summary = await getFullGameSummary(sport, gameId)
+  
+  if (!summary) return null
+  
+  const oddsArray = summary.pickcenter || summary.odds || []
+  return oddsArray.find((o: ESPNOddsDetailed) => o.provider.name === 'teamrankings')
+    || oddsArray.find((o: ESPNOddsDetailed) => o.provider.name === 'consensus')
+    || oddsArray.find((o: ESPNOddsDetailed) => o.provider.name === 'numberfire')
+    || oddsArray[0] || null
+}
+
+/**
+ * Get play-by-play data for a game
+ */
+export async function getPlayByPlay(sport: SportKey, gameId: string): Promise<{
+  plays: ESPNPlay[]
+  drives?: ESPNGameSummary['drives']
+}> {
+  const summary = await getFullGameSummary(sport, gameId)
+  
+  if (!summary) return { plays: [] }
+  
+  return {
+    plays: summary.plays || [],
+    drives: summary.drives,
+  }
+}
+
+/**
+ * Get injuries for teams in a game
+ */
+export async function getGameInjuries(sport: SportKey, gameId: string): Promise<ESPNTeamInjuries[]> {
+  const summary = await getFullGameSummary(sport, gameId)
+  return summary?.injuries || []
+}
+
+/**
+ * Get team news
+ */
+export async function getTeamNews(sport: SportKey, teamId: string, limit = 10): Promise<ESPNArticle[]> {
+  const { sport: s, league } = ESPN_SPORTS[sport]
+  const url = `${ESPN_BASE}/${s}/${league}/teams/${teamId}/news?limit=${limit}`
+  
+  try {
+    const res = await fetch(url, { next: { revalidate: 300 } })
+    if (!res.ok) return []
+    const data = await res.json()
+    return data.articles || []
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Get injuries for a specific team
+ */
+export async function getTeamInjuries(sport: SportKey, teamId: string): Promise<ESPNInjury[]> {
+  const { sport: s, league } = ESPN_SPORTS[sport]
+  const url = `${ESPN_BASE}/${s}/${league}/teams/${teamId}/injuries`
+  
+  try {
+    const res = await fetch(url, { next: { revalidate: 300 } })
+    if (!res.ok) return []
+    const data = await res.json()
+    return data.injuries || data.items || []
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Get historical games for backtesting (date format: YYYYMMDD)
+ */
+export async function getHistoricalGames(sport: SportKey, date: string): Promise<ESPNGame[]> {
+  const scoreboard = await getScoreboard(sport, date)
+  return scoreboard.events || []
+}
+
+/**
+ * Get games for an entire season (use sparingly - many API calls)
+ */
+export async function getSeasonGames(
+  sport: SportKey, 
+  year: number, 
+  seasonType: 'preseason' | 'regular' | 'postseason' = 'regular'
+): Promise<ESPNGame[]> {
+  const { sport: s, league } = ESPN_SPORTS[sport]
+  const typeMap = { preseason: 1, regular: 2, postseason: 3 }
+  const url = `${ESPN_BASE}/${s}/${league}/scoreboard?dates=${year}&seasontype=${typeMap[seasonType]}&limit=1000`
+  
+  try {
+    const res = await fetch(url, { next: { revalidate: 3600 } })
+    if (!res.ok) return []
+    const data = await res.json()
+    return data.events || []
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Get team schedule
+ */
+export async function getTeamSchedule(sport: SportKey, teamId: string, year?: number): Promise<ESPNGame[]> {
+  const { sport: s, league } = ESPN_SPORTS[sport]
+  let url = `${ESPN_BASE}/${s}/${league}/teams/${teamId}/schedule`
+  if (year) url += `?season=${year}`
+  
+  try {
+    const res = await fetch(url, { next: { revalidate: 3600 } })
+    if (!res.ok) return []
+    const data = await res.json()
+    return data.events || []
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Format date for ESPN API (YYYYMMDD)
+ */
+export function formatESPNDate(date: Date): string {
+  return `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`
+}
+
+/**
+ * Get current season year for a sport
+ */
+export function getSeasonYear(sport: SportKey, date: Date = new Date()): number {
+  const year = date.getFullYear()
+  const month = date.getMonth() + 1
+  
+  switch (sport) {
+    case 'NFL':
+    case 'NCAAF':
+      return month >= 3 && month <= 8 ? year : year
+    case 'NBA':
+    case 'NHL':
+    case 'NCAAB':
+    case 'WNBA':
+    case 'WNCAAB':
+      return month >= 7 ? year : year - 1
+    case 'MLB':
+      return year
+    default:
+      return year
+  }
+}

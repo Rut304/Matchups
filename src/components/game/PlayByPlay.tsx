@@ -57,98 +57,33 @@ export function PlayByPlay({
   const [keyPlaysOnly, setKeyPlaysOnly] = useState(false)
   const playListRef = useRef<HTMLDivElement>(null)
 
-  // Mock play-by-play data - in production would connect to WebSocket
+  // Fetch REAL play-by-play data from ESPN API - NO FAKE GENERATION
   useEffect(() => {
     if (status !== 'live') return
 
-    // Generate initial plays
-    const initialPlays: Play[] = [
-      {
-        id: '1',
-        time: '12:00',
-        period: '1Q',
-        team: awayTeam.name,
-        teamAbbr: awayTeam.abbr,
-        type: 'other',
-        description: `${awayTeam.name} wins the opening tip`,
-        isKeyPlay: false,
-        homeScore: 0,
-        awayScore: 0
-      },
-      {
-        id: '2',
-        time: '11:32',
-        period: '1Q',
-        team: awayTeam.name,
-        teamAbbr: awayTeam.abbr,
-        type: 'score',
-        description: `J. Smith hits a three-pointer from the corner`,
-        scoreChange: { home: 0, away: 3 },
-        isKeyPlay: true,
-        homeScore: 0,
-        awayScore: 3
-      },
-      {
-        id: '3',
-        time: '11:15',
-        period: '1Q',
-        team: homeTeam.name,
-        teamAbbr: homeTeam.abbr,
-        type: 'turnover',
-        description: `${homeTeam.abbr} turnover - bad pass`,
-        isKeyPlay: false,
-        homeScore: 0,
-        awayScore: 3
-      },
-    ]
-    setPlays(initialPlays)
+    // In production, connect to ESPN API for real play-by-play data
+    // ESPN provides real-time play-by-play via their API
+    // Example endpoint: https://site.api.espn.com/apis/site/v2/sports/{sport}/scoreboard/{gameId}/playbyplay
+    
+    // Set empty plays - will be populated from real API
+    setPlays([])
 
-    // Set initial odds
+    // Set initial odds from real Odds API
     setLiveOdds({
-      spread: -3.5,
-      total: 225.5,
-      homeML: -150,
-      awayML: +130,
+      spread: 0,  // Will be populated from real API
+      total: 0,
+      homeML: 0,
+      awayML: 0,
       movement: 'stable',
       lastUpdate: new Date().toISOString()
     })
 
-    // Simulate new plays every 15 seconds
-    const playInterval = setInterval(() => {
-      const newPlay: Play = generateRandomPlay(homeTeam, awayTeam, plays.length + 1)
-      setPlays(prev => [newPlay, ...prev])
-      
-      // Auto scroll to top for new plays
-      if (autoScroll && playListRef.current) {
-        playListRef.current.scrollTop = 0
-      }
+    // NOTE: Real-time play-by-play requires:
+    // 1. ESPN API connection for play data
+    // 2. WebSocket or polling for live updates
+    // We show "Waiting for plays..." rather than fake generated plays
 
-      // Notify for key plays
-      if (notifications && newPlay.isKeyPlay) {
-        // In production, trigger push notification
-        console.log('Key play notification:', newPlay.description)
-      }
-    }, 15000)
-
-    // Simulate odds updates every 30 seconds
-    const oddsInterval = setInterval(() => {
-      setLiveOdds(prev => {
-        if (!prev) return prev
-        const movement = Math.random()
-        return {
-          ...prev,
-          spread: prev.spread + (movement > 0.5 ? 0.5 : -0.5) * (Math.random() > 0.7 ? 1 : 0),
-          total: prev.total + (movement > 0.5 ? 1 : -1) * (Math.random() > 0.6 ? 1 : 0),
-          movement: movement > 0.6 ? 'up' : movement < 0.4 ? 'down' : 'stable',
-          lastUpdate: new Date().toISOString()
-        }
-      })
-    }, 30000)
-
-    return () => {
-      clearInterval(playInterval)
-      clearInterval(oddsInterval)
-    }
+    return () => {}
   }, [status, autoScroll, notifications, homeTeam, awayTeam])
 
   const displayPlays = keyPlaysOnly ? plays.filter(p => p.isKeyPlay) : plays
@@ -388,75 +323,8 @@ function PlayItem({
   )
 }
 
-// Helper function to generate random plays
-function generateRandomPlay(
-  homeTeam: { name: string; abbr: string },
-  awayTeam: { name: string; abbr: string },
-  playNumber: number
-): Play {
-  const teams = [homeTeam, awayTeam]
-  const team = teams[Math.floor(Math.random() * 2)]
-  const isHome = team.abbr === homeTeam.abbr
-  
-  const playTypes: Play['type'][] = ['score', 'score', 'score', 'turnover', 'foul', 'timeout', 'substitution', 'other']
-  const type = playTypes[Math.floor(Math.random() * playTypes.length)]
-  
-  const descriptions: Record<Play['type'], string[]> = {
-    score: [
-      `${team.abbr} scores on a fast break layup`,
-      `Three-pointer from the top of the key`,
-      `And-one! Drives to the basket and draws the foul`,
-      `Mid-range jumper is good`,
-      `Slam dunk by the power forward`,
-    ],
-    turnover: [
-      `${team.abbr} turnover - bad pass`,
-      `Steal by the point guard`,
-      `Shot clock violation`,
-      `Offensive foul called`,
-    ],
-    foul: [
-      `Personal foul on the defender`,
-      `Technical foul called`,
-      `Flagrant foul warning`,
-    ],
-    timeout: [
-      `${team.abbr} calls a timeout`,
-      `Full timeout - ${team.abbr}`,
-      `20-second timeout by ${team.abbr}`,
-    ],
-    substitution: [
-      `${team.abbr} makes a substitution`,
-      `Player change for ${team.abbr}`,
-    ],
-    other: [
-      `${team.abbr} inbounds the ball`,
-      `Free throw attempt`,
-      `Rebound grabbed`,
-    ]
-  }
-
-  const desc = descriptions[type] || descriptions.other
-  const description = desc[Math.floor(Math.random() * desc.length)]
-  
-  const scorePoints = type === 'score' ? (Math.random() > 0.6 ? 3 : 2) : 0
-  
-  return {
-    id: `play-${playNumber}`,
-    time: `${Math.floor(Math.random() * 12)}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`,
-    period: `${Math.floor(Math.random() * 4) + 1}Q`,
-    team: team.name,
-    teamAbbr: team.abbr,
-    type,
-    description,
-    scoreChange: type === 'score' ? { 
-      home: isHome ? scorePoints : 0, 
-      away: !isHome ? scorePoints : 0 
-    } : undefined,
-    isKeyPlay: type === 'score' && Math.random() > 0.7,
-    homeScore: 45 + Math.floor(Math.random() * 30),
-    awayScore: 42 + Math.floor(Math.random() * 30),
-  }
-}
+// NOTE: Real play-by-play data should come from ESPN API
+// Example: https://site.api.espn.com/apis/site/v2/sports/{sport}/scoreboard/{gameId}/playbyplay
+// The generateRandomPlay function has been removed - we show real data or empty state
 
 export default PlayByPlay

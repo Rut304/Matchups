@@ -889,59 +889,42 @@ async function getATSRecords(
   homeAbbr: string,
   awayAbbr: string
 ): Promise<ATSRecords> {
-  const createATSRecord = () => ({
-    wins: Math.floor(Math.random() * 10) + 3,
-    losses: Math.floor(Math.random() * 10) + 3,
-    pushes: Math.floor(Math.random() * 2),
+  // REAL DATA: ATS records require historical betting data
+  // This data is NOT available from free APIs like ESPN
+  // Would need premium service like Covers, Action Network, or SportsReference
+  
+  const emptyATSRecord = {
+    wins: 0,
+    losses: 0,
+    pushes: 0,
     pct: 0
-  })
-  
-  const calcPct = (rec: { wins: number; losses: number; pushes: number }) => {
-    const total = rec.wins + rec.losses
-    return total > 0 ? Math.round((rec.wins / total) * 100) : 50
   }
-  
-  const homeOverall = createATSRecord()
-  const homeHome = createATSRecord()
-  const homeFav = createATSRecord()
-  const homeDog = createATSRecord()
-  const homeLast10 = createATSRecord()
-  const homeDiv = createATSRecord()
-  const homePrime = createATSRecord()
-  
-  const awayOverall = createATSRecord()
-  const awayAway = createATSRecord()
-  const awayFav = createATSRecord()
-  const awayDog = createATSRecord()
-  const awayLast10 = createATSRecord()
-  const awayDiv = createATSRecord()
-  const awayPrime = createATSRecord()
   
   return {
     homeTeam: {
-      overall: { ...homeOverall, pct: calcPct(homeOverall) },
-      home: { ...homeHome, pct: calcPct(homeHome) },
-      asFavorite: { ...homeFav, pct: calcPct(homeFav) },
-      asUnderdog: { ...homeDog, pct: calcPct(homeDog) },
-      last10: { ...homeLast10, pct: calcPct(homeLast10) },
-      vsDivision: { ...homeDiv, pct: calcPct(homeDiv) },
-      inPrimetime: { ...homePrime, pct: calcPct(homePrime) }
+      overall: emptyATSRecord,
+      home: emptyATSRecord,
+      asFavorite: emptyATSRecord,
+      asUnderdog: emptyATSRecord,
+      last10: emptyATSRecord,
+      vsDivision: emptyATSRecord,
+      inPrimetime: emptyATSRecord
     },
     awayTeam: {
-      overall: { ...awayOverall, pct: calcPct(awayOverall) },
-      away: { ...awayAway, pct: calcPct(awayAway) },
-      asFavorite: { ...awayFav, pct: calcPct(awayFav) },
-      asUnderdog: { ...awayDog, pct: calcPct(awayDog) },
-      last10: { ...awayLast10, pct: calcPct(awayLast10) },
-      vsDivision: { ...awayDiv, pct: calcPct(awayDiv) },
-      inPrimetime: { ...awayPrime, pct: calcPct(awayPrime) }
+      overall: emptyATSRecord,
+      away: emptyATSRecord,
+      asFavorite: emptyATSRecord,
+      asUnderdog: emptyATSRecord,
+      last10: emptyATSRecord,
+      vsDivision: emptyATSRecord,
+      inPrimetime: emptyATSRecord
     },
     h2hATS: {
-      homeWins: 4,
-      awayWins: 3,
-      pushes: 1,
-      homeRoi: 12.5,
-      awayRoi: -8.3
+      homeWins: 0,
+      awayWins: 0,
+      pushes: 0,
+      homeRoi: 0,
+      awayRoi: 0
     }
   }
 }
@@ -951,76 +934,48 @@ async function getOUTrends(
   homeAbbr: string,
   awayAbbr: string
 ): Promise<OUTrends> {
-  const createOURecord = () => ({
-    overs: Math.floor(Math.random() * 10) + 3,
-    unders: Math.floor(Math.random() * 10) + 3,
-    pushes: Math.floor(Math.random() * 2),
+  // REAL DATA: O/U trends require historical betting data
+  // This data is NOT available from free APIs
+  // Would need premium service with historical totals/results
+  
+  const emptyOURecord = {
+    overs: 0,
+    unders: 0,
+    pushes: 0,
     overPct: 0
-  })
-  
-  const calcPct = (rec: { overs: number; unders: number }) => {
-    const total = rec.overs + rec.unders
-    return total > 0 ? Math.round((rec.overs / total) * 100) : 50
   }
-  
-  const homeOverall = createOURecord()
-  const homeHome = createOURecord()
-  const homeFav = createOURecord()
-  const homeDog = createOURecord()
-  const homeLast10 = createOURecord()
-  
-  const awayOverall = createOURecord()
-  const awayAway = createOURecord()
-  const awayFav = createOURecord()
-  const awayDog = createOURecord()
-  const awayLast10 = createOURecord()
   
   return {
     homeTeam: {
-      overall: { ...homeOverall, overPct: calcPct(homeOverall) },
-      home: { ...homeHome, overPct: calcPct(homeHome) },
-      asFavorite: { ...homeFav, overPct: calcPct(homeFav) },
-      asUnderdog: { ...homeDog, overPct: calcPct(homeDog) },
-      last10: { ...homeLast10, overPct: calcPct(homeLast10) },
-      avgTotal: 47.5,
-      avgActual: 44.2,
-      marginVsTotal: -3.3
+      overall: emptyOURecord,
+      home: emptyOURecord,
+      asFavorite: emptyOURecord,
+      asUnderdog: emptyOURecord,
+      last10: emptyOURecord,
+      avgTotal: 0,
+      avgActual: 0,
+      marginVsTotal: 0
     },
     awayTeam: {
-      overall: { ...awayOverall, overPct: calcPct(awayOverall) },
-      away: { ...awayAway, overPct: calcPct(awayAway) },
-      asFavorite: { ...awayFav, overPct: calcPct(awayFav) },
-      asUnderdog: { ...awayDog, overPct: calcPct(awayDog) },
-      last10: { ...awayLast10, overPct: calcPct(awayLast10) },
-      avgTotal: 46.5,
-      avgActual: 48.1,
-      marginVsTotal: 1.6
+      overall: emptyOURecord,
+      away: emptyOURecord,
+      asFavorite: emptyOURecord,
+      asUnderdog: emptyOURecord,
+      last10: emptyOURecord,
+      avgTotal: 0,
+      avgActual: 0,
+      marginVsTotal: 0
     },
     combined: {
-      h2hOvers: 4,
-      h2hUnders: 5,
-      h2hAvgTotal: 45.8,
-      projectedTotal: 44.5,
+      h2hOvers: 0,
+      h2hUnders: 0,
+      h2hAvgTotal: 0,
+      projectedTotal: 0,
       valueOnOver: false,
-      valueOnUnder: true,
-      edgePct: 3.2
+      valueOnUnder: false,
+      edgePct: 0
     },
-    trends: [
-      {
-        description: 'Under 6-2 in last 8 meetings',
-        record: '6-2',
-        roi: 28.5,
-        pick: 'under',
-        confidence: 72
-      },
-      {
-        description: 'Home team games going under last 5',
-        record: '5-0',
-        roi: 45.5,
-        pick: 'under',
-        confidence: 68
-      }
-    ]
+    trends: [] // Empty - no fake trends
   }
 }
 

@@ -900,6 +900,8 @@ export async function getGameById(id: string, sport?: string): Promise<GameDetai
 }
 
 // Transform ESPN API game data to our GameDetail format
+// NOTE: This function ONLY uses real data from the API
+// Missing data shows as "N/A" or empty - NO fake random data
 function transformAPIGameToDetail(apiGame: Record<string, unknown>, sport: string): GameDetail {
   const home = apiGame.home as Record<string, unknown>
   const away = apiGame.away as Record<string, unknown>
@@ -915,31 +917,27 @@ function transformAPIGameToDetail(apiGame: Record<string, unknown>, sport: strin
   if (statusType === 'live' || statusType === 'in') status = 'live'
   else if (statusType === 'final' || statusType === 'post') status = 'final'
   
-  // Generate betting analysis
+  // Real signals only - no fake data
   const signals: GameSignal[] = []
-  const publicPct = Math.floor(40 + Math.random() * 20)
-  if (publicPct > 55) {
-    signals.push({ type: 'neutral', title: 'Public Lean', description: `${publicPct}% of bets on the favorite` })
-  }
-  if (Math.random() > 0.5) {
-    signals.push({ type: 'bullish', title: 'Line Movement', description: 'Line has moved 1 point toward home team' })
+  // Only add signals if we have real data to support them
+  if (odds?.spread && apiGame.previousSpread) {
+    const prevSpread = apiGame.previousSpread as number
+    const currentSpread = odds.spread as number
+    if (Math.abs(currentSpread - prevSpread) >= 0.5) {
+      signals.push({ 
+        type: currentSpread > prevSpread ? 'bullish' : 'bearish', 
+        title: 'Line Movement', 
+        description: `Line moved from ${prevSpread} to ${currentSpread}` 
+      })
+    }
   }
   
-  // Generate trends
-  const homeTrends = [
-    `${home?.abbr || 'HOME'} is ${Math.floor(4 + Math.random() * 6)}-${Math.floor(2 + Math.random() * 4)} ATS at home`,
-    `OVER in ${Math.floor(50 + Math.random() * 20)}% of home games`,
-    `${Math.floor(5 + Math.random() * 5)}-${Math.floor(2 + Math.random() * 4)} ATS as ${spreadLine <= 0 ? 'favorite' : 'underdog'}`,
-  ]
-  const awayTrends = [
-    `${away?.abbr || 'AWAY'} is ${Math.floor(3 + Math.random() * 5)}-${Math.floor(3 + Math.random() * 4)} ATS on the road`,
-    `UNDER in ${Math.floor(40 + Math.random() * 25)}% of road games`,
-  ]
+  // Real trends require historical data - showing empty if not available
+  const homeTrends: string[] = []
+  const awayTrends: string[] = []
   
-  // NOTE: We don't generate fake analytics data - if we don't have real data, we show "not available"
-  // Analytics data should come from verified sources (Supabase, third-party APIs)
-  // The homeAnalytics and awayAnalytics will be undefined for API-fetched games
-  // until we integrate real historical analytics data
+  // NOTE: ATS/Trends data requires historical tracking which isn't implemented yet
+  // Do NOT show fake ATS records - better to show nothing than wrong data
   
   return {
     id: apiGame.id as string,
@@ -957,7 +955,7 @@ function transformAPIGameToDetail(apiGame: Record<string, unknown>, sport: strin
       abbr: home?.abbr as string || 'HOME',
       emoji: getTeamEmoji(home?.abbr as string),
       record: home?.record as string || '',
-      ats: `${Math.floor(5 + Math.random() * 6)}-${Math.floor(4 + Math.random() * 5)}`,
+      ats: '', // Empty - we don't have real ATS data without historical tracking
     },
     away: {
       id: away?.id as string || 'away',
@@ -966,57 +964,63 @@ function transformAPIGameToDetail(apiGame: Record<string, unknown>, sport: strin
       abbr: away?.abbr as string || 'AWAY',
       emoji: getTeamEmoji(away?.abbr as string),
       record: away?.record as string || '',
-      ats: `${Math.floor(5 + Math.random() * 6)}-${Math.floor(4 + Math.random() * 5)}`,
+      ats: '', // Empty - we don't have real ATS data without historical tracking
     },
     spread: {
       favorite,
       line: Math.abs(spreadLine),
     },
-    total: odds?.total as number || 200,
+    total: odds?.total as number || 0,
     moneyline: {
-      home: odds?.homeML as number || -110,
-      away: odds?.awayML as number || -110,
+      home: odds?.homeML as number || 0,
+      away: odds?.awayML as number || 0,
     },
-    aiPick: `${favorite} ${Math.abs(spreadLine) > 0 ? `-${Math.abs(spreadLine).toFixed(1)}` : 'ML'}`,
-    aiConfidence: Math.floor(55 + Math.random() * 20),
-    aiAnalysis: `Based on recent performance and matchup analysis. The ${spreadLine <= 0 ? home?.name : away?.name} have been strong at covering spreads in similar situations.`,
-    aiPicks: [
-      { pick: `${favorite} ${Math.abs(spreadLine) > 0 ? `-${Math.abs(spreadLine).toFixed(1)}` : 'ML'}`, reasoning: 'Matchup favors this side', confidence: 58 + Math.floor(Math.random() * 15) },
-      { pick: `${odds?.total ? 'OVER' : 'UNDER'} ${odds?.total || 200}`, reasoning: 'Scoring trends support this total', confidence: 52 + Math.floor(Math.random() * 15) },
-    ],
+    // AI picks should come from Gemini API - placeholder for now
+    aiPick: spreadLine ? `${favorite} ${Math.abs(spreadLine) > 0 ? `-${Math.abs(spreadLine).toFixed(1)}` : 'ML'}` : 'Analysis pending',
+    aiConfidence: 0, // 0 = not analyzed yet
+    aiAnalysis: 'AI analysis requires Gemini API integration. Real-time analysis coming soon.',
+    aiPicks: [], // Empty until Gemini integration
     signals,
-    injuries: [],
+    injuries: [], // Would need injury API integration
+    weather: apiGame.weather ? {
+      temp: (apiGame.weather as Record<string, unknown>).temp as number || 0,
+      wind: (apiGame.weather as Record<string, unknown>).wind as number || 0,
+      condition: (apiGame.weather as Record<string, unknown>).condition as string || '',
+    } : undefined,
     metrics: {
-      lineMovement: spreadLine > 0 ? `+${Math.random().toFixed(1)}` : `-${Math.random().toFixed(1)}`,
-      lineDirection: Math.random() > 0.5 ? 'up' : 'down',
-      publicPct,
-      publicSide: favorite,
-      sharpMoney: `${50 + Math.floor(Math.random() * 30)}%`,
-      sharpTrend: Math.random() > 0.5 ? 'up' : 'down',
-      handlePct: 45 + Math.floor(Math.random() * 30),
-      handleSide: Math.random() > 0.5 ? (home?.abbr as string) : (away?.abbr as string),
+      // Line movement from API if available
+      lineMovement: apiGame.previousSpread && odds?.spread 
+        ? `${apiGame.previousSpread} → ${odds.spread}`
+        : 'No movement data',
+      lineDirection: 'stable',
+      // Public betting data requires premium API (Action Network, etc.)
+      publicPct: 0,
+      publicSide: '',
+      sharpMoney: '',
+      sharpTrend: 'stable',
+      handlePct: 0,
+      handleSide: '',
     },
-    h2h: [],
+    h2h: [], // Would need historical data
     betting: {
-      openSpread: `${favorite} -${(Math.abs(spreadLine) - 0.5).toFixed(1)}`,
-      currentSpread: `${favorite} -${Math.abs(spreadLine).toFixed(1)}`,
-      spreadPcts: { home: 48 + Math.floor(Math.random() * 10), away: 48 + Math.floor(Math.random() * 10) },
-      mlPcts: { home: 45 + Math.floor(Math.random() * 15), away: 45 + Math.floor(Math.random() * 15) },
-      totalPcts: { over: 48 + Math.floor(Math.random() * 10), under: 48 + Math.floor(Math.random() * 10) },
+      openSpread: odds?.openSpread as string || '',
+      currentSpread: odds?.spread ? `${favorite} -${Math.abs(spreadLine).toFixed(1)}` : '',
+      // Betting split data requires premium API
+      spreadPcts: { home: 0, away: 0 },
+      mlPcts: { home: 0, away: 0 },
+      totalPcts: { over: 0, under: 0 },
     },
     matchup: {
-      homeOffRank: 1 + Math.floor(Math.random() * 15),
-      homeDefRank: 1 + Math.floor(Math.random() * 15),
-      awayOffRank: 1 + Math.floor(Math.random() * 15),
-      awayDefRank: 1 + Math.floor(Math.random() * 15),
-      keyPoints: [
-        `${home?.name || 'Home'} offense vs ${away?.name || 'Away'} defense matchup analysis`,
-        'Recent scoring trends favor the spread',
-      ],
+      // Rankings would come from standings API
+      homeOffRank: 0,
+      homeDefRank: 0,
+      awayOffRank: 0,
+      awayDefRank: 0,
+      keyPoints: [],
     },
     homeTrends,
     awayTrends,
-    // Analytics data not available for API-fetched games without real historical data
+    // Analytics data not available for API-fetched games without historical tracking
     homeAnalytics: undefined,
     awayAnalytics: undefined,
   }

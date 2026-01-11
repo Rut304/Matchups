@@ -1,0 +1,291 @@
+/**
+ * Team Schedule API
+ * Fetches REAL team schedule/results from ESPN API
+ * NO FAKE DATA - if data isn't available, show a placeholder
+ */
+
+import { ESPN_SPORTS, type SportKey } from './espn'
+
+const ESPN_BASE = 'https://site.api.espn.com/apis/site/v2/sports'
+
+export interface TeamGameResult {
+  id: string
+  week: number | string
+  date: string
+  opponent: string
+  homeAway: 'home' | 'away'
+  result: 'W' | 'L' | 'T' | null  // null for upcoming games
+  teamScore: number | null
+  opponentScore: number | null
+  score: string  // "28-17" format
+  spread?: string  // "+3.5" or "-3.5"
+  atsResult?: 'W' | 'L' | 'P' | null  // Push or null if no spread data
+  total?: string  // "45.5"
+  ouResult?: 'O' | 'U' | 'P' | null
+  isCompleted: boolean
+}
+
+export interface TeamScheduleResponse {
+  team: {
+    id: string
+    name: string
+    abbreviation: string
+    logo?: string
+  }
+  games: TeamGameResult[]
+  record: string
+  atsRecord?: string
+  ouRecord?: string
+}
+
+interface ESPNScheduleEvent {
+  id: string
+  date: string
+  week?: { number: number }
+  name: string
+  shortName: string
+  competitions: Array<{
+    competitors: Array<{
+      id: string
+      homeAway: 'home' | 'away'
+      team: { 
+        id: string
+        abbreviation: string 
+        displayName: string
+      }
+      score?: string
+      winner?: boolean
+    }>
+    status: {
+      type: {
+        completed: boolean
+        state: string
+      }
+    }
+  }>
+}
+
+interface ESPNScheduleResponse {
+  team: {
+    id: string
+    abbreviation: string
+    displayName: string
+    logos?: Array<{ href: string }>
+  }
+  events: ESPNScheduleEvent[]
+  requestedSeason?: {
+    year: number
+    type: number
+  }
+}
+
+/**
+ * Get team schedule/results from ESPN
+ * Returns REAL data - no fake data generation
+ */
+export async function getTeamSchedule(
+  sport: SportKey, 
+  teamId: string,
+  limit: number = 10
+): Promise<TeamScheduleResponse | null> {
+  try {
+    const { sport: s, league } = ESPN_SPORTS[sport]
+    
+    // ESPN team schedule endpoint
+    // Format: /football/nfl/teams/{teamId}/schedule
+    const url = `${ESPN_BASE}/${s}/${league}/teams/${teamId}/schedule`
+    
+    const res = await fetch(url, { 
+      next: { revalidate: 300 },  // Cache for 5 minutes
+      headers: {
+        'Accept': 'application/json',
+      }
+    })
+    
+    if (!res.ok) {
+      console.error(`ESPN Schedule API error: ${res.status}`)
+      return null
+    }
+    
+    const data: ESPNScheduleResponse = await res.json()
+    
+    if (!data.team || !data.events) {
+      return null
+    }
+    
+    // Transform ESPN events to our format
+    const games: TeamGameResult[] = data.events
+      .map(event => transformESPNEvent(event, data.team.id))
+      .filter(Boolean) as TeamGameResult[]
+    
+    // Sort by date descending (most recent first) and limit
+    const sortedGames = games
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, limit)
+    
+    // Calculate record from completed games
+    const completedGames = sortedGames.filter(g => g.isCompleted)
+    const wins = completedGames.filter(g => g.result === 'W').length
+    const losses = completedGames.filter(g => g.result === 'L').length
+    const ties = completedGames.filter(g => g.result === 'T').length
+    
+    return {
+      team: {
+        id: data.team.id,
+        name: data.team.displayName,
+        abbreviation: data.team.abbreviation,
+        logo: data.team.logos?.[0]?.href,
+      },
+      games: sortedGames,
+      record: ties > 0 ? `${wins}-${losses}-${ties}` : `${wins}-${losses}`,
+      // ATS/OU records would need betting data integration
+      atsRecord: undefined,
+      ouRecord: undefined,
+    }
+  } catch (error) {
+    console.error('Error fetching team schedule:', error)
+    return null
+  }
+}
+
+function transformESPNEvent(event: ESPNScheduleEvent, ourTeamId: string): TeamGameResult | null {
+  const competition = event.competitions?.[0]
+  if (!competition) return null
+  
+  const ourTeam = competition.competitors.find(c => c.team.id === ourTeamId)
+  const opponent = competition.competitors.find(c => c.team.id !== ourTeamId)
+  
+  if (!ourTeam || !opponent) return null
+  
+  const isCompleted = competition.status.type.completed
+  const ourScore = ourTeam.score ? parseInt(ourTeam.score) : null
+  const oppScore = opponent.score ? parseInt(opponent.score) : null
+  
+  // Determine result
+  let result: 'W' | 'L' | 'T' | null = null
+  if (isCompleted && ourScore !== null && oppScore !== null) {
+    if (ourScore > oppScore) result = 'W'
+    else if (ourScore < oppScore) result = 'L'
+    else result = 'T'
+  }
+  
+  // Format opponent string with @ prefix for away games
+  const opponentStr = ourTeam.homeAway === 'away' 
+    ? `@${opponent.team.abbreviation}`
+    : opponent.team.abbreviation
+  
+  // Score string
+  const scoreStr = ourScore !== null && oppScore !== null 
+    ? `${ourScore}-${oppScore}`
+    : 'TBD'
+  
+  return {
+    id: event.id,
+    week: event.week?.number ?? '-',
+    date: event.date,
+    opponent: opponentStr,
+    homeAway: ourTeam.homeAway,
+    result,
+    teamScore: ourScore,
+    opponentScore: oppScore,
+    score: scoreStr,
+    // We don't have spread/total data from ESPN schedule endpoint
+    // That would require integration with The Odds API historical data
+    spread: undefined,
+    atsResult: null,
+    total: undefined,
+    ouResult: null,
+    isCompleted,
+  }
+}
+
+/**
+ * Get head-to-head history between two teams
+ * Returns REAL data from ESPN
+ */
+export async function getHeadToHead(
+  sport: SportKey,
+  team1Id: string,
+  team2Id: string,
+  limit: number = 10
+): Promise<TeamGameResult[]> {
+  try {
+    // Get schedule for team1
+    const schedule = await getTeamSchedule(sport, team1Id, 100) // Get more games to find h2h
+    
+    if (!schedule) return []
+    
+    // Filter to games against team2
+    // Note: We need the team abbreviation to match against opponents
+    const h2hGames = schedule.games.filter(g => {
+      // Remove @ prefix for comparison
+      const oppAbbr = g.opponent.replace('@', '')
+      // This is imperfect without knowing team2's abbreviation
+      // In production, we'd look up team2's abbreviation
+      return g.opponent.includes(team2Id) || oppAbbr === team2Id
+    })
+    
+    return h2hGames.slice(0, limit)
+  } catch (error) {
+    console.error('Error fetching head-to-head:', error)
+    return []
+  }
+}
+
+/**
+ * Map team abbreviation to ESPN team ID
+ * ESPN uses numeric IDs, so we need this mapping
+ */
+export const NFL_TEAM_IDS: Record<string, string> = {
+  'ARI': '22', 'ATL': '1', 'BAL': '33', 'BUF': '2',
+  'CAR': '29', 'CHI': '3', 'CIN': '4', 'CLE': '5',
+  'DAL': '6', 'DEN': '7', 'DET': '8', 'GB': '9',
+  'HOU': '34', 'IND': '11', 'JAX': '30', 'KC': '12',
+  'LAC': '24', 'LAR': '14', 'LV': '13', 'MIA': '15',
+  'MIN': '16', 'NE': '17', 'NO': '18', 'NYG': '19',
+  'NYJ': '20', 'PHI': '21', 'PIT': '23', 'SEA': '26',
+  'SF': '25', 'TB': '27', 'TEN': '10', 'WAS': '28',
+}
+
+export const NBA_TEAM_IDS: Record<string, string> = {
+  'ATL': '1', 'BOS': '2', 'BKN': '17', 'CHA': '30',
+  'CHI': '4', 'CLE': '5', 'DAL': '6', 'DEN': '7',
+  'DET': '8', 'GSW': '9', 'HOU': '10', 'IND': '11',
+  'LAC': '12', 'LAL': '13', 'MEM': '29', 'MIA': '14',
+  'MIL': '15', 'MIN': '16', 'NOP': '3', 'NYK': '18',
+  'OKC': '25', 'ORL': '19', 'PHI': '20', 'PHX': '21',
+  'POR': '22', 'SAC': '23', 'SAS': '24', 'TOR': '28',
+  'UTA': '26', 'WAS': '27',
+}
+
+export const NHL_TEAM_IDS: Record<string, string> = {
+  'ANA': '25', 'ARI': '24', 'BOS': '1', 'BUF': '2',
+  'CAR': '7', 'CBJ': '29', 'CGY': '20', 'CHI': '4',
+  'COL': '17', 'DAL': '9', 'DET': '5', 'EDM': '22',
+  'FLA': '26', 'LA': '14', 'MIN': '30', 'MTL': '8',
+  'NJ': '11', 'NSH': '18', 'NYI': '12', 'NYR': '13',
+  'OTT': '9', 'PHI': '15', 'PIT': '16', 'SEA': '32',
+  'SJ': '28', 'STL': '19', 'TB': '27', 'TOR': '10',
+  'VAN': '23', 'VGK': '31', 'WPG': '21', 'WSH': '15',
+}
+
+export const MLB_TEAM_IDS: Record<string, string> = {
+  'ARI': '29', 'ATL': '15', 'BAL': '1', 'BOS': '2',
+  'CHC': '16', 'CHW': '4', 'CIN': '17', 'CLE': '5',
+  'COL': '27', 'DET': '6', 'HOU': '18', 'KC': '7',
+  'LAA': '3', 'LAD': '19', 'MIA': '28', 'MIL': '8',
+  'MIN': '9', 'NYM': '21', 'NYY': '10', 'OAK': '11',
+  'PHI': '22', 'PIT': '23', 'SD': '25', 'SEA': '12',
+  'SF': '26', 'STL': '24', 'TB': '30', 'TEX': '13',
+  'TOR': '14', 'WSH': '20',
+}
+
+export function getTeamId(sport: SportKey, abbr: string): string | null {
+  const maps: Record<string, Record<string, string>> = {
+    NFL: NFL_TEAM_IDS,
+    NBA: NBA_TEAM_IDS,
+    NHL: NHL_TEAM_IDS,
+    MLB: MLB_TEAM_IDS,
+  }
+  return maps[sport]?.[abbr] || null
+}

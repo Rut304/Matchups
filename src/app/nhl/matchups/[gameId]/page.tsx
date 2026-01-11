@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Clock, MapPin, Tv, TrendingUp, Target, RefreshCw, Loader2, ChevronDown, Zap } from 'lucide-react'
+import { InjuryReport } from '@/components/matchup'
 
 interface GameData {
   id: string; sport: string; status: string; startTime: string; scheduledAt?: string; venue: string; broadcast?: string
@@ -126,6 +127,15 @@ export default function NHLGameMatchupPage({ params }: { params: Promise<{ gameI
               <div className="space-y-3 text-sm"><div className="flex items-center gap-2 text-gray-400"><MapPin className="w-4 h-4" /><span>{game.venue || 'TBD'}</span></div>{game.broadcast && <div className="flex items-center gap-2 text-gray-400"><Tv className="w-4 h-4" /><span>{game.broadcast}</span></div>}</div>
             </div>
             <Link href="/trends?sport=nhl" className="flex items-center justify-between p-4 bg-[#0c0c14] rounded-xl border border-white/10 hover:border-orange-500/30 transition-all"><div className="flex items-center gap-3"><TrendingUp className="w-5 h-5 text-orange-500" /><span className="text-white font-medium">View All NHL Trends</span></div><ChevronDown className="w-5 h-5 text-gray-500 -rotate-90" /></Link>
+
+            {/* Injury Report */}
+            <InjuryReport 
+              sport="nhl" 
+              homeTeam={game.homeTeam.abbreviation} 
+              awayTeam={game.awayTeam.abbreviation}
+              homeTeamFull={game.homeTeam.name}
+              awayTeamFull={game.awayTeam.name}
+            />
           </div>
         </div>
       </div>

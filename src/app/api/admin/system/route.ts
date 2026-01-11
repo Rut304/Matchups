@@ -6,13 +6,15 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
 
 // System health check
-async function checkHealth() {
+async function checkHealth(supabase: ReturnType<typeof getSupabase>) {
   const checks: Record<string, { status: 'ok' | 'error' | 'warning'; latency?: number; message?: string }> = {}
   
   // Database check
@@ -48,7 +50,7 @@ async function checkHealth() {
 }
 
 // Get system stats
-async function getSystemStats() {
+async function getSystemStats(supabase: ReturnType<typeof getSupabase>) {
   const stats: Record<string, unknown> = {}
 
   // Get cron job status from database (if we track it)
@@ -89,13 +91,14 @@ async function getSystemStats() {
 }
 
 export async function GET(request: Request) {
+  const supabase = getSupabase()
   const { searchParams } = new URL(request.url)
   const action = searchParams.get('action')
 
   try {
     switch (action) {
       case 'health':
-        const health = await checkHealth()
+        const health = await checkHealth(supabase)
         const allOk = Object.values(health).every(h => h.status === 'ok')
         return NextResponse.json({
           status: allOk ? 'healthy' : 'degraded',
@@ -104,7 +107,7 @@ export async function GET(request: Request) {
         })
 
       case 'stats':
-        const stats = await getSystemStats()
+        const stats = await getSystemStats(supabase)
         return NextResponse.json({
           status: 'ok',
           timestamp: new Date().toISOString(),
@@ -114,8 +117,8 @@ export async function GET(request: Request) {
       default:
         // Return overview
         const [healthResult, statsResult] = await Promise.all([
-          checkHealth(),
-          getSystemStats()
+          checkHealth(supabase),
+          getSystemStats(supabase)
         ])
         return NextResponse.json({
           health: healthResult,
@@ -130,6 +133,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const supabase = getSupabase()
   const body = await request.json()
   const { action } = body
 

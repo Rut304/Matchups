@@ -49,6 +49,34 @@ export interface HistoricalPattern {
   frequency: string
 }
 
+// Database row types
+interface HistoricalTrendRow {
+  trend_id?: string
+  trend_name: string
+  trend_description?: string
+  sport: string
+  category: string
+  bet_type?: string
+  hot_streak: boolean
+  cold_streak?: boolean
+  confidence_score: number
+  l30_record: string
+  l30_roi: number
+  l90_record?: string
+  l90_roi?: number
+  l365_record?: string
+  l365_roi?: number
+  all_time_record: string
+  all_time_roi: number
+  all_time_sample_size: number
+  [key: string]: unknown
+}
+
+interface EdgePickRow {
+  result: string
+  [key: string]: unknown
+}
+
 export interface AIInsightReport {
   timestamp: string
   sport?: string
@@ -168,12 +196,12 @@ export async function analyzeHistoricalEdges(sport?: string): Promise<EdgeOpport
   const recentPicks = await fetchRecentEdgePicks(sport, 30)
   
   // Calculate recent performance stats
-  const recentWins = recentPicks.filter(p => p.result === 'win').length
-  const recentTotal = recentPicks.filter(p => p.result !== 'pending' && p.result !== 'push').length
+  const recentWins = recentPicks.filter((p: EdgePickRow) => p.result === 'win').length
+  const recentTotal = recentPicks.filter((p: EdgePickRow) => p.result !== 'pending' && p.result !== 'push').length
   const recentWinRate = recentTotal > 0 ? (recentWins / recentTotal) * 100 : 0
   
   // Get hot trends
-  const hotTrends = trends.filter(t => t.hot_streak && t.confidence_score >= 80)
+  const hotTrends = trends.filter((t: HistoricalTrendRow) => t.hot_streak && t.confidence_score >= 80)
   
   const prompt = `You are an expert sports betting analyst with access to 20 years of historical data.
 
@@ -186,10 +214,10 @@ RECENT 30-DAY PERFORMANCE:
 - Wins: ${recentWins}
 
 HOT TRENDS (Currently on Streak):
-${hotTrends.map(t => `- ${t.trend_name}: ${t.l30_record} (${t.l30_roi}% ROI) - ${t.all_time_record} all-time`).join('\n')}
+${hotTrends.map((t: HistoricalTrendRow) => `- ${t.trend_name}: ${t.l30_record} (${t.l30_roi}% ROI) - ${t.all_time_record} all-time`).join('\n')}
 
 ALL ACTIVE TRENDS:
-${trends.slice(0, 20).map(t => `- ${t.trend_name} [${t.sport}]: ${t.all_time_record} (${t.all_time_roi}% ROI, ${t.all_time_sample_size} sample)`).join('\n')}
+${trends.slice(0, 20).map((t: HistoricalTrendRow) => `- ${t.trend_name} [${t.sport}]: ${t.all_time_record} (${t.all_time_roi}% ROI, ${t.all_time_sample_size} sample)`).join('\n')}
 
 Based on this 20-year historical data, identify the TOP 5 edge opportunities for TODAY. Focus on:
 1. Trends with proven long-term profitability
@@ -258,7 +286,7 @@ export async function analyzeTrendInsights(sport?: string): Promise<TrendInsight
   const prompt = `You are an expert sports betting analyst. Analyze these betting trends and provide insights.
 
 ACTIVE TRENDS (20-Year Data):
-${trends.map(t => `
+${trends.map((t: HistoricalTrendRow) => `
 TREND: ${t.trend_name}
 Sport: ${t.sport} | Category: ${t.category}
 Last 30 Days: ${t.l30_record} (${t.l30_roi}% ROI)
@@ -307,7 +335,7 @@ Respond with JSON array:
   }
   
   // Fallback: transform database trends to insights
-  return trends.slice(0, 10).map(t => ({
+  return trends.slice(0, 10).map((t: HistoricalTrendRow) => ({
     trendId: t.trend_id,
     name: t.trend_name,
     sport: t.sport,
@@ -333,7 +361,7 @@ SYSTEM PERFORMANCE DATA:
 ${JSON.stringify(performance, null, 2)}
 
 PROVEN TRENDS:
-${trends.slice(0, 15).map(t => `- ${t.trend_name}: ${t.all_time_record} (${t.all_time_roi}% ROI)`).join('\n')}
+${trends.slice(0, 15).map((t: HistoricalTrendRow) => `- ${t.trend_name}: ${t.all_time_record} (${t.all_time_roi}% ROI)`).join('\n')}
 
 Identify 5 EMERGING PATTERNS or MARKET INEFFICIENCIES based on:
 1. Cross-sport correlations
@@ -497,7 +525,7 @@ export async function analyzeSpreadValue(
   const spreadAbs = Math.abs(spread)
   
   // Find applicable trends
-  const applicableTrends = trends.filter(t => {
+  const applicableTrends = trends.filter((t: HistoricalTrendRow) => {
     if (isHomeDog && t.category === 'situational' && t.trend_name.toLowerCase().includes('dog')) {
       return true
     }
@@ -513,7 +541,7 @@ ${awayTeam} @ ${homeTeam}
 Spread: ${homeTeam} ${spread > 0 ? '+' : ''}${spread}
 
 APPLICABLE HISTORICAL TRENDS:
-${applicableTrends.map(t => `- ${t.trend_name}: ${t.all_time_record} (${t.all_time_roi}% ROI)`).join('\n')}
+${applicableTrends.map((t: HistoricalTrendRow) => `- ${t.trend_name}: ${t.all_time_record} (${t.all_time_roi}% ROI)`).join('\n')}
 
 OVERALL SYSTEM PERFORMANCE ON ${sport} SPREADS:
 - 20-Year Record: 58.4% win rate
@@ -565,7 +593,7 @@ export async function analyzeTotalValue(
 }> {
   const trends = await fetchHistoricalTrends(sport)
   
-  const totalTrends = trends.filter(t => 
+  const totalTrends = trends.filter((t: HistoricalTrendRow) => 
     t.bet_type === 'total' || t.category === 'weather' || t.category === 'timing'
   )
   
@@ -575,7 +603,7 @@ ${awayTeam} @ ${homeTeam}
 Total: ${total}
 
 APPLICABLE HISTORICAL TRENDS:
-${totalTrends.slice(0, 10).map(t => `- ${t.trend_name}: ${t.all_time_record} (${t.all_time_roi}% ROI)`).join('\n')}
+${totalTrends.slice(0, 10).map((t: HistoricalTrendRow) => `- ${t.trend_name}: ${t.all_time_record} (${t.all_time_roi}% ROI)`).join('\n')}
 
 OVERALL SYSTEM PERFORMANCE ON ${sport} TOTALS:
 - 20-Year Data shows unders hit 52.1% of the time

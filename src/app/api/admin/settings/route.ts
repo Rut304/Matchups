@@ -6,10 +6,12 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
 
 export interface SiteSettings {
   ads_enabled: boolean
@@ -58,6 +60,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
 }
 
 export async function GET() {
+  const supabase = getSupabase()
   try {
     // Try to get settings from database
     const { data, error } = await supabase
@@ -90,6 +93,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const supabase = getSupabase()
   try {
     const updates = await request.json()
 

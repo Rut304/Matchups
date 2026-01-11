@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, TrendingUp, TrendingDown, Loader2, Clock, MapPin, Tv } from 'lucide-react'
+import { InjuryReport } from '@/components/matchup'
 
 interface Game {
   id: string; sport: string; status: string; scheduledAt: string
@@ -65,6 +66,15 @@ export default function WNCAABMatchupDetailPage() {
             {analytics?.edges && <div className="rounded-xl bg-[#0a0a12] border border-white/5 p-5"><h3 className="text-lg font-bold text-white mb-4">⚡ Edge Score</h3><div className="space-y-3">{[{ l: 'Home ML', v: analytics.edges.home }, { l: 'Away ML', v: analytics.edges.away }, { l: 'Over', v: analytics.edges.over }, { l: 'Under', v: analytics.edges.under }].map(e => <div key={e.l}><div className="flex justify-between text-sm mb-1"><span className="text-gray-400">{e.l}</span><span className={e.v > 0 ? 'text-green-400' : 'text-red-400'}>{e.v > 0 ? '+' : ''}{e.v.toFixed(1)}%</span></div><div className="h-2 bg-white/10 rounded-full overflow-hidden"><div className={`h-full rounded-full ${e.v > 0 ? 'bg-green-500' : 'bg-red-500'}`} style={{ width: `${Math.min(Math.abs(e.v), 100)}%` }} /></div></div>)}</div></div>}
             <div className="rounded-xl bg-[#0a0a12] border border-white/5 p-5"><h3 className="text-lg font-bold text-white mb-4">🏟️ Game Info</h3><div className="space-y-3 text-sm">{game.venue && <div className="flex items-center gap-2 text-gray-400"><MapPin className="w-4 h-4" />{game.venue}</div>}{game.broadcast && <div className="flex items-center gap-2 text-gray-400"><Tv className="w-4 h-4" />{game.broadcast}</div>}<div className="flex items-center gap-2 text-gray-400"><Clock className="w-4 h-4" />{formatTime(game.scheduledAt)}</div></div></div>
             <div className="rounded-xl bg-gradient-to-br from-orange-500/20 to-transparent border border-orange-500/30 p-5"><h3 className="text-lg font-bold text-white mb-2">🎯 Quick Signals</h3><div className="text-sm text-gray-400 space-y-1">{analytics?.edges && (<>{analytics.edges.home > 5 && <div className="text-green-400">✓ Home edge detected (+{analytics.edges.home.toFixed(1)}%)</div>}{analytics.edges.away > 5 && <div className="text-green-400">✓ Away edge detected (+{analytics.edges.away.toFixed(1)}%)</div>}{analytics.edges.over > 5 && <div className="text-green-400">✓ Over value found (+{analytics.edges.over.toFixed(1)}%)</div>}{analytics.edges.under > 5 && <div className="text-green-400">✓ Under value found (+{analytics.edges.under.toFixed(1)}%)</div>}</>)}{!analytics && <div>Loading signals...</div>}</div></div>
+
+            {/* Injury Report */}
+            <InjuryReport 
+              sport="wncaab" 
+              homeTeam={game.homeTeam.abbreviation} 
+              awayTeam={game.awayTeam.abbreviation}
+              homeTeamFull={game.homeTeam.name}
+              awayTeamFull={game.awayTeam.name}
+            />
           </div>
         </div>
       </div>
