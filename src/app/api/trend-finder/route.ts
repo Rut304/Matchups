@@ -1,148 +1,297 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import { ESPN_APIS, NHL_API, MLB_API } from '@/lib/api/free-sports-apis'
+import { createClient } from '@/lib/supabase/server'
+import { ESPN_APIS } from '@/lib/api/free-sports-apis'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
 const trendFinderModel = genAI.getGenerativeModel({ 
   model: 'gemini-2.0-flash-exp',
   generationConfig: {
-    temperature: 0.3, // Lower temp for more factual responses
+    temperature: 0.2,
     topP: 0.9,
     topK: 40,
     maxOutputTokens: 4096,
   }
 })
 
-// Fetch live sports data to provide context
-async function fetchSportsContext(query: string): Promise<string> {
+// Types for historical queries
+interface HistoricalQuery {
+  sport: string
+  seasonType: 'regular' | 'postseason' | 'all'
+  seasons: number[]
+  conditions: QueryCondition[]
+}
+
+interface QueryCondition {
+  type: string
+  min?: number
+  max?: number
+}
+
+// Parse natural language query into structured historical query
+function parseHistoricalQuery(query: string): HistoricalQuery | null {
+  const lowerQuery = query.toLowerCase()
+  
+  // Detect sport
+  let sport = 'nfl'
+  if (lowerQuery.includes('nba') || lowerQuery.includes('basketball')) sport = 'nba'
+  else if (lowerQuery.includes('nhl') || lowerQuery.includes('hockey')) sport = 'nhl'
+  else if (lowerQuery.includes('mlb') || lowerQuery.includes('baseball')) sport = 'mlb'
+  
+  // Detect season type
+  let seasonType: 'regular' | 'postseason' | 'all' = 'all'
+  if (lowerQuery.includes('playoff') || lowerQuery.includes('postseason') || lowerQuery.includes('super bowl')) {
+    seasonType = 'postseason'
+  } else if (lowerQuery.includes('regular season')) {
+    seasonType = 'regular'
+  }
+  
+  // Detect seasons (default to recent 5 years)
+  const currentYear = new Date().getFullYear()
+  let seasons: number[] = []
+  
+  // Look for specific year mentions
+  const yearMatches = lowerQuery.match(/\b(19\d{2}|20\d{2})\b/g)
+  if (yearMatches) {
+    seasons = yearMatches.map(y => parseInt(y))
+  } else if (lowerQuery.includes('all time') || lowerQuery.includes('history') || lowerQuery.includes('ever')) {
+    // For historical queries, go back further
+    seasons = Array.from({ length: 20 }, (_, i) => currentYear - i)
+  } else {
+    // Default to recent 5 years
+    seasons = Array.from({ length: 5 }, (_, i) => currentYear - i)
+  }
+  
+  // Detect conditions
+  const conditions: QueryCondition[] = []
+  
+  // Check for both teams TD patterns
+  if (lowerQuery.includes('both team') || lowerQuery.includes('each team')) {
+    if (lowerQuery.includes('rushing') && lowerQuery.includes('passing') && lowerQuery.includes('touchdown') || 
+        lowerQuery.includes('rush') && lowerQuery.includes('pass') && lowerQuery.includes('td')) {
+      if (lowerQuery.includes('both half') || lowerQuery.includes('each half')) {
+        conditions.push({ type: 'both_teams_rush_pass_td_both_halves' })
+      } else {
+        conditions.push({ type: 'both_teams_rush_pass_td' })
+      }
+    } else if (lowerQuery.includes('touchdown') || lowerQuery.includes('td')) {
+      if (lowerQuery.includes('both half') || lowerQuery.includes('each half')) {
+        conditions.push({ type: 'both_teams_td_both_halves' })
+      }
+    }
+  }
+  
+  // High/low scoring
+  if (lowerQuery.includes('high scoring') || lowerQuery.includes('over 50')) {
+    conditions.push({ type: 'high_scoring', min: 50 })
+  }
+  if (lowerQuery.includes('low scoring') || lowerQuery.includes('under 30')) {
+    conditions.push({ type: 'low_scoring', max: 30 })
+  }
+  
+  // Blowouts and close games
+  if (lowerQuery.includes('blowout')) {
+    conditions.push({ type: 'blowout' })
+  }
+  if (lowerQuery.includes('close game') || lowerQuery.includes('one score')) {
+    conditions.push({ type: 'close_game' })
+  }
+  
+  // Return null if no meaningful conditions detected
+  if (conditions.length === 0) return null
+  
+  return { sport, seasonType, seasons, conditions }
+}
+
+// Query historical database
+async function queryHistoricalData(parsedQuery: HistoricalQuery): Promise<{
+  found: boolean
+  totalGames: number
+  matchingGames: number
+  percentage: string
+  games: any[]
+  estimatedTime: string
+}> {
+  const supabase = await createClient()
+  
+  // Build query
+  let dbQuery = supabase.from('historical_games').select('*')
+  
+  dbQuery = dbQuery.eq('sport', parsedQuery.sport)
+  
+  if (parsedQuery.seasonType !== 'all') {
+    dbQuery = dbQuery.eq('season_type', parsedQuery.seasonType)
+  }
+  
+  if (parsedQuery.seasons.length > 0) {
+    dbQuery = dbQuery.in('season', parsedQuery.seasons)
+  }
+  
+  const { data: games, error } = await dbQuery.order('game_date', { ascending: false })
+  
+  if (error) {
+    console.error('Database query error:', error)
+    return {
+      found: false,
+      totalGames: 0,
+      matchingGames: 0,
+      percentage: '0%',
+      games: [],
+      estimatedTime: '0s'
+    }
+  }
+  
+  if (!games || games.length === 0) {
+    return {
+      found: false,
+      totalGames: 0,
+      matchingGames: 0,
+      percentage: '0%',
+      games: [],
+      estimatedTime: '0s'
+    }
+  }
+  
+  // Apply conditions
+  let filteredGames = [...games]
+  
+  for (const condition of parsedQuery.conditions) {
+    switch (condition.type) {
+      case 'both_teams_rush_pass_td_both_halves':
+        filteredGames = filteredGames.filter(g => 
+          g.home_rushing_td_first_half >= 1 &&
+          g.home_passing_td_first_half >= 1 &&
+          g.home_rushing_td_second_half >= 1 &&
+          g.home_passing_td_second_half >= 1 &&
+          g.away_rushing_td_first_half >= 1 &&
+          g.away_passing_td_first_half >= 1 &&
+          g.away_rushing_td_second_half >= 1 &&
+          g.away_passing_td_second_half >= 1
+        )
+        break
+      case 'both_teams_td_both_halves':
+        filteredGames = filteredGames.filter(g => 
+          (g.home_rushing_td_first_half + g.home_passing_td_first_half) >= 1 &&
+          (g.home_rushing_td_second_half + g.home_passing_td_second_half) >= 1 &&
+          (g.away_rushing_td_first_half + g.away_passing_td_first_half) >= 1 &&
+          (g.away_rushing_td_second_half + g.away_passing_td_second_half) >= 1
+        )
+        break
+      case 'high_scoring':
+        filteredGames = filteredGames.filter(g => g.total_points >= (condition.min || 50))
+        break
+      case 'low_scoring':
+        filteredGames = filteredGames.filter(g => g.total_points <= (condition.max || 30))
+        break
+      case 'blowout':
+        filteredGames = filteredGames.filter(g => Math.abs(g.home_score - g.away_score) >= 21)
+        break
+      case 'close_game':
+        filteredGames = filteredGames.filter(g => Math.abs(g.home_score - g.away_score) <= 7)
+        break
+    }
+  }
+  
+  const totalGames = games.length
+  const matchingGames = filteredGames.length
+  const percentage = totalGames > 0 ? ((matchingGames / totalGames) * 100).toFixed(1) : '0'
+  
+  return {
+    found: true,
+    totalGames,
+    matchingGames,
+    percentage: `${percentage}%`,
+    games: filteredGames.slice(0, 20).map(g => ({
+      date: g.game_date,
+      matchup: `${g.away_team_abbr} @ ${g.home_team_abbr}`,
+      score: `${g.away_score}-${g.home_score}`,
+      season: g.season,
+    })),
+    estimatedTime: `${Math.ceil(totalGames / 100)}s`
+  }
+}
+
+// Check if we need more data and fetch it
+async function ensureDataExists(sport: string, seasons: number[], seasonType: string): Promise<{
+  needsData: boolean
+  message: string
+}> {
+  const supabase = await createClient()
+  
+  // Check what data we have
+  const { count } = await supabase
+    .from('historical_games')
+    .select('*', { count: 'exact', head: true })
+    .eq('sport', sport)
+    .eq('season_type', seasonType)
+    .in('season', seasons)
+  
+  if ((count || 0) < seasons.length * 10) { // Expect at least 10 games per season
+    return {
+      needsData: true,
+      message: `We have ${count || 0} ${sport.toUpperCase()} ${seasonType} games in database. Fetching more data...`
+    }
+  }
+  
+  return { needsData: false, message: '' }
+}
+
+// Fetch live ESPN context
+async function fetchLiveContext(query: string): Promise<string> {
   const lowerQuery = query.toLowerCase()
   const contexts: string[] = []
   
   try {
-    // Detect which sports to fetch based on query
     const sports: string[] = []
-    if (lowerQuery.includes('nfl') || lowerQuery.includes('football') || lowerQuery.includes('playoff') || lowerQuery.includes('touchdown')) sports.push('nfl')
+    if (lowerQuery.includes('nfl') || lowerQuery.includes('football') || lowerQuery.includes('playoff')) sports.push('nfl')
     if (lowerQuery.includes('nba') || lowerQuery.includes('basketball')) sports.push('nba')
     if (lowerQuery.includes('nhl') || lowerQuery.includes('hockey')) sports.push('nhl')
     if (lowerQuery.includes('mlb') || lowerQuery.includes('baseball')) sports.push('mlb')
-    if (lowerQuery.includes('ncaaf') || lowerQuery.includes('college football') || lowerQuery.includes('cfb')) sports.push('ncaaf')
-    if (lowerQuery.includes('ncaab') || lowerQuery.includes('college basketball') || lowerQuery.includes('march madness')) sports.push('ncaab')
     
-    // Default to NFL if no sport detected and query mentions playoffs/super bowl
-    if (sports.length === 0 && (lowerQuery.includes('playoff') || lowerQuery.includes('super bowl'))) {
-      sports.push('nfl')
-    }
+    if (sports.length === 0) sports.push('nfl')
     
-    // Fetch current scoreboard data for relevant sports
-    for (const sport of sports) {
+    for (const sport of sports.slice(0, 2)) {
       const sportEndpoint = ESPN_APIS[sport as keyof typeof ESPN_APIS]
       if (sportEndpoint && 'scoreboard' in sportEndpoint) {
-        const [scoreboardRes, standingsRes] = await Promise.all([
-          fetch(sportEndpoint.scoreboard as string).then(r => r.json()).catch(() => null),
-          'standings' in sportEndpoint ? fetch(sportEndpoint.standings as string).then(r => r.json()).catch(() => null) : null,
-        ])
-        
-        if (scoreboardRes?.events) {
-          const games = scoreboardRes.events.slice(0, 8).map((e: any) => {
+        const res = await fetch(sportEndpoint.scoreboard as string).catch(() => null)
+        if (res?.ok) {
+          const data = await res.json()
+          const games = data.events?.slice(0, 5).map((e: any) => {
             const comp = e.competitions?.[0]
             const home = comp?.competitors?.find((c: any) => c.homeAway === 'home')
             const away = comp?.competitors?.find((c: any) => c.homeAway === 'away')
-            const homeRecord = home?.records?.[0]?.summary || ''
-            const awayRecord = away?.records?.[0]?.summary || ''
-            const spread = comp?.odds?.[0]?.details || ''
-            const total = comp?.odds?.[0]?.overUnder || ''
-            
-            let gameInfo = `${away?.team?.displayName || 'TBD'} (${awayRecord}) @ ${home?.team?.displayName || 'TBD'} (${homeRecord}): ${away?.score || 0}-${home?.score || 0}`
-            if (spread) gameInfo += ` | Line: ${spread}`
-            if (total) gameInfo += ` | O/U: ${total}`
-            gameInfo += ` (${e.status?.type?.description || 'Scheduled'})`
-            return gameInfo
+            return `${away?.team?.abbreviation} @ ${home?.team?.abbreviation}: ${away?.score || 0}-${home?.score || 0}`
           })
-          if (games.length > 0) {
-            contexts.push(`**Current ${sport.toUpperCase()} Games:**\n${games.join('\n')}`)
-          }
-        }
-        
-        if (standingsRes?.children) {
-          const topTeams = standingsRes.children.flatMap((conf: any) => 
-            conf.standings?.entries?.slice(0, 4).map((e: any) => {
-              const wins = e.stats?.find((s: any) => s.name === 'wins')?.value || 0
-              const losses = e.stats?.find((s: any) => s.name === 'losses')?.value || 0
-              const streak = e.stats?.find((s: any) => s.name === 'streak')?.displayValue || ''
-              return `${e.team?.displayName}: ${wins}-${losses}${streak ? ` (${streak})` : ''}`
-            }) || []
-          ).slice(0, 8)
-          if (topTeams.length > 0) {
-            contexts.push(`**${sport.toUpperCase()} Standings (Top Teams):**\n${topTeams.join('\n')}`)
+          if (games?.length > 0) {
+            contexts.push(`${sport.toUpperCase()} Today: ${games.join(', ')}`)
           }
         }
       }
     }
-    
-    // If asking about specific teams, try to get their recent stats
-    const teamMentions = extractTeamMentions(lowerQuery)
-    if (teamMentions.length > 0 && sports.length > 0) {
-      contexts.push(`\n**Teams Mentioned:** ${teamMentions.join(', ')}`)
-    }
-    
-  } catch (error) {
-    console.error('Error fetching sports context:', error)
+  } catch (e) {
+    console.error('Error fetching live context:', e)
   }
   
-  return contexts.length > 0 ? `\n\n**LIVE DATA CONTEXT (from ESPN/NHL/MLB APIs):**\n${contexts.join('\n\n')}` : ''
+  return contexts.join('\n')
 }
 
-// Extract team names from query
-function extractTeamMentions(query: string): string[] {
-  const nflTeams = ['chiefs', 'bills', 'ravens', 'dolphins', 'texans', 'colts', 'jaguars', 'titans', 'steelers', 'browns', 'bengals', 'chargers', 'broncos', 'raiders', 'jets', 'patriots', 'eagles', 'cowboys', 'commanders', 'giants', 'lions', 'packers', 'bears', 'vikings', '49ers', 'seahawks', 'rams', 'cardinals', 'buccaneers', 'saints', 'falcons', 'panthers']
-  const nbaTeams = ['celtics', 'bucks', 'cavaliers', 'knicks', 'heat', '76ers', 'hawks', 'bulls', 'pacers', 'pistons', 'magic', 'hornets', 'wizards', 'raptors', 'nets', 'thunder', 'nuggets', 'timberwolves', 'clippers', 'mavericks', 'suns', 'pelicans', 'lakers', 'warriors', 'kings', 'rockets', 'grizzlies', 'spurs', 'jazz', 'blazers']
-  
-  const allTeams = [...nflTeams, ...nbaTeams]
-  return allTeams.filter(team => query.includes(team))
-}
+// System prompt that emphasizes using real data
+const SYSTEM_PROMPT = `You are a sports statistics analyst with access to a REAL historical database.
 
-// System prompt for the trend finder AI
-const SYSTEM_PROMPT = `You are an expert sports statistician and betting analyst with access to comprehensive historical sports data and LIVE ESPN data. Your role is to answer detailed statistical questions about sports betting trends, game outcomes, and player/team performance.
+CRITICAL RULES:
+1. When historical query results are provided, USE THEM AS THE SOURCE OF TRUTH
+2. DO NOT estimate or guess - use the actual numbers from the database
+3. If the database shows 0 results, say "Based on our database of X games, this occurred 0 times"
+4. Always cite the actual data: "Out of X games searched, Y matched (Z%)"
 
-IMPORTANT GUIDELINES:
-1. You have access to LIVE ESPN data for current games, standings, and stats. Use this data when relevant.
-2. For historical questions about specific scenarios (like playoff scoring patterns), provide ACTUAL data when possible. For very specific queries, explain how to look up the data if you can't compute it exactly.
-3. When you don't have exact historical data, be CLEAR about this limitation but still provide your best analysis.
-4. Include relevant context about why certain trends exist.
-5. Format numerical data clearly with percentages and counts.
-6. Suggest related trends the user might find interesting.
+When database results are provided, structure your response as:
+1. **Direct Answer**: "Based on {totalGames} games in our database, this has occurred {matchingGames} times ({percentage})"
+2. **Game Examples**: List the specific games where this happened
+3. **Analysis**: What this means for betting
+4. **Note**: If data seems incomplete, mention we may need to fetch more historical data
 
-DATA ACCESS:
-- LIVE game scores from ESPN
-- Current standings and records
-- Team statistics and trends
-- Player statistics
-- Historical playoff data (major databases)
-
-SPORTS COVERED:
-- NFL (including playoffs, Super Bowls since 1966)
-- NBA (including playoffs since 1946)
-- MLB (including playoffs, World Series)
-- NHL (including playoffs, Stanley Cup)
-- College Football (NCAAF)
-- College Basketball (NCAAB)
-- WNBA
-
-IMPORTANT FOR SPECIFIC QUERIES:
-For very specific historical queries like "how many times have both teams scored a rushing TD and passing TD in both halves":
-1. Acknowledge this requires play-by-play data from every playoff game
-2. Recommend checking Pro Football Reference or StatHead for exact answers
-3. Provide your best estimate based on known scoring patterns
-4. Explain the methodology behind your estimate
-
-When answering trend questions, structure your response with:
-1. Direct Answer: The specific answer to the query (with data source noted)
-2. Data Breakdown: Supporting statistics
-3. Context: Why this trend exists or is significant
-4. Betting Implications: How this information could be used
-5. Related Trends: Other interesting patterns to explore
-6. Data Sources: Where to find more detailed information`
+If NO database results are available, you may provide estimates but CLEARLY state they are estimates.`
 
 export async function POST(request: NextRequest) {
   try {
@@ -152,16 +301,61 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 })
     }
 
-    // Fetch live sports context based on query
-    const liveContext = await fetchSportsContext(query)
+    // Parse the query to see if it's a historical stats question
+    const parsedQuery = parseHistoricalQuery(query)
+    
+    let historicalResults: any = null
+    let dataStatus = ''
+    
+    if (parsedQuery) {
+      // Check if we have data
+      const dataCheck = await ensureDataExists(
+        parsedQuery.sport, 
+        parsedQuery.seasons, 
+        parsedQuery.seasonType
+      )
+      
+      if (dataCheck.needsData) {
+        dataStatus = dataCheck.message
+      }
+      
+      // Query the database
+      historicalResults = await queryHistoricalData(parsedQuery)
+    }
+    
+    // Fetch live context for current games
+    const liveContext = await fetchLiveContext(query)
+    
+    // Build enhanced query with real data
+    let enhancedQuery = query
+    
+    if (historicalResults?.found) {
+      enhancedQuery += `\n\n**DATABASE RESULTS (REAL DATA - USE THIS):**
+Sport: ${parsedQuery?.sport.toUpperCase()}
+Season Type: ${parsedQuery?.seasonType}
+Seasons Searched: ${parsedQuery?.seasons.join(', ')}
+Total Games in Database: ${historicalResults.totalGames}
+Matching Games: ${historicalResults.matchingGames}
+Percentage: ${historicalResults.percentage}
 
-    // Build the conversation context
+Example Games That Match:
+${historicalResults.games.map((g: any) => `- ${g.date}: ${g.matchup} (${g.score}) - Season ${g.season}`).join('\n')}`
+    } else if (parsedQuery) {
+      enhancedQuery += `\n\n**NOTE: Limited historical data available. Database returned 0 results.**
+This query requires play-by-play historical data that may not be fully loaded yet.
+Please provide your best estimate and note that it is an estimate.`
+    }
+    
+    if (liveContext) {
+      enhancedQuery += `\n\n**LIVE DATA:**\n${liveContext}`
+    }
+    
+    // Build conversation
     const messages = [
       { role: 'user', parts: [{ text: SYSTEM_PROMPT }] },
-      { role: 'model', parts: [{ text: 'I understand. I\'m ready to help analyze sports trends and statistics. I have access to live ESPN data and historical databases. I\'ll provide detailed, data-driven answers and be transparent about data sources. What would you like to explore?' }] },
+      { role: 'model', parts: [{ text: 'I understand. I will use real database results when available and clearly distinguish between actual data and estimates.' }] },
     ]
 
-    // Add conversation history if provided
     if (conversationHistory && Array.isArray(conversationHistory)) {
       for (const msg of conversationHistory) {
         messages.push({
@@ -171,29 +365,26 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Add the current query with live context
-    const enhancedQuery = liveContext 
-      ? `${query}\n\n${liveContext}`
-      : query
-    
     messages.push({ role: 'user', parts: [{ text: enhancedQuery }] })
 
-    // Start chat session
+    // Get AI response
     const chat = trendFinderModel.startChat({
-      history: messages.slice(0, -1) as any, // All but the last message
+      history: messages.slice(0, -1) as any,
     })
 
-    // Send the current query
     const result = await chat.sendMessage(enhancedQuery)
     const response = result.response.text()
-
-    // Extract any statistical data mentioned for structured display
-    const extractedStats = extractStatistics(response)
 
     return NextResponse.json({
       success: true,
       response,
-      extractedStats,
+      historicalData: historicalResults?.found ? {
+        totalGames: historicalResults.totalGames,
+        matchingGames: historicalResults.matchingGames,
+        percentage: historicalResults.percentage,
+        sampleGames: historicalResults.games.slice(0, 5),
+      } : null,
+      dataStatus: dataStatus || (historicalResults?.found ? 'Data from database' : 'Estimate (database query pending)'),
       hasLiveData: liveContext.length > 0,
       timestamp: new Date().toISOString()
     })
@@ -207,39 +398,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Helper to extract key statistics from the response
-function extractStatistics(text: string): { label: string; value: string }[] {
-  const stats: { label: string; value: string }[] = []
-  
-  // Look for percentage patterns
-  const percentMatches = text.match(/(\d+(?:\.\d+)?%)/g)
-  
-  // Look for count patterns like "X games" or "X times"
-  const countMatches = text.match(/(\d+)\s+(games?|times?|instances?|occurrences?|matchups?)/gi)
-  
-  // Look for record patterns like "X-Y"
-  const recordMatches = text.match(/(\d+-\d+(?:-\d+)?)\s+(record|ATS|O\/U|SU)/gi)
-
-  if (percentMatches && percentMatches.length > 0) {
-    stats.push({ label: 'Key Percentage', value: percentMatches[0] })
-  }
-  
-  if (countMatches && countMatches.length > 0) {
-    stats.push({ label: 'Sample Size', value: countMatches[0] })
-  }
-
-  if (recordMatches && recordMatches.length > 0) {
-    stats.push({ label: 'Record', value: recordMatches[0] })
-  }
-
-  return stats
-}
-
-// GET endpoint for health check
 export async function GET() {
   return NextResponse.json({ 
     status: 'ok', 
     service: 'trend-finder',
-    capabilities: ['NFL', 'NBA', 'MLB', 'NHL', 'NCAAF', 'NCAAB', 'WNBA']
+    capabilities: ['NFL', 'NBA', 'MLB', 'NHL', 'Historical DB', 'Live ESPN']
   })
 }
