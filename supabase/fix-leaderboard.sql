@@ -73,12 +73,12 @@ CREATE POLICY "Public read access" ON public.capper_stats FOR SELECT USING (true
 
 -- Insert demo data if tables are empty
 INSERT INTO public.cappers (slug, name, avatar_emoji, verified, capper_type, network, role)
-SELECT * FROM (VALUES
-  ('sharpshooter-mike', 'SharpShooter_Mike', '🎯', true, 'pro', NULL, 'Sharp Bettor'),
-  ('vegas-vince', 'VegasVince', '🎰', true, 'pro', NULL, 'Vegas Insider'),
-  ('hoops-guru', 'HoopsGuru', '🏀', true, 'pro', NULL, 'NBA Specialist'),
-  ('ice-cold-picks', 'IceColdPicks', '🏒', false, 'community', NULL, 'NHL Handicapper'),
-  ('moneyline-maven', 'MoneyLine_Maven', '💰', true, 'pro', NULL, 'ML Expert'),
+SELECT slug, name, avatar_emoji, verified, capper_type::capper_type, network, role FROM (VALUES
+  ('sharpshooter-mike', 'SharpShooter_Mike', '🎯', true, 'pro', NULL::text, 'Sharp Bettor'),
+  ('vegas-vince', 'VegasVince', '🎰', true, 'pro', NULL::text, 'Vegas Insider'),
+  ('hoops-guru', 'HoopsGuru', '🏀', true, 'pro', NULL::text, 'NBA Specialist'),
+  ('ice-cold-picks', 'IceColdPicks', '🏒', false, 'community', NULL::text, 'NHL Handicapper'),
+  ('moneyline-maven', 'MoneyLine_Maven', '💰', true, 'pro', NULL::text, 'ML Expert'),
   ('stephen-a-smith', 'Stephen A. Smith', '📺', true, 'celebrity', 'ESPN', 'First Take Host'),
   ('shannon-sharpe', 'Shannon Sharpe', '🏈', true, 'celebrity', 'ESPN', 'First Take Analyst'),
   ('pat-mcafee', 'Pat McAfee', '🎙️', true, 'celebrity', 'ESPN', 'The Pat McAfee Show'),
