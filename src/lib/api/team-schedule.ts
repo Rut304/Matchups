@@ -94,21 +94,47 @@ export async function getTeamSchedule(
     
     // ESPN team schedule endpoint
     // Format: /football/nfl/teams/{teamId}/schedule
-    const url = `${ESPN_BASE}/${s}/${league}/teams/${teamId}/schedule`
+    // Use seasontype=2 for regular season games (important during playoffs when default only returns playoff games)
+    // Also fetch seasontype=3 (postseason) separately and merge
+    const baseUrl = `${ESPN_BASE}/${s}/${league}/teams/${teamId}/schedule`
     
-    const res = await fetch(url, { 
-      next: { revalidate: 300 },  // Cache for 5 minutes
-      headers: {
-        'Accept': 'application/json',
-      }
-    })
+    // Fetch both regular season and postseason schedules in parallel
+    const [regularRes, postseasonRes] = await Promise.all([
+      fetch(`${baseUrl}?seasontype=2`, { 
+        next: { revalidate: 300 },
+        headers: { 'Accept': 'application/json' }
+      }),
+      fetch(`${baseUrl}?seasontype=3`, { 
+        next: { revalidate: 300 },
+        headers: { 'Accept': 'application/json' }
+      }).catch(() => null) // Postseason might not exist
+    ])
     
-    if (!res.ok) {
-      console.error(`ESPN Schedule API error: ${res.status}`)
+    if (!regularRes.ok) {
+      console.error(`ESPN Schedule API error: ${regularRes.status}`)
       return null
     }
     
-    const data: ESPNScheduleResponse = await res.json()
+    const regularData: ESPNScheduleResponse = await regularRes.json()
+    let postseasonData: ESPNScheduleResponse | null = null
+    
+    if (postseasonRes?.ok) {
+      postseasonData = await postseasonRes.json()
+    }
+    
+    // Merge events from both seasons
+    const allEvents = [
+      ...(regularData.events || []),
+      ...(postseasonData?.events || [])
+    ]
+    
+    const data = {
+      ...regularData,
+      events: allEvents
+    }
+    
+    // Legacy single fetch fallback
+    const res = { ok: true } // dummy for compatibility
     
     if (!data.team || !data.events) {
       return null

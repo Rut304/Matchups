@@ -1,9 +1,9 @@
 /**
  * Edge Service - Fetches real prediction market data and calculates edges
- * Uses Polymarket API for real data with fallback to demo signals
+ * Uses internal API routes to avoid CORS issues with Polymarket/Kalshi
  */
 
-import { marketsClient } from '@/lib/api/markets'
+// Removed direct marketsClient import - using internal API instead
 
 export interface EdgeSignal {
   id: string
@@ -121,22 +121,43 @@ function calculateEdgeSignal(market: {
 
 /**
  * Fetch real edge signals from prediction markets
+ * Uses internal API route to avoid CORS issues
  */
 export async function fetchEdgeSignals(limit: number = 20): Promise<EdgeSignal[]> {
   try {
-    // Fetch real markets from Polymarket
-    const markets = await marketsClient.getAllSportsMarkets()
+    // Fetch markets through our server-side API to avoid CORS
+    const response = await fetch('/api/markets?category=sports&limit=100')
+    
+    if (!response.ok) {
+      console.log('Markets API returned non-OK status - using fallback data')
+      return getFallbackSignals()
+    }
+    
+    const data = await response.json()
+    const markets = data.markets || []
     
     if (!markets || markets.length === 0) {
       console.log('No markets returned from API - using fallback data')
       return getFallbackSignals()
     }
     
-    // Calculate edge signals
+    // Calculate edge signals from fetched markets
     const signals: EdgeSignal[] = []
     
     for (const market of markets) {
-      const signal = calculateEdgeSignal(market)
+      // Transform API market format to expected format
+      const transformedMarket = {
+        id: market.id,
+        platform: market.platform as 'polymarket' | 'kalshi',
+        question: market.title,
+        category: market.category,
+        volume: market.volume24h || 0,
+        endDate: market.endDate,
+        outcomes: [{ price: market.yesPrice }],
+        priceChange24h: market.change24h || 0
+      }
+      
+      const signal = calculateEdgeSignal(transformedMarket)
       if (signal) {
         signals.push(signal)
       }
@@ -145,7 +166,7 @@ export async function fetchEdgeSignals(limit: number = 20): Promise<EdgeSignal[]
     // Sort by confidence
     signals.sort((a, b) => b.confidence - a.confidence)
     
-    return signals.slice(0, limit)
+    return signals.length > 0 ? signals.slice(0, limit) : getFallbackSignals()
   } catch (error) {
     console.error('Error fetching edge signals:', error)
     return getFallbackSignals()
@@ -227,8 +248,10 @@ function getFallbackSignals(): EdgeSignal[] {
  */
 export async function hasLiveData(): Promise<boolean> {
   try {
-    const markets = await marketsClient.getAllSportsMarkets()
-    return markets && markets.length > 0
+    const response = await fetch('/api/markets?category=sports&limit=1')
+    if (!response.ok) return false
+    const data = await response.json()
+    return data.markets && data.markets.length > 0
   } catch {
     return false
   }
