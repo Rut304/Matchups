@@ -1,7 +1,7 @@
 # Matchups - Complete System Architecture & Data Flow
 
 > **Last Updated**: January 11, 2026  
-> **Production URL**: https://matchups.vercel.app
+> **Production URL**: <https://matchups.vercel.app>
 
 ---
 
@@ -59,6 +59,7 @@
 ## 🔌 External Data Sources
 
 ### 1. ESPN API (Primary Game Data)
+
 | Endpoint | Data | Rate Limit | Cache |
 |----------|------|------------|-------|
 | `/scoreboard` | Live scores, game status | Unlimited | 30s |
@@ -69,6 +70,7 @@
 **File**: `src/lib/api/espn.ts`
 
 ### 2. The Odds API (Betting Lines)
+
 | Endpoint | Data | Rate Limit | Cache |
 |----------|------|------------|-------|
 | `/odds` | Spreads, totals, moneylines | 500/month | 5min |
@@ -78,6 +80,7 @@
 **API Key**: `ODDS_API_KEY`
 
 ### 3. Twitter/X API (Social/News)
+
 | Endpoint | Data | Rate Limit | Cache |
 |----------|------|------------|-------|
 | `/tweets/search/recent` | Breaking news | 450/15min | 5min |
@@ -87,6 +90,7 @@
 **API Key**: `X_BEARER_TOKEN`
 
 ### 4. Prediction Markets
+
 | Source | Data | Rate Limit | Cache |
 |--------|------|------------|-------|
 | Polymarket | Sports/Politics odds | Unlimited | 5min |
@@ -284,6 +288,7 @@ CREATE TABLE ai_picks (
 ## ⚡ API Routes
 
 ### Game Data
+
 | Route | Method | Description | Data Source |
 |-------|--------|-------------|-------------|
 | `/api/games` | GET | All games by sport/date | ESPN + Odds API |
@@ -292,6 +297,7 @@ CREATE TABLE ai_picks (
 | `/api/live` | GET | In-progress games | ESPN |
 
 ### Betting Data
+
 | Route | Method | Description | Data Source |
 |-------|--------|-------------|-------------|
 | `/api/odds` | GET | Current odds | The Odds API |
@@ -300,6 +306,7 @@ CREATE TABLE ai_picks (
 | `/api/public-betting` | GET | Public % by game | Calculated |
 
 ### Analysis
+
 | Route | Method | Description | Data Source |
 |-------|--------|-------------|-------------|
 | `/api/edges` | GET | Edge finder results | Algorithm |
@@ -310,6 +317,7 @@ CREATE TABLE ai_picks (
 | `/api/line-predictor` | POST | Line movement AI | ML Model |
 
 ### Cappers/Leaderboard
+
 | Route | Method | Description | Data Source |
 |-------|--------|-------------|-------------|
 | `/api/leaderboard` | GET | Top cappers | Supabase |
@@ -318,12 +326,14 @@ CREATE TABLE ai_picks (
 | `/api/bets` | GET/POST | Bet tracking | Supabase |
 
 ### Markets
+
 | Route | Method | Description | Data Source |
 |-------|--------|-------------|-------------|
 | `/api/markets` | GET | All prediction markets | Polymarket/Kalshi |
 | `/api/markets/[id]` | GET | Market details | Polymarket/Kalshi |
 
 ### Cron Jobs (Scheduled Tasks)
+
 | Route | Schedule | Description |
 |-------|----------|-------------|
 | `/api/cron/refresh-scores` | Every 2 min* | Update live scores |
@@ -342,6 +352,7 @@ CREATE TABLE ai_picks (
 ## 🔄 Data Flow by Feature
 
 ### 1. Homepage Edge Cards
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    EDGE CARD DATA FLOW                       │
@@ -374,6 +385,7 @@ CREATE TABLE ai_picks (
 ```
 
 ### 2. Sport Matchups Page (NFL/NBA/NHL/MLB)
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                  MATCHUPS PAGE DATA FLOW                     │
@@ -410,6 +422,7 @@ CREATE TABLE ai_picks (
 ```
 
 ### 3. Game Detail Page
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                 GAME DETAIL DATA FLOW                        │
@@ -445,6 +458,7 @@ CREATE TABLE ai_picks (
 ```
 
 ### 4. Leaderboard
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                  LEADERBOARD DATA FLOW                       │
@@ -474,6 +488,7 @@ CREATE TABLE ai_picks (
 ```
 
 ### 5. Prediction Markets
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │               PREDICTION MARKETS DATA FLOW                   │
@@ -506,6 +521,7 @@ CREATE TABLE ai_picks (
 ```
 
 ### 6. News Feed
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    NEWS FEED DATA FLOW                       │
@@ -676,6 +692,7 @@ function isRLM(game: Game): boolean {
 ## 🔐 Environment Variables
 
 ### Required for Production
+
 ```env
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
@@ -695,6 +712,7 @@ STRIPE_WEBHOOK_SECRET=xxx
 ```
 
 ### Vercel System Variables (Auto-set)
+
 ```env
 VERCEL=1
 VERCEL_ENV=production
@@ -731,6 +749,7 @@ git push origin main       # Auto-deploy to Vercel
 ## 📊 Monitoring & Health
 
 ### Health Check Endpoint
+
 ```
 GET /api/health
 
@@ -749,6 +768,7 @@ Response:
 ```
 
 ### Admin Endpoints
+
 - `/admin` - Admin dashboard
 - `/admin/diagnostics` - System diagnostics
 - `/admin/health` - Detailed health check
@@ -759,6 +779,7 @@ Response:
 ## 🚨 Error Handling
 
 ### API Error Responses
+
 ```typescript
 // Standard error format
 {
@@ -777,6 +798,7 @@ Response:
 ```
 
 ### Fallback Behavior
+
 | Scenario | Fallback |
 |----------|----------|
 | ESPN API down | Show cached data + "Last updated X ago" |

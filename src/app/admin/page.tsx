@@ -452,6 +452,10 @@ export default function AdminPage() {
                     <Terminal className="w-6 h-6 text-blue-500" />
                     <span className="text-sm font-medium">E2E Tests</span>
                   </Link>
+                  <Link href="/admin/architecture" className="flex flex-col items-center gap-2 px-4 py-4 bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/30 hover:border-indigo-500/50 rounded-xl transition-all hover:scale-105 text-text-primary">
+                    <Server className="w-6 h-6 text-indigo-500" />
+                    <span className="text-sm font-medium">Architecture</span>
+                  </Link>
                   <Link href="/admin/docs" className="flex flex-col items-center gap-2 px-4 py-4 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 hover:border-cyan-500/50 rounded-xl transition-all hover:scale-105 text-text-primary">
                     <ExternalLink className="w-6 h-6 text-cyan-500" />
                     <span className="text-sm font-medium">Documentation</span>
