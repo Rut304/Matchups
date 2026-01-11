@@ -1,8 +1,36 @@
 # Matchups - Project Task Tracker
 
-> **Last Updated:** January 4, 2026  
-> **Production URL:** <https://matchups-rut304s-projects.vercel.app>
+> **Last Updated:** January 11, 2026  
+> **Production URL:** <https://matchups-eta.vercel.app>
 > **Supabase Project:** Matchups (cdfdmkntdsfylososgwo)
+
+---
+
+## 🚨 CRITICAL: Game Matchup Page Broken
+
+The `/game/[id]` page is completely broken with these issues:
+
+### Issues to Fix FIRST
+1. **Scores showing "NaN-NaN"** - Score transformation broken in team-schedule.ts
+2. **All odds showing 0** - Not reading from gameSummary.odds correctly  
+3. **All results showing "T"** - Winner/loser logic broken
+4. **Predictor showing 50-50** - Using fallback, not ESPN predictor data
+5. **Empty injuries** - API returns data, UI doesn't render
+6. **No line movement display** - Data exists in API but not shown
+7. **Play-by-play broken** - Shows "Waiting for plays..." forever
+8. **H2H history empty** - getHeadToHead() string matching fails
+
+### Key Files to Debug
+- `/src/app/game/[id]/page.tsx` - Main page (1400+ lines)
+- `/src/lib/api/team-schedule.ts` - transformESPNEvent() function
+- `/src/app/api/games/[id]/summary/route.ts` - Summary API
+
+### Debug Commands
+```bash
+curl "https://matchups-eta.vercel.app/api/games/401772980/summary?sport=NFL" | jq '.lineMovement, .predictor'
+```
+
+See `/docs/AGENT_HANDOFF.md` for full context.
 
 ---
 
