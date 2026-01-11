@@ -1,6 +1,7 @@
 /**
  * Team Schedule API
  * Fetches REAL team schedule/results from ESPN API
+ * Falls back to historical database when ESPN data is limited (e.g., during playoffs)
  * NO FAKE DATA - if data isn't available, show a placeholder
  */
 
@@ -129,6 +130,29 @@ export async function getTeamSchedule(
     const losses = completedGames.filter(g => g.result === 'L').length
     const ties = completedGames.filter(g => g.result === 'T').length
     
+    // If ESPN returned limited data (e.g., playoffs), supplement with historical database
+    let finalGames = sortedGames
+    if (sortedGames.length < limit) {
+      const historicalGames = await getHistoricalTeamGames(
+        sport, 
+        data.team.abbreviation, 
+        limit - sortedGames.length
+      )
+      
+      // Merge and dedupe by game ID
+      const existingIds = new Set(sortedGames.map(g => g.id))
+      const newGames = historicalGames.filter(g => !existingIds.has(g.id))
+      finalGames = [...sortedGames, ...newGames]
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, limit)
+    }
+    
+    // Recalculate record with all games
+    const allCompleted = finalGames.filter(g => g.isCompleted)
+    const totalWins = allCompleted.filter(g => g.result === 'W').length
+    const totalLosses = allCompleted.filter(g => g.result === 'L').length
+    const totalTies = allCompleted.filter(g => g.result === 'T').length
+    
     return {
       team: {
         id: data.team.id,
@@ -136,8 +160,8 @@ export async function getTeamSchedule(
         abbreviation: data.team.abbreviation,
         logo: data.team.logos?.[0]?.href,
       },
-      games: sortedGames,
-      record: ties > 0 ? `${wins}-${losses}-${ties}` : `${wins}-${losses}`,
+      games: finalGames,
+      record: totalTies > 0 ? `${totalWins}-${totalLosses}-${totalTies}` : `${totalWins}-${totalLosses}`,
       // ATS/OU records would need betting data integration
       atsRecord: undefined,
       ouRecord: undefined,
@@ -288,4 +312,36 @@ export function getTeamId(sport: SportKey, abbr: string): string | null {
     MLB: MLB_TEAM_IDS,
   }
   return maps[sport]?.[abbr] || null
+}
+
+/**
+ * Fetch historical games for a team from our database
+ * This supplements ESPN data when their API returns limited results
+ */
+async function getHistoricalTeamGames(
+  sport: SportKey,
+  teamAbbr: string,
+  limit: number
+): Promise<TeamGameResult[]> {
+  try {
+    const baseUrl = typeof window !== 'undefined' 
+      ? '' 
+      : process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}` 
+        : 'http://localhost:3000'
+    
+    const url = `${baseUrl}/api/team-history?team=${teamAbbr}&sport=${sport}&limit=${limit}`
+    const res = await fetch(url, { cache: 'no-store' })
+    
+    if (!res.ok) {
+      console.error(`Historical team data error: ${res.status}`)
+      return []
+    }
+    
+    const data = await res.json()
+    return data.games || []
+  } catch (error) {
+    console.error('Error fetching historical team games:', error)
+    return []
+  }
 }
