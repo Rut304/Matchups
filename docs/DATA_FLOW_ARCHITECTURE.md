@@ -136,6 +136,7 @@ Configured in `vercel.json`:
 ### Cron Authentication
 
 All cron endpoints verify `CRON_SECRET` via Bearer token:
+
 ```typescript
 const authHeader = request.headers.get('authorization')
 if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -453,10 +454,12 @@ ENABLE_USER_AUTH=true
 ## 10. Testing & Monitoring
 
 ### Health Checks
+
 - `/api/health` - Service status
 - `/api/admin/system` - System diagnostics
 
 ### E2E Tests (Playwright)
+
 ```
 e2e/
 ├── app.spec.ts         # Core app tests
@@ -466,6 +469,7 @@ e2e/
 ```
 
 ### Logs
+
 - Vercel Dashboard → Functions → Logs
 - Cron job execution tracked per run
 - API quota usage logged (Odds API)
