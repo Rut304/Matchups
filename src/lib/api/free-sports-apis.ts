@@ -338,10 +338,12 @@ export interface SportsDataContext {
   mlb?: { games: any[]; standings: any }
 }
 
+type ContextSport = 'nfl' | 'nba' | 'nhl' | 'mlb'
+
 export async function fetchAllSportsContext(): Promise<SportsDataContext> {
   const context: SportsDataContext = {}
   
-  const sports: SportType[] = ['nfl', 'nba', 'nhl', 'mlb']
+  const sports: ContextSport[] = ['nfl', 'nba', 'nhl', 'mlb']
   
   await Promise.allSettled(
     sports.map(async (sport) => {
