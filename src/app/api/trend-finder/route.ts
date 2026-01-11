@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { ESPN_APIS, NHL_API, MLB_API } from '@/lib/api/free-sports-apis'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
@@ -13,31 +14,6 @@ const trendFinderModel = genAI.getGenerativeModel({
   }
 })
 
-// ESPN API endpoints for real data
-const ESPN_ENDPOINTS = {
-  nfl: {
-    scoreboard: 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard',
-    teams: 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams',
-    standings: 'https://site.api.espn.com/apis/v2/sports/football/nfl/standings',
-    news: 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/news',
-  },
-  nba: {
-    scoreboard: 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard',
-    teams: 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams',
-    standings: 'https://site.api.espn.com/apis/v2/sports/basketball/nba/standings',
-  },
-  nhl: {
-    scoreboard: 'https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/scoreboard',
-    teams: 'https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/teams',
-    standings: 'https://site.api.espn.com/apis/v2/sports/hockey/nhl/standings',
-  },
-  mlb: {
-    scoreboard: 'https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard',
-    teams: 'https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams',
-    standings: 'https://site.api.espn.com/apis/v2/sports/baseball/mlb/standings',
-  },
-}
-
 // Fetch live sports data to provide context
 async function fetchSportsContext(query: string): Promise<string> {
   const lowerQuery = query.toLowerCase()
@@ -45,32 +21,43 @@ async function fetchSportsContext(query: string): Promise<string> {
   
   try {
     // Detect which sports to fetch based on query
-    const sports = []
-    if (lowerQuery.includes('nfl') || lowerQuery.includes('football') || lowerQuery.includes('playoff')) sports.push('nfl')
+    const sports: string[] = []
+    if (lowerQuery.includes('nfl') || lowerQuery.includes('football') || lowerQuery.includes('playoff') || lowerQuery.includes('touchdown')) sports.push('nfl')
     if (lowerQuery.includes('nba') || lowerQuery.includes('basketball')) sports.push('nba')
     if (lowerQuery.includes('nhl') || lowerQuery.includes('hockey')) sports.push('nhl')
     if (lowerQuery.includes('mlb') || lowerQuery.includes('baseball')) sports.push('mlb')
+    if (lowerQuery.includes('ncaaf') || lowerQuery.includes('college football') || lowerQuery.includes('cfb')) sports.push('ncaaf')
+    if (lowerQuery.includes('ncaab') || lowerQuery.includes('college basketball') || lowerQuery.includes('march madness')) sports.push('ncaab')
     
-    // Default to NFL if no sport detected and query mentions playoffs
+    // Default to NFL if no sport detected and query mentions playoffs/super bowl
     if (sports.length === 0 && (lowerQuery.includes('playoff') || lowerQuery.includes('super bowl'))) {
       sports.push('nfl')
     }
     
     // Fetch current scoreboard data for relevant sports
     for (const sport of sports) {
-      const endpoint = ESPN_ENDPOINTS[sport as keyof typeof ESPN_ENDPOINTS]
-      if (endpoint) {
+      const sportEndpoint = ESPN_APIS[sport as keyof typeof ESPN_APIS]
+      if (sportEndpoint && 'scoreboard' in sportEndpoint) {
         const [scoreboardRes, standingsRes] = await Promise.all([
-          fetch(endpoint.scoreboard).then(r => r.json()).catch(() => null),
-          fetch(endpoint.standings).then(r => r.json()).catch(() => null),
+          fetch(sportEndpoint.scoreboard as string).then(r => r.json()).catch(() => null),
+          'standings' in sportEndpoint ? fetch(sportEndpoint.standings as string).then(r => r.json()).catch(() => null) : null,
         ])
         
         if (scoreboardRes?.events) {
-          const games = scoreboardRes.events.slice(0, 5).map((e: any) => {
+          const games = scoreboardRes.events.slice(0, 8).map((e: any) => {
             const comp = e.competitions?.[0]
             const home = comp?.competitors?.find((c: any) => c.homeAway === 'home')
             const away = comp?.competitors?.find((c: any) => c.homeAway === 'away')
-            return `${away?.team?.displayName || 'TBD'} @ ${home?.team?.displayName || 'TBD'}: ${away?.score || 0}-${home?.score || 0} (${e.status?.type?.description || 'Scheduled'})`
+            const homeRecord = home?.records?.[0]?.summary || ''
+            const awayRecord = away?.records?.[0]?.summary || ''
+            const spread = comp?.odds?.[0]?.details || ''
+            const total = comp?.odds?.[0]?.overUnder || ''
+            
+            let gameInfo = `${away?.team?.displayName || 'TBD'} (${awayRecord}) @ ${home?.team?.displayName || 'TBD'} (${homeRecord}): ${away?.score || 0}-${home?.score || 0}`
+            if (spread) gameInfo += ` | Line: ${spread}`
+            if (total) gameInfo += ` | O/U: ${total}`
+            gameInfo += ` (${e.status?.type?.description || 'Scheduled'})`
+            return gameInfo
           })
           if (games.length > 0) {
             contexts.push(`**Current ${sport.toUpperCase()} Games:**\n${games.join('\n')}`)
@@ -79,21 +66,40 @@ async function fetchSportsContext(query: string): Promise<string> {
         
         if (standingsRes?.children) {
           const topTeams = standingsRes.children.flatMap((conf: any) => 
-            conf.standings?.entries?.slice(0, 3).map((e: any) => 
-              `${e.team?.displayName}: ${e.stats?.find((s: any) => s.name === 'wins')?.value || 0}-${e.stats?.find((s: any) => s.name === 'losses')?.value || 0}`
-            ) || []
-          ).slice(0, 6)
+            conf.standings?.entries?.slice(0, 4).map((e: any) => {
+              const wins = e.stats?.find((s: any) => s.name === 'wins')?.value || 0
+              const losses = e.stats?.find((s: any) => s.name === 'losses')?.value || 0
+              const streak = e.stats?.find((s: any) => s.name === 'streak')?.displayValue || ''
+              return `${e.team?.displayName}: ${wins}-${losses}${streak ? ` (${streak})` : ''}`
+            }) || []
+          ).slice(0, 8)
           if (topTeams.length > 0) {
             contexts.push(`**${sport.toUpperCase()} Standings (Top Teams):**\n${topTeams.join('\n')}`)
           }
         }
       }
     }
+    
+    // If asking about specific teams, try to get their recent stats
+    const teamMentions = extractTeamMentions(lowerQuery)
+    if (teamMentions.length > 0 && sports.length > 0) {
+      contexts.push(`\n**Teams Mentioned:** ${teamMentions.join(', ')}`)
+    }
+    
   } catch (error) {
     console.error('Error fetching sports context:', error)
   }
   
-  return contexts.length > 0 ? `\n\n**LIVE DATA CONTEXT:**\n${contexts.join('\n\n')}` : ''
+  return contexts.length > 0 ? `\n\n**LIVE DATA CONTEXT (from ESPN/NHL/MLB APIs):**\n${contexts.join('\n\n')}` : ''
+}
+
+// Extract team names from query
+function extractTeamMentions(query: string): string[] {
+  const nflTeams = ['chiefs', 'bills', 'ravens', 'dolphins', 'texans', 'colts', 'jaguars', 'titans', 'steelers', 'browns', 'bengals', 'chargers', 'broncos', 'raiders', 'jets', 'patriots', 'eagles', 'cowboys', 'commanders', 'giants', 'lions', 'packers', 'bears', 'vikings', '49ers', 'seahawks', 'rams', 'cardinals', 'buccaneers', 'saints', 'falcons', 'panthers']
+  const nbaTeams = ['celtics', 'bucks', 'cavaliers', 'knicks', 'heat', '76ers', 'hawks', 'bulls', 'pacers', 'pistons', 'magic', 'hornets', 'wizards', 'raptors', 'nets', 'thunder', 'nuggets', 'timberwolves', 'clippers', 'mavericks', 'suns', 'pelicans', 'lakers', 'warriors', 'kings', 'rockets', 'grizzlies', 'spurs', 'jazz', 'blazers']
+  
+  const allTeams = [...nflTeams, ...nbaTeams]
+  return allTeams.filter(team => query.includes(team))
 }
 
 // System prompt for the trend finder AI
