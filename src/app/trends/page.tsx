@@ -206,26 +206,26 @@ function TrendsContent() {
     const applicable: ApplicableTrend[] = []
     
     // Generate contextual recommendations based on the trend and teams
+    // NOTE: Spread/total data should come from The Odds API
+    // For now, use sport-specific defaults - these will be replaced
+    // when we wire up real odds data to the TodayGame interface
     combinedTrends.slice(0, 4).forEach((trend) => {
-      // Generate a smart recommendation based on trend type and game
       let recommendation = ''
-      const isHomeUnderdog = Math.random() > 0.5 // Would be real data
-      const homeSpread = (3 + Math.random() * 10).toFixed(1)
+      
+      // Default spread/total by sport (will be replaced with real API data)
+      const defaultSpread = 3.5
+      const defaultTotal = game.sport === 'NBA' ? 220 : game.sport === 'NHL' ? 6 : 44
       
       if (trend.bet_type === 'spread') {
         if (trend.trend_name.includes('Underdog') || trend.trend_name.includes('Dog')) {
-          recommendation = isHomeUnderdog ? `${game.home.abbr} +${homeSpread}` : `${game.away.abbr} +${homeSpread}`
+          recommendation = `${game.away.abbr} +${defaultSpread}`
         } else if (trend.trend_name.includes('Fade') || trend.trend_name.includes('Against')) {
-          recommendation = `${game.away.abbr} +${homeSpread}`
+          recommendation = `${game.away.abbr} +${defaultSpread}`
         } else {
-          recommendation = `${game.home.abbr} -${homeSpread}`
+          recommendation = `${game.home.abbr} -${defaultSpread}`
         }
       } else if (trend.bet_type === 'total') {
-        const total = game.sport === 'NBA' || game.sport === 'NCAAB' ? 
-          200 + Math.floor(Math.random() * 30) : 
-          game.sport === 'NHL' ? 5.5 + Math.random() : 
-          42 + Math.floor(Math.random() * 10)
-        recommendation = trend.trend_name.includes('Under') ? `Under ${total}` : `Over ${total}`
+        recommendation = trend.trend_name.includes('Under') ? `Under ${defaultTotal}` : `Over ${defaultTotal}`
       } else {
         recommendation = game.home.abbr
       }

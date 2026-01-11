@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Clock, MapPin, Tv, TrendingUp, Target, RefreshCw, Loader2, ChevronDown, Zap } from 'lucide-react'
+import { InjuryReport } from '@/components/matchup'
 
 interface GameData {
   id: string; sport: string; status: string; startTime: string; scheduledAt?: string; venue: string; broadcast?: string
@@ -89,6 +90,15 @@ export default function MLBGameMatchupPage({ params }: { params: Promise<{ gameI
             <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-6"><h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2"><Zap className="w-5 h-5 text-amber-400" />Quick Signals</h3>{analytics?.edgeScore && analytics.edgeScore.overall > 0 ? (<div className="space-y-4"><div className="flex items-center justify-between"><span className="text-gray-400">Edge Score</span><span className={`text-xl font-bold ${analytics.edgeScore.overall >= 70 ? 'text-green-400' : analytics.edgeScore.overall >= 50 ? 'text-amber-400' : 'text-gray-400'}`}>{analytics.edgeScore.overall}/100</span></div><div className="space-y-2 text-sm"><div className="flex justify-between"><span className="text-gray-500">Trend Alignment</span><span className="text-white">{analytics.edgeScore.trendAlignment}</span></div><div className="flex justify-between"><span className="text-gray-500">Sharp Signal</span><span className="text-white">{analytics.edgeScore.sharpSignal}</span></div><div className="flex justify-between"><span className="text-gray-500">Value Indicator</span><span className="text-white">{analytics.edgeScore.valueIndicator}</span></div></div></div>) : <div className="text-gray-500 text-center py-4">Signals calculating...</div>}</div>
             <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-6"><h3 className="text-lg font-bold text-white mb-4">Game Info</h3><div className="space-y-3 text-sm"><div className="flex items-center gap-2 text-gray-400"><MapPin className="w-4 h-4" /><span>{game.venue || 'TBD'}</span></div>{game.broadcast && <div className="flex items-center gap-2 text-gray-400"><Tv className="w-4 h-4" /><span>{game.broadcast}</span></div>}</div></div>
             <Link href="/trends?sport=mlb" className="flex items-center justify-between p-4 bg-[#0c0c14] rounded-xl border border-white/10 hover:border-orange-500/30 transition-all"><div className="flex items-center gap-3"><TrendingUp className="w-5 h-5 text-orange-500" /><span className="text-white font-medium">View All MLB Trends</span></div><ChevronDown className="w-5 h-5 text-gray-500 -rotate-90" /></Link>
+
+            {/* Injury Report */}
+            <InjuryReport 
+              sport="mlb" 
+              homeTeam={game.homeTeam.abbreviation} 
+              awayTeam={game.awayTeam.abbreviation}
+              homeTeamFull={game.homeTeam.name}
+              awayTeamFull={game.awayTeam.name}
+            />
           </div>
         </div>
       </div>

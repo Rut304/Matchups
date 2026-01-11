@@ -284,16 +284,18 @@ export async function getLeagueOUSnapshot(sport: string): Promise<LeagueOUSnapsh
   
   const games = seasonGames || []
   
-  // Calculate league averages
-  const totals = games.map(g => g.close_total || g.open_total || 0).filter(t => t > 0)
-  const actuals = games.map(g => (g.home_score || 0) + (g.away_score || 0)).filter(a => a > 0)
-  const overs = games.filter(g => g.total_result === 'over').length
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const totals = games.map((g: any) => g.close_total || g.open_total || 0).filter((t: number) => t > 0)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const actuals = games.map((g: any) => (g.home_score || 0) + (g.away_score || 0)).filter((a: number) => a > 0)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const overs = games.filter((g: any) => g.total_result === 'over').length
   
   const leagueAvgTotal = totals.length > 0 
-    ? totals.reduce((a, b) => a + b, 0) / totals.length 
+    ? totals.reduce((a: number, b: number) => a + b, 0) / totals.length 
     : 45
   const leagueAvgActualScore = actuals.length > 0
-    ? actuals.reduce((a, b) => a + b, 0) / actuals.length
+    ? actuals.reduce((a: number, b: number) => a + b, 0) / actuals.length
     : 44
   const leagueOverPct = games.length > 0
     ? (overs / games.length) * 100
@@ -327,47 +329,38 @@ async function getTeamOUProfile(
   name: string,
   homeAway: 'home' | 'away'
 ): Promise<TeamOUProfile> {
-  // In production, fetch from database
-  // Generate realistic profile
-  const baseOverPct = 45 + Math.random() * 20
+  // REAL DATA: Return empty defaults when no real data available
+  // O/U tracking data requires Action Network API or similar premium service
+  // which we don't have access to
   
-  const createRecord = (basePct: number, variance: number = 10) => {
-    const pct = Math.max(30, Math.min(70, basePct + (Math.random() - 0.5) * variance * 2))
-    const total = Math.floor(Math.random() * 10) + 8
-    const overs = Math.round(total * pct / 100)
-    return {
-      overs,
-      unders: total - overs,
-      pushes: Math.floor(Math.random() * 2),
-      pct: Math.round(pct)
-    }
+  const emptyRecord = {
+    overs: 0,
+    unders: 0,
+    pushes: 0,
+    pct: 0
   }
-  
-  const avgPF = 20 + Math.random() * 15
-  const avgPA = 20 + Math.random() * 10
   
   return {
     abbr,
     name,
-    seasonRecord: createRecord(baseOverPct),
-    homeAwayRecord: createRecord(baseOverPct, 15),
-    last10: createRecord(baseOverPct, 20),
-    asFavorite: createRecord(baseOverPct - 5),
-    asUnderdog: createRecord(baseOverPct + 5),
-    avgPointsFor: Math.round(avgPF * 10) / 10,
-    avgPointsAgainst: Math.round(avgPA * 10) / 10,
-    avgTotal: 45 + Math.random() * 10,
-    avgActualCombined: avgPF + avgPA,
-    marginVsTotal: Math.round((avgPF + avgPA - 46) * 10) / 10,
-    paceRank: Math.floor(Math.random() * 32) + 1,
-    possessionsPerGame: 60 + Math.random() * 10,
-    streak: Math.random() > 0.5 
-      ? { type: Math.random() > 0.5 ? 'over' : 'under', count: Math.floor(Math.random() * 5) + 2 }
-      : null,
-    trends: [
-      `${Math.round(baseOverPct)}% over rate this season`,
-      `Avg total: ${Math.round(45 + Math.random() * 10)}`
-    ]
+    // No O/U tracking data available without premium API
+    seasonRecord: emptyRecord,
+    homeAwayRecord: emptyRecord,
+    last10: emptyRecord,
+    asFavorite: emptyRecord,
+    asUnderdog: emptyRecord,
+    // Scoring data would come from ESPN team stats
+    avgPointsFor: 0,
+    avgPointsAgainst: 0,
+    avgTotal: 0,
+    avgActualCombined: 0,
+    marginVsTotal: 0,
+    // Pace data requires advanced stats API
+    paceRank: 0,
+    possessionsPerGame: 0,
+    // No streak tracking without historical O/U data
+    streak: null,
+    trends: ['O/U data unavailable - requires premium API']
   }
 }
 
@@ -376,23 +369,19 @@ async function getH2HOUHistory(
   homeAbbr: string,
   awayAbbr: string
 ): Promise<OUAnalysis['h2hHistory']> {
-  // In production, query historical_games
-  const gamesPlayed = Math.floor(Math.random() * 10) + 5
-  const overs = Math.floor(Math.random() * gamesPlayed)
-  const unders = gamesPlayed - overs - Math.floor(Math.random() * 2)
-  const pushes = gamesPlayed - overs - unders
+  // REAL DATA: Return empty defaults when no historical O/U data available
+  // Head-to-head O/U tracking requires database of historical games with totals
+  // We could fetch from ESPN game history but they don't include betting lines
   
   return {
-    gamesPlayed,
-    overs,
-    unders,
-    pushes: Math.max(0, pushes),
-    avgTotal: 45 + Math.random() * 8,
-    avgActualScore: 42 + Math.random() * 10,
-    overUnderRecord: `${overs}O-${unders}U${pushes > 0 ? `-${pushes}P` : ''}`,
-    streak: Math.random() > 0.6
-      ? { type: Math.random() > 0.5 ? 'over' : 'under', count: Math.floor(Math.random() * 4) + 2 }
-      : null
+    gamesPlayed: 0,
+    overs: 0,
+    unders: 0,
+    pushes: 0,
+    avgTotal: 0,
+    avgActualScore: 0,
+    overUnderRecord: 'N/A',
+    streak: null
   }
 }
 
@@ -402,33 +391,11 @@ async function getMatchingOUTrends(
   awayAbbr: string,
   currentTotal: number
 ): Promise<OUAnalysis['matchingTrends']> {
-  // Return relevant O/U trends
-  return [
-    {
-      description: `Under in last 5 ${homeAbbr} home games`,
-      record: '4-1',
-      roi: 28.5,
-      pick: 'under',
-      confidence: 68,
-      sampleSize: 5
-    },
-    {
-      description: `${awayAbbr} road games going under when total 45+`,
-      record: '6-2',
-      roi: 35.2,
-      pick: 'under',
-      confidence: 72,
-      sampleSize: 8
-    },
-    {
-      description: `H2H under streak`,
-      record: '3-0',
-      roi: 45.5,
-      pick: 'under',
-      confidence: 65,
-      sampleSize: 3
-    }
-  ]
+  // REAL DATA: Return empty array - trend tracking requires historical database
+  // Trends like "Under in last 5 home games" require betting history storage
+  // which is not available without premium data service
+  
+  return []
 }
 
 function calculateOUProjections(data: {
@@ -494,18 +461,18 @@ function calculateOUProjections(data: {
 }
 
 async function getOUBettingData(gameId: string, sport: string): Promise<OUAnalysis['bettingData']> {
-  // In production, fetch from betting splits API
-  const publicOverPct = 55 + Math.random() * 20
-  const moneyOverPct = 45 + Math.random() * 10
+  // REAL DATA: Return neutral defaults - public betting splits require premium API
+  // Services like Action Network, VegasInsider provide this data for a fee
+  // We have The Odds API for lines but NOT for public betting percentages
   
   return {
-    publicOverPct: Math.round(publicOverPct),
-    publicUnderPct: Math.round(100 - publicOverPct),
-    moneyOverPct: Math.round(moneyOverPct),
-    moneyUnderPct: Math.round(100 - moneyOverPct),
-    lineMovement: -1.5,
-    sharpAction: moneyOverPct < 45 ? 'under' : moneyOverPct > 55 ? 'over' : 'neutral',
-    rlmDetected: publicOverPct > 60 && moneyOverPct < 50
+    publicOverPct: 50, // Default to 50/50 when no data
+    publicUnderPct: 50,
+    moneyOverPct: 50,
+    moneyUnderPct: 50,
+    lineMovement: 0, // Would need to track over time
+    sharpAction: 'neutral', // Requires ticket/money split data
+    rlmDetected: false
   }
 }
 

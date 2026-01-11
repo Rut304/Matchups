@@ -11,12 +11,20 @@ interface TodayEdgesResponse {
 }
 
 async function getTodayEdges(): Promise<TodayEdgesResponse> {
+  // During build time, return demo data immediately
+  if (process.env.NODE_ENV === 'production' && !process.env.VERCEL_URL) {
+    return { edges: getDemoEdges(), total: 12, isDemo: true }
+  }
+  
   try {
     // In production, this would be the full URL
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    const baseUrl = process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
     
     const res = await fetch(`${baseUrl}/api/edges/today?limit=12&minScore=60`, {
-      next: { revalidate: 300 } // Revalidate every 5 minutes
+      next: { revalidate: 300 }, // Revalidate every 5 minutes
+      signal: AbortSignal.timeout(10000) // 10 second timeout
     })
     
     if (!res.ok) {

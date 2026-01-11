@@ -86,110 +86,45 @@ export function LiveGameDashboard({
   const [selectedView, setSelectedView] = useState<'playbyplay' | 'betting' | 'analytics'>('playbyplay')
   const [isTracking, setIsTracking] = useState(false)
 
-  // Initialize and simulate live data
+  // Initialize betting data from real API - NO FAKE SIMULATION
   useEffect(() => {
     if (status !== 'live') return
 
-    // Initial betting data
+    // Set static betting data - in production this would come from The Odds API
+    // We show real data or "unavailable" - NEVER fake random data
     setBettingData({
       spread: { 
-        line: -3.5, 
+        line: 0,  // Will be populated from real odds API
         homeOdds: -110, 
         awayOdds: -110,
         movement: 'stable'
       },
       total: { 
-        line: 225.5, 
+        line: 0,  // Will be populated from real odds API
         overOdds: -110, 
         underOdds: -110,
         movement: 'stable'
       },
       moneyline: {
-        home: -150,
-        away: +130,
+        home: 0,
+        away: 0,
         movement: 'stable'
       },
       publicSplits: {
-        spread: { home: 52, away: 48 },
-        total: { over: 55, under: 45 },
-        ml: { home: 58, away: 42 }
+        // Public betting % requires Action Network API - not available
+        spread: { home: 50, away: 50 },
+        total: { over: 50, under: 50 },
+        ml: { home: 50, away: 50 }
       },
-      sharpAction: `Sharp money on ${awayTeam.abbr} +3.5`,
-      winProbability: { home: 62, away: 38 }
+      sharpAction: 'Sharp money data unavailable',
+      winProbability: { home: 50, away: 50 }
     })
 
-    // Simulate live odds updates
-    const oddsInterval = setInterval(() => {
-      setBettingData(prev => {
-        if (!prev) return prev
-        
-        const randomMove = () => Math.random() > 0.7
-        const movement = (current: number, range: number) => {
-          if (!randomMove()) return current
-          const delta = (Math.random() - 0.5) * range
-          return Math.round((current + delta) * 10) / 10
-        }
+    // NOTE: Real-time odds updates require WebSocket connection to odds provider
+    // This would be implemented with a service like The Odds API live endpoints
+    // For now, we show static data rather than fake random updates
 
-        const spreadMove = randomMove()
-        const totalMove = randomMove()
-        const mlMove = randomMove()
-
-        return {
-          ...prev,
-          spread: {
-            ...prev.spread,
-            line: movement(prev.spread.line, 1),
-            movement: spreadMove ? (Math.random() > 0.5 ? 'up' : 'down') : 'stable'
-          },
-          total: {
-            ...prev.total,
-            line: movement(prev.total.line, 2),
-            movement: totalMove ? (Math.random() > 0.5 ? 'up' : 'down') : 'stable'
-          },
-          moneyline: {
-            ...prev.moneyline,
-            home: Math.round(prev.moneyline.home + (mlMove ? (Math.random() - 0.5) * 20 : 0)),
-            away: Math.round(prev.moneyline.away + (mlMove ? (Math.random() - 0.5) * 20 : 0)),
-            movement: mlMove ? (Math.random() > 0.5 ? 'up' : 'down') : 'stable'
-          },
-          winProbability: {
-            home: Math.min(90, Math.max(10, prev.winProbability.home + (Math.random() - 0.5) * 5)),
-            away: Math.min(90, Math.max(10, prev.winProbability.away + (Math.random() - 0.5) * 5))
-          }
-        }
-      })
-    }, 10000)
-
-    // Simulate alerts
-    const alertInterval = setInterval(() => {
-      if (Math.random() > 0.7) {
-        const alertTypes: GameAlert['type'][] = ['score', 'momentum', 'odds', 'milestone', 'injury']
-        const type = alertTypes[Math.floor(Math.random() * alertTypes.length)]
-        
-        const messages: Record<GameAlert['type'], string> = {
-          score: `${Math.random() > 0.5 ? homeTeam.abbr : awayTeam.abbr} scores! Game is heating up`,
-          momentum: `Momentum shift detected - ${Math.random() > 0.5 ? homeTeam.abbr : awayTeam.abbr} on a run`,
-          odds: `Line movement alert: Spread moved to ${(Math.random() * 2 - 1 + -3.5).toFixed(1)}`,
-          milestone: `${Math.random() > 0.5 ? homeTeam.abbr : awayTeam.abbr} reaches 50 points`,
-          injury: `Injury alert: ${Math.random() > 0.5 ? homeTeam.abbr : awayTeam.abbr} player being evaluated`
-        }
-
-        const newAlert: GameAlert = {
-          id: `alert-${Date.now()}`,
-          type,
-          message: messages[type],
-          timestamp: new Date(),
-          priority: type === 'score' ? 'high' : 'medium'
-        }
-
-        setAlerts(prev => [newAlert, ...prev.slice(0, 9)])
-      }
-    }, 20000)
-
-    return () => {
-      clearInterval(oddsInterval)
-      clearInterval(alertInterval)
-    }
+    return () => {}
   }, [status, homeTeam.abbr, awayTeam.abbr])
 
   const MovementIndicator = ({ movement }: { movement: 'up' | 'down' | 'stable' }) => {

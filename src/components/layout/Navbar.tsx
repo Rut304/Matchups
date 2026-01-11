@@ -31,7 +31,8 @@ import {
   Newspaper,
   User,
   LogOut,
-  LayoutDashboard
+  LayoutDashboard,
+  Sparkles
 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
@@ -139,11 +140,14 @@ const collegeSportsNav = [
 const sportsNav = [...proSportsNav, ...collegeSportsNav]
 
 const toolsNav = [
+  { name: 'Trend Finder', href: '/trend-finder', icon: Sparkles, desc: 'AI-powered trend analysis' },
+  { name: 'Marketplace', href: '/marketplace', icon: TrendingUp, desc: 'Copy winning systems' },
   { name: 'Line Shop', href: '/lineshop', icon: PieChart, desc: 'Best odds across sportsbooks' },
   { name: 'Calculators', href: '/calculators', icon: Calculator, desc: 'Parlay & hedge calculators' },
   { name: 'Alerts', href: '/alerts', icon: Bell, desc: 'Line moves & sharp action' },
   { name: 'Trends', href: '/trends', icon: TrendingUp, desc: 'Betting systems & angles' },
   { name: 'Analytics', href: '/analytics', icon: LineChart, desc: 'Advanced metrics' },
+  { name: 'News', href: '/news', icon: Newspaper, desc: 'Latest sports news & updates' },
 ]
 
 // Markets Navigation - Major section

@@ -353,13 +353,10 @@ export async function getMarketAnalytics(): Promise<MarketAnalytics> {
     .map(([category, stats]) => ({ category, ...stats }))
     .sort((a, b) => b.volume - a.volume)
   
-  // Mock whale activity (would need trade stream for real data)
-  const whaleActivity = hotMarkets.slice(0, 5).map(market => ({
-    market,
-    amount: Math.round(Math.random() * 50000) + 10000,
-    side: Math.random() > 0.5 ? 'yes' as const : 'no' as const,
-    time: new Date(Date.now() - Math.random() * 3600000).toISOString()
-  }))
+  // NOTE: Whale activity requires real trade stream data
+  // Kalshi API does not provide individual trade data
+  // Return empty array instead of fake data
+  const whaleActivity: { market: typeof markets[0]; amount: number; side: 'yes' | 'no'; time: string }[] = []
   
   return {
     totalVolume24h: markets.reduce((sum, m) => sum + m.volume24h, 0),
@@ -367,7 +364,10 @@ export async function getMarketAnalytics(): Promise<MarketAnalytics> {
     activeMarkets: activeMarkets.length,
     hotMarkets: hotMarkets.length,
     topCategories,
-    topMovers: hotMarkets.slice(0, 5).map(m => ({ market: m, change: Math.random() * 10 - 5 })),
+    // NOTE: Price change tracking requires historical data storage
+    // We'd need to store prices over time to calculate real changes
+    // Return markets without fake change percentages
+    topMovers: hotMarkets.slice(0, 5).map(m => ({ market: m, change: 0 })),
     whaleActivity
   }
 }

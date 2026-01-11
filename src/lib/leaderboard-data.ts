@@ -247,15 +247,25 @@ export const cappers: Capper[] = [
 ]
 
 // ===========================================
-// PICKS DATA - Comprehensive 2025/2026 focused with history
+// PICKS DATA - REAL DOCUMENTED PICKS ONLY
+// These are actual public picks made by celebrities on TV, podcasts, Twitter, etc.
+// DO NOT ADD FAKE OR GENERATED DATA - only verified public picks
 // ===========================================
 
 // Helper to generate dates
 const date = (daysAgo: number): string => {
-  const d = new Date('2026-01-03')
+  const d = new Date('2026-01-10') // Current date
   d.setDate(d.getDate() - daysAgo)
   return d.toISOString()
 }
+
+// NOTE: The leaderboard feature requires real pick tracking infrastructure:
+// 1. Manual entry of verified public picks (from TV appearances, podcasts, tweets)
+// 2. Social media monitoring for celebrity picks
+// 3. Verification before adding to the database
+// 
+// Until this infrastructure is built, the leaderboard will show limited data
+// for cappers with documented picks only.
 
 const generatePicks = (): Pick[] => {
   const picks: Pick[] = []

@@ -125,6 +125,7 @@ interface SystemResult {
     confidence: number
     time: string
   }[]
+  dataNote?: string // Note about data availability
 }
 
 // Pre-built popular systems
@@ -395,19 +396,13 @@ export default function SystemsPage() {
   const buildSystem = useCallback(async () => {
     setIsBuilding(true)
     
-    // Simulate AI processing
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    // NOTE: Real system backtesting requires historical betting database
+    // This would need years of game results with spreads/totals/moneylines
+    // Currently showing placeholder - real implementation would query database
     
-    // Generate random but realistic stats
-    const wins = Math.floor(Math.random() * 60) + 40
-    const losses = Math.floor(Math.random() * 40) + 25
-    const pushes = Math.floor(Math.random() * 5)
-    const total = wins + losses + pushes
-    const winPct = parseFloat(((wins / (wins + losses)) * 100).toFixed(1))
-    const roi = parseFloat((Math.random() * 20 - 5).toFixed(1))
-    const units = parseFloat((roi * total / 100).toFixed(1))
+    await new Promise(resolve => setTimeout(resolve, 1500))
     
-    // Generate mock result based on criteria
+    // Show that historical data is required for real backtesting
     const mockResult: SystemResult = {
       id: `sys-custom-${Date.now()}`,
       name: customPrompt || `Custom ${sport.toUpperCase()} System`,
@@ -415,64 +410,40 @@ export default function SystemsPage() {
       sport,
       betType,
       stats: {
-        record: `${wins}-${losses}-${pushes}`,
-        winPct,
-        roi,
-        units,
-        avgOdds: -108,
-        clv: parseFloat((Math.random() * 3).toFixed(1)),
-        maxDrawdown: parseFloat((Math.random() * -15 - 3).toFixed(1)),
-        sharpeRatio: parseFloat((Math.random() * 1.5 + 0.5).toFixed(2)),
-        kellyPct: parseFloat((Math.random() * 8 + 2).toFixed(1)),
+        record: 'N/A',
+        winPct: 0,
+        roi: 0,
+        units: 0,
+        avgOdds: -110,
+        clv: 0,
+        maxDrawdown: 0,
+        sharpeRatio: 0,
+        kellyPct: 0,
       },
       backtest: {
-        sampleSize: total,
-        confidence: total >= 100 ? 'Very High' : total >= 50 ? 'High' : total >= 25 ? 'Medium' : 'Low',
+        sampleSize: 0,
+        confidence: 'Low',
         startDate: '2022-09-01',
         endDate: new Date().toISOString().split('T')[0],
-        monthlyBreakdown: [
-          { month: 'Dec 2024', record: `${Math.floor(wins*0.12)}-${Math.floor(losses*0.12)}-0`, wins: Math.floor(wins*0.12), losses: Math.floor(losses*0.12), pushes: 0, units: parseFloat((units*0.15).toFixed(1)), roi: parseFloat((roi*1.2).toFixed(1)) },
-          { month: 'Nov 2024', record: `${Math.floor(wins*0.11)}-${Math.floor(losses*0.11)}-1`, wins: Math.floor(wins*0.11), losses: Math.floor(losses*0.11), pushes: 1, units: parseFloat((units*0.12).toFixed(1)), roi: parseFloat((roi*0.9).toFixed(1)) },
-          { month: 'Oct 2024', record: `${Math.floor(wins*0.13)}-${Math.floor(losses*0.13)}-0`, wins: Math.floor(wins*0.13), losses: Math.floor(losses*0.13), pushes: 0, units: parseFloat((units*0.18).toFixed(1)), roi: parseFloat((roi*1.4).toFixed(1)) },
-          { month: 'Sep 2024', record: `${Math.floor(wins*0.10)}-${Math.floor(losses*0.10)}-1`, wins: Math.floor(wins*0.10), losses: Math.floor(losses*0.10), pushes: 1, units: parseFloat((units*0.08).toFixed(1)), roi: parseFloat((roi*0.6).toFixed(1)) },
-        ],
-        seasonalBreakdown: [
-          { season: '2024', record: `${Math.floor(wins*0.45)}-${Math.floor(losses*0.45)}-${Math.floor(pushes*0.5)}`, wins: Math.floor(wins*0.45), losses: Math.floor(losses*0.45), units: parseFloat((units*0.5).toFixed(1)), roi: parseFloat((roi*1.1).toFixed(1)), winPct: parseFloat((winPct+1.5).toFixed(1)) },
-          { season: '2023', record: `${Math.floor(wins*0.35)}-${Math.floor(losses*0.35)}-${Math.floor(pushes*0.3)}`, wins: Math.floor(wins*0.35), losses: Math.floor(losses*0.35), units: parseFloat((units*0.35).toFixed(1)), roi: parseFloat((roi*0.9).toFixed(1)), winPct: parseFloat((winPct-0.5).toFixed(1)) },
-          { season: '2022', record: `${Math.floor(wins*0.2)}-${Math.floor(losses*0.2)}-${Math.floor(pushes*0.2)}`, wins: Math.floor(wins*0.2), losses: Math.floor(losses*0.2), units: parseFloat((units*0.15).toFixed(1)), roi: parseFloat((roi*0.7).toFixed(1)), winPct: parseFloat((winPct-1).toFixed(1)) },
-        ],
+        monthlyBreakdown: [],
+        seasonalBreakdown: [],
         streaks: {
-          currentStreak: Math.floor(Math.random() * 5) + 1,
-          currentStreakType: Math.random() > 0.4 ? 'W' : 'L',
-          longestWin: Math.floor(Math.random() * 8) + 4,
-          longestLoss: Math.floor(Math.random() * 5) + 2,
+          currentStreak: 0,
+          currentStreakType: 'W',
+          longestWin: 0,
+          longestLoss: 0,
         },
-        byDay: [
-          { day: 'Sunday', winPct: parseFloat((winPct + (Math.random() * 6 - 3)).toFixed(1)), record: `${Math.floor(wins*0.35)}-${Math.floor(losses*0.32)}` },
-          { day: 'Monday', winPct: parseFloat((winPct + (Math.random() * 6 - 3)).toFixed(1)), record: `${Math.floor(wins*0.15)}-${Math.floor(losses*0.18)}` },
-          { day: 'Thursday', winPct: parseFloat((winPct + (Math.random() * 6 - 3)).toFixed(1)), record: `${Math.floor(wins*0.2)}-${Math.floor(losses*0.2)}` },
-          { day: 'Saturday', winPct: parseFloat((winPct + (Math.random() * 6 - 3)).toFixed(1)), record: `${Math.floor(wins*0.3)}-${Math.floor(losses*0.3)}` },
-        ],
+        byDay: [],
         drawdownAnalysis: {
-          current: parseFloat((Math.random() * -5).toFixed(1)),
-          max: parseFloat((Math.random() * -15 - 5).toFixed(1)),
-          avgRecovery: parseFloat((Math.random() * 5 + 2).toFixed(1)),
+          current: 0,
+          max: 0,
+          avgRecovery: 0,
         },
-        profitCurve: [
-          { date: '2024-09', cumulative: parseFloat((units * 0.6).toFixed(1)) },
-          { date: '2024-10', cumulative: parseFloat((units * 0.75).toFixed(1)) },
-          { date: '2024-11', cumulative: parseFloat((units * 0.88).toFixed(1)) },
-          { date: '2024-12', cumulative: parseFloat(units.toFixed(1)) },
-        ],
+        profitCurve: [],
       },
-      recentPicks: [
-        { date: 'Jan 3', matchup: 'DET -3.5 vs MIN', pick: 'DET -3.5', result: 'P', profit: 0 },
-        { date: 'Jan 2', matchup: 'BOS -4 @ MIA', pick: 'BOS -4', result: 'W', profit: 1.0 },
-      ],
-      upcomingPicks: [
-        { matchup: 'DET vs MIN', pick: 'DET -3.5', confidence: 72, time: 'Sun 1:00 PM' },
-        { matchup: 'BOS @ LAL', pick: 'BOS -4.5', confidence: 68, time: 'Sat 8:30 PM' },
-      ],
+      recentPicks: [],
+      upcomingPicks: [],
+      dataNote: 'System backtesting requires historical betting database. Connect a database with game results and betting lines to enable real backtesting.',
     }
     
     setActiveSystem(mockResult)
