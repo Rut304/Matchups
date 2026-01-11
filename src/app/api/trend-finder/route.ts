@@ -115,17 +115,17 @@ async function queryHistoricalData(parsedQuery: HistoricalQuery): Promise<{
 }> {
   const supabase = await createClient()
   
-  // Build query
+  // Build query using correct column names
   let dbQuery = supabase.from('historical_games').select('*')
   
-  dbQuery = dbQuery.eq('sport', parsedQuery.sport)
+  dbQuery = dbQuery.ilike('sport', parsedQuery.sport)
   
   if (parsedQuery.seasonType !== 'all') {
     dbQuery = dbQuery.eq('season_type', parsedQuery.seasonType)
   }
   
   if (parsedQuery.seasons.length > 0) {
-    dbQuery = dbQuery.in('season', parsedQuery.seasons)
+    dbQuery = dbQuery.in('season_year', parsedQuery.seasons)
   }
   
   const { data: games, error } = await dbQuery.order('game_date', { ascending: false })
@@ -204,9 +204,9 @@ async function queryHistoricalData(parsedQuery: HistoricalQuery): Promise<{
     percentage: `${percentage}%`,
     games: filteredGames.slice(0, 20).map(g => ({
       date: g.game_date,
-      matchup: `${g.away_team_abbr} @ ${g.home_team_abbr}`,
+      matchup: `${g.away_team_abbrev || g.away_team} @ ${g.home_team_abbrev || g.home_team}`,
       score: `${g.away_score}-${g.home_score}`,
-      season: g.season,
+      season: g.season_year,
     })),
     estimatedTime: `${Math.ceil(totalGames / 100)}s`
   }
@@ -219,13 +219,13 @@ async function ensureDataExists(sport: string, seasons: number[], seasonType: st
 }> {
   const supabase = await createClient()
   
-  // Check what data we have
+  // Check what data we have using correct column names
   const { count } = await supabase
     .from('historical_games')
     .select('*', { count: 'exact', head: true })
-    .eq('sport', sport)
+    .ilike('sport', sport)
     .eq('season_type', seasonType)
-    .in('season', seasons)
+    .in('season_year', seasons)
   
   if ((count || 0) < seasons.length * 10) { // Expect at least 10 games per season
     return {
