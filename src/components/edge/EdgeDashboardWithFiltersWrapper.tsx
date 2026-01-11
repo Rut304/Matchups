@@ -11,8 +11,9 @@ interface TodayEdgesResponse {
 }
 
 async function getTodayEdges(): Promise<TodayEdgesResponse> {
-  // During build time, return demo data immediately
-  if (process.env.NODE_ENV === 'production' && !process.env.VERCEL_URL) {
+  // During CI/build time (Vercel sets CI=1), return demo data to prevent API failures
+  // At runtime (when CI is not set), fetch real data
+  if (process.env.CI === '1') {
     return { edges: getDemoEdges(), total: 12, isDemo: true }
   }
   

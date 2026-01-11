@@ -8,7 +8,11 @@ export const metadata: Metadata = {
   description: 'Breaking sports news, injury updates, and social buzz for NFL, NBA, NHL, and MLB',
 }
 
-// Revalidate every 5 minutes
+// Force dynamic rendering - news requires fresh API calls at request time
+// This prevents build failures from Twitter API rate limits
+export const dynamic = 'force-dynamic'
+
+// Revalidate every 5 minutes (for ISR fallback)
 export const revalidate = 300
 
 // News Card Component
