@@ -907,9 +907,13 @@ function transformAPIGameToDetail(apiGame: Record<string, unknown>, sport: strin
   const away = apiGame.away as Record<string, unknown>
   const odds = apiGame.odds as Record<string, unknown> | undefined
   
+  // ESPN API returns 'abbreviation', normalize to 'abbr' for our app
+  const homeAbbr = (home?.abbreviation || home?.abbr) as string || 'HOME'
+  const awayAbbr = (away?.abbreviation || away?.abbr) as string || 'AWAY'
+  
   // Determine favorite based on spread
   const spreadLine = odds?.spread as number || 0
-  const favorite = spreadLine <= 0 ? (home?.abbr as string || 'HOME') : (away?.abbr as string || 'AWAY')
+  const favorite = spreadLine <= 0 ? homeAbbr : awayAbbr
   
   // Status mapping
   let status: 'scheduled' | 'live' | 'final' = 'scheduled'
@@ -952,8 +956,8 @@ function transformAPIGameToDetail(apiGame: Record<string, unknown>, sport: strin
       id: home?.id as string || 'home',
       name: home?.name as string || 'Home Team',
       city: home?.city as string || '',
-      abbr: home?.abbr as string || 'HOME',
-      emoji: getTeamEmoji(home?.abbr as string),
+      abbr: homeAbbr,
+      emoji: getTeamEmoji(homeAbbr),
       record: home?.record as string || '',
       ats: '', // Empty - we don't have real ATS data without historical tracking
     },
@@ -961,8 +965,8 @@ function transformAPIGameToDetail(apiGame: Record<string, unknown>, sport: strin
       id: away?.id as string || 'away',
       name: away?.name as string || 'Away Team',
       city: away?.city as string || '',
-      abbr: away?.abbr as string || 'AWAY',
-      emoji: getTeamEmoji(away?.abbr as string),
+      abbr: awayAbbr,
+      emoji: getTeamEmoji(awayAbbr),
       record: away?.record as string || '',
       ats: '', // Empty - we don't have real ATS data without historical tracking
     },
