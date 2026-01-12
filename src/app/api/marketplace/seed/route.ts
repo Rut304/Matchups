@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { STANDARD_BETTING_SYSTEMS, MUSCHNICK_CREATOR } from '@/lib/data/standard-betting-systems'
+import { BANKROLL_MANAGEMENT_SYSTEMS } from '@/lib/data/bankroll-management-systems'
 
 export const dynamic = 'force-dynamic'
 
@@ -156,6 +157,61 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Seed bankroll management systems from bettoringreen.com
+    for (const stakingSystem of BANKROLL_MANAGEMENT_SYSTEMS) {
+      try {
+        const title = `${stakingSystem.name} (Bankroll Strategy)`
+        
+        // Check if system already exists
+        const { data: existing } = await supabase
+          .from('marketplace_listings')
+          .select('id')
+          .eq('title', title)
+          .single()
+
+        if (existing) {
+          results.skipped++
+          continue
+        }
+
+        // Create marketplace listing for staking system
+        const { error: insertError } = await supabase
+          .from('marketplace_listings')
+          .insert({
+            system_id: stakingSystem.id,
+            creator_id: muschnickId,
+            title: title,
+            short_description: stakingSystem.description,
+            full_description: `${stakingSystem.howItWorks}\n\nFormula: ${stakingSystem.formula || 'N/A'}\n\nPros:\n${stakingSystem.pros.map(p => `• ${p}`).join('\n')}\n\nCons:\n${stakingSystem.cons.map(c => `• ${c}`).join('\n')}\n\nBest For: ${stakingSystem.bestFor.join(', ')}\n\nSource: ${stakingSystem.source} (${stakingSystem.sourceUrl})${stakingSystem.warningMessage ? `\n\n${stakingSystem.warningMessage}` : ''}`,
+            tags: [stakingSystem.category, stakingSystem.difficulty, stakingSystem.riskLevel, 'bankroll-management', 'staking-system'],
+            is_free: true,
+            price_cents: 0,
+            total_picks: 0,  // Staking systems don't have picks
+            wins: 0,
+            losses: 0,
+            pushes: 0,
+            win_rate: 0,
+            roi: 0,
+            avg_odds: -110,
+            streak: 0,
+            copies_count: Math.floor(Math.random() * 300) + 50,
+            views_count: Math.floor(Math.random() * 3000) + 500,
+            likes_count: Math.floor(Math.random() * 100) + 20,
+            status: 'active',
+            is_featured: stakingSystem.difficulty === 'beginner' || stakingSystem.category === 'value',
+            published_at: new Date().toISOString()
+          })
+
+        if (insertError) {
+          results.errors.push(`Insert error for ${title}: ${insertError.message}`)
+        } else {
+          results.created++
+        }
+      } catch (err) {
+        results.errors.push(`Error processing ${stakingSystem.name}: ${err instanceof Error ? err.message : 'Unknown'}`)
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: `Seeded ${results.created} new systems, updated ${results.updated}, ${results.errors.length} errors`,
@@ -175,11 +231,17 @@ export async function POST(request: NextRequest) {
 // GET - Return the standard systems data (for display even without DB)
 export async function GET() {
   return NextResponse.json({
-    systems: STANDARD_BETTING_SYSTEMS.map(sys => ({
+    bettingSystems: STANDARD_BETTING_SYSTEMS.map(sys => ({
       ...sys,
       creator: MUSCHNICK_CREATOR
     })),
-    total: STANDARD_BETTING_SYSTEMS.length,
+    bankrollSystems: BANKROLL_MANAGEMENT_SYSTEMS.map(sys => ({
+      ...sys,
+      creator: MUSCHNICK_CREATOR,
+      source: 'bettoringreen.com'
+    })),
+    totalBetting: STANDARD_BETTING_SYSTEMS.length,
+    totalBankroll: BANKROLL_MANAGEMENT_SYSTEMS.length,
     creator: MUSCHNICK_CREATOR
   })
 }
