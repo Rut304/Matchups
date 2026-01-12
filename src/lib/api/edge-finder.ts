@@ -237,34 +237,10 @@ const NEWS_SOURCES = [
 ]
 
 export async function fetchRelevantNews(keywords: string[]): Promise<NewsEvent[]> {
-  // In production, this would fetch from real news APIs
-  // For now, return mock data that simulates real-time news
-  const mockNews: NewsEvent[] = [
-    {
-      id: '1',
-      headline: 'Fed officials signal patience on rate decisions',
-      source: 'Reuters',
-      timestamp: new Date(Date.now() - 15 * 60 * 1000), // 15 min ago
-      impactedMarkets: ['fed-rate-cut', 'recession-2026'],
-      sentiment: 'neutral',
-      expectedImpact: 'Moderate - may delay rate cut timeline',
-      keywords: ['fed', 'rates', 'economy']
-    },
-    {
-      id: '2', 
-      headline: 'Diplomatic progress reported in ongoing peace negotiations',
-      source: 'AP News',
-      timestamp: new Date(Date.now() - 30 * 60 * 1000),
-      impactedMarkets: ['ukraine-ceasefire'],
-      sentiment: 'positive',
-      expectedImpact: 'High - direct impact on ceasefire probability',
-      keywords: ['peace', 'negotiations', 'diplomacy']
-    }
-  ]
-  
-  return mockNews.filter(news => 
-    keywords.some(kw => news.keywords.includes(kw.toLowerCase()))
-  )
+  // NOTE: News API integration requires paid API key
+  // Return empty array - UI should show "News feed coming soon"
+  console.log('[Edge Finder] News API not configured - keywords:', keywords.slice(0, 3).join(', '))
+  return []
 }
 
 /**
@@ -405,32 +381,13 @@ export class EdgeFinder {
       return cached.data
     }
     
-    // In production, fetch real markets here
-    // For now, return mock data
-    const mockEdges: EdgeSignal[] = [
-      {
-        id: '1',
-        type: 'bias',
-        market: 'Trump wins 2028 Republican Primary',
-        marketId: 'trump-2028-primary',
-        platform: 'polymarket',
-        currentPrice: 8,
-        fairValue: 4.5,
-        edge: 3.5,
-        confidence: 78,
-        signal: 'sell',
-        reason: 'Favorite-Longshot Bias Detected',
-        evidence: 'Market prices at 8% but historical analysis shows 3%+ overpricing for frontrunners 2+ years out.',
-        lastUpdated: new Date(),
-        category: 'Politics',
-        volume24h: 2400000,
-        expiresAt: 'Nov 2028'
-      },
-      // Add more mock edges as needed
-    ]
+    // NOTE: Edge detection requires real market data and analysis
+    // Return empty array - edges will be populated as real analysis is implemented
+    console.log('[Edge Finder] getTopEdges called - real analysis coming soon')
+    const edges: EdgeSignal[] = []
     
-    this.cache.set(cacheKey, { data: mockEdges, timestamp: Date.now() })
-    return mockEdges.slice(0, limit)
+    this.cache.set(cacheKey, { data: edges, timestamp: Date.now() })
+    return edges
   }
   
   /**

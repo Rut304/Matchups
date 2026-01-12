@@ -27,7 +27,7 @@ import {
 import { 
   type PredictionMarket, 
   type MarketCategory,
-  getMockMarkets,
+  fetchAllPredictionMarkets,
   predictionMarketResearch
 } from '@/lib/api/prediction-markets'
 import {
@@ -84,35 +84,43 @@ export default function MarketsPage() {
   }, [loadHistoricalData])
 
   useEffect(() => {
-    // For now use mock data - in production would fetch from APIs
-    setLoading(true)
-    setTimeout(() => {
-      let data = getMockMarkets(category)
-      
-      // Filter by platform
-      if (platform !== 'all') {
-        data = data.filter(m => m.platform === platform)
+    // Fetch REAL data from Polymarket and Kalshi APIs
+    async function loadMarkets() {
+      setLoading(true)
+      try {
+        let data = await fetchAllPredictionMarkets(category, 100)
+        
+        // Filter by platform
+        if (platform !== 'all') {
+          data = data.filter(m => m.platform === platform)
+        }
+        
+        // Sort
+        switch (sortBy) {
+          case 'volume':
+            data.sort((a, b) => b.volume24h - a.volume24h || b.totalVolume - a.totalVolume)
+            break
+          case 'price':
+            data.sort((a, b) => b.yesPrice - a.yesPrice)
+            break
+          case 'change':
+            data.sort((a, b) => Math.abs(b.change24h) - Math.abs(a.change24h))
+            break
+          case 'liquidity':
+            data.sort((a, b) => b.liquidity - a.liquidity)
+            break
+        }
+        
+        setMarkets(data)
+      } catch (error) {
+        console.error('Error loading markets:', error)
+        setMarkets([])
+      } finally {
+        setLoading(false)
       }
-      
-      // Sort
-      switch (sortBy) {
-        case 'volume':
-          data.sort((a, b) => b.volume24h - a.volume24h)
-          break
-        case 'price':
-          data.sort((a, b) => b.yesPrice - a.yesPrice)
-          break
-        case 'change':
-          data.sort((a, b) => Math.abs(b.change24h) - Math.abs(a.change24h))
-          break
-        case 'liquidity':
-          data.sort((a, b) => b.liquidity - a.liquidity)
-          break
-      }
-      
-      setMarkets(data)
-      setLoading(false)
-    }, 300)
+    }
+    
+    loadMarkets()
   }, [platform, category, sortBy])
 
   const totalVolume = markets.reduce((sum, m) => sum + m.volume24h, 0)

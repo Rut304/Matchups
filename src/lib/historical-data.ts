@@ -1288,102 +1288,9 @@ const mockSystemPerformance: SystemPerformance[] = [
   }
 ]
 
-const mockPredictionMarkets: HistoricalPredictionMarket[] = [
-  {
-    id: '1',
-    platform: 'polymarket',
-    market_category: 'sports',
-    market_title: 'Kansas City Chiefs to win Super Bowl LVIII',
-    sport: 'NFL',
-    event_name: 'Super Bowl LVIII',
-    created_at: '2023-09-01',
-    resolved_at: '2024-02-11',
-    resolved: true,
-    resolution: 'yes',
-    total_volume: 45000000,
-    initial_yes_price: 0.12,
-    final_yes_price: 1.00,
-    our_prediction: 'yes',
-    our_confidence: 78,
-    our_pnl_pct: 162.8,
-    price_history: [
-      { date: '2023-09-01', price: 0.12 },
-      { date: '2023-12-01', price: 0.18 },
-      { date: '2024-01-15', price: 0.35 },
-      { date: '2024-02-11', price: 1.00 }
-    ]
-  },
-  {
-    id: '2',
-    platform: 'polymarket',
-    market_category: 'sports',
-    market_title: 'Boston Celtics to win 2024 NBA Championship',
-    sport: 'NBA',
-    event_name: '2024 NBA Finals',
-    created_at: '2023-10-15',
-    resolved_at: '2024-06-17',
-    resolved: true,
-    resolution: 'yes',
-    total_volume: 28000000,
-    initial_yes_price: 0.15,
-    final_yes_price: 1.00,
-    our_prediction: 'yes',
-    our_confidence: 82,
-    our_pnl_pct: 331.8,
-    price_history: [
-      { date: '2023-10-15', price: 0.15 },
-      { date: '2024-02-01', price: 0.25 },
-      { date: '2024-05-01', price: 0.42 },
-      { date: '2024-06-17', price: 1.00 }
-    ]
-  },
-  {
-    id: '3',
-    platform: 'polymarket',
-    market_category: 'sports',
-    market_title: 'Detroit Lions to win Super Bowl LIX',
-    sport: 'NFL',
-    event_name: 'Super Bowl LIX',
-    created_at: '2024-09-01',
-    resolved_at: undefined,
-    resolved: false,
-    resolution: undefined,
-    total_volume: 62000000,
-    initial_yes_price: 0.08,
-    final_yes_price: 0.18,
-    our_prediction: 'yes',
-    our_confidence: 72,
-    our_pnl_pct: undefined,
-    price_history: [
-      { date: '2024-09-01', price: 0.08 },
-      { date: '2024-12-01', price: 0.15 },
-      { date: '2025-01-01', price: 0.18 }
-    ]
-  },
-  {
-    id: '4',
-    platform: 'polymarket',
-    market_category: 'sports',
-    market_title: 'Oklahoma City Thunder to win 2025 NBA Championship',
-    sport: 'NBA',
-    event_name: '2025 NBA Finals',
-    created_at: '2024-10-15',
-    resolved_at: undefined,
-    resolved: false,
-    resolution: undefined,
-    total_volume: 35000000,
-    initial_yes_price: 0.18,
-    final_yes_price: 0.28,
-    our_prediction: 'yes',
-    our_confidence: 76,
-    our_pnl_pct: undefined,
-    price_history: [
-      { date: '2024-10-15', price: 0.18 },
-      { date: '2024-12-15', price: 0.25 },
-      { date: '2025-01-01', price: 0.28 }
-    ]
-  }
-]
+// MOCK DATA REMOVED - Historical prediction markets come from database
+// Return empty array if database has no data
+const emptyHistoricalMarkets: HistoricalPredictionMarket[] = []
 
 // =============================================================================
 // DATA FETCHING FUNCTIONS
@@ -1502,12 +1409,12 @@ export async function getHistoricalPredictionMarkets(
     
     if (error) {
       console.error('Error fetching prediction markets:', error)
-      return filterPredictionMarkets(mockPredictionMarkets, sport, resolvedOnly)
+      return filterPredictionMarkets(emptyHistoricalMarkets, sport, resolvedOnly)
     }
     
-    return data || filterPredictionMarkets(mockPredictionMarkets, sport, resolvedOnly)
+    return data || filterPredictionMarkets(emptyHistoricalMarkets, sport, resolvedOnly)
   } catch {
-    return filterPredictionMarkets(mockPredictionMarkets, sport, resolvedOnly)
+    return filterPredictionMarkets(emptyHistoricalMarkets, sport, resolvedOnly)
   }
 }
 

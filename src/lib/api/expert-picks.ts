@@ -571,32 +571,11 @@ export class ExpertPicksService {
     embarrassingLevel?: 'yikes' | 'bad' | 'meh' | 'good' | 'elite'
     shareText: string
     imageUrl?: string
-  }> {
-    // This would generate a shareable stats card
-    // Could use Vercel OG Image or similar for dynamic images
-    
-    const mockStats = {
-      expertName: 'Stephen A. Smith',
-      record: '45-67',
-      winPct: 40.2,
-      units: -15.3,
-      roi: -13.6,
-      streak: 'L4',
-      embarrassingLevel: 'yikes' as const,
-      shareText: `🚨 RECEIPTS EXPOSED 🚨
-
-Stephen A. Smith's betting record:
-📊 45-67 (40.2%)
-📉 -15.3 units
-💸 -13.6% ROI
-🔥 Current streak: L4
-
-The "experts" don't want you to see this...
-
-Track every TV "expert" at matchups.app/leaderboard`,
-    }
-    
-    return mockStats
+  } | null> {
+    // NOTE: This requires tracking expert picks over time
+    // Return null until real tracking is implemented
+    console.log('[Expert Picks] generateShareableCard called for:', expertId, options)
+    return null
   }
   
   // Cache helpers

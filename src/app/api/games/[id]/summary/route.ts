@@ -6,10 +6,11 @@
 // - Team Leaders (QB, RB, WR stats for offense; sacks, tackles for defense)
 // - Pickcenter betting lines (spread, ML, total with opening/closing)
 // - Win Predictor (ESPN's probability model)
-// - ATS records and trends
+// - ATS records and trends (calculated from historical_games if ESPN doesn't provide)
 // =============================================================================
 
 import { NextRequest, NextResponse } from 'next/server'
+import { getATSRecord } from '@/lib/api/ats-calculator'
 
 export const dynamic = 'force-dynamic'
 
@@ -351,6 +352,7 @@ export async function GET(
     }
 
     // Extract ATS records from againstTheSpread
+    // If ESPN doesn't provide, calculate from historical_games
     const atsRecords: GameSummaryResponse['atsRecords'] = {
       homeTeam: null,
       awayTeam: null
@@ -370,6 +372,32 @@ export async function GET(
         } else {
           atsRecords.awayTeam = atsData
         }
+      }
+    }
+
+    // If ESPN didn't provide ATS records, calculate from historical_games
+    const homeAbbr = data.boxscore?.teams?.[1]?.team?.abbreviation
+    const awayAbbr = data.boxscore?.teams?.[0]?.team?.abbreviation
+    
+    if ((!atsRecords.homeTeam?.ats || atsRecords.homeTeam.ats === '') && homeAbbr) {
+      try {
+        const calculatedATS = await getATSRecord(homeAbbr, sport)
+        if (calculatedATS.ats) {
+          atsRecords.homeTeam = calculatedATS
+        }
+      } catch (e) {
+        console.log('[Summary API] Could not calculate home ATS:', e)
+      }
+    }
+    
+    if ((!atsRecords.awayTeam?.ats || atsRecords.awayTeam.ats === '') && awayAbbr) {
+      try {
+        const calculatedATS = await getATSRecord(awayAbbr, sport)
+        if (calculatedATS.ats) {
+          atsRecords.awayTeam = calculatedATS
+        }
+      } catch (e) {
+        console.log('[Summary API] Could not calculate away ATS:', e)
       }
     }
 
