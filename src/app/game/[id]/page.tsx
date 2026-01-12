@@ -586,78 +586,36 @@ export default function GameDetailPage() {
             </div>
           </div>
 
-          {/* AI/ESPN Prediction Bar - Use gameSummary.predictor for real ESPN data */}
+          {/* AI Prediction Bar - OUR proprietary analysis (powered by Gemini) */}
+          {/* This is THE competitive edge - unique AI insights, not ESPN's predictor */}
           <div className="mt-6 pt-4 border-t border-slate-800">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <Brain className="w-5 h-5 text-orange-500" />
-                <span className="font-semibold text-white">
-                  {gameSummary.predictor ? 'ESPN Predictor' : 'AI Prediction'}
-                </span>
-                {gameSummary.predictor && (
-                  <span className="px-2 py-0.5 text-xs rounded bg-blue-500/20 text-blue-400">Live Data</span>
-                )}
+                <span className="font-semibold text-white">AI Prediction</span>
+                <span className="px-2 py-0.5 text-xs rounded bg-orange-500/20 text-orange-400">Matchups Edge</span>
               </div>
               <span className="font-bold text-orange-400">
-                {gameSummary.predictor ? (
-                  <>
-                    {gameSummary.predictor.homeWinProbability > gameSummary.predictor.awayWinProbability 
-                      ? `${game.home.abbr || game.home.name} ${gameSummary.predictor.homeWinProbability.toFixed(1)}%` 
-                      : `${game.away.abbr || game.away.name} ${gameSummary.predictor.awayWinProbability.toFixed(1)}%`}
-                  </>
-                ) : game.aiPick}
+                {game.aiPick || 'Analyzing...'}
               </span>
             </div>
-            {/* Win Probability Bar */}
-            <div className="h-4 rounded-full overflow-hidden bg-slate-800 flex">
-              {gameSummary.predictor ? (
-                <>
-                  <div 
-                    className="h-full transition-all flex items-center justify-center text-xs font-bold"
-                    style={{ 
-                      width: `${gameSummary.predictor.awayWinProbability}%`,
-                      background: 'linear-gradient(90deg, #f97316, #fb923c)'
-                    }}
-                  >
-                    {gameSummary.predictor.awayWinProbability > 15 && (
-                      <span className="text-white drop-shadow">{game.away.abbr}</span>
-                    )}
-                  </div>
-                  <div 
-                    className="h-full transition-all flex items-center justify-center text-xs font-bold"
-                    style={{ 
-                      width: `${gameSummary.predictor.homeWinProbability}%`,
-                      background: 'linear-gradient(90deg, #22c55e, #4ade80)'
-                    }}
-                  >
-                    {gameSummary.predictor.homeWinProbability > 15 && (
-                      <span className="text-white drop-shadow">{game.home.abbr}</span>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <div 
-                  className="h-full rounded-full transition-all"
-                  style={{ 
-                    width: `${game.aiConfidence}%`,
-                    background: game.aiConfidence >= 70 
-                      ? 'linear-gradient(90deg, #22c55e, #4ade80)' 
-                      : game.aiConfidence >= 55 
-                      ? 'linear-gradient(90deg, #f97316, #fb923c)' 
-                      : 'linear-gradient(90deg, #ef4444, #f87171)'
-                  }}
-                />
-              )}
+            {/* Confidence Bar - Shows our AI's confidence in the pick */}
+            <div className="h-4 rounded-full overflow-hidden bg-slate-800">
+              <div 
+                className="h-full rounded-full transition-all"
+                style={{ 
+                  width: `${game.aiConfidence || 50}%`,
+                  background: (game.aiConfidence || 50) >= 70 
+                    ? 'linear-gradient(90deg, #22c55e, #4ade80)' 
+                    : (game.aiConfidence || 50) >= 55 
+                    ? 'linear-gradient(90deg, #f97316, #fb923c)' 
+                    : 'linear-gradient(90deg, #ef4444, #f87171)'
+                }}
+              />
             </div>
             <div className="flex justify-between text-sm mt-1 text-slate-500">
-              {gameSummary.predictor ? (
-                <>
-                  <span>{game.away.abbr || game.away.name}: {gameSummary.predictor.awayWinProbability.toFixed(1)}%</span>
-                  <span>{game.home.abbr || game.home.name}: {gameSummary.predictor.homeWinProbability.toFixed(1)}%</span>
-                </>
-              ) : (
-                <span>{game.aiConfidence}% confidence</span>
-              )}
+              <span>{game.aiConfidence || 50}% confidence</span>
+              <span className="text-xs text-slate-600">Powered by AI analysis of trends, injuries, weather & more</span>
             </div>
           </div>
         </div>
