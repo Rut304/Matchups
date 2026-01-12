@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { 
   AlertTriangle,
@@ -20,8 +20,15 @@ import {
   Video,
   DollarSign,
   Target,
-  Zap
+  Zap,
+  X,
+  Upload,
+  Link2,
+  CheckCircle,
+  ArrowRight,
+  ChevronUp
 } from 'lucide-react'
+import { SusSearchCompact } from '@/components/sus/SusSearchAggregator'
 
 // Load Twitter widgets script
 declare global {
@@ -63,6 +70,71 @@ interface SusPlay {
 
 // Mock data - In production this would come from Twitter/X API scraping
 const mockSusPlays: SusPlay[] = [
+  // NEW: From @RIGGEDFORVEGAS
+  {
+    id: 'rigged-1',
+    sport: 'nfl',
+    playerName: 'Unknown',
+    team: 'N/A',
+    opponent: 'N/A',
+    gameDate: '2025-01-10',
+    description: 'Questionable call at the goal line that directly impacted the spread. The refs seemed to have a different view than everyone watching.',
+    susType: 'spread',
+    relatedBet: 'Spread Impact',
+    videoUrl: '#',
+    twitterUrl: 'https://x.com/RIGGEDFORVEGAS/status/1949878466884648994',
+    views: 245000,
+    susScore: 91,
+    votes: { sus: 4520, legit: 380 },
+    comments: 892,
+    trending: true,
+    verified: false,
+    postedAt: '12 hours ago',
+    source: '@RIGGEDFORVEGAS'
+  },
+  {
+    id: 'rigged-2',
+    sport: 'nba',
+    playerName: 'Multiple',
+    team: 'N/A',
+    opponent: 'N/A',
+    gameDate: '2025-01-09',
+    description: 'Late game sequence with multiple questionable plays that pushed the total over. Timing was too perfect.',
+    susType: 'total',
+    relatedBet: 'Over Total',
+    videoUrl: '#',
+    twitterUrl: 'https://x.com/RIGGEDFORVEGAS/status/2010510272956334229',
+    views: 189000,
+    susScore: 85,
+    votes: { sus: 3890, legit: 612 },
+    comments: 567,
+    trending: true,
+    verified: false,
+    postedAt: '1 day ago',
+    source: '@RIGGEDFORVEGAS'
+  },
+  // NEW: From @SavageSports_
+  {
+    id: 'savage-1',
+    sport: 'nfl',
+    playerName: 'Unknown',
+    team: 'N/A',
+    opponent: 'N/A',
+    gameDate: '2025-01-08',
+    description: 'End of game play call that made zero sense from a football perspective but perfectly covered the spread. Coaches have action too?',
+    susType: 'spread',
+    relatedBet: 'ATS Result',
+    videoUrl: '#',
+    twitterUrl: 'https://x.com/SavageSports_/status/1981353713718439999',
+    views: 312000,
+    susScore: 88,
+    votes: { sus: 5670, legit: 890 },
+    comments: 1234,
+    trending: true,
+    verified: false,
+    postedAt: '2 days ago',
+    source: '@SavageSports_'
+  },
   {
     id: '0',
     sport: 'nfl',
@@ -238,6 +310,168 @@ const getSportEmoji = (sport: Sport): string => {
   return emojis[sport]
 }
 
+// Share to X/Twitter
+const shareToTwitter = (play: SusPlay) => {
+  const text = `🚨 SUS ALERT: ${play.playerName} (${play.team}) - ${play.susScore}% suspicious\n\n${play.description.slice(0, 100)}...\n\n👀 See the video & vote\n\nvia @MatchupsApp`
+  const url = `https://matchups-eta.vercel.app/sus#${play.id}`
+  window.open(
+    `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+    '_blank'
+  )
+}
+
+// Copy share link
+const copyShareLink = async (play: SusPlay) => {
+  const url = `https://matchups-eta.vercel.app/sus#${play.id}`
+  await navigator.clipboard.writeText(url)
+  return true
+}
+
+// Submit Modal Component
+interface SubmitModalProps {
+  isOpen: boolean
+  onClose: () => void
+}
+
+function SubmitSusPlayModal({ isOpen, onClose }: SubmitModalProps) {
+  const [twitterUrl, setTwitterUrl] = useState('')
+  const [description, setDescription] = useState('')
+  const [relatedBet, setRelatedBet] = useState('')
+  const [sport, setSport] = useState<Sport>('nfl')
+  const [submitting, setSubmitting] = useState(false)
+  const [success, setSuccess] = useState(false)
+  
+  const handleSubmit = async () => {
+    if (!twitterUrl || !description) return
+    
+    setSubmitting(true)
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    setSubmitting(false)
+    setSuccess(true)
+    
+    setTimeout(() => {
+      setSuccess(false)
+      onClose()
+      setTwitterUrl('')
+      setDescription('')
+      setRelatedBet('')
+    }, 2000)
+  }
+  
+  if (!isOpen) return null
+  
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+      <div className="w-full max-w-lg rounded-2xl overflow-hidden" style={{ background: '#12121A', border: '1px solid rgba(255,107,0,0.3)' }}>
+        {/* Header */}
+        <div className="p-4 border-b border-white/10 flex items-center justify-between"
+             style={{ background: 'linear-gradient(135deg, rgba(255,107,0,0.2), rgba(255,51,102,0.2))' }}>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-orange-500/20">
+              <Upload className="w-5 h-5 text-orange-500" />
+            </div>
+            <div>
+              <h3 className="font-bold text-white">Submit a Sus Play</h3>
+              <p className="text-xs text-gray-400">Share questionable plays with the community</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white" aria-label="Close">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        
+        {success ? (
+          <div className="p-8 text-center">
+            <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-500" />
+            <h3 className="text-xl font-bold text-white mb-2">Submitted!</h3>
+            <p className="text-gray-400">Your sus play is under review and will appear soon.</p>
+          </div>
+        ) : (
+          <div className="p-4 space-y-4">
+            {/* Twitter/X URL */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                <Twitter className="w-4 h-4 inline mr-2" />
+                X/Twitter Post URL *
+              </label>
+              <input
+                type="url"
+                placeholder="https://x.com/user/status/..."
+                value={twitterUrl}
+                onChange={(e) => setTwitterUrl(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50"
+              />
+              <p className="text-xs text-gray-500 mt-1">Paste a link to the X post with video evidence</p>
+            </div>
+            
+            {/* Sport */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Sport</label>
+              <div className="flex gap-2 flex-wrap">
+                {(['nfl', 'nba', 'nhl', 'mlb', 'ncaaf', 'ncaab'] as Sport[]).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setSport(s)}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                      sport === s 
+                        ? 'bg-orange-500 text-white' 
+                        : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                    }`}
+                  >
+                    {getSportEmoji(s)} {s.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">What happened? *</label>
+              <textarea
+                placeholder="Describe the questionable play and why it looks suspicious..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50 resize-none"
+              />
+            </div>
+            
+            {/* Related Bet */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                <DollarSign className="w-4 h-4 inline mr-2" />
+                Related Bet (optional)
+              </label>
+              <input
+                type="text"
+                placeholder="e.g., Under 24.5 Points, Team -6.5"
+                value={relatedBet}
+                onChange={(e) => setRelatedBet(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50"
+              />
+            </div>
+            
+            {/* Submit */}
+            <button
+              onClick={handleSubmit}
+              disabled={!twitterUrl || !description || submitting}
+              className="w-full py-3 rounded-xl font-bold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ background: submitting ? '#555' : 'linear-gradient(135deg, #FF6B00, #FF3366)' }}
+            >
+              {submitting ? 'Submitting...' : 'Submit for Review'}
+            </button>
+            
+            <p className="text-xs text-center text-gray-500">
+              Submissions are reviewed before appearing. False reports may result in account restrictions.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // Twitter/X Embed Component
 function TwitterEmbed({ tweetUrl }: { tweetUrl: string }) {
   const [loaded, setLoaded] = useState(false)
@@ -300,6 +534,17 @@ export default function SusPlaysPage() {
   const [timeframe, setTimeframe] = useState<TimeFrame>('week')
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState<'trending' | 'susScore' | 'views' | 'recent'>('trending')
+  const [showSubmitModal, setShowSubmitModal] = useState(false)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+
+  // Handle copy share link
+  const handleCopyLink = useCallback(async (play: SusPlay) => {
+    const success = await copyShareLink(play)
+    if (success) {
+      setCopiedId(play.id)
+      setTimeout(() => setCopiedId(null), 2000)
+    }
+  }, [])
 
   // Filter plays
   const filteredPlays = mockSusPlays.filter(play => {
@@ -324,17 +569,32 @@ export default function SusPlaysPage() {
 
   return (
     <div className="min-h-screen" style={{ background: '#0A0A0F' }}>
+      {/* Submit Modal */}
+      <SubmitSusPlayModal isOpen={showSubmitModal} onClose={() => setShowSubmitModal(false)} />
+      
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-xl" style={{ background: 'linear-gradient(135deg, #FF3366, #FF6B00)' }}>
-              <AlertTriangle className="w-8 h-8 text-white" />
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl" style={{ background: 'linear-gradient(135deg, #FF3366, #FF6B00)' }}>
+                <AlertTriangle className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-black text-white">Suspect Plays</h1>
+                <p style={{ color: '#808090' }} className="text-sm">Who&apos;s his Mizuhara? 🤔</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-4xl font-black text-white">Suspect Plays</h1>
-              <p style={{ color: '#808090' }} className="text-sm">Who&apos;s his Mizuhara? 🤔</p>
-            </div>
+            
+            {/* Submit Button */}
+            <button
+              onClick={() => setShowSubmitModal(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-white transition-all hover:scale-105"
+              style={{ background: 'linear-gradient(135deg, #FF6B00, #FF3366)' }}
+            >
+              <Upload className="w-5 h-5" />
+              <span className="hidden sm:inline">Submit Play</span>
+            </button>
           </div>
           
           {/* Warning Banner */}
@@ -552,10 +812,40 @@ export default function SusPlaysPage() {
                       <MessageCircle className="w-4 h-4" />
                       {play.comments}
                     </button>
-                    <button className="flex items-center gap-1 text-xs" style={{ color: '#808090' }}>
-                      <Share2 className="w-4 h-4" />
-                      Share
-                    </button>
+                    
+                    {/* Share Dropdown */}
+                    <div className="relative group">
+                      <button className="flex items-center gap-1 text-xs hover:text-white transition-all" style={{ color: '#808090' }}>
+                        <Share2 className="w-4 h-4" />
+                        Share
+                      </button>
+                      <div className="absolute bottom-full right-0 mb-2 w-40 rounded-xl overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all"
+                           style={{ background: '#1A1A24', border: '1px solid rgba(255,255,255,0.1)' }}>
+                        <button
+                          onClick={() => shareToTwitter(play)}
+                          className="w-full px-3 py-2 flex items-center gap-2 text-xs text-white hover:bg-white/10 transition-all"
+                        >
+                          <Twitter className="w-4 h-4 text-blue-400" />
+                          Share to X
+                        </button>
+                        <button
+                          onClick={() => handleCopyLink(play)}
+                          className="w-full px-3 py-2 flex items-center gap-2 text-xs text-white hover:bg-white/10 transition-all"
+                        >
+                          {copiedId === play.id ? (
+                            <>
+                              <CheckCircle className="w-4 h-4 text-green-400" />
+                              Copied!
+                            </>
+                          ) : (
+                            <>
+                              <Link2 className="w-4 h-4 text-gray-400" />
+                              Copy Link
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Source */}
@@ -582,6 +872,9 @@ export default function SusPlaysPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Quick Sus Search - NEW */}
+            <SusSearchCompact />
+            
             {/* Submit a Sus Play */}
             <div className="p-4 rounded-2xl" style={{ background: 'linear-gradient(135deg, rgba(255,107,0,0.2), rgba(255,51,102,0.2))', border: '1px solid rgba(255,107,0,0.3)' }}>
               <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
@@ -591,8 +884,10 @@ export default function SusPlaysPage() {
               <p className="text-sm mb-4" style={{ color: '#808090' }}>
                 Found a questionable play? Submit it for community review.
               </p>
-              <button className="w-full py-2 rounded-xl font-bold transition-all hover:scale-105"
-                      style={{ background: 'linear-gradient(135deg, #FF6B00, #FF3366)', color: '#FFF' }}>
+              <button 
+                onClick={() => setShowSubmitModal(true)}
+                className="w-full py-2 rounded-xl font-bold transition-all hover:scale-105"
+                style={{ background: 'linear-gradient(135deg, #FF6B00, #FF3366)', color: '#FFF' }}>
                 Submit a Play
               </button>
             </div>

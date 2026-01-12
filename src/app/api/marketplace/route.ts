@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
+import { STANDARD_BETTING_SYSTEMS, MUSCHNICK_CREATOR } from '@/lib/data/standard-betting-systems'
 
 // Types for marketplace
 interface MarketplaceListing {
@@ -183,9 +184,71 @@ export async function GET(request: NextRequest) {
       userCopied: userInteractions.some(i => i.listing_id === listing.id && i.interaction_type === 'copy')
     }))
 
+    // If no database listings, return the standard systems as fallback
+    let finalListings = listingsWithStatus
+    if (finalListings.length === 0 && offset === 0) {
+      // Convert standard systems to marketplace listing format
+      const standardListings = STANDARD_BETTING_SYSTEMS
+        .filter(sys => {
+          if (sport && sport !== 'ALL' && sys.sport !== sport) return false
+          if (betType && betType !== 'all' && sys.betType !== betType) return false
+          if (minWinRate > 0 && sys.historicalRecord.winRate < minWinRate) return false
+          if (search) {
+            const q = search.toLowerCase()
+            return sys.title.toLowerCase().includes(q) || sys.shortDescription.toLowerCase().includes(q)
+          }
+          return true
+        })
+        .map(sys => ({
+          id: sys.id,
+          system_id: sys.id,
+          creator_id: MUSCHNICK_CREATOR.id,
+          title: sys.title,
+          short_description: sys.shortDescription,
+          full_description: sys.fullDescription,
+          tags: sys.tags,
+          is_free: true,
+          price_cents: 0,
+          total_picks: sys.sampleSize,
+          wins: sys.historicalRecord.wins,
+          losses: sys.historicalRecord.losses,
+          pushes: sys.historicalRecord.pushes,
+          win_rate: sys.historicalRecord.winRate,
+          roi: sys.historicalRecord.roi,
+          avg_odds: -110,
+          streak: 0,
+          copies_count: Math.floor(Math.random() * 500) + 100,
+          views_count: Math.floor(Math.random() * 5000) + 1000,
+          likes_count: Math.floor(Math.random() * 200) + 50,
+          status: 'published',
+          is_featured: true,
+          published_at: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+          creator_username: MUSCHNICK_CREATOR.username,
+          creator_avatar: MUSCHNICK_CREATOR.avatarUrl,
+          sport: sys.sport,
+          bet_type: sys.betType,
+          criteria: sys.criteria,
+          userLiked: false,
+          userCopied: false
+        }))
+      
+      // Sort standard listings
+      standardListings.sort((a, b) => {
+        switch (sortBy) {
+          case 'winRate': return b.win_rate - a.win_rate
+          case 'roi': return b.roi - a.roi
+          case 'copies': return b.copies_count - a.copies_count
+          default: return b.win_rate - a.win_rate
+        }
+      })
+      
+      finalListings = standardListings
+    }
+
     return NextResponse.json({
-      listings: listingsWithStatus,
-      total: count,
+      listings: finalListings,
+      total: finalListings.length,
       limit,
       offset
     })

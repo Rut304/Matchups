@@ -426,67 +426,70 @@ export default function MarketplacePage() {
               >
                 {/* Featured Badge */}
                 {listing.is_featured && (
-                  <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 bg-amber-500/20 rounded-full">
+                  <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 bg-amber-500/20 rounded-full z-10">
                     <Award className="w-3 h-3 text-amber-400" />
                     <span className="text-xs text-amber-400 font-medium">Featured</span>
                   </div>
                 )}
 
-                {/* Header */}
-                <div className="p-5 pb-4">
-                  <div className="flex items-start gap-3 mb-3">
-                    <div 
-                      className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-                      style={{ background: getSportColor(listing.sport) }}
-                    >
-                      {listing.sport?.slice(0, 3) || '???'}
+                {/* Clickable Card Link */}
+                <Link href={`/marketplace/${listing.system_id || listing.id}`} className="block">
+                  {/* Header */}
+                  <div className="p-5 pb-4">
+                    <div className="flex items-start gap-3 mb-3">
+                      <div 
+                        className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm"
+                        style={{ background: getSportColor(listing.sport) }}
+                      >
+                        {listing.sport?.slice(0, 3) || '???'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-white truncate group-hover:text-purple-400 transition-colors">
+                          {listing.title}
+                        </h3>
+                        <p className="text-xs text-gray-500">by {listing.creator_username}</p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-white truncate group-hover:text-purple-400 transition-colors">
-                        {listing.title}
-                      </h3>
-                      <p className="text-xs text-gray-500">by {listing.creator_username}</p>
-                    </div>
-                  </div>
-                  
-                  <p className="text-sm text-gray-400 line-clamp-2 mb-4">
-                    {listing.short_description}
-                  </p>
-
-                  {/* Tags */}
-                  {listing.tags && listing.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mb-4">
-                      {listing.tags.slice(0, 3).map((tag, i) => (
-                        <span 
-                          key={i}
-                          className="px-2 py-0.5 text-xs bg-white/5 text-gray-400 rounded-full"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Stats Grid */}
-                <div className="grid grid-cols-3 gap-px bg-white/5">
-                  <div className="bg-[#0f0f18] p-3 text-center">
-                    <p className="text-lg font-bold text-white">{listing.win_rate.toFixed(1)}%</p>
-                    <p className="text-xs text-gray-500">Win Rate</p>
-                  </div>
-                  <div className="bg-[#0f0f18] p-3 text-center">
-                    <p className="text-lg font-bold text-emerald-400">
-                      {getRecordDisplay(listing)}
+                    
+                    <p className="text-sm text-gray-400 line-clamp-2 mb-4">
+                      {listing.short_description}
                     </p>
-                    <p className="text-xs text-gray-500">Record</p>
+
+                    {/* Tags */}
+                    {listing.tags && listing.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-4">
+                        {listing.tags.slice(0, 3).map((tag, i) => (
+                          <span 
+                            key={i}
+                            className="px-2 py-0.5 text-xs bg-white/5 text-gray-400 rounded-full"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <div className="bg-[#0f0f18] p-3 text-center">
-                    <p className={`text-lg font-bold ${listing.roi >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                      {listing.roi >= 0 ? '+' : ''}{listing.roi.toFixed(1)}%
-                    </p>
-                    <p className="text-xs text-gray-500">ROI</p>
+
+                  {/* Stats Grid */}
+                  <div className="grid grid-cols-3 gap-px bg-white/5">
+                    <div className="bg-[#0f0f18] p-3 text-center">
+                      <p className="text-lg font-bold text-white">{listing.win_rate.toFixed(1)}%</p>
+                      <p className="text-xs text-gray-500">Win Rate</p>
+                    </div>
+                    <div className="bg-[#0f0f18] p-3 text-center">
+                      <p className="text-lg font-bold text-emerald-400">
+                        {getRecordDisplay(listing)}
+                      </p>
+                      <p className="text-xs text-gray-500">Record</p>
+                    </div>
+                    <div className="bg-[#0f0f18] p-3 text-center">
+                      <p className={`text-lg font-bold ${listing.roi >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {listing.roi >= 0 ? '+' : ''}{listing.roi.toFixed(1)}%
+                      </p>
+                      <p className="text-xs text-gray-500">ROI</p>
+                    </div>
                   </div>
-                </div>
+                </Link>
 
                 {/* Footer */}
                 <div className="p-4 flex items-center justify-between border-t border-white/5">

@@ -485,15 +485,81 @@ export function getMockBettingSplits(sport: string): BettingSplit[] {
 // EXPORT UTILITIES
 // =============================================================================
 
-export function getBettingSplitsWithRLM(sport: string) {
-  // For now, use mock data. Replace with fetchBettingSplits when deployed
-  const splits = getMockBettingSplits(sport)
+export async function getBettingSplitsWithRLM(sport: string) {
+  // Try to fetch real splits first, fallback to database
+  let splits: BettingSplit[] = []
   
-  // Mock odds history for RLM detection
-  const oddsHistory = [
-    { gameId: 'nfl-sea-sf-week18', openLine: 3, currentLine: 1.5, betType: 'spread' },
-    { gameId: 'nfl-bal-pit-week18', openLine: 3, currentLine: 4.5, betType: 'spread' },
-  ]
+  try {
+    // First try to get from database (populated by cron jobs)
+    const supabase = createClient()
+    const { data: dbSplits } = await supabase
+      .from('betting_splits')
+      .select('*')
+      .eq('sport', sport.toUpperCase())
+      .order('created_at', { ascending: false })
+      .limit(20)
+    
+    if (dbSplits && dbSplits.length > 0) {
+      splits = dbSplits.map((s: Record<string, unknown>) => ({
+        gameId: s.game_id as string,
+        sport: s.sport as BettingSplit['sport'],
+        homeTeam: s.home_team as string,
+        awayTeam: s.away_team as string,
+        gameTime: s.game_time as string,
+        spread: (s.spread_data as BettingSplit['spread']) || { homeBetPct: 50, awayBetPct: 50, homeMoneyPct: 50, awayMoneyPct: 50, line: 0 },
+        moneyline: (s.moneyline_data as BettingSplit['moneyline']) || { homeBetPct: 50, awayBetPct: 50, homeMoneyPct: 50, awayMoneyPct: 50, homeOdds: 0, awayOdds: 0 },
+        total: (s.total_data as BettingSplit['total']) || { overBetPct: 50, underBetPct: 50, overMoneyPct: 50, underMoneyPct: 50, line: 0 },
+        source: (s.source as string) || 'database',
+        fetchedAt: s.created_at as string
+      }))
+    } else {
+      // Fallback to live scraping if database empty
+      splits = await fetchBettingSplits(sport)
+    }
+  } catch (error) {
+    console.error('Error fetching betting splits:', error)
+    // Return empty array - no mock data fallback
+    splits = []
+  }
+  
+  // Get odds history from database for RLM detection
+  let oddsHistory: { gameId: string; openLine: number; currentLine: number; betType: string }[] = []
+  
+  try {
+    const supabase = createClient()
+    const { data: history } = await supabase
+      .from('odds_history')
+      .select('*')
+      .eq('sport', sport.toUpperCase())
+      .order('timestamp', { ascending: true })
+      .limit(100)
+    
+    if (history && history.length > 0) {
+      // Group by game and calculate open vs current
+      type HistoryItem = { game_id: string; spread?: number; [key: string]: unknown }
+      const gameHistory = new Map<string, HistoryItem[]>()
+      history.forEach((h: HistoryItem) => {
+        const existing = gameHistory.get(h.game_id) || []
+        existing.push(h)
+        gameHistory.set(h.game_id, existing)
+      })
+      
+      gameHistory.forEach((h, gameId) => {
+        if (h.length >= 2) {
+          const open = h[0]
+          const current = h[h.length - 1]
+          oddsHistory.push({
+            gameId,
+            openLine: open.spread || 0,
+            currentLine: current.spread || 0,
+            betType: 'spread'
+          })
+        }
+      })
+    }
+  } catch (error) {
+    console.error('Error fetching odds history:', error)
+  }
   
   const rlmAlerts = detectReverseLineMovement(splits, oddsHistory)
   

@@ -244,6 +244,26 @@ export const cappers: Capper[] = [
   { id: '137', slug: 'emmitt-smith', name: 'Emmitt Smith', avatarEmoji: '⭐', verified: true, capperType: 'celebrity', network: 'Twitter', role: 'NFL Legend', followersCount: '1.2M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
   { id: '138', slug: 'marshawn-lynch', name: 'Marshawn Lynch', avatarEmoji: '🦬', verified: true, capperType: 'celebrity', network: 'Podcast', role: 'Beast Mode', followersCount: '2.4M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
   { id: '139', slug: 'gronk', name: 'Rob Gronkowski', avatarEmoji: '🎉', verified: true, capperType: 'celebrity', network: 'FOX', role: 'NFL Analyst', followersCount: '3.2M', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-03' },
+  
+  // =============================================
+  // SUS PLAY TRACKERS - X/Twitter Accounts
+  // These accounts expose questionable plays & refs
+  // =============================================
+  { id: '140', slug: 'rigged-for-vegas', name: 'RIGGEDFORVEGAS', avatarEmoji: '🎰', verified: true, capperType: 'community', network: 'Twitter', role: 'Sus Play Exposer', followersCount: '245K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-07' },
+  { id: '141', slug: 'savage-sports', name: 'SavageSports_', avatarEmoji: '🔥', verified: true, capperType: 'community', network: 'Twitter', role: 'Sus Play Hunter', followersCount: '189K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-07' },
+  { id: '142', slug: 'refs-live', name: 'RefWatch', avatarEmoji: '👀', verified: false, capperType: 'community', network: 'Twitter', role: 'Ref Tracker', followersCount: '156K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-07' },
+  { id: '143', slug: 'vegas-whispers', name: 'Vegas Whispers', avatarEmoji: '🤫', verified: true, capperType: 'community', network: 'Twitter', role: 'Line Movement Tracker', followersCount: '234K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-07' },
+  { id: '144', slug: 'fix-is-in', name: 'TheFixIsIn', avatarEmoji: '🚨', verified: false, capperType: 'community', network: 'Twitter', role: 'Conspiracy Analyst', followersCount: '312K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-07' },
+  { id: '145', slug: 'sports-conspiracy', name: 'SportsConspiracy', avatarEmoji: '🔍', verified: false, capperType: 'community', network: 'Reddit', role: 'r/SportsConspiracy Mod', followersCount: '89K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-07' },
+  { id: '146', slug: 'sportsbook-intel', name: 'SportsbookIntel', avatarEmoji: '📊', verified: true, capperType: 'community', network: 'Reddit', role: 'r/sportsbook Analyst', followersCount: '178K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-07' },
+  { id: '147', slug: 'ref-calls', name: 'BadRefCalls', avatarEmoji: '🦓', verified: false, capperType: 'community', network: 'Twitter', role: 'Bad Call Compiler', followersCount: '267K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-07' },
+  
+  // =============================================
+  // SPORTS GAMBLING JOURNALISTS
+  // =============================================
+  { id: '148', slug: 'pat-evans', name: 'Pat Evans', avatarEmoji: '📰', verified: true, capperType: 'celebrity', network: 'Front Office Sports', role: 'Gambling Reporter', followersCount: '78K', isActive: true, isFeatured: true, createdAt: '2024-01-01', updatedAt: '2025-01-07' },
+  { id: '149', slug: 'dustin-gouker', name: 'Dustin Gouker', avatarEmoji: '📋', verified: true, capperType: 'celebrity', network: 'Legal Sports Report', role: 'Industry Analyst', followersCount: '45K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-07' },
+  { id: '150', slug: 'matthew-waters', name: 'Matthew Waters', avatarEmoji: '⚖️', verified: true, capperType: 'celebrity', network: 'Gambling Compliance', role: 'Integrity Expert', followersCount: '34K', isActive: true, isFeatured: false, createdAt: '2024-01-01', updatedAt: '2025-01-07' },
 ]
 
 // ===========================================

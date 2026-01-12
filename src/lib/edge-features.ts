@@ -568,16 +568,70 @@ export function getGameEdgeAlerts(gameId: string, sport: string): EdgeAlert[] {
 
 /**
  * Get all active edge alerts across all games
+ * Uses real data from database - populated by cron jobs and real-time detection
  */
 export async function getActiveEdgeAlerts(sport?: string): Promise<EdgeAlert[]> {
-  // In production: fetch from database where expiresAt > now
-  // For demo: generate mock alerts
-  const sports = sport ? [sport] : ['NFL', 'NBA', 'NHL']
-  const allAlerts: EdgeAlert[] = []
-  
-  for (const s of sports) {
-    allAlerts.push(...generateMockEdgeAlerts(s, 3))
+  try {
+    // Fetch real alerts from database
+    const { createClient } = await import('@/lib/supabase/client')
+    const supabase = createClient()
+    
+    let query = supabase
+      .from('edge_alerts')
+      .select('*')
+      .gt('expires_at', new Date().toISOString())
+      .order('confidence', { ascending: false })
+      .limit(20)
+    
+    if (sport) {
+      query = query.eq('sport', sport.toUpperCase())
+    }
+    
+    const { data: alerts, error } = await query
+    
+    if (error) {
+      console.error('[Edge] Error fetching alerts:', error)
+      return []
+    }
+    
+    if (alerts && alerts.length > 0) {
+      return alerts.map((a: Record<string, unknown>) => ({
+        id: a.id as string,
+        gameId: a.game_id as string,
+        type: a.type as string,
+        confidence: a.confidence as number,
+        message: a.message as string,
+        sport: a.sport as string,
+        source: (a.source as string) || 'database',
+        detectedAt: a.created_at as string,
+        expiresAt: a.expires_at as string,
+        data: (a.data as Record<string, unknown>) || {}
+      })) as EdgeAlert[]
+    }
+    
+    // If no alerts in DB, try the API
+    const apiUrl = typeof window !== 'undefined' ? '/api/edge/alerts' : `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/edge/alerts`
+    const res = await fetch(apiUrl)
+    const data = await res.json()
+    
+    if (data.success && Array.isArray(data.alerts)) {
+      return data.alerts.map((a: Record<string, unknown>) => ({
+        id: a.id as string,
+        gameId: a.gameId as string,
+        type: a.type as string,
+        confidence: (a.severity === 'critical' ? 95 : a.severity === 'high' ? 80 : 65) as number,
+        message: a.message as string,
+        sport: a.sport as string,
+        source: 'api',
+        detectedAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 3600000).toISOString(),
+        data: {}
+      })) as EdgeAlert[]
+    }
+    
+    return []
+  } catch (error) {
+    console.error('[Edge] Error fetching active alerts:', error)
+    return []
   }
-  
-  return allAlerts.slice(0, 10) // Limit to 10 most important
 }

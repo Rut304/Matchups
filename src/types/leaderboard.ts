@@ -28,6 +28,10 @@ export type Network =
   | 'Sports Illustrated'
   | 'Website'
   | 'Las Vegas'
+  | 'Reddit'
+  | 'Front Office Sports'
+  | 'Legal Sports Report'
+  | 'Gambling Compliance'
 
 export interface Capper {
   id: string
