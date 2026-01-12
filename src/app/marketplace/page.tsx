@@ -239,6 +239,19 @@ export default function MarketplacePage() {
             <span className="text-gray-500">•</span>
             <span className="text-gray-400">Min 5 picks, 52%+ win rate required for listing</span>
           </div>
+          
+          {/* Bankroll Systems Link */}
+          <div className="mt-4">
+            <Link 
+              href="/marketplace/bankroll-systems"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 text-emerald-400 hover:from-emerald-500/30 hover:to-cyan-500/30 transition-all"
+            >
+              <DollarSign className="w-4 h-4" />
+              Bankroll Management Systems
+              <span className="text-xs text-emerald-500/70">NEW</span>
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
       </section>
 
