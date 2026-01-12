@@ -198,6 +198,79 @@ export default function GameDetailPage() {
     error: null
   })
   
+  // =============================================================================
+  // THE EDGE - Betting Intelligence & AI Analysis
+  // This is what makes Matchups DIFFERENT from every other site
+  // =============================================================================
+  interface IntelligenceData {
+    edgeScore: number
+    edgeLabel: string
+    edgeColor: string
+    topDataPoints: { point: string; value: string; impact: 'positive' | 'negative' | 'neutral' }[]
+    quickTakes: {
+      spread: string
+      spreadConfidence: number
+      total: string
+      totalConfidence: number
+      sharpestPick: string
+    }
+    clv?: { grade: string; description: string }
+    sharpMoney?: { side: string; reverseLineMovement: boolean; strength: string }
+    aiAnalysis?: {
+      summary: string
+      winProbability: { home: number; away: number }
+      projectedScore: { home: number; away: number }
+      spreadAnalysis: { pick: string; confidence: number; reasoning: string; keyFactors: string[] }
+      totalAnalysis: { pick: string; confidence: number; reasoning: string }
+      keyEdges: string[]
+      majorRisks: string[]
+      betGrades: { spread: string; total: string; ml: string }
+    }
+    loading: boolean
+    error: string | null
+  }
+  
+  const [intelligence, setIntelligence] = useState<IntelligenceData>({
+    edgeScore: 0,
+    edgeLabel: 'Analyzing...',
+    edgeColor: 'gray',
+    topDataPoints: [],
+    quickTakes: { spread: '', spreadConfidence: 0, total: '', totalConfidence: 0, sharpestPick: '' },
+    loading: true,
+    error: null
+  })
+  
+  // Multi-book odds from The Odds API
+  interface BookOdds {
+    bookmaker: string
+    spread: number
+    spreadOdds: number
+    total: number
+    overOdds: number
+    underOdds: number
+    homeML: number
+    awayML: number
+    lastUpdate: string
+  }
+  
+  const [multiBookOdds, setMultiBookOdds] = useState<{
+    books: BookOdds[]
+    bestSpread: { book: string; line: number; odds: number }
+    bestTotal: { book: string; over: number; overOdds: number; under: number; underOdds: number }
+    bestHomeML: { book: string; odds: number }
+    bestAwayML: { book: string; odds: number }
+    loading: boolean
+    error: string | null
+  }>({
+    books: [],
+    bestSpread: { book: '', line: 0, odds: 0 },
+    bestTotal: { book: '', over: 0, overOdds: 0, under: 0, underOdds: 0 },
+    bestHomeML: { book: '', odds: 0 },
+    bestAwayML: { book: '', odds: 0 },
+    loading: true,
+    error: null
+  })
+  
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }))
   }
@@ -288,6 +361,140 @@ export default function GameDetailPage() {
     
     fetchSummary()
   }, [gameId, sport])
+
+  // =============================================================================
+  // FETCH BETTING INTELLIGENCE - The Edge Analysis
+  // =============================================================================
+  useEffect(() => {
+    if (!game) return
+    
+    const fetchIntelligence = async () => {
+      try {
+        const params = new URLSearchParams({
+          sport: sport.toUpperCase(),
+          home: game.home.name,
+          homeAbbr: game.home.abbr || game.home.name.substring(0, 3).toUpperCase(),
+          away: game.away.name,
+          awayAbbr: game.away.abbr || game.away.name.substring(0, 3).toUpperCase(),
+          ai: 'true', // Request AI analysis
+          live: 'false'
+        })
+        
+        const response = await fetch(`/api/games/${gameId}/intelligence?${params}`)
+        if (!response.ok) throw new Error('Failed to fetch intelligence')
+        
+        const data = await response.json()
+        if (data.success) {
+          setIntelligence({
+            edgeScore: data.intelligence?.edgeScore?.overall || 0,
+            edgeLabel: data.summary?.edgeLabel || 'Analyzing',
+            edgeColor: data.summary?.edgeColor || 'gray',
+            topDataPoints: data.summary?.topDataPoints || [],
+            quickTakes: data.summary?.quickTakes || { spread: '', spreadConfidence: 0, total: '', totalConfidence: 0, sharpestPick: '' },
+            clv: data.intelligence?.clv ? { grade: data.intelligence.clv.grade, description: data.intelligence.clv.description } : undefined,
+            sharpMoney: data.intelligence?.publicSharpSplits?.spread ? {
+              side: data.intelligence.publicSharpSplits.spread.sharpSide,
+              reverseLineMovement: data.intelligence.publicSharpSplits.spread.reverseLineMovement,
+              strength: data.intelligence.publicSharpSplits.spread.rlmStrength
+            } : undefined,
+            aiAnalysis: data.intelligence?.aiAnalysis || undefined,
+            loading: false,
+            error: null
+          })
+        } else {
+          setIntelligence(prev => ({ ...prev, loading: false, error: data.error }))
+        }
+      } catch (err) {
+        console.error('Intelligence fetch error:', err)
+        setIntelligence(prev => ({ ...prev, loading: false, error: 'Failed to load intelligence' }))
+      }
+    }
+    
+    fetchIntelligence()
+  }, [game, gameId, sport])
+
+  // =============================================================================
+  // FETCH MULTI-BOOK ODDS - Shop for Best Lines
+  // =============================================================================
+  useEffect(() => {
+    if (!game) return
+    
+    const fetchMultiBookOdds = async () => {
+      try {
+        // Map sport to Odds API format
+        const sportMap: Record<string, string> = {
+          'NFL': 'americanfootball_nfl',
+          'NBA': 'basketball_nba',
+          'NHL': 'icehockey_nhl',
+          'MLB': 'baseball_mlb',
+          'NCAAF': 'americanfootball_ncaaf',
+          'NCAAB': 'basketball_ncaab'
+        }
+        const oddsSport = sportMap[sport.toUpperCase()] || 'americanfootball_nfl'
+        
+        const response = await fetch(`/api/odds?sport=${oddsSport}&markets=spreads,totals,h2h`)
+        if (!response.ok) throw new Error('Failed to fetch odds')
+        
+        const data = await response.json()
+        if (data.success && data.odds) {
+          // Find the matching game
+          const matchingGame = data.odds.find((g: { home_team: string; away_team: string }) => 
+            g.home_team?.toLowerCase().includes(game.home.name.toLowerCase().split(' ').pop() || '') ||
+            g.away_team?.toLowerCase().includes(game.away.name.toLowerCase().split(' ').pop() || '')
+          )
+          
+          if (matchingGame?.bookmakers) {
+            const books: BookOdds[] = matchingGame.bookmakers.map((bm: { key: string; last_update: string; markets: Array<{ key: string; outcomes: Array<{ name: string; point?: number; price: number }> }> }) => {
+              const spread = bm.markets.find((m: { key: string }) => m.key === 'spreads')
+              const total = bm.markets.find((m: { key: string }) => m.key === 'totals')
+              const ml = bm.markets.find((m: { key: string }) => m.key === 'h2h')
+              
+              const homeSpread = spread?.outcomes.find((o: { name: string }) => o.name === matchingGame.home_team)
+              const awaySpread = spread?.outcomes.find((o: { name: string }) => o.name === matchingGame.away_team)
+              const over = total?.outcomes.find((o: { name: string }) => o.name === 'Over')
+              const under = total?.outcomes.find((o: { name: string }) => o.name === 'Under')
+              const homeML = ml?.outcomes.find((o: { name: string }) => o.name === matchingGame.home_team)
+              const awayML = ml?.outcomes.find((o: { name: string }) => o.name === matchingGame.away_team)
+              
+              return {
+                bookmaker: bm.key,
+                spread: homeSpread?.point || 0,
+                spreadOdds: homeSpread?.price || -110,
+                total: over?.point || 0,
+                overOdds: over?.price || -110,
+                underOdds: under?.price || -110,
+                homeML: homeML?.price || 0,
+                awayML: awayML?.price || 0,
+                lastUpdate: bm.last_update
+              }
+            })
+            
+            // Find best lines
+            const bestSpread = books.reduce((best, b) => b.spreadOdds > best.odds ? { book: b.bookmaker, line: b.spread, odds: b.spreadOdds } : best, { book: '', line: 0, odds: -999 })
+            const bestHomeML = books.reduce((best, b) => b.homeML > best.odds ? { book: b.bookmaker, odds: b.homeML } : best, { book: '', odds: -999 })
+            const bestAwayML = books.reduce((best, b) => b.awayML > best.odds ? { book: b.bookmaker, odds: b.awayML } : best, { book: '', odds: -999 })
+            
+            setMultiBookOdds({
+              books: books.slice(0, 8), // Top 8 books
+              bestSpread,
+              bestTotal: { book: books[0]?.bookmaker || '', over: books[0]?.total || 0, overOdds: books[0]?.overOdds || -110, under: books[0]?.total || 0, underOdds: books[0]?.underOdds || -110 },
+              bestHomeML,
+              bestAwayML,
+              loading: false,
+              error: null
+            })
+          } else {
+            setMultiBookOdds(prev => ({ ...prev, loading: false, error: 'Game not found in odds data' }))
+          }
+        }
+      } catch (err) {
+        console.error('Multi-book odds error:', err)
+        setMultiBookOdds(prev => ({ ...prev, loading: false, error: 'Odds comparison unavailable' }))
+      }
+    }
+    
+    fetchMultiBookOdds()
+  }, [game, sport])
 
   if (loading) {
     return (
@@ -596,7 +803,7 @@ export default function GameDetailPage() {
                 <span className="px-2 py-0.5 text-xs rounded bg-orange-500/20 text-orange-400">Matchups Edge</span>
               </div>
               <span className="font-bold text-orange-400">
-                {game.aiPick || 'Analyzing...'}
+                {intelligence.aiAnalysis?.spreadAnalysis?.pick || game.aiPick || 'Analyzing...'}
               </span>
             </div>
             {/* Confidence Bar - Shows our AI's confidence in the pick */}
@@ -604,21 +811,334 @@ export default function GameDetailPage() {
               <div 
                 className="h-full rounded-full transition-all"
                 style={{ 
-                  width: `${game.aiConfidence || 50}%`,
-                  background: (game.aiConfidence || 50) >= 70 
+                  width: `${(intelligence.aiAnalysis?.spreadAnalysis?.confidence || game.aiConfidence / 100 || 0.5) * 100}%`,
+                  background: ((intelligence.aiAnalysis?.spreadAnalysis?.confidence || game.aiConfidence / 100 || 0.5) * 100) >= 70 
                     ? 'linear-gradient(90deg, #22c55e, #4ade80)' 
-                    : (game.aiConfidence || 50) >= 55 
+                    : ((intelligence.aiAnalysis?.spreadAnalysis?.confidence || game.aiConfidence / 100 || 0.5) * 100) >= 55 
                     ? 'linear-gradient(90deg, #f97316, #fb923c)' 
                     : 'linear-gradient(90deg, #ef4444, #f87171)'
                 }}
               />
             </div>
             <div className="flex justify-between text-sm mt-1 text-slate-500">
-              <span>{game.aiConfidence || 50}% confidence</span>
+              <span>{Math.round((intelligence.aiAnalysis?.spreadAnalysis?.confidence || game.aiConfidence / 100 || 0.5) * 100)}% confidence</span>
               <span className="text-xs text-slate-600">Powered by AI analysis of trends, injuries, weather & more</span>
             </div>
           </div>
         </div>
+
+        {/* =========================================== */}
+        {/* THE EDGE - AI Intelligence Dashboard */}
+        {/* This is what makes Matchups DIFFERENT */}
+        {/* =========================================== */}
+        <div className="rounded-2xl p-6 mb-6 bg-gradient-to-br from-orange-950/30 to-slate-900 border border-orange-500/30">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-orange-500/20">
+                <Zap className="w-6 h-6 text-orange-500" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  THE EDGE
+                  <span className="px-2 py-0.5 text-xs rounded bg-orange-500/20 text-orange-400 font-normal">AI-Powered</span>
+                </h2>
+                <p className="text-sm text-slate-400">Proprietary analysis combining 12 key data points</p>
+              </div>
+            </div>
+            {/* Edge Score */}
+            <div className="text-right">
+              {intelligence.loading ? (
+                <div className="animate-pulse">
+                  <div className="w-16 h-8 bg-slate-700 rounded mb-1"></div>
+                  <div className="w-20 h-4 bg-slate-700 rounded"></div>
+                </div>
+              ) : (
+                <>
+                  <div className={`text-3xl font-black ${
+                    intelligence.edgeScore >= 75 ? 'text-green-400' :
+                    intelligence.edgeScore >= 50 ? 'text-yellow-400' :
+                    intelligence.edgeScore >= 25 ? 'text-orange-400' :
+                    'text-slate-400'
+                  }`}>
+                    {intelligence.edgeScore}
+                  </div>
+                  <div className={`text-sm font-semibold ${
+                    intelligence.edgeColor === 'green' ? 'text-green-400' :
+                    intelligence.edgeColor === 'yellow' ? 'text-yellow-400' :
+                    intelligence.edgeColor === 'orange' ? 'text-orange-400' :
+                    'text-slate-400'
+                  }`}>
+                    {intelligence.edgeLabel}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Quick Takes */}
+          {intelligence.quickTakes.sharpestPick && (
+            <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700 mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Target className="w-4 h-4 text-green-400" />
+                <span className="text-sm font-semibold text-green-400">SHARPEST PICK</span>
+              </div>
+              <p className="text-lg font-bold text-white">{intelligence.quickTakes.sharpestPick}</p>
+            </div>
+          )}
+
+          {/* AI Analysis Summary */}
+          {intelligence.aiAnalysis && (
+            <div className="space-y-4">
+              {/* Summary */}
+              <div className="p-4 rounded-xl bg-slate-800/30 border border-slate-700/50">
+                <p className="text-slate-300 leading-relaxed">{intelligence.aiAnalysis.summary}</p>
+              </div>
+              
+              {/* Win Probability & Projected Score */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 rounded-xl bg-slate-800/50">
+                  <p className="text-xs text-slate-500 mb-2">WIN PROBABILITY</p>
+                  <div className="flex items-center justify-between">
+                    <div className="text-center">
+                      <p className="text-sm text-slate-400">{game.away.abbr}</p>
+                      <p className="text-xl font-bold text-white">{Math.round(intelligence.aiAnalysis.winProbability.away * 100)}%</p>
+                    </div>
+                    <div className="text-slate-600">vs</div>
+                    <div className="text-center">
+                      <p className="text-sm text-slate-400">{game.home.abbr}</p>
+                      <p className="text-xl font-bold text-white">{Math.round(intelligence.aiAnalysis.winProbability.home * 100)}%</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-4 rounded-xl bg-slate-800/50">
+                  <p className="text-xs text-slate-500 mb-2">PROJECTED SCORE</p>
+                  <div className="flex items-center justify-between">
+                    <div className="text-center">
+                      <p className="text-sm text-slate-400">{game.away.abbr}</p>
+                      <p className="text-xl font-bold text-orange-400">{intelligence.aiAnalysis.projectedScore.away}</p>
+                    </div>
+                    <div className="text-slate-600">-</div>
+                    <div className="text-center">
+                      <p className="text-sm text-slate-400">{game.home.abbr}</p>
+                      <p className="text-xl font-bold text-orange-400">{intelligence.aiAnalysis.projectedScore.home}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bet Picks with Grades */}
+              <div className="grid md:grid-cols-3 gap-4">
+                {/* Spread Pick */}
+                <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500/10 to-transparent border border-orange-500/20">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs text-slate-500">SPREAD</p>
+                    <span className={`px-2 py-0.5 text-xs font-bold rounded ${
+                      intelligence.aiAnalysis.betGrades?.spread === 'A' ? 'bg-green-500/20 text-green-400' :
+                      intelligence.aiAnalysis.betGrades?.spread === 'B' ? 'bg-blue-500/20 text-blue-400' :
+                      intelligence.aiAnalysis.betGrades?.spread === 'C' ? 'bg-yellow-500/20 text-yellow-400' :
+                      'bg-red-500/20 text-red-400'
+                    }`}>
+                      Grade {intelligence.aiAnalysis.betGrades?.spread || 'C'}
+                    </span>
+                  </div>
+                  <p className="text-lg font-bold text-white mb-1">{intelligence.aiAnalysis.spreadAnalysis.pick}</p>
+                  <p className="text-xs text-slate-400">{Math.round(intelligence.aiAnalysis.spreadAnalysis.confidence * 100)}% confident</p>
+                </div>
+
+                {/* Total Pick */}
+                <div className="p-4 rounded-xl bg-gradient-to-br from-green-500/10 to-transparent border border-green-500/20">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs text-slate-500">TOTAL</p>
+                    <span className={`px-2 py-0.5 text-xs font-bold rounded ${
+                      intelligence.aiAnalysis.betGrades?.total === 'A' ? 'bg-green-500/20 text-green-400' :
+                      intelligence.aiAnalysis.betGrades?.total === 'B' ? 'bg-blue-500/20 text-blue-400' :
+                      intelligence.aiAnalysis.betGrades?.total === 'C' ? 'bg-yellow-500/20 text-yellow-400' :
+                      'bg-red-500/20 text-red-400'
+                    }`}>
+                      Grade {intelligence.aiAnalysis.betGrades?.total || 'C'}
+                    </span>
+                  </div>
+                  <p className="text-lg font-bold text-white mb-1">{intelligence.aiAnalysis.totalAnalysis.pick}</p>
+                  <p className="text-xs text-slate-400">{Math.round(intelligence.aiAnalysis.totalAnalysis.confidence * 100)}% confident</p>
+                </div>
+
+                {/* ML Pick */}
+                <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-transparent border border-purple-500/20">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs text-slate-500">MONEYLINE</p>
+                    <span className={`px-2 py-0.5 text-xs font-bold rounded ${
+                      intelligence.aiAnalysis.betGrades?.ml === 'A' ? 'bg-green-500/20 text-green-400' :
+                      intelligence.aiAnalysis.betGrades?.ml === 'B' ? 'bg-blue-500/20 text-blue-400' :
+                      intelligence.aiAnalysis.betGrades?.ml === 'C' ? 'bg-yellow-500/20 text-yellow-400' :
+                      'bg-red-500/20 text-red-400'
+                    }`}>
+                      Grade {intelligence.aiAnalysis.betGrades?.ml || 'C'}
+                    </span>
+                  </div>
+                  <p className="text-lg font-bold text-white mb-1">{game.away.abbr} or {game.home.abbr}</p>
+                  <p className="text-xs text-slate-400">Based on value analysis</p>
+                </div>
+              </div>
+
+              {/* Key Edges & Risks */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="p-4 rounded-xl bg-green-500/5 border border-green-500/20">
+                  <div className="flex items-center gap-2 mb-3">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <p className="text-sm font-semibold text-green-400">KEY EDGES</p>
+                  </div>
+                  <ul className="space-y-2">
+                    {intelligence.aiAnalysis.keyEdges?.slice(0, 3).map((edge, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
+                        <span className="text-green-400 mt-0.5">•</span>
+                        {edge}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/20">
+                  <div className="flex items-center gap-2 mb-3">
+                    <AlertTriangle className="w-4 h-4 text-red-400" />
+                    <p className="text-sm font-semibold text-red-400">RISKS TO CONSIDER</p>
+                  </div>
+                  <ul className="space-y-2">
+                    {intelligence.aiAnalysis.majorRisks?.slice(0, 3).map((risk, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
+                        <span className="text-red-400 mt-0.5">•</span>
+                        {risk}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Top Data Points - Show when no AI analysis */}
+          {!intelligence.aiAnalysis && intelligence.topDataPoints.length > 0 && (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {intelligence.topDataPoints.map((dp, i) => (
+                <div key={i} className={`p-3 rounded-lg border ${
+                  dp.impact === 'positive' ? 'bg-green-500/5 border-green-500/20' :
+                  dp.impact === 'negative' ? 'bg-red-500/5 border-red-500/20' :
+                  'bg-slate-800/50 border-slate-700'
+                }`}>
+                  <p className={`text-xs font-semibold mb-1 ${
+                    dp.impact === 'positive' ? 'text-green-400' :
+                    dp.impact === 'negative' ? 'text-red-400' :
+                    'text-slate-400'
+                  }`}>
+                    {dp.point}
+                  </p>
+                  <p className="text-sm text-white">{dp.value}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Sharp Money Indicator */}
+          {intelligence.sharpMoney?.reverseLineMovement && (
+            <div className="mt-4 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-yellow-400" />
+                <span className="text-sm font-semibold text-yellow-400">REVERSE LINE MOVEMENT DETECTED</span>
+              </div>
+              <p className="text-sm text-slate-300 mt-1">
+                Sharp money on <span className="font-semibold text-white">{intelligence.sharpMoney.side}</span> • 
+                Strength: <span className="font-semibold text-yellow-400">{intelligence.sharpMoney.strength}</span>
+              </p>
+            </div>
+          )}
+
+          {/* Loading State */}
+          {intelligence.loading && (
+            <div className="flex items-center justify-center py-8">
+              <RefreshCw className="w-6 h-6 text-orange-500 animate-spin mr-3" />
+              <span className="text-slate-400">Analyzing 12 key data points...</span>
+            </div>
+          )}
+        </div>
+
+        {/* =========================================== */}
+        {/* MULTI-BOOK ODDS COMPARISON */}
+        {/* =========================================== */}
+        {!multiBookOdds.loading && multiBookOdds.books.length > 0 && (
+          <div className="rounded-2xl p-6 mb-6 bg-slate-900/50 border border-slate-800">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-lg bg-green-500/20">
+                <DollarSign className="w-5 h-5 text-green-500" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-white">Shop the Best Lines</h2>
+                <p className="text-sm text-slate-400">Compare odds across {multiBookOdds.books.length} sportsbooks</p>
+              </div>
+            </div>
+
+            {/* Best Lines Highlights */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+              <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                <p className="text-xs text-slate-500">Best {game.home.abbr} Spread</p>
+                <p className="text-lg font-bold text-green-400">{multiBookOdds.bestSpread.odds > 0 ? '+' : ''}{multiBookOdds.bestSpread.odds}</p>
+                <p className="text-xs text-slate-400">{multiBookOdds.bestSpread.book}</p>
+              </div>
+              <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                <p className="text-xs text-slate-500">Best {game.home.abbr} ML</p>
+                <p className="text-lg font-bold text-blue-400">{multiBookOdds.bestHomeML.odds > 0 ? '+' : ''}{multiBookOdds.bestHomeML.odds}</p>
+                <p className="text-xs text-slate-400">{multiBookOdds.bestHomeML.book}</p>
+              </div>
+              <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                <p className="text-xs text-slate-500">Best {game.away.abbr} ML</p>
+                <p className="text-lg font-bold text-orange-400">{multiBookOdds.bestAwayML.odds > 0 ? '+' : ''}{multiBookOdds.bestAwayML.odds}</p>
+                <p className="text-xs text-slate-400">{multiBookOdds.bestAwayML.book}</p>
+              </div>
+              <div className="p-3 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                <p className="text-xs text-slate-500">Books Compared</p>
+                <p className="text-lg font-bold text-purple-400">{multiBookOdds.books.length}</p>
+                <p className="text-xs text-slate-400">Sportsbooks</p>
+              </div>
+            </div>
+
+            {/* Odds Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-slate-500 border-b border-slate-800">
+                    <th className="text-left py-2 px-3">Book</th>
+                    <th className="text-center py-2 px-3">Spread</th>
+                    <th className="text-center py-2 px-3">Total</th>
+                    <th className="text-center py-2 px-3">{game.away.abbr} ML</th>
+                    <th className="text-center py-2 px-3">{game.home.abbr} ML</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {multiBookOdds.books.slice(0, 6).map((book, i) => (
+                    <tr key={i} className="border-b border-slate-800/50 hover:bg-slate-800/30">
+                      <td className="py-2 px-3 font-medium text-white capitalize">{book.bookmaker.replace(/_/g, ' ')}</td>
+                      <td className="py-2 px-3 text-center">
+                        <span className="text-white font-mono">{book.spread > 0 ? '+' : ''}{book.spread}</span>
+                        <span className="text-slate-500 ml-1">({book.spreadOdds > 0 ? '+' : ''}{book.spreadOdds})</span>
+                      </td>
+                      <td className="py-2 px-3 text-center">
+                        <span className="text-white font-mono">{book.total}</span>
+                        <span className="text-slate-500 ml-1">(o{book.overOdds}/u{book.underOdds})</span>
+                      </td>
+                      <td className={`py-2 px-3 text-center font-mono ${book.awayML > 0 ? 'text-green-400' : 'text-white'}`}>
+                        {book.awayML > 0 ? '+' : ''}{book.awayML}
+                      </td>
+                      <td className={`py-2 px-3 text-center font-mono ${book.homeML > 0 ? 'text-green-400' : 'text-white'}`}>
+                        {book.homeML > 0 ? '+' : ''}{book.homeML}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-xs text-slate-600 mt-3 flex items-center gap-1">
+              <Database className="w-3 h-3" />
+              Odds data from The Odds API • Updated in real-time
+            </p>
+          </div>
+        )}
 
         {/* =========================================== */}
         {/* MAIN CONTENT - Two Column Layout */}
