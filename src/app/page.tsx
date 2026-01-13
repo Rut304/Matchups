@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import { EdgeDashboardWithFiltersWrapper } from '@/components/edge'
 import { TopMatchups } from '@/components/home/TopMatchups'
+import { SharpMoneySummary } from '@/components/betting'
 
 // Top Leaderboard Data
 const topCappers = [
@@ -218,19 +219,12 @@ export default function Home() {
               </div>
             </div>
             
-            {/* Sharp vs Public */}
-            <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-              <div className="flex items-center gap-2 mb-3">
-                <Target className="w-5 h-5 text-purple-400" />
-                <span className="text-sm font-bold text-white">Sharp vs Public</span>
-              </div>
-              <p className="text-xs text-gray-400 mb-3">
-                Click into any matchup to see detailed betting splits, sharp money indicators, and contrarian plays.
-              </p>
-              <Link href="/trends" className="text-xs font-semibold text-purple-400 hover:text-purple-300">
-                View Betting Trends →
-              </Link>
-            </div>
+            {/* Sharp vs Public - LIVE DATA */}
+            <SharpMoneySummary 
+              sports={['NBA', 'NHL', 'NFL', 'NCAAB']} 
+              limit={4}
+              showHeader={true}
+            />
           </div>
         </div>
       </section>

@@ -48,6 +48,7 @@ import {
 } from 'lucide-react'
 import { getGameById, type GameDetail } from '@/lib/api/games'
 import { BoxScore, LiveGameDashboard } from '@/components/game'
+import { GameBettingSplits } from '@/components/betting/GameBettingSplits'
 import { getTeamSchedule, getTeamId, type TeamGameResult } from '@/lib/api/team-schedule'
 import { type SportKey } from '@/lib/api/espn'
 
@@ -1139,6 +1140,21 @@ export default function GameDetailPage() {
             </p>
           </div>
         )}
+
+        {/* =========================================== */}
+        {/* PUBLIC BETTING SPLITS - Action Network Data */}
+        {/* Critical for identifying sharp vs public money */}
+        {/* =========================================== */}
+        <GameBettingSplits
+          gameId={gameId}
+          sport={sport}
+          homeTeam={game.home.name}
+          awayTeam={game.away.name}
+          homeAbbr={game.home.abbr}
+          awayAbbr={game.away.abbr}
+          compact={false}
+          showTitle={true}
+        />
 
         {/* =========================================== */}
         {/* MAIN CONTENT - Two Column Layout */}

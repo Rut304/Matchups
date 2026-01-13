@@ -943,13 +943,16 @@ function transformAPIGameToDetail(apiGame: Record<string, unknown>, sport: strin
   // NOTE: ATS/Trends data requires historical tracking which isn't implemented yet
   // Do NOT show fake ATS records - better to show nothing than wrong data
   
+  // API may return scheduledAt or startTime depending on source
+  const gameTime = (apiGame.scheduledAt || apiGame.startTime || new Date().toISOString()) as string
+  
   return {
     id: apiGame.id as string,
     sport: sport.toUpperCase(),
     sportIcon: getSportEmoji(sport),
     league: `${sport.toUpperCase()} ${apiGame.week || 'Regular Season'}`,
-    date: formatGameDate(apiGame.startTime as string || new Date().toISOString()),
-    time: formatGameTime(apiGame.startTime as string || new Date().toISOString()),
+    date: formatGameDate(gameTime),
+    time: formatGameTime(gameTime),
     isHot: Boolean(apiGame.isPlayoff) || (odds?.spread ? Math.abs(odds.spread as number) <= 3 : false),
     status,
     home: {

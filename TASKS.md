@@ -9,6 +9,7 @@
 ## ✅ Game Matchup Page - WORKING
 
 The `/game/[id]` page is fully functional with real ESPN data:
+
 - ✅ Team scores from ESPN
 - ✅ Odds from ESPN DraftKings  
 - ✅ Predictor win probabilities
@@ -19,6 +20,7 @@ The `/game/[id]` page is fully functional with real ESPN data:
 - ✅ ATS Records (calculated from historical_games if ESPN doesn't provide)
 
 ### Key Files
+
 - `/src/app/game/[id]/page.tsx` - Main page
 - `/src/app/api/games/[id]/summary/route.ts` - Summary API
 - `/src/lib/api/ats-calculator.ts` - ATS calculation from historical data
