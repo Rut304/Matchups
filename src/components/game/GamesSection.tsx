@@ -242,7 +242,7 @@ export function LiveScoresTicker() {
           {liveGames.map(game => (
             <Link 
               key={game.id} 
-              href={`/game/${game.id}`}
+              href={`/game/${game.id}?sport=${game.sport?.toLowerCase() || 'nfl'}`}
               className="flex items-center gap-3 text-sm whitespace-nowrap hover:bg-white/5 px-2 py-1 rounded"
             >
               <span className="text-zinc-400">{game.awayTeam.abbreviation}</span>

@@ -260,7 +260,7 @@ function GameCard({ game }: { game: LiveGame }) {
   }
   
   return (
-    <Link href={`/game/${game.id}`} 
+    <Link href={`/game/${game.id}?sport=ncaaf`} 
           className="block p-4 rounded-xl transition-all hover:scale-[1.02]"
           style={{ 
             background: 'rgba(255,255,255,0.02)',

@@ -109,7 +109,7 @@ function GameCard({ game, compact }: { game: LiveGame; compact?: boolean }) {
   }
   
   return (
-    <Link href={`/game/${game.id}`}
+    <Link href={`/game/${game.id}?sport=${game.sport.toLowerCase()}`}
           className="block rounded-xl p-4 transition-all hover:scale-[1.02]"
           style={{ 
             background: '#0c0c14',
@@ -243,7 +243,7 @@ export async function LiveScoresTicker() {
         </span>
         
         {liveGames.map((game, idx) => (
-          <Link key={game.id} href={`/game/${game.id}`} className="flex items-center gap-3 px-4">
+          <Link key={game.id} href={`/game/${game.id}?sport=${game.sport.toLowerCase()}`} className="flex items-center gap-3 px-4">
             <span className="font-semibold" style={{ color: '#FFF' }}>
               {game.awayTeam.abbreviation} {game.awayTeam.score}
             </span>

@@ -858,7 +858,7 @@ export default function TrendDetailPage() {
                   <tr 
                     key={game.id}
                     className="border-t border-white/5 hover:bg-white/5 transition-colors cursor-pointer"
-                    onClick={() => window.location.href = `/game/${game.gameId}`}>
+                    onClick={() => window.location.href = `/game/${game.gameId}?sport=${game.sport.toLowerCase()}`}>
                     
                     <td className="px-4 py-3 text-gray-400">
                       {new Date(game.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })}
@@ -912,7 +912,7 @@ export default function TrendDetailPage() {
                     
                     <td className="text-center px-3 py-3">
                       <Link 
-                        href={`/game/${game.gameId}`}
+                        href={`/game/${game.gameId}?sport=${game.sport.toLowerCase()}`}
                         className="flex items-center justify-center gap-1 text-xs text-blue-400 hover:underline"
                         onClick={(e) => e.stopPropagation()}>
                         Box Score <ExternalLink size={10} />

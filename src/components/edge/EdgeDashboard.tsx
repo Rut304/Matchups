@@ -70,7 +70,7 @@ function ConfidenceBadge({ confidence }: { confidence: number }) {
 // Single Edge Card
 function EdgeCardComponent({ edge }: { edge: EdgeCard }) {
   return (
-    <Link href={`/game/${edge.gameId}`}>
+    <Link href={`/game/${edge.gameId}?sport=${edge.sport.toLowerCase()}`}>
       <div className="rounded-xl p-4 hover:scale-[1.02] transition-all cursor-pointer group bg-zinc-900/80 border border-white/5 shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
@@ -253,7 +253,7 @@ export function EdgeList({ edges, limit = 5 }: { edges: EdgeCard[]; limit?: numb
   return (
     <div className="space-y-2">
       {edges.slice(0, limit).map((edge, i) => (
-        <Link key={edge.gameId || i} href={`/game/${edge.gameId}`}>
+        <Link key={edge.gameId || i} href={`/game/${edge.gameId}?sport=${edge.sport.toLowerCase()}`}>
           <div className="rounded-lg p-3 hover:bg-white/5 transition-colors cursor-pointer bg-white/[0.02]">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2">

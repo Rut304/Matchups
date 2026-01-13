@@ -75,7 +75,7 @@ function ConfidenceBadge({ confidence }: { confidence: number }) {
 // Single Edge Card
 function EdgeCardComponent({ edge }: { edge: EdgeCard }) {
   return (
-    <Link href={`/game/${edge.gameId}`}>
+    <Link href={`/game/${edge.gameId}?sport=${edge.sport.toLowerCase()}`}>
       <div className="rounded-xl p-4 hover:scale-[1.02] transition-all cursor-pointer group bg-zinc-900/80 border border-white/5 shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-3">

@@ -234,7 +234,7 @@ export function TopMatchups() {
         return (
           <Link
             key={game.id}
-            href={`/game/${game.id}`}
+            href={`/game/${game.id}?sport=${game.sport.toLowerCase()}`}
             className="block group"
           >
             <div className={`p-4 rounded-xl border transition-all hover:scale-[1.02] ${
