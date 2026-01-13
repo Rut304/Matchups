@@ -1298,9 +1298,9 @@ export default function GameDetailPage() {
                 <h3 className="flex items-center gap-2 text-lg font-bold text-white">
                   <Star className="w-5 h-5 text-yellow-500" />
                   Key Players (ESPN Data)
-                  {gameSummary.predictor && (
+                  {gameSummary.predictor && typeof gameSummary.predictor.homeWinProbability === 'number' && (
                     <span className="ml-2 px-2 py-0.5 text-xs rounded bg-blue-500/20 text-blue-400">
-                      Win Prob: {game.home.abbr} {gameSummary.predictor.homeWinProbability.toFixed(1)}% | {game.away.abbr} {gameSummary.predictor.awayWinProbability.toFixed(1)}%
+                      Win Prob: {game.home.abbr} {gameSummary.predictor.homeWinProbability.toFixed(1)}% | {game.away.abbr} {(gameSummary.predictor.awayWinProbability ?? (100 - gameSummary.predictor.homeWinProbability)).toFixed(1)}%
                     </span>
                   )}
                 </h3>
