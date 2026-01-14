@@ -422,7 +422,56 @@ export default function GameDetailPage() {
     
     const fetchMultiBookOdds = async () => {
       try {
-        // Map sport to Odds API format
+        // Try Action Network first (FREE, no API key needed)
+        const actionResponse = await fetch(`/api/action-odds?sport=${sport.toUpperCase()}`)
+        
+        if (actionResponse.ok) {
+          const actionData = await actionResponse.json()
+          if (actionData.success && actionData.odds?.length > 0) {
+            // Find matching game by team name
+            const homeNameLower = game.home.name.toLowerCase()
+            const awayNameLower = game.away.name.toLowerCase()
+            
+            const matchingGame = actionData.odds.find((g: { homeTeam: string; awayTeam: string }) => 
+              g.homeTeam?.toLowerCase().includes(homeNameLower.split(' ').pop() || '') ||
+              g.awayTeam?.toLowerCase().includes(awayNameLower.split(' ').pop() || '') ||
+              homeNameLower.includes(g.homeTeam?.toLowerCase().split(' ').pop() || '') ||
+              awayNameLower.includes(g.awayTeam?.toLowerCase().split(' ').pop() || '')
+            )
+            
+            if (matchingGame?.books?.length > 0) {
+              const books: BookOdds[] = matchingGame.books.map((book: { bookId: string; bookName: string; spread?: { home: number; homeOdds: number }; total?: { line: number; overOdds: number; underOdds: number }; moneyline?: { homeOdds: number; awayOdds: number } }) => ({
+                bookmaker: book.bookName,
+                spread: book.spread?.home || 0,
+                spreadOdds: book.spread?.homeOdds || -110,
+                total: book.total?.line || 0,
+                overOdds: book.total?.overOdds || -110,
+                underOdds: book.total?.underOdds || -110,
+                homeML: book.moneyline?.homeOdds || 0,
+                awayML: book.moneyline?.awayOdds || 0,
+                lastUpdate: matchingGame.startTime
+              }))
+              
+              // Find best lines
+              const bestSpread = books.reduce((best, b) => b.spreadOdds > best.odds ? { book: b.bookmaker, line: b.spread, odds: b.spreadOdds } : best, { book: '', line: 0, odds: -999 })
+              const bestHomeML = books.reduce((best, b) => b.homeML > best.odds ? { book: b.bookmaker, odds: b.homeML } : best, { book: '', odds: -999 })
+              const bestAwayML = books.reduce((best, b) => b.awayML > best.odds ? { book: b.bookmaker, odds: b.awayML } : best, { book: '', odds: -999 })
+              
+              setMultiBookOdds({
+                books: books.slice(0, 8),
+                bestSpread,
+                bestTotal: { book: books[0]?.bookmaker || '', over: books[0]?.total || 0, overOdds: books[0]?.overOdds || -110, under: books[0]?.total || 0, underOdds: books[0]?.underOdds || -110 },
+                bestHomeML,
+                bestAwayML,
+                loading: false,
+                error: null
+              })
+              return // Success! Exit early
+            }
+          }
+        }
+        
+        // Fallback to The Odds API if Action Network didn't work
         const sportMap: Record<string, string> = {
           'NFL': 'americanfootball_nfl',
           'NBA': 'basketball_nba',
@@ -476,7 +525,7 @@ export default function GameDetailPage() {
             const bestAwayML = books.reduce((best, b) => b.awayML > best.odds ? { book: b.bookmaker, odds: b.awayML } : best, { book: '', odds: -999 })
             
             setMultiBookOdds({
-              books: books.slice(0, 8), // Top 8 books
+              books: books.slice(0, 8),
               bestSpread,
               bestTotal: { book: books[0]?.bookmaker || '', over: books[0]?.total || 0, overOdds: books[0]?.overOdds || -110, under: books[0]?.total || 0, underOdds: books[0]?.underOdds || -110 },
               bestHomeML,

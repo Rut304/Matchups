@@ -70,6 +70,37 @@ interface ActionNetworkResponse {
   }
 }
 
+// Book ID to name mapping (from Action Network API)
+const BOOK_NAMES: Record<string, string> = {
+  '15': 'Consensus',
+  '69': 'DraftKings',
+  '68': 'FanDuel',
+  '75': 'BetMGM',
+  '123': 'Caesars',
+  '76': 'PointsBet',
+  '78': 'BetRivers',
+  '131': 'ESPNBet',
+  '132': 'Fanatics',
+  '133': 'bet365',
+  '83': 'Unibet',
+}
+
+// Multi-book odds type
+export interface ActionNetworkMultiBookOdds {
+  gameId: string
+  sport: string
+  homeTeam: string
+  awayTeam: string
+  startTime: string
+  books: {
+    bookId: string
+    bookName: string
+    spread?: { home: number; away: number; homeOdds: number; awayOdds: number }
+    total?: { line: number; overOdds: number; underOdds: number }
+    moneyline?: { homeOdds: number; awayOdds: number }
+  }[]
+}
+
 // Sport to API slug mapping
 const SPORT_SLUGS: Record<string, string> = {
   'NFL': 'nfl',
@@ -486,4 +517,153 @@ export async function storeBettingSplitsInDB(
     console.error('Error storing betting splits:', error)
     throw error
   }
+}
+
+// =============================================================================
+// MULTI-BOOK ODDS
+// =============================================================================
+
+/**
+ * Extract multi-book odds from Action Network game data
+ * Returns odds from all available sportsbooks for comparison
+ */
+export function extractMultiBookOdds(
+  game: ActionNetworkGame,
+  sport: string
+): ActionNetworkMultiBookOdds | null {
+  const homeTeam = game.teams?.find(t => t.id === game.home_team_id)
+  const awayTeam = game.teams?.find(t => t.id === game.away_team_id)
+
+  if (!homeTeam || !awayTeam || !game.markets) return null
+
+  const books: ActionNetworkMultiBookOdds['books'] = []
+
+  // Iterate through all books in markets
+  for (const [bookId, marketData] of Object.entries(game.markets)) {
+    const bookName = BOOK_NAMES[bookId] || `Book ${bookId}`
+    const event = marketData.event
+    if (!event) continue
+
+    const bookOdds: ActionNetworkMultiBookOdds['books'][0] = {
+      bookId,
+      bookName,
+    }
+
+    // Extract spread
+    if (event.spread) {
+      const homeSpread = event.spread.find(s => s.side === 'home')
+      const awaySpread = event.spread.find(s => s.side === 'away')
+      if (homeSpread && awaySpread) {
+        bookOdds.spread = {
+          home: homeSpread.value,
+          away: awaySpread.value,
+          homeOdds: homeSpread.odds,
+          awayOdds: awaySpread.odds,
+        }
+      }
+    }
+
+    // Extract total
+    if (event.total) {
+      const over = event.total.find(t => t.side === 'over')
+      const under = event.total.find(t => t.side === 'under')
+      if (over && under) {
+        bookOdds.total = {
+          line: over.value,
+          overOdds: over.odds,
+          underOdds: under.odds,
+        }
+      }
+    }
+
+    // Extract moneyline
+    if (event.moneyline) {
+      const homeML = event.moneyline.find(m => m.side === 'home')
+      const awayML = event.moneyline.find(m => m.side === 'away')
+      if (homeML && awayML) {
+        bookOdds.moneyline = {
+          homeOdds: homeML.odds,
+          awayOdds: awayML.odds,
+        }
+      }
+    }
+
+    // Only add if we have at least one market
+    if (bookOdds.spread || bookOdds.total || bookOdds.moneyline) {
+      books.push(bookOdds)
+    }
+  }
+
+  if (books.length === 0) return null
+
+  return {
+    gameId: `an-${game.id}`,
+    sport: sport.toUpperCase(),
+    homeTeam: homeTeam.full_name,
+    awayTeam: awayTeam.full_name,
+    startTime: game.start_time,
+    books,
+  }
+}
+
+/**
+ * Fetch multi-book odds for all games in a sport
+ */
+export async function fetchMultiBookOdds(
+  sport: string,
+  date?: Date
+): Promise<ActionNetworkMultiBookOdds[]> {
+  const games = await fetchActionNetworkGames(sport, date)
+  
+  const oddsData: ActionNetworkMultiBookOdds[] = []
+  for (const game of games) {
+    const odds = extractMultiBookOdds(game, sport)
+    if (odds) {
+      oddsData.push(odds)
+    }
+  }
+  
+  return oddsData
+}
+
+/**
+ * Fetch multi-book odds for NFL by week
+ */
+export async function fetchNFLMultiBookOddsByWeek(
+  week: number,
+  seasonType: 'pre' | 'reg' | 'post' = 'reg',
+  season?: number
+): Promise<ActionNetworkMultiBookOdds[]> {
+  const games = await fetchNFLGamesByWeek(week, seasonType, season)
+  
+  const oddsData: ActionNetworkMultiBookOdds[] = []
+  for (const game of games) {
+    const odds = extractMultiBookOdds(game, 'NFL')
+    if (odds) {
+      oddsData.push(odds)
+    }
+  }
+  
+  return oddsData
+}
+
+/**
+ * Fetch multi-book odds for CFB by week
+ */
+export async function fetchCFBMultiBookOddsByWeek(
+  week: number,
+  seasonType: 'reg' | 'post' = 'reg',
+  season?: number
+): Promise<ActionNetworkMultiBookOdds[]> {
+  const games = await fetchCFBGamesByWeek(week, seasonType, season)
+  
+  const oddsData: ActionNetworkMultiBookOdds[] = []
+  for (const game of games) {
+    const odds = extractMultiBookOdds(game, 'NCAAF')
+    if (odds) {
+      oddsData.push(odds)
+    }
+  }
+  
+  return oddsData
 }
