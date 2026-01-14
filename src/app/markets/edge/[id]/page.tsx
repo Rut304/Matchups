@@ -22,285 +22,16 @@ import {
   Calendar,
   CheckCircle,
   XCircle,
-  Info
+  Info,
+  Loader2
 } from 'lucide-react'
+import { fetchEdgeSignalById, type EdgeDetailData } from '@/lib/services/edge-service'
 
 /**
  * Edge Signal Detail Page
  * Shows comprehensive analysis backing each edge signal
+ * Uses the same data source as the list page for consistent IDs
  */
-
-interface PricePoint {
-  timestamp: string
-  price: number
-  volume: number
-}
-
-interface EdgeDetailData {
-  id: string
-  type: 'bias' | 'volume' | 'news' | 'arbitrage' | 'time'
-  market: string
-  platform: 'polymarket' | 'kalshi'
-  currentPrice: number
-  fairValue: number
-  edge: number
-  confidence: number
-  signal: 'buy' | 'sell' | 'watch'
-  reason: string
-  evidence: string
-  category: string
-  volume24h: number
-  expiresAt: string
-  
-  // Detailed analysis
-  methodology: string
-  historicalAccuracy: number
-  sampleSize: number
-  lastBacktest: string
-  
-  // Supporting data
-  priceHistory: PricePoint[]
-  relatedNews: {
-    headline: string
-    source: string
-    timestamp: string
-    impact: string
-  }[]
-  crossPlatformPrices: {
-    platform: string
-    price: number
-    volume: number
-  }[]
-  
-  // Academic backing
-  researchBasis: {
-    paper: string
-    authors: string
-    year: number
-    finding: string
-  }[]
-}
-
-// Mock detailed data for each edge type
-const edgeDetails: Record<string, EdgeDetailData> = {
-  '1': {
-    id: '1',
-    type: 'bias',
-    market: 'Trump wins 2028 Republican Primary',
-    platform: 'polymarket',
-    currentPrice: 8,
-    fairValue: 4.5,
-    edge: 3.5,
-    confidence: 78,
-    signal: 'sell',
-    reason: 'Favorite-Longshot Bias Detected',
-    evidence: 'Market prices at 8% but historical analysis of early primary markets shows 3%+ overpricing for frontrunners 2+ years out.',
-    category: 'Politics',
-    volume24h: 2400000,
-    expiresAt: 'November 2028',
-    
-    methodology: `This edge is detected using the Favorite-Longshot Bias (FLB) model. FLB is one of the most well-documented anomalies in prediction markets and sports betting. At extreme probabilities (<15% or >85%), markets systematically misprice outcomes due to cognitive biases including:
-
-1. **Overweighting of small probabilities** - Bettors overpay for longshot outcomes due to the psychological appeal of large potential payouts
-2. **Risk preference distortion** - At low probabilities, participants exhibit risk-seeking behavior
-3. **Entertainment value** - Markets include a "hope premium" for exciting but unlikely outcomes
-
-Our model applies probability calibration based on historical data to estimate true fair value.`,
-    
-    historicalAccuracy: 58.4,
-    sampleSize: 847,
-    lastBacktest: 'January 2025',
-    
-    priceHistory: [
-      { timestamp: '30d ago', price: 5, volume: 1200000 },
-      { timestamp: '25d ago', price: 6, volume: 1400000 },
-      { timestamp: '20d ago', price: 7, volume: 1800000 },
-      { timestamp: '15d ago', price: 8, volume: 2000000 },
-      { timestamp: '10d ago', price: 9, volume: 2200000 },
-      { timestamp: '5d ago', price: 8, volume: 2100000 },
-      { timestamp: 'Now', price: 8, volume: 2400000 },
-    ],
-    
-    relatedNews: [
-      {
-        headline: 'Early 2028 primary polling shows fragmented Republican field',
-        source: 'Politico',
-        timestamp: '2 days ago',
-        impact: 'Neutral - No clear frontrunner emerged'
-      },
-      {
-        headline: 'GOP donor activity remains quiet ahead of 2028 cycle',
-        source: 'WSJ',
-        timestamp: '5 days ago',
-        impact: 'Bullish for uncertainty - supports lower probability'
-      }
-    ],
-    
-    crossPlatformPrices: [
-      { platform: 'Polymarket', price: 8, volume: 2400000 },
-      { platform: 'Kalshi', price: 7, volume: 890000 },
-      { platform: 'PredictIt (implied)', price: 9, volume: 340000 }
-    ],
-    
-    researchBasis: [
-      {
-        paper: 'The Favorite-Longshot Bias in Sequential Parimutuel Betting with Non-Expected Utility Players',
-        authors: 'Page & Clemen',
-        year: 2013,
-        finding: 'Documented systematic overpricing of longshots across multiple betting markets, with bias most pronounced at extreme probabilities.'
-      },
-      {
-        paper: 'Probability Calibration in Prediction Markets',
-        authors: 'Rothschild & Sethi',
-        year: 2018,
-        finding: 'Prediction markets exhibit FLB similar to traditional betting markets, particularly for political outcomes.'
-      }
-    ]
-  },
-  '2': {
-    id: '2',
-    type: 'volume',
-    market: 'Fed Cuts Rates in January 2026',
-    platform: 'kalshi',
-    currentPrice: 12,
-    fairValue: 18,
-    edge: -6,
-    confidence: 72,
-    signal: 'buy',
-    reason: 'Smart Money Volume Spike',
-    evidence: '340% volume increase in last 4 hours without corresponding news. Pattern matches informed trading before FOMC announcements.',
-    category: 'Economics',
-    volume24h: 890000,
-    expiresAt: 'January 29, 2026',
-    
-    methodology: `Volume spike detection identifies potential informed trading activity. This strategy is based on market microstructure theory which suggests that informed traders often move prices through volume before news becomes public.
-
-Key indicators we monitor:
-1. **Volume/Price Divergence** - High volume without price movement suggests accumulation
-2. **Time-of-Day Patterns** - Unusual activity outside market hours or before scheduled events
-3. **Order Flow Analysis** - Large block trades vs. retail-sized orders
-
-A 340% volume spike with <2% price change strongly suggests position building by informed participants.`,
-    
-    historicalAccuracy: 54.2,
-    sampleSize: 234,
-    lastBacktest: 'January 2025',
-    
-    priceHistory: [
-      { timestamp: '8h ago', price: 11, volume: 50000 },
-      { timestamp: '6h ago', price: 11, volume: 65000 },
-      { timestamp: '4h ago', price: 12, volume: 180000 },
-      { timestamp: '2h ago', price: 12, volume: 290000 },
-      { timestamp: 'Now', price: 12, volume: 890000 },
-    ],
-    
-    relatedNews: [
-      {
-        headline: 'Fed officials maintain data-dependent stance',
-        source: 'Reuters',
-        timestamp: '3 hours ago',
-        impact: 'Neutral - Standard Fed communication'
-      },
-      {
-        headline: 'Jobs report preview: Economists expect steady employment',
-        source: 'Bloomberg',
-        timestamp: '6 hours ago',
-        impact: 'Neutral - Consensus expectations'
-      }
-    ],
-    
-    crossPlatformPrices: [
-      { platform: 'Kalshi', price: 12, volume: 890000 },
-      { platform: 'Polymarket (similar)', price: 14, volume: 1200000 },
-    ],
-    
-    researchBasis: [
-      {
-        paper: 'Market Microstructure Theory',
-        authors: 'O\'Hara',
-        year: 1995,
-        finding: 'Informed traders systematically affect prices through volume; uninformed traders cannot distinguish informed from noise trading.'
-      },
-      {
-        paper: 'Volume and Price Patterns Around Events',
-        authors: 'Garfinkel & Sokobin',
-        year: 2006,
-        finding: 'Abnormal volume precedes news announcements by 1-5 days on average, suggesting information leakage.'
-      }
-    ]
-  },
-  '3': {
-    id: '3',
-    type: 'news',
-    market: 'Ukraine Ceasefire by March 2026',
-    platform: 'polymarket',
-    currentPrice: 24,
-    fairValue: 32,
-    edge: -8,
-    confidence: 68,
-    signal: 'buy',
-    reason: 'Lagging News Integration',
-    evidence: 'Market slow to integrate Reuters report on peace talks resumption. Similar patterns historically resolved within 4-6 hours.',
-    category: 'World Events',
-    volume24h: 1200000,
-    expiresAt: 'March 31, 2026',
-    
-    methodology: `News lag detection identifies when markets are slow to incorporate new information. This edge exists because:
-
-1. **Information Asymmetry** - Not all market participants see news simultaneously
-2. **Processing Time** - Complex news requires time to interpret
-3. **Liquidity Gaps** - Thin markets may take longer to adjust
-
-We track news sources in real-time and measure price responses. When significant news is released but prices haven't moved proportionally, an edge exists for quick actors.`,
-    
-    historicalAccuracy: 61.8,
-    sampleSize: 156,
-    lastBacktest: 'January 2025',
-    
-    priceHistory: [
-      { timestamp: '2h ago', price: 22, volume: 800000 },
-      { timestamp: '1.5h ago', price: 23, volume: 850000 },
-      { timestamp: '1h ago', price: 24, volume: 920000 },
-      { timestamp: '30m ago', price: 24, volume: 1100000 },
-      { timestamp: 'Now', price: 24, volume: 1200000 },
-    ],
-    
-    relatedNews: [
-      {
-        headline: 'Ukraine-Russia officials resume Geneva negotiations',
-        source: 'Reuters',
-        timestamp: '23 min ago',
-        impact: 'High - Direct ceasefire talks are material'
-      },
-      {
-        headline: 'European officials express cautious optimism on peace process',
-        source: 'BBC',
-        timestamp: '45 min ago',
-        impact: 'Medium - Supportive diplomatic signals'
-      }
-    ],
-    
-    crossPlatformPrices: [
-      { platform: 'Polymarket', price: 24, volume: 1200000 },
-      { platform: 'Kalshi', price: 26, volume: 450000 },
-    ],
-    
-    researchBasis: [
-      {
-        paper: 'Information Aggregation in Markets',
-        authors: 'Wolfers & Zitzewitz',
-        year: 2004,
-        finding: 'Prediction markets aggregate information efficiently but with measurable lag, typically 15-120 minutes for major news.'
-      },
-      {
-        paper: 'The Speed of Information Revelation',
-        authors: 'Asparouhova & Bossaerts',
-        year: 2017,
-        finding: 'Market efficiency increases with liquidity; thin markets may take hours to fully incorporate news.'
-      }
-    ]
-  }
-}
 
 const typeConfig = {
   bias: { color: '#00FF88', bg: 'bg-green-500/10', border: 'border-green-500/30', icon: Target, label: 'Bias Edge' },
@@ -317,16 +48,23 @@ export default function EdgeDetailPage() {
   const [loading, setLoading] = useState(true)
   
   useEffect(() => {
-    // In production, fetch from API
-    const edgeData = edgeDetails[id] || null
-    setData(edgeData)
-    setLoading(false)
+    // Fetch edge data using shared service (same data source as list page)
+    const loadData = async () => {
+      setLoading(true)
+      const edgeData = await fetchEdgeSignalById(id)
+      setData(edgeData)
+      setLoading(false)
+    }
+    loadData()
   }, [id])
   
   if (loading) {
     return (
       <div className="min-h-screen pt-20 pb-12 bg-[#050508] flex items-center justify-center">
-        <div className="text-gray-400">Loading edge analysis...</div>
+        <div className="flex items-center gap-3 text-gray-400">
+          <Loader2 className="w-5 h-5 animate-spin" />
+          Loading edge analysis...
+        </div>
       </div>
     )
   }
