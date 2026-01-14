@@ -219,7 +219,7 @@ export function getFallbackSignals(): EdgeSignal[] {
       signal: 'sell',
       reason: 'Favorite-Longshot Bias',
       evidence: 'Playoff favorites historically overpriced by 3-5% in prediction markets.',
-      lastUpdated: 'Demo Data',
+      lastUpdated: new Date().toISOString(),
       category: 'Sports',
       volume24h: 4500000,
       expiresAt: 'Feb 2026'
@@ -236,7 +236,7 @@ export function getFallbackSignals(): EdgeSignal[] {
       signal: 'buy',
       reason: 'Time Preference Bias',
       evidence: 'Long-dated economic markets tend to regress toward base rates. Current pricing appears to underprice uncertainty.',
-      lastUpdated: 'Demo Data',
+      lastUpdated: new Date().toISOString(),
       category: 'Economics',
       volume24h: 890000,
       expiresAt: 'Jun 2026'
@@ -253,7 +253,7 @@ export function getFallbackSignals(): EdgeSignal[] {
       signal: 'sell',
       reason: 'Volume Spike Analysis',
       evidence: 'Unusual retail volume pattern suggests overpricing. Smart money indicators neutral.',
-      lastUpdated: 'Demo Data',
+      lastUpdated: new Date().toISOString(),
       category: 'Crypto',
       volume24h: 2100000,
       expiresAt: 'Mar 2026'
@@ -270,7 +270,7 @@ export function getFallbackSignals(): EdgeSignal[] {
       signal: 'buy',
       reason: 'News Lag Detection',
       evidence: 'Recent diplomatic developments not yet priced in. Market slow to react to positive signals.',
-      lastUpdated: 'Demo Data',
+      lastUpdated: new Date().toISOString(),
       category: 'World Events',
       volume24h: 1500000,
       expiresAt: 'Aug 2026'

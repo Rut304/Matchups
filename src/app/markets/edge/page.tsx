@@ -142,14 +142,7 @@ export default function EdgePage() {
             </div>
           </div>
           
-          {/* Demo Data Banner */}
-          <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center gap-3">
-            <Info className="w-5 h-5 text-amber-400 flex-shrink-0" />
-            <div className="text-sm text-amber-200">
-              <span className="font-bold">Demo Mode:</span> This page displays example edge signals for illustration purposes. 
-              Real-time data integration coming soon.
-            </div>
-          </div>
+
         </div>
 
         {/* Quick Stats */}
