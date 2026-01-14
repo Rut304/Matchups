@@ -14,13 +14,14 @@ const cache = new Map<string, { data: unknown; timestamp: number }>()
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
 export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+  
+  // Support both our sport format and Odds API format
+  const sport = searchParams.get('sport') || 'americanfootball_nfl'
+  const markets = searchParams.get('markets') || 'spreads,totals,h2h'
+  const live = searchParams.get('live') === 'true'
+  
   try {
-    const { searchParams } = new URL(request.url)
-    
-    // Support both our sport format and Odds API format
-    const sport = searchParams.get('sport') || 'americanfootball_nfl'
-    const markets = searchParams.get('markets') || 'spreads,totals,h2h'
-    const live = searchParams.get('live') === 'true'
     
     // Check cache
     const cacheKey = `${sport}-${markets}-${live}`
