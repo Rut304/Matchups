@@ -345,9 +345,11 @@ export async function GET(
     // Extract predictor/win probability
     let predictor: GameSummaryResponse['predictor'] = null
     if (data.predictor) {
+      const homeProb = parseFloat(data.predictor.homeTeam?.gameProjection) || 50
+      const awayProb = parseFloat(data.predictor.awayTeam?.gameProjection) || 50
       predictor = {
-        homeWinProbability: data.predictor.homeTeam?.gameProjection || 50,
-        awayWinProbability: data.predictor.awayTeam?.gameProjection || 50
+        homeWinProbability: homeProb,
+        awayWinProbability: awayProb
       }
     }
 

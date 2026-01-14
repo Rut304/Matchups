@@ -428,16 +428,30 @@ export default function GameDetailPage() {
         if (actionResponse.ok) {
           const actionData = await actionResponse.json()
           if (actionData.success && actionData.odds?.length > 0) {
-            // Find matching game by team name
-            const homeNameLower = game.home.name.toLowerCase()
-            const awayNameLower = game.away.name.toLowerCase()
+            // Improved matching: match by BOTH team names and date
+            const gameDate = new Date(game.time || game.scheduledAt).toDateString()
             
-            const matchingGame = actionData.odds.find((g: { homeTeam: string; awayTeam: string }) => 
-              g.homeTeam?.toLowerCase().includes(homeNameLower.split(' ').pop() || '') ||
-              g.awayTeam?.toLowerCase().includes(awayNameLower.split(' ').pop() || '') ||
-              homeNameLower.includes(g.homeTeam?.toLowerCase().split(' ').pop() || '') ||
-              awayNameLower.includes(g.awayTeam?.toLowerCase().split(' ').pop() || '')
-            )
+            // Helper to extract team identifier (last word, e.g., "Rockets" from "Houston Rockets")
+            const getTeamKey = (name: string) => name.toLowerCase().split(' ').pop() || ''
+            
+            const homeKey = getTeamKey(game.home.name)
+            const awayKey = getTeamKey(game.away.name)
+            
+            const matchingGame = actionData.odds.find((g: { homeTeam: string; awayTeam: string; startTime: string }) => {
+              const gHomeKey = getTeamKey(g.homeTeam || '')
+              const gAwayKey = getTeamKey(g.awayTeam || '')
+              const gDate = new Date(g.startTime).toDateString()
+              
+              // Must match BOTH teams (home to home, away to away) OR same date + one team
+              const teamsMatch = (homeKey === gHomeKey && awayKey === gAwayKey) ||
+                                 (homeKey.includes(gHomeKey) && awayKey.includes(gAwayKey)) ||
+                                 (gHomeKey.includes(homeKey) && gAwayKey.includes(awayKey))
+              const sameDate = gameDate === gDate
+              const oneTeamMatch = homeKey === gHomeKey || awayKey === gAwayKey ||
+                                   homeKey.includes(gHomeKey) || awayKey.includes(gAwayKey)
+              
+              return teamsMatch || (sameDate && oneTeamMatch)
+            })
             
             if (matchingGame?.books?.length > 0) {
               const books: BookOdds[] = matchingGame.books.map((book: { bookId: string; bookName: string; spread?: { home: number; homeOdds: number }; total?: { line: number; overOdds: number; underOdds: number }; moneyline?: { homeOdds: number; awayOdds: number } }) => ({
@@ -1347,9 +1361,9 @@ export default function GameDetailPage() {
                 <h3 className="flex items-center gap-2 text-lg font-bold text-white">
                   <Star className="w-5 h-5 text-yellow-500" />
                   Key Players (ESPN Data)
-                  {gameSummary.predictor && typeof gameSummary.predictor.homeWinProbability === 'number' && (
+                  {gameSummary.predictor && typeof gameSummary.predictor.homeWinProbability !== 'undefined' && (
                     <span className="ml-2 px-2 py-0.5 text-xs rounded bg-blue-500/20 text-blue-400">
-                      Win Prob: {game.home.abbr} {gameSummary.predictor.homeWinProbability.toFixed(1)}% | {game.away.abbr} {(gameSummary.predictor.awayWinProbability ?? (100 - gameSummary.predictor.homeWinProbability)).toFixed(1)}%
+                      Win Prob: {game.home.abbr} {Number(gameSummary.predictor.homeWinProbability).toFixed(1)}% | {game.away.abbr} {Number(gameSummary.predictor.awayWinProbability ?? (100 - Number(gameSummary.predictor.homeWinProbability))).toFixed(1)}%
                     </span>
                   )}
                 </h3>
