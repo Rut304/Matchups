@@ -100,18 +100,26 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Odds API error:', error)
     
-    // Check if it's a rate limit error
-    if (error instanceof Error && error.message.includes('429')) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    
+    // Check if it's a rate limit or quota error - return empty data gracefully
+    if (errorMessage.includes('429') || errorMessage.includes('401') || errorMessage.includes('quota') || errorMessage.includes('OUT_OF_USAGE')) {
+      // Return empty odds array instead of error - don't break the UI
       return NextResponse.json({
-        success: false,
-        error: 'Rate limit exceeded. Free tier allows 500 requests/month.',
-        hint: 'Try again later or upgrade your plan'
-      }, { status: 429 })
+        success: true,
+        odds: [],
+        cached: false,
+        sport: searchParams.get('sport') || 'unknown',
+        markets: (searchParams.get('markets') || 'spreads,totals,h2h').split(','),
+        gameCount: 0,
+        quotaExhausted: true,
+        timestamp: new Date().toISOString()
+      })
     }
 
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch odds'
+      error: errorMessage
     }, { status: 500 })
   }
 }
