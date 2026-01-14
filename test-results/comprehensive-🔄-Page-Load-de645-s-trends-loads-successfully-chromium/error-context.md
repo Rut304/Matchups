@@ -1,0 +1,228 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - link "Matchups 100% FREE" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img [ref=e7]
+        - generic [ref=e9]:
+          - generic [ref=e10]: Matchups
+          - generic [ref=e11]: 100% FREE
+      - generic [ref=e12]:
+        - button "Sports" [ref=e14]:
+          - text: Sports
+          - img [ref=e15]
+        - button "Markets" [ref=e18]:
+          - img [ref=e19]
+          - text: Markets
+          - img [ref=e21]
+        - button "Tools" [ref=e24]:
+          - text: Tools
+          - img [ref=e25]
+        - link "Scores" [ref=e27] [cursor=pointer]:
+          - /url: /scores
+          - img [ref=e28]
+          - text: Scores
+        - link "Check the \"Experts\"" [ref=e30] [cursor=pointer]:
+          - /url: /leaderboard
+          - img [ref=e31]
+          - generic [ref=e37]: Check the "Experts"
+      - generic [ref=e38]:
+        - link "The Edge" [ref=e39] [cursor=pointer]:
+          - /url: /markets/edge
+          - img [ref=e40]
+          - generic [ref=e44]: The Edge
+        - link "Sus Plays" [ref=e45] [cursor=pointer]:
+          - /url: /sus
+          - img [ref=e46]
+          - generic [ref=e48]: Sus Plays
+        - link "Sign In" [ref=e49] [cursor=pointer]:
+          - /url: /auth
+          - img [ref=e50]
+          - generic [ref=e53]: Sign In
+  - main [ref=e55]:
+    - generic [ref=e56]:
+      - generic [ref=e59]:
+        - generic [ref=e60]:
+          - generic [ref=e61]:
+            - generic [ref=e62]: 📊
+            - generic [ref=e63]:
+              - heading "Betting Trends" [level=1] [ref=e64]
+              - paragraph [ref=e65]: AI-powered trend analysis for smarter betting decisions
+          - generic [ref=e66]:
+            - link "📋 All Trends Database" [ref=e67] [cursor=pointer]:
+              - /url: /trends/all
+            - button [ref=e68]:
+              - img [ref=e69]
+        - generic [ref=e75]:
+          - button "Today's Games" [ref=e76]:
+            - img [ref=e77]
+            - text: Today's Games
+          - button "Historical Data" [ref=e79]:
+            - img [ref=e80]
+            - text: Historical Data
+        - generic [ref=e84]:
+          - button [ref=e85]:
+            - img [ref=e86]
+          - generic [ref=e88]:
+            - img [ref=e89]
+            - generic [ref=e91]: Today
+            - generic [ref=e92]: LIVE
+          - button [ref=e93]:
+            - img [ref=e94]
+        - generic [ref=e96]:
+          - generic [ref=e97]:
+            - button "🎯 All" [ref=e98]:
+              - generic [ref=e99]: 🎯
+              - text: All
+            - button "🏈 nfl" [ref=e100]:
+              - generic [ref=e101]: 🏈
+              - text: nfl
+            - button "🏀 nba" [ref=e102]:
+              - generic [ref=e103]: 🏀
+              - text: nba
+            - button "🏒 nhl" [ref=e104]:
+              - generic [ref=e105]: 🏒
+              - text: nhl
+            - button "⚾ mlb" [ref=e106]:
+              - generic [ref=e107]: ⚾
+              - text: mlb
+            - button "🏈 ncaaf" [ref=e108]:
+              - generic [ref=e109]: 🏈
+              - text: ncaaf
+            - button "🏀 ncaab" [ref=e110]:
+              - generic [ref=e111]: 🏀
+              - text: ncaab
+          - generic [ref=e112]:
+            - button "All Types" [ref=e113]
+            - button "ATS" [ref=e114]
+            - button "O/U" [ref=e115]
+            - button "ML" [ref=e116]
+      - generic [ref=e118]:
+        - generic [ref=e119]:
+          - heading "1 Upcoming Game with Trend Analysis" [level=2] [ref=e120]
+          - generic [ref=e121]: All times Eastern
+        - generic [ref=e122]:
+          - generic [ref=e123]:
+            - generic [ref=e124]: 🏀
+            - generic [ref=e125]:
+              - generic [ref=e126]:
+                - img "Trail Blazers" [ref=e127]
+                - generic [ref=e128]: POR
+                - generic [ref=e129]: 19-21
+              - generic [ref=e130]: "@"
+              - generic [ref=e131]:
+                - img "Warriors" [ref=e132]
+                - generic [ref=e133]: GS
+                - generic [ref=e134]: 21-19
+            - generic [ref=e135]:
+              - generic [ref=e137]:
+                - img [ref=e138]
+                - text: 11:00 PM ET
+              - link "Analysis" [ref=e141] [cursor=pointer]:
+                - /url: /game/401810425?sport=nba
+                - text: Analysis
+                - img [ref=e142]
+          - generic [ref=e144]:
+            - generic [ref=e145]:
+              - generic [ref=e146]:
+                - generic [ref=e147]: BEST
+                - generic [ref=e148]: EDGE
+              - generic [ref=e149]:
+                - generic [ref=e150]:
+                  - generic [ref=e151]: ATS
+                  - generic [ref=e152]:
+                    - img [ref=e153]
+                    - text: HOT
+                  - generic [ref=e155]: PROPRIETARY
+                - paragraph [ref=e156]: Triple Threat System
+            - generic [ref=e157]:
+              - generic [ref=e158]:
+                - generic [ref=e159]: 72-28
+                - generic [ref=e160]: +28.5% ROI
+              - generic [ref=e161]:
+                - generic [ref=e162]: PICK
+                - generic [ref=e163]: GS -3.5
+          - generic [ref=e164]:
+            - generic [ref=e166]: +3 MORE TRENDS APPLY
+            - generic [ref=e167]:
+              - generic [ref=e168]:
+                - generic [ref=e169]: ATS
+                - generic [ref=e170]: Rest Edge Multiplier
+                - generic [ref=e171]: 98-52
+                - generic [ref=e172]: GS -3.5
+              - generic [ref=e173]:
+                - generic [ref=e174]: ATS
+                - generic [ref=e175]: The Timezone Tax
+                - generic [ref=e176]: 108-62
+                - generic [ref=e177]: GS -3.5
+              - generic [ref=e178]:
+                - generic [ref=e179]: ATS
+                - generic [ref=e180]: The Letdown Sandwich
+                - generic [ref=e181]: 88-48
+                - generic [ref=e182]: GS -3.5
+  - contentinfo [ref=e184]:
+    - generic [ref=e185]:
+      - generic [ref=e186]:
+        - generic [ref=e187]:
+          - heading "Sports" [level=4] [ref=e188]
+          - generic [ref=e189]:
+            - link "🏈 NFL" [ref=e190] [cursor=pointer]:
+              - /url: /nfl
+            - link "🏀 NBA" [ref=e191] [cursor=pointer]:
+              - /url: /nba
+            - link "🏒 NHL" [ref=e192] [cursor=pointer]:
+              - /url: /nhl
+            - link "⚾ MLB" [ref=e193] [cursor=pointer]:
+              - /url: /mlb
+        - generic [ref=e194]:
+          - heading "Features" [level=4] [ref=e195]
+          - generic [ref=e196]:
+            - link "📈 Markets" [ref=e197] [cursor=pointer]:
+              - /url: /markets
+            - link "📊 Trends" [ref=e198] [cursor=pointer]:
+              - /url: /trends
+            - link "🧾 Expert Tracker" [ref=e199] [cursor=pointer]:
+              - /url: /leaderboard
+        - generic [ref=e200]:
+          - heading "Company" [level=4] [ref=e201]
+          - generic [ref=e202]:
+            - link "About" [ref=e203] [cursor=pointer]:
+              - /url: "#"
+            - link "Contact" [ref=e204] [cursor=pointer]:
+              - /url: "#"
+            - link "Privacy" [ref=e205] [cursor=pointer]:
+              - /url: "#"
+            - link "Terms" [ref=e206] [cursor=pointer]:
+              - /url: "#"
+        - generic [ref=e207]:
+          - heading "Tools" [level=4] [ref=e208]
+          - generic [ref=e209]:
+            - link "Admin Dashboard" [ref=e210] [cursor=pointer]:
+              - /url: /admin
+              - img [ref=e211]
+              - text: Admin Dashboard
+            - link "📄 Documentation" [ref=e214] [cursor=pointer]:
+              - /url: /admin/docs
+      - generic [ref=e215]:
+        - generic [ref=e216]:
+          - generic [ref=e218]: ⚡
+          - generic [ref=e219]: Matchups
+        - paragraph [ref=e220]: © 2026 Matchups. Sports betting analysis & trends.
+  - generic [ref=e225] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e226]:
+      - img [ref=e227]
+    - generic [ref=e230]:
+      - button "Open issues overlay" [ref=e231]:
+        - generic [ref=e232]:
+          - generic [ref=e233]: "1"
+          - generic [ref=e234]: "2"
+        - generic [ref=e235]:
+          - text: Issue
+          - generic [ref=e236]: s
+      - button "Collapse issues badge" [ref=e237]:
+        - img [ref=e238]
+  - alert [ref=e240]
+```

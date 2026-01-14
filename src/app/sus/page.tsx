@@ -70,6 +70,28 @@ interface SusPlay {
 
 // Mock data - In production this would come from Twitter/X API scraping
 const mockSusPlays: SusPlay[] = [
+  // NEW: Texans XP Miss - Under hits exactly
+  {
+    id: 'texans-xp-2026',
+    sport: 'nfl',
+    playerName: 'Ka\'imi Fairbairn',
+    team: 'HOU',
+    opponent: 'N/A',
+    gameDate: '2026-01-12',
+    description: 'Texans miss extra point in WILD fashion. Game O/U was 36.5 - the missed XP caused the under to hit. Sports gamblers demanding NFL investigate. "We have never seen a missed kick like this."',
+    susType: 'total',
+    relatedBet: 'Under 36.5',
+    videoUrl: '#',
+    twitterUrl: 'https://x.com/mlfootball/status/2010935098791559253',
+    views: 1200000,
+    susScore: 95,
+    votes: { sus: 8920, legit: 591 },
+    comments: 837,
+    trending: true,
+    verified: false,
+    postedAt: '1 hour ago',
+    source: '@MLFootball'
+  },
   // NEW: From @RIGGEDFORVEGAS
   {
     id: 'rigged-1',
