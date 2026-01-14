@@ -609,10 +609,12 @@ export function Navbar() {
       {/* Mobile Navigation - Full Screen */}
       <div 
         className={cn(
-          "lg:hidden fixed inset-x-0 top-16 bottom-0 bg-[#0a0a12] backdrop-blur-xl overflow-y-auto transition-transform duration-300 ease-in-out",
-          mobileMenuOpen ? "translate-x-0" : "translate-x-full"
+          "lg:hidden fixed inset-0 top-16 bg-[#0a0a12] overflow-y-auto transition-all duration-300 ease-in-out",
+          mobileMenuOpen 
+            ? "opacity-100 visible" 
+            : "opacity-0 invisible pointer-events-none"
         )}
-        style={{ zIndex: 100 }}
+        style={{ zIndex: 9999 }}
       >
         <div className="px-4 py-6 space-y-6">
             {/* FREE Banner */}
