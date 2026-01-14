@@ -314,16 +314,36 @@ export default function EdgeDetailPage() {
   const params = useParams()
   const id = params.id as string
   const [data, setData] = useState<EdgeDetailData | null>(null)
+  const [loading, setLoading] = useState(true)
   
   useEffect(() => {
     // In production, fetch from API
-    setData(edgeDetails[id] || null)
+    const edgeData = edgeDetails[id] || null
+    setData(edgeData)
+    setLoading(false)
   }, [id])
   
-  if (!data) {
+  if (loading) {
     return (
       <div className="min-h-screen pt-20 pb-12 bg-[#050508] flex items-center justify-center">
         <div className="text-gray-400">Loading edge analysis...</div>
+      </div>
+    )
+  }
+  
+  if (!data) {
+    return (
+      <div className="min-h-screen pt-20 pb-12 bg-[#050508] flex flex-col items-center justify-center">
+        <AlertTriangle className="w-12 h-12 text-red-400 mb-4" />
+        <h1 className="text-xl font-bold text-white mb-2">Edge Signal Not Found</h1>
+        <p className="text-gray-400 mb-6">This edge signal may have expired or doesn&apos;t exist.</p>
+        <Link 
+          href="/markets/edge"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to The Edge
+        </Link>
       </div>
     )
   }

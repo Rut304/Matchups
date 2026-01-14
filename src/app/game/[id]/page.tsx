@@ -213,7 +213,7 @@ export default function GameDetailPage() {
       spreadConfidence: number
       total: string
       totalConfidence: number
-      sharpestPick: string
+      sharpestPick: string | { betType: string; pick: string; confidence: number; reasoning: string }
     }
     clv?: { grade: string; description: string }
     sharpMoney?: { side: string; reverseLineMovement: boolean; strength: string }
@@ -429,7 +429,7 @@ export default function GameDetailPage() {
           const actionData = await actionResponse.json()
           if (actionData.success && actionData.odds?.length > 0) {
             // Improved matching: match by BOTH team names and date
-            const gameDate = new Date(game.time || game.scheduledAt).toDateString()
+            const gameDate = new Date(game.time || game.date).toDateString()
             
             // Helper to extract team identifier (last word, e.g., "Rockets" from "Houston Rockets")
             const getTeamKey = (name: string) => name.toLowerCase().split(' ').pop() || ''
@@ -946,7 +946,14 @@ export default function GameDetailPage() {
                 <Target className="w-4 h-4 text-green-400" />
                 <span className="text-sm font-semibold text-green-400">SHARPEST PICK</span>
               </div>
-              <p className="text-lg font-bold text-white">{intelligence.quickTakes.sharpestPick}</p>
+              <p className="text-lg font-bold text-white">
+                {typeof intelligence.quickTakes.sharpestPick === 'string' 
+                  ? intelligence.quickTakes.sharpestPick 
+                  : intelligence.quickTakes.sharpestPick.pick || 'N/A'}
+              </p>
+              {typeof intelligence.quickTakes.sharpestPick === 'object' && intelligence.quickTakes.sharpestPick.reasoning && (
+                <p className="text-sm text-slate-400 mt-1">{intelligence.quickTakes.sharpestPick.reasoning}</p>
+              )}
             </div>
           )}
 
