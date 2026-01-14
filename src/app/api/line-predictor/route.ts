@@ -11,7 +11,7 @@ import {
   LinePrediction,
   ModelPerformance
 } from '@/lib/models/line-predictor'
-import { getMockBettingSplits } from '@/lib/scrapers/betting-splits'
+import { fetchBettingSplits } from '@/lib/scrapers/betting-splits'
 
 export const dynamic = 'force-dynamic'
 
@@ -78,8 +78,8 @@ export async function POST(request: Request) {
     
     const predictor = getLinePredictor()
     
-    // Get betting splits for this game
-    const allSplits = getMockBettingSplits(sport)
+    // Get betting splits for this game - fetch real data
+    const allSplits = await fetchBettingSplits(sport)
     const bettingSplit = allSplits.find(s => s.gameId === gameId) || null
     
     // Mock odds history (in production, fetch from The Odds API historical endpoint)

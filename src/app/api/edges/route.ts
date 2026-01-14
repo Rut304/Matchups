@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { 
   getActiveEdgeAlerts, 
-  getGameEdgeAlerts, 
+  getRealEdgeAlerts,
   EdgeType,
   EdgeAlert,
   defaultEdgeConfig 
@@ -31,8 +31,9 @@ export async function GET(request: Request) {
     let alerts: EdgeAlert[]
     
     if (gameId) {
-      // Get alerts for specific game
-      alerts = getGameEdgeAlerts(gameId, sport || 'NFL')
+      // Get real alerts for specific game
+      const allAlerts = await getRealEdgeAlerts(sport || 'NFL')
+      alerts = allAlerts.filter(a => a.gameId === gameId)
     } else {
       // Get all active alerts
       alerts = await getActiveEdgeAlerts(sport || undefined)

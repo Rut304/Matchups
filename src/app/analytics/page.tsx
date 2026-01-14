@@ -15,7 +15,7 @@ import {
   getHighEdgeTrends, getTopCLVCappers, getReverseLineMovements, getSteamMoves, analyticsSummary
 } from '@/lib/prediction-market-data'
 import { getMockLinePredictions, getMockModelPerformance } from '@/lib/models/line-predictor'
-import { getMockBettingSplits } from '@/lib/scrapers/betting-splits'
+import { fetchBettingSplits, type BettingSplit } from '@/lib/scrapers/betting-splits'
 import {
   latestNews, injuryReports, weatherImpacts, sentimentData,
   aiDiscoveredTrends, getHighImpactNews, getCriticalInjuries,
@@ -66,6 +66,23 @@ export default function AnalyticsPage() {
   const [expandedItem, setExpandedItem] = useState<string | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date>(getEasternDate())
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [bettingSplits, setBettingSplits] = useState<BettingSplit[]>([])
+  
+  // Load betting splits from real API
+  useEffect(() => {
+    const loadBettingSplits = async () => {
+      try {
+        const res = await fetch('/api/betting-splits?sport=NFL')
+        if (res.ok) {
+          const data = await res.json()
+          setBettingSplits(data.games || [])
+        }
+      } catch (error) {
+        console.error('Failed to fetch betting splits:', error)
+      }
+    }
+    loadBettingSplits()
+  }, [])
   
   const isToday = formatDateString(selectedDate) === formatDateString(getEasternDate())
 
@@ -83,7 +100,6 @@ export default function AnalyticsPage() {
   const nbaPredictions = getMockLinePredictions('NBA')
   const allPredictions = [...nflPredictions, ...nbaPredictions]
   const modelPerformance = getMockModelPerformance()
-  const bettingSplits = getMockBettingSplits('NFL')
 
   const tabs = [
     { id: 'edge' as Tab, label: '🎯 Edge Finder', count: highEdgeTrends.length },

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { type UnifiedGame } from '@/lib/api/data-layer'
-import { getGameEdgeAlerts, type EdgeAlert } from '@/lib/edge-features'
+import { getRealEdgeAlerts, type EdgeAlert } from '@/lib/edge-features'
 
 interface MatchupAnalytics {
   trends?: {
@@ -57,11 +57,20 @@ export function GameView({ game, expanded = false, showEdge = true, showAnalytic
     return () => clearInterval(interval)
   }, [game.id, game.status])
   
-  // Load edge alerts for the game
+  // Load edge alerts for the game - fetch real data
   useEffect(() => {
     if (!showEdge) return
-    const alerts = getGameEdgeAlerts(game.id, game.sport || 'NFL')
-    setEdgeAlerts(alerts)
+    const loadAlerts = async () => {
+      try {
+        const alerts = await getRealEdgeAlerts(game.sport || 'NFL')
+        // Filter alerts for this specific game
+        const gameAlerts = alerts.filter(a => a.gameId === game.id)
+        setEdgeAlerts(gameAlerts)
+      } catch (error) {
+        console.error('Failed to fetch edge alerts:', error)
+      }
+    }
+    loadAlerts()
   }, [game.id, game.sport, showEdge])
   
   // Fetch full analytics when expanded

@@ -1,0 +1,95 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - link "Matchups 100% FREE" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img [ref=e7]
+        - generic [ref=e9]:
+          - generic [ref=e10]: Matchups
+          - generic [ref=e11]: 100% FREE
+      - generic [ref=e12]:
+        - button "Sports" [ref=e14]:
+          - text: Sports
+          - img [ref=e15]
+        - button "Markets" [ref=e18]:
+          - img [ref=e19]
+          - text: Markets
+          - img [ref=e21]
+        - button "Tools" [ref=e24]:
+          - text: Tools
+          - img [ref=e25]
+        - link "Scores" [ref=e27] [cursor=pointer]:
+          - /url: /scores
+          - img [ref=e28]
+          - text: Scores
+        - link "Check the \"Experts\"" [ref=e30] [cursor=pointer]:
+          - /url: /leaderboard
+          - img [ref=e31]
+          - generic [ref=e37]: Check the "Experts"
+      - generic [ref=e38]:
+        - link "The Edge" [ref=e39] [cursor=pointer]:
+          - /url: /markets/edge
+          - img [ref=e40]
+          - generic [ref=e44]: The Edge
+        - link "Sus Plays" [ref=e45] [cursor=pointer]:
+          - /url: /sus
+          - img [ref=e46]
+          - generic [ref=e48]: Sus Plays
+  - main [ref=e50]:
+    - generic [ref=e52]:
+      - img [ref=e53]
+      - text: Loading edge analysis...
+  - contentinfo [ref=e56]:
+    - generic [ref=e57]:
+      - generic [ref=e58]:
+        - generic [ref=e59]:
+          - heading "Sports" [level=4] [ref=e60]
+          - generic [ref=e61]:
+            - link "🏈 NFL" [ref=e62] [cursor=pointer]:
+              - /url: /nfl
+            - link "🏀 NBA" [ref=e63] [cursor=pointer]:
+              - /url: /nba
+            - link "🏒 NHL" [ref=e64] [cursor=pointer]:
+              - /url: /nhl
+            - link "⚾ MLB" [ref=e65] [cursor=pointer]:
+              - /url: /mlb
+        - generic [ref=e66]:
+          - heading "Features" [level=4] [ref=e67]
+          - generic [ref=e68]:
+            - link "📈 Markets" [ref=e69] [cursor=pointer]:
+              - /url: /markets
+            - link "📊 Trends" [ref=e70] [cursor=pointer]:
+              - /url: /trends
+            - link "🧾 Expert Tracker" [ref=e71] [cursor=pointer]:
+              - /url: /leaderboard
+        - generic [ref=e72]:
+          - heading "Company" [level=4] [ref=e73]
+          - generic [ref=e74]:
+            - link "About" [ref=e75] [cursor=pointer]:
+              - /url: "#"
+            - link "Contact" [ref=e76] [cursor=pointer]:
+              - /url: "#"
+            - link "Privacy" [ref=e77] [cursor=pointer]:
+              - /url: "#"
+            - link "Terms" [ref=e78] [cursor=pointer]:
+              - /url: "#"
+        - generic [ref=e79]:
+          - heading "Tools" [level=4] [ref=e80]
+          - generic [ref=e81]:
+            - link "Admin Dashboard" [ref=e82] [cursor=pointer]:
+              - /url: /admin
+              - img [ref=e83]
+              - text: Admin Dashboard
+            - link "📄 Documentation" [ref=e86] [cursor=pointer]:
+              - /url: /admin/docs
+      - generic [ref=e87]:
+        - generic [ref=e88]:
+          - generic [ref=e90]: ⚡
+          - generic [ref=e91]: Matchups
+        - paragraph [ref=e92]: © 2026 Matchups. Sports betting analysis & trends.
+  - button "Open Next.js Dev Tools" [ref=e98] [cursor=pointer]:
+    - img [ref=e99]
+```
