@@ -54,7 +54,8 @@ interface ESPNScheduleEvent {
         abbreviation: string 
         displayName: string
       }
-      score?: string
+      // Score can be a string, number, or object with displayValue
+      score?: string | number | { value?: number; displayValue?: string }
       winner?: boolean
     }>
     status: {
@@ -208,8 +209,22 @@ function transformESPNEvent(event: ESPNScheduleEvent, ourTeamId: string): TeamGa
   if (!ourTeam || !opponent) return null
   
   const isCompleted = competition.status.type.completed
-  const ourScore = ourTeam.score ? parseInt(ourTeam.score) : null
-  const oppScore = opponent.score ? parseInt(opponent.score) : null
+  
+  // Helper to extract score value - ESPN returns score as string, number, or object
+  const extractScore = (score: string | number | { value?: number; displayValue?: string } | undefined): number | null => {
+    if (score === undefined || score === null) return null
+    if (typeof score === 'number') return score
+    if (typeof score === 'string') return parseInt(score) || null
+    if (typeof score === 'object') {
+      // Handle {value: 14.0, displayValue: '14'} format
+      if (score.value !== undefined) return Math.round(score.value)
+      if (score.displayValue) return parseInt(score.displayValue) || null
+    }
+    return null
+  }
+  
+  const ourScore = extractScore(ourTeam.score)
+  const oppScore = extractScore(opponent.score)
   
   // Determine result
   let result: 'W' | 'L' | 'T' | null = null

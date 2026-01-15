@@ -243,78 +243,59 @@ function BetTypeSection({
     )
   }
 
+  // Compact full view - single row per bet type
   return (
-    <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
+    <div className="bg-slate-800/30 rounded-lg p-3 border border-slate-700/50">
+      <div className="flex items-center justify-between">
+        {/* Title + Line */}
+        <div className="flex items-center gap-2 w-28 flex-shrink-0">
           {icon}
-          <span className="font-semibold text-white">{title}</span>
-          {line && <span className="text-sm text-slate-500 ml-2">{line}</span>}
+          <div>
+            <span className="font-semibold text-white text-sm">{title}</span>
+            {line && <div className="text-xs text-slate-500">{line}</div>}
+          </div>
         </div>
+        
+        {/* Left Team Stats */}
+        <div className={`flex items-center gap-3 px-3 py-1 rounded ${leftSharp ? 'bg-purple-500/10' : ''}`}>
+          <span className="text-sm font-medium text-slate-400 w-12">{leftTeam}</span>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <Users className="w-3 h-3 text-blue-400" />
+              <span className={`text-sm font-bold ${leftSharp ? 'text-purple-400' : 'text-blue-400'}`}>{leftTickets}%</span>
+            </div>
+            <span className="text-slate-700">|</span>
+            <div className="flex items-center gap-1">
+              <DollarSign className="w-3 h-3 text-green-400" />
+              <span className={`text-sm font-bold ${leftSharp ? 'text-purple-400' : 'text-green-400'}`}>{leftMoney}%</span>
+            </div>
+          </div>
+          {leftSharp && <Zap className="w-3 h-3 text-purple-400" />}
+        </div>
+        
+        {/* Sharp Indicator */}
         {hasSharpSignal && (
-          <div className="flex items-center gap-1 px-2 py-1 bg-purple-500/20 rounded-full">
-            <Zap className="w-3 h-3 text-purple-400" />
-            <span className="text-xs font-medium text-purple-400">Sharp on {leftSharp ? leftTeam : rightTeam}</span>
+          <div className="px-2 py-1 bg-purple-500/20 rounded text-xs text-purple-400 font-medium flex items-center gap-1">
+            <Zap className="w-3 h-3" />
+            Sharp on {leftSharp ? leftTeam : rightTeam}
           </div>
         )}
-      </div>
-
-      {/* Cleaner Card-Based Layout */}
-      <div className="grid grid-cols-2 gap-4">
-        {/* Left Team Card */}
-        <div className={`p-3 rounded-lg text-center ${leftSharp ? 'bg-purple-500/10 border border-purple-500/30' : 'bg-slate-900/50'}`}>
-          <div className="text-sm font-semibold text-slate-400 mb-2">{leftTeam}</div>
-          <div className="flex items-center justify-center gap-4">
-            <div>
-              <div className="flex items-center justify-center gap-1 text-xs text-slate-500">
-                <Users className="w-3 h-3 text-blue-400" />
-                <span>Bets</span>
-              </div>
-              <div className={`text-xl font-bold ${leftSharp ? 'text-purple-400' : 'text-blue-400'}`}>{leftTickets}%</div>
+        
+        {/* Right Team Stats */}
+        <div className={`flex items-center gap-3 px-3 py-1 rounded ${rightSharp ? 'bg-purple-500/10' : ''}`}>
+          <span className="text-sm font-medium text-slate-400 w-12 text-right">{rightTeam}</span>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <Users className="w-3 h-3 text-blue-400" />
+              <span className={`text-sm font-bold ${rightSharp ? 'text-purple-400' : 'text-blue-400'}`}>{rightTickets}%</span>
             </div>
-            <div className="w-px h-8 bg-slate-700" />
-            <div>
-              <div className="flex items-center justify-center gap-1 text-xs text-slate-500">
-                <DollarSign className="w-3 h-3 text-green-400" />
-                <span>Money</span>
-              </div>
-              <div className={`text-xl font-bold ${leftSharp ? 'text-purple-400' : 'text-green-400'}`}>{leftMoney}%</div>
+            <span className="text-slate-700">|</span>
+            <div className="flex items-center gap-1">
+              <DollarSign className="w-3 h-3 text-green-400" />
+              <span className={`text-sm font-bold ${rightSharp ? 'text-purple-400' : 'text-green-400'}`}>{rightMoney}%</span>
             </div>
           </div>
-          {leftSharp && (
-            <div className="mt-2 flex items-center justify-center gap-1 text-xs text-purple-400">
-              <Zap className="w-3 h-3" />
-              <span>Sharp Money</span>
-            </div>
-          )}
-        </div>
-
-        {/* Right Team Card */}
-        <div className={`p-3 rounded-lg text-center ${rightSharp ? 'bg-purple-500/10 border border-purple-500/30' : 'bg-slate-900/50'}`}>
-          <div className="text-sm font-semibold text-slate-400 mb-2">{rightTeam}</div>
-          <div className="flex items-center justify-center gap-4">
-            <div>
-              <div className="flex items-center justify-center gap-1 text-xs text-slate-500">
-                <Users className="w-3 h-3 text-blue-400" />
-                <span>Bets</span>
-              </div>
-              <div className={`text-xl font-bold ${rightSharp ? 'text-purple-400' : 'text-blue-400'}`}>{rightTickets}%</div>
-            </div>
-            <div className="w-px h-8 bg-slate-700" />
-            <div>
-              <div className="flex items-center justify-center gap-1 text-xs text-slate-500">
-                <DollarSign className="w-3 h-3 text-green-400" />
-                <span>Money</span>
-              </div>
-              <div className={`text-xl font-bold ${rightSharp ? 'text-purple-400' : 'text-green-400'}`}>{rightMoney}%</div>
-            </div>
-          </div>
-          {rightSharp && (
-            <div className="mt-2 flex items-center justify-center gap-1 text-xs text-purple-400">
-              <Zap className="w-3 h-3" />
-              <span>Sharp Money</span>
-            </div>
-          )}
+          {rightSharp && <Zap className="w-3 h-3 text-purple-400" />}
         </div>
       </div>
     </div>
@@ -484,9 +465,9 @@ export function GameBettingSplits({
 
   // Full expanded view
   return (
-    <div className={`bg-slate-900/50 rounded-xl ${compact ? 'p-4' : 'p-6'} border border-slate-800 mb-6`}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+    <div className={`bg-slate-900/50 rounded-xl ${compact ? 'p-4' : 'p-5'} border border-slate-800 mb-4`}>
+      {/* Header - More Compact */}
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Target className="w-5 h-5 text-orange-500" />
           <h3 className="font-semibold text-white">Public Betting Splits</h3>
@@ -519,24 +500,15 @@ export function GameBettingSplits({
         </div>
       </div>
 
-      {/* Legend */}
-      <div className="flex flex-wrap items-center gap-4 mb-6 text-xs text-slate-400">
-        <div className="flex items-center gap-1.5">
-          <Users className="w-3 h-3 text-blue-400" />
-          <span>Tickets = # of bets</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <DollarSign className="w-3 h-3 text-green-400" />
-          <span>Money = $ wagered</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <Zap className="w-3 h-3 text-purple-400" />
-          <span>Sharp = money diverges from tickets</span>
-        </div>
+      {/* Legend - Single Line */}
+      <div className="flex items-center gap-4 mb-3 text-xs text-slate-500">
+        <span className="flex items-center gap-1"><Users className="w-3 h-3 text-blue-400" /> Tickets = # of bets</span>
+        <span className="flex items-center gap-1"><DollarSign className="w-3 h-3 text-green-400" /> Money = $ wagered</span>
+        <span className="flex items-center gap-1"><Zap className="w-3 h-3 text-purple-400" /> Sharp = money diverges from tickets</span>
       </div>
 
       {/* Spread Section */}
-      <div className="space-y-4">
+      <div className="space-y-2">
         <BetTypeSection
           title="Spread"
           icon={<TrendingUp className="w-4 h-4 text-orange-500" />}
@@ -577,36 +549,34 @@ export function GameBettingSplits({
         />
       </div>
 
-      {/* Sharp Money Signals */}
+      {/* Sharp Money Signals - More Compact */}
       {sharpSignals.length > 0 && (
-        <div className="mt-6 pt-4 border-t border-slate-800">
-          <div className="flex items-center gap-2 mb-3">
+        <div className="mt-4 pt-3 border-t border-slate-800">
+          <div className="flex items-center gap-2 mb-2">
             <Zap className="w-4 h-4 text-purple-400" />
             <h4 className="text-sm font-semibold text-white">Sharp Money Signals</h4>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {sharpSignals.map((signal, i) => (
               <div 
                 key={i}
-                className="flex items-start gap-2 p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg"
+                className="flex items-center gap-2 px-3 py-2 bg-purple-500/10 border border-purple-500/30 rounded-lg"
               >
-                <AlertTriangle className="w-4 h-4 text-purple-400 mt-0.5 flex-shrink-0" />
-                <div>
-                  <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
-                    signal.confidence === 'high' ? 'bg-red-500/20 text-red-400' : 'bg-yellow-500/20 text-yellow-400'
-                  }`}>
-                    {signal.confidence.toUpperCase()}
-                  </span>
-                  <p className="text-sm text-slate-300 mt-1">{signal.signal}</p>
-                </div>
+                <AlertTriangle className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+                  signal.confidence === 'high' ? 'bg-red-500/20 text-red-400' : 'bg-yellow-500/20 text-yellow-400'
+                }`}>
+                  {signal.confidence.toUpperCase()}
+                </span>
+                <p className="text-sm text-slate-300">{signal.signal}</p>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Source Attribution */}
-      <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-600">
+      {/* Source Attribution - Smaller */}
+      <div className="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-600">
         <span>Data from Action Network</span>
         <span>Updates every 2 min</span>
       </div>
