@@ -38,143 +38,7 @@ interface Injury {
   isStar: boolean
 }
 
-// Mock injury data
-const mockInjuries: Injury[] = [
-  {
-    id: '1',
-    playerName: 'Patrick Mahomes',
-    team: 'KC',
-    position: 'QB',
-    sport: 'NFL',
-    injuryType: 'Ankle Sprain',
-    bodyPart: 'Ankle',
-    status: 'Questionable',
-    impactRating: 5,
-    expectedReturn: 'Game-time decision',
-    lastUpdate: '2 hours ago',
-    bettingImpact: 'Chiefs line moved from -7 to -3.5 after injury report',
-    lineMovement: { before: -7, after: -3.5, type: 'spread' },
-    isStarter: true,
-    isStar: true
-  },
-  {
-    id: '2',
-    playerName: 'Jaylen Brown',
-    team: 'BOS',
-    position: 'SG',
-    sport: 'NBA',
-    injuryType: 'Hamstring Strain',
-    bodyPart: 'Hamstring',
-    status: 'Out',
-    impactRating: 4,
-    expectedReturn: '2-3 games',
-    lastUpdate: '5 hours ago',
-    bettingImpact: 'Total dropped from 228 to 222 without Brown',
-    lineMovement: { before: 228, after: 222, type: 'total' },
-    isStarter: true,
-    isStar: true
-  },
-  {
-    id: '3',
-    playerName: 'Austin Ekeler',
-    team: 'WAS',
-    position: 'RB',
-    sport: 'NFL',
-    injuryType: 'Concussion',
-    bodyPart: 'Head',
-    status: 'Doubtful',
-    impactRating: 3,
-    expectedReturn: 'Following protocol',
-    lastUpdate: '1 day ago',
-    bettingImpact: 'Monitor Brian Robinson prop bets if Ekeler sits',
-    isStarter: true,
-    isStar: false
-  },
-  {
-    id: '4',
-    playerName: 'Connor McDavid',
-    team: 'EDM',
-    position: 'C',
-    sport: 'NHL',
-    injuryType: 'Lower Body',
-    bodyPart: 'Undisclosed',
-    status: 'Day-to-Day',
-    impactRating: 5,
-    expectedReturn: 'TBD',
-    lastUpdate: '3 hours ago',
-    bettingImpact: 'Oilers dropped from -180 to +110 favorites',
-    lineMovement: { before: -180, after: 110, type: 'moneyline' },
-    isStarter: true,
-    isStar: true
-  },
-  {
-    id: '5',
-    playerName: 'Mike Trout',
-    team: 'LAA',
-    position: 'CF',
-    sport: 'MLB',
-    injuryType: 'Knee Surgery',
-    bodyPart: 'Knee',
-    status: 'IL',
-    impactRating: 5,
-    expectedReturn: 'April 2025',
-    lastUpdate: '1 week ago',
-    bettingImpact: 'Angels season win total dropped from 78.5 to 72.5',
-    isStarter: true,
-    isStar: true
-  },
-  {
-    id: '6',
-    playerName: 'Ja Morant',
-    team: 'MEM',
-    position: 'PG',
-    sport: 'NBA',
-    injuryType: 'Shoulder Strain',
-    bodyPart: 'Shoulder',
-    status: 'Questionable',
-    impactRating: 5,
-    expectedReturn: 'Game-time decision',
-    lastUpdate: '4 hours ago',
-    bettingImpact: 'Grizzlies line moved from -4.5 to +1',
-    lineMovement: { before: -4.5, after: 1, type: 'spread' },
-    isStarter: true,
-    isStar: true
-  },
-  {
-    id: '7',
-    playerName: 'Travis Kelce',
-    team: 'KC',
-    position: 'TE',
-    sport: 'NFL',
-    injuryType: 'Knee Contusion',
-    bodyPart: 'Knee',
-    status: 'Probable',
-    impactRating: 2,
-    expectedReturn: 'Expected to play',
-    lastUpdate: '6 hours ago',
-    bettingImpact: 'Minimal impact - expect full workload',
-    isStarter: true,
-    isStar: true
-  },
-  {
-    id: '8',
-    playerName: 'Auston Matthews',
-    team: 'TOR',
-    position: 'C',
-    sport: 'NHL',
-    injuryType: 'Upper Body',
-    bodyPart: 'Undisclosed',
-    status: 'Out',
-    impactRating: 5,
-    expectedReturn: '1-2 weeks',
-    lastUpdate: '12 hours ago',
-    bettingImpact: 'Leafs total dropped from 6.5 to 5.5',
-    lineMovement: { before: 6.5, after: 5.5, type: 'total' },
-    isStarter: true,
-    isStar: true
-  }
-]
-
+// Helper functions - no mock data needed, fetching from API
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'Out':
@@ -200,12 +64,75 @@ const getImpactBadge = (rating: number) => {
 }
 
 export default function InjuriesPage() {
-  const [injuries, setInjuries] = useState<Injury[]>(mockInjuries)
+  const [injuries, setInjuries] = useState<Injury[]>([])
   const [selectedSport, setSelectedSport] = useState<string>('all')
   const [selectedStatus, setSelectedStatus] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [showStarsOnly, setShowStarsOnly] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Fetch real injury data from API
+  useEffect(() => {
+    async function fetchInjuries() {
+      setIsLoading(true)
+      try {
+        const res = await fetch('/api/injuries?sport=all')
+        const data = await res.json()
+        // Transform API response to match our interface
+        const transformed: Injury[] = (data.injuries || []).map((inj: { id: string; name: string; team: string; position: string; sport: string; injury: string; status: string; headshot?: string }) => ({
+          id: inj.id,
+          playerName: inj.name,
+          team: inj.team,
+          position: inj.position,
+          sport: inj.sport as 'NFL' | 'NBA' | 'NHL' | 'MLB',
+          injuryType: inj.injury,
+          bodyPart: inj.injury.split(' ')[0] || 'Unknown',
+          status: normalizeStatus(inj.status),
+          impactRating: getImpactFromStatus(inj.status, inj.position),
+          expectedReturn: 'TBD',
+          lastUpdate: 'Recently updated',
+          bettingImpact: `Monitor ${inj.team} betting lines`,
+          isStarter: true,
+          isStar: ['QB', 'WR', 'RB', 'PG', 'SG', 'C', 'LW', 'RW', 'CF', 'SP'].includes(inj.position),
+        }))
+        setInjuries(transformed)
+      } catch (error) {
+        console.error('Error fetching injuries:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchInjuries()
+  }, [])
+
+  function normalizeStatus(status: string): Injury['status'] {
+    const s = status.toLowerCase()
+    if (s.includes('out') || s === 'o') return 'Out'
+    if (s.includes('ir') || s.includes('injured reserve')) return 'IR'
+    if (s.includes('il') || s.includes('injured list')) return 'IL'
+    if (s.includes('doubtful') || s === 'd') return 'Doubtful'
+    if (s.includes('questionable') || s === 'q' || s.includes('gtd')) return 'Questionable'
+    if (s.includes('probable') || s === 'p') return 'Probable'
+    if (s.includes('day-to-day') || s.includes('dtd')) return 'Day-to-Day'
+    return 'Questionable'
+  }
+
+  function getImpactFromStatus(status: string, position: string): 1 | 2 | 3 | 4 | 5 {
+    const highImpactPositions = ['QB', 'PG', 'C', 'LW', 'RW', 'SP', 'CF']
+    const isHighImpactPosition = highImpactPositions.includes(position)
+    const s = status.toLowerCase()
+    
+    if (s.includes('out') || s.includes('ir') || s.includes('il')) {
+      return isHighImpactPosition ? 5 : 4
+    }
+    if (s.includes('doubtful')) {
+      return isHighImpactPosition ? 4 : 3
+    }
+    if (s.includes('questionable') || s.includes('gtd') || s.includes('day-to-day')) {
+      return isHighImpactPosition ? 3 : 2
+    }
+    return 1
+  }
 
   const filteredInjuries = injuries.filter(injury => {
     if (selectedSport !== 'all' && injury.sport !== selectedSport) return false

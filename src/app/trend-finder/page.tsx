@@ -411,6 +411,51 @@ export default function TrendFinderPage() {
         </div>
       </div>
 
+      {/* PROMINENT SEARCH BAR AT TOP */}
+      <div className="bg-gradient-to-b from-[#0f0f18] to-transparent py-6 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="relative flex items-end gap-2">
+            <div className="flex-1 relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask any sports trend question... (e.g., 'What's the ATS record for NFL underdogs in playoff games?')"
+                className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white text-lg placeholder-gray-500 resize-none focus:outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/30 transition-all shadow-lg"
+                rows={1}
+                disabled={isLoading}
+              />
+            </div>
+            <button
+              onClick={() => handleSubmit()}
+              disabled={!input.trim() || isLoading}
+              className="px-6 py-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed text-white rounded-2xl transition-all flex items-center gap-2 font-semibold shadow-lg shadow-orange-500/20"
+            >
+              {isLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  <Send className="w-5 h-5" />
+                  Search
+                </>
+              )}
+            </button>
+          </div>
+          <div className="flex items-center justify-center mt-3 text-xs text-gray-500 gap-4">
+            <span className="flex items-center gap-1">
+              <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-gray-400">Enter</kbd>
+              to send
+            </span>
+            <span className="flex items-center gap-1">
+              <Zap className="w-3 h-3" />
+              Powered by Gemini AI
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* Main Content */}
       <div className="flex-1 flex flex-col max-w-5xl mx-auto w-full">
         {/* Messages Area */}
@@ -572,46 +617,40 @@ export default function TrendFinderPage() {
           )}
         </div>
 
-        {/* Input Area */}
-        <div className="border-t border-white/5 bg-[#0a0a12] p-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="relative flex items-end gap-2">
-              <div className="flex-1 relative">
-                <textarea
-                  ref={inputRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Ask about sports trends, betting systems, historical data..."
-                  className="w-full px-4 py-3 pr-12 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 resize-none focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all"
-                  rows={1}
-                  disabled={isLoading}
-                />
-                <div className="absolute right-3 bottom-3">
-                  <Search className="w-5 h-5 text-gray-600" />
+        {/* Input Area - Sticky at bottom when in conversation */}
+        {messages.length > 0 && (
+          <div className="border-t border-white/5 bg-[#0a0a12] p-4">
+            <div className="max-w-4xl mx-auto">
+              <div className="relative flex items-end gap-2">
+                <div className="flex-1 relative">
+                  <textarea
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Follow-up question..."
+                    className="w-full px-4 py-3 pr-12 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 resize-none focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all"
+                    rows={1}
+                    disabled={isLoading}
+                  />
+                  <div className="absolute right-3 bottom-3">
+                    <Search className="w-5 h-5 text-gray-600" />
+                  </div>
                 </div>
-              </div>
-              <button
-                onClick={() => handleSubmit()}
-                disabled={!input.trim() || isLoading}
-                className="px-4 py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-xl transition-colors flex items-center gap-2"
-              >
-                {isLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Send className="w-5 h-5" />
-                )}
-              </button>
-            </div>
-            <div className="flex items-center justify-between mt-2 text-xs text-gray-600">
-              <span>Press Enter to send, Shift+Enter for new line</span>
-              <div className="flex items-center gap-1">
-                <Zap className="w-3 h-3" />
-                <span>Powered by Gemini AI</span>
+                <button
+                  onClick={() => handleSubmit()}
+                  disabled={!input.trim() || isLoading}
+                  className="px-4 py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-xl transition-colors flex items-center gap-2"
+                >
+                  {isLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Send className="w-5 h-5" />
+                  )}
+                </button>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )

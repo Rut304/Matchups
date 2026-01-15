@@ -61,6 +61,79 @@ import { type SportKey } from '@/lib/api/espn'
 // If data isn't available, show appropriate placeholder state
 // =============================================================================
 
+// Bookmaker name mapping - convert API keys to display names
+const BOOKMAKER_NAMES: Record<string, string> = {
+  // Common API keys
+  'draftkings': 'DraftKings',
+  'fanduel': 'FanDuel',
+  'betmgm': 'BetMGM',
+  'caesars': 'Caesars',
+  'pointsbet': 'PointsBet',
+  'bet365': 'Bet365',
+  'bovada': 'Bovada',
+  'betonlineag': 'BetOnline',
+  'mybookieag': 'MyBookie',
+  'williamhill_us': 'William Hill',
+  'unibet': 'Unibet',
+  'barstool': 'Barstool',
+  'superbook': 'SuperBook',
+  'betrivers': 'BetRivers',
+  'wynnbet': 'WynnBet',
+  'twinspires': 'TwinSpires',
+  'betus': 'BetUS',
+  'lowvig': 'LowVig',
+  'pinnacle': 'Pinnacle',
+  // Numeric IDs from some APIs (map to known books)
+  '30': 'FanDuel',
+  '49': 'DraftKings',
+  '71': 'BetMGM',
+  '1': 'Bet365',
+  '2': 'DraftKings',
+  '3': 'FanDuel',
+  '5': 'Caesars',
+  '7': 'PointsBet',
+  '10': 'BetRivers',
+  '15': 'WynnBet',
+}
+
+function formatBookmakerName(key: string): string {
+  // Check if we have a mapping
+  const lowerKey = key.toLowerCase()
+  if (BOOKMAKER_NAMES[lowerKey]) return BOOKMAKER_NAMES[lowerKey]
+  if (BOOKMAKER_NAMES[key]) return BOOKMAKER_NAMES[key]
+  
+  // If numeric ID, show generic name or try to lookup
+  if (/^\d+$/.test(key)) {
+    return BOOKMAKER_NAMES[key] || `Book #${key}`
+  }
+  
+  // Capitalize and format
+  return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
+
+// Priority positions for injury display (most impactful first)
+const PRIORITY_POSITIONS: Record<string, number> = {
+  // NFL positions
+  'QB': 1, 'RB': 2, 'WR': 3, 'TE': 4, 'LT': 5, 'RT': 6,
+  'EDGE': 7, 'DE': 8, 'DT': 9, 'LB': 10, 'CB': 11, 'S': 12, 'K': 20, 'P': 21,
+  // NBA positions (using numbers to avoid conflicts)
+  'PG': 1, 'SG': 2, 'SF': 3, 'PF': 4, 'C': 5,
+  // NHL positions
+  'G': 3, 'D': 6, 'LW': 2, 'RW': 2, 'F': 2,
+}
+
+// Helper to get ESPN team logo URL
+function getTeamLogoUrl(sport: string, abbr: string): string {
+  // ESPN logo URL pattern
+  const sportPath = sport.toLowerCase()
+  const teamAbbr = abbr.toLowerCase()
+  return `https://a.espncdn.com/i/teamlogos/${sportPath}/500/${teamAbbr}.png`
+}
+
+const PRIORITY_STATUS: Record<string, number> = {
+  'Out': 1, 'Injured Reserve': 1, 'Doubtful': 2, 'Questionable': 3, 'Probable': 4, 'Day-to-Day': 4
+}
+
 interface TeamScheduleData {
   games: TeamGameResult[]
   loading: boolean
@@ -740,17 +813,27 @@ export default function GameDetailPage() {
         {/* HERO SECTION - Game Header */}
         {/* =========================================== */}
         <div className="rounded-2xl p-6 mb-6 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800">
-          {/* Game Info Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-800">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl">{game.sportIcon}</span>
+          {/* Game Info Bar - Compact */}
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-800">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">{game.sportIcon}</span>
               <div>
-                <p className="text-sm font-bold text-slate-400">{game.league}</p>
-                <div className="flex items-center gap-2 text-sm text-slate-500">
-                  <Calendar className="w-4 h-4 text-orange-500" />
+                <p className="text-xs font-bold text-slate-400">
+                  {/* Detect playoffs from league name or week */}
+                  {game.league?.toLowerCase().includes('playoff') || 
+                   game.league?.toLowerCase().includes('wild card') ||
+                   game.league?.toLowerCase().includes('divisional') ||
+                   game.league?.toLowerCase().includes('conference') ||
+                   game.league?.toLowerCase().includes('super bowl') ||
+                   (game.sport === 'NFL' && parseInt(String(game.league).match(/week\s*(\d+)/i)?.[1] || '0') > 18)
+                    ? `${game.sport} Playoffs`
+                    : game.league}
+                </p>
+                <div className="flex items-center gap-2 text-xs text-slate-500">
+                  <Calendar className="w-3 h-3 text-orange-500" />
                   <span>{game.date}</span>
                   <span>•</span>
-                  <Clock className="w-4 h-4" />
+                  <Clock className="w-3 h-3" />
                   <span>{game.time}</span>
                 </div>
               </div>
@@ -774,15 +857,25 @@ export default function GameDetailPage() {
 
           {/* Teams Matchup */}
           <div className="grid grid-cols-7 gap-4 items-center">
-            {/* Away Team */}
+            {/* Away Team - More Compact */}
             <div className="col-span-2 text-center">
-              <div className="text-5xl mb-3">{game.away.emoji}</div>
-              <h2 className="text-lg text-slate-400">{game.away.city}</h2>
-              <p className="text-2xl font-black text-white">{game.away.name}</p>
-              <p className="text-lg font-semibold text-slate-400 mt-1">{game.away.record}</p>
-              <div className="flex items-center justify-center gap-4 mt-2 text-sm">
-                <span className="text-slate-500">ATS: <span className="text-green-400 font-semibold">{game.away.ats}</span></span>
-                {game.away.ou && <span className="text-slate-500">O/U: <span className="text-blue-400 font-semibold">{game.away.ou}</span></span>}
+              {/* Team Logo */}
+              <div className="w-16 h-16 mx-auto mb-2 relative">
+                <Image
+                  src={getTeamLogoUrl(game.sport, game.away.abbr || 'DEFAULT')}
+                  alt={game.away.name}
+                  fill
+                  className="object-contain"
+                  unoptimized
+                  onError={(e) => { e.currentTarget.src = '/team-placeholder.png' }}
+                />
+              </div>
+              <h2 className="text-sm text-slate-400">{game.away.city}</h2>
+              <p className="text-xl font-black text-white">{game.away.name}</p>
+              <p className="text-base font-semibold text-slate-400">{game.away.record}</p>
+              <div className="flex items-center justify-center gap-3 mt-1 text-xs">
+                <span className="text-slate-500">ATS: <span className={`font-semibold ${(gameSummary.atsRecords?.awayTeam?.ats || game.away.ats) ? 'text-green-400' : 'text-slate-600'}`}>{gameSummary.atsRecords?.awayTeam?.ats || game.away.ats || 'N/A'}</span></span>
+                <span className="text-slate-500">O/U: <span className={`font-semibold ${(gameSummary.atsRecords?.awayTeam?.ou || game.away.ou) ? 'text-blue-400' : 'text-slate-600'}`}>{gameSummary.atsRecords?.awayTeam?.ou || game.away.ou || 'N/A'}</span></span>
               </div>
             </div>
 
@@ -844,15 +937,25 @@ export default function GameDetailPage() {
               </div>
             </div>
 
-            {/* Home Team */}
+            {/* Home Team - More Compact */}
             <div className="col-span-2 text-center">
-              <div className="text-5xl mb-3">{game.home.emoji}</div>
-              <h2 className="text-lg text-slate-400">{game.home.city}</h2>
-              <p className="text-2xl font-black text-white">{game.home.name}</p>
-              <p className="text-lg font-semibold text-slate-400 mt-1">{game.home.record}</p>
-              <div className="flex items-center justify-center gap-4 mt-2 text-sm">
-                <span className="text-slate-500">ATS: <span className="text-green-400 font-semibold">{game.home.ats}</span></span>
-                {game.home.ou && <span className="text-slate-500">O/U: <span className="text-blue-400 font-semibold">{game.home.ou}</span></span>}
+              {/* Team Logo */}
+              <div className="w-16 h-16 mx-auto mb-2 relative">
+                <Image
+                  src={getTeamLogoUrl(game.sport, game.home.abbr || 'DEFAULT')}
+                  alt={game.home.name}
+                  fill
+                  className="object-contain"
+                  unoptimized
+                  onError={(e) => { e.currentTarget.src = '/team-placeholder.png' }}
+                />
+              </div>
+              <h2 className="text-sm text-slate-400">{game.home.city}</h2>
+              <p className="text-xl font-black text-white">{game.home.name}</p>
+              <p className="text-base font-semibold text-slate-400">{game.home.record}</p>
+              <div className="flex items-center justify-center gap-3 mt-1 text-xs">
+                <span className="text-slate-500">ATS: <span className={`font-semibold ${(gameSummary.atsRecords?.homeTeam?.ats || game.home.ats) ? 'text-green-400' : 'text-slate-600'}`}>{gameSummary.atsRecords?.homeTeam?.ats || game.home.ats || 'N/A'}</span></span>
+                <span className="text-slate-500">O/U: <span className={`font-semibold ${(gameSummary.atsRecords?.homeTeam?.ou || game.home.ou) ? 'text-blue-400' : 'text-slate-600'}`}>{gameSummary.atsRecords?.homeTeam?.ou || game.home.ou || 'N/A'}</span></span>
               </div>
             </div>
           </div>
@@ -865,6 +968,13 @@ export default function GameDetailPage() {
                 <Brain className="w-5 h-5 text-orange-500" />
                 <span className="font-semibold text-white">AI Prediction</span>
                 <span className="px-2 py-0.5 text-xs rounded bg-orange-500/20 text-orange-400">Matchups Edge</span>
+                <div className="group relative">
+                  <Info className="w-4 h-4 text-slate-500 cursor-help" />
+                  <div className="invisible group-hover:visible absolute bottom-full left-0 mb-2 w-64 p-3 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-300 z-10 shadow-xl">
+                    <p className="font-semibold text-white mb-1">What is AI Prediction?</p>
+                    <p>Our AI analyzes 12+ data points including trends, injuries, weather, line movement, and sharp money to generate a pick recommendation with confidence level.</p>
+                  </div>
+                </div>
               </div>
               <span className="font-bold text-orange-400">
                 {intelligence.aiAnalysis?.spreadAnalysis?.pick || game.aiPick || 'Analyzing...'}
@@ -905,6 +1015,13 @@ export default function GameDetailPage() {
                 <h2 className="text-xl font-bold text-white flex items-center gap-2">
                   THE EDGE
                   <span className="px-2 py-0.5 text-xs rounded bg-orange-500/20 text-orange-400 font-normal">AI-Powered</span>
+                  <div className="group relative">
+                    <Info className="w-4 h-4 text-slate-500 cursor-help" />
+                    <div className="invisible group-hover:visible absolute bottom-full left-0 mb-2 w-72 p-3 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-300 z-10 shadow-xl">
+                      <p className="font-semibold text-white mb-1">What is THE EDGE?</p>
+                      <p>Matchups proprietary betting intelligence engine. We combine sharp money tracking, reverse line movement detection, public betting splits, injury impact analysis, weather data, and historical trends into a single Edge Score (0-100). Higher scores = stronger betting opportunities.</p>
+                    </div>
+                  </div>
                 </h2>
                 <p className="text-sm text-slate-400">Proprietary analysis combining 12 key data points</p>
               </div>
@@ -945,6 +1062,12 @@ export default function GameDetailPage() {
               <div className="flex items-center gap-2 mb-2">
                 <Target className="w-4 h-4 text-green-400" />
                 <span className="text-sm font-semibold text-green-400">SHARPEST PICK</span>
+                <div className="group relative">
+                  <Info className="w-3.5 h-3.5 text-slate-500 cursor-help" />
+                  <div className="invisible group-hover:visible absolute bottom-full left-0 mb-2 w-56 p-2 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-300 z-10 shadow-xl">
+                    <p>The bet with the strongest edge based on sharp money, line value, and trend alignment.</p>
+                  </div>
+                </div>
               </div>
               <p className="text-lg font-bold text-white">
                 {typeof intelligence.quickTakes.sharpestPick === 'string' 
@@ -1142,7 +1265,16 @@ export default function GameDetailPage() {
                 <DollarSign className="w-5 h-5 text-green-500" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-white">Shop the Best Lines</h2>
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  Shop the Best Lines
+                  <div className="group relative">
+                    <Info className="w-4 h-4 text-slate-500 cursor-help" />
+                    <div className="invisible group-hover:visible absolute bottom-full left-0 mb-2 w-64 p-3 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-300 z-10 shadow-xl">
+                      <p className="font-semibold text-white mb-1">Why Line Shop?</p>
+                      <p>Different sportsbooks offer different odds. Getting -108 instead of -110 on every bet adds up to thousands in profit over time. We show you where to find the best price.</p>
+                    </div>
+                  </div>
+                </h2>
                 <p className="text-sm text-slate-400">Compare odds across {multiBookOdds.books.length} sportsbooks</p>
               </div>
             </div>
@@ -1152,17 +1284,17 @@ export default function GameDetailPage() {
               <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
                 <p className="text-xs text-slate-500">Best {game.home.abbr} Spread</p>
                 <p className="text-lg font-bold text-green-400">{multiBookOdds.bestSpread.odds > 0 ? '+' : ''}{multiBookOdds.bestSpread.odds}</p>
-                <p className="text-xs text-slate-400">{multiBookOdds.bestSpread.book}</p>
+                <p className="text-xs text-slate-400">{formatBookmakerName(multiBookOdds.bestSpread.book)}</p>
               </div>
               <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
                 <p className="text-xs text-slate-500">Best {game.home.abbr} ML</p>
                 <p className="text-lg font-bold text-blue-400">{multiBookOdds.bestHomeML.odds > 0 ? '+' : ''}{multiBookOdds.bestHomeML.odds}</p>
-                <p className="text-xs text-slate-400">{multiBookOdds.bestHomeML.book}</p>
+                <p className="text-xs text-slate-400">{formatBookmakerName(multiBookOdds.bestHomeML.book)}</p>
               </div>
               <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
                 <p className="text-xs text-slate-500">Best {game.away.abbr} ML</p>
                 <p className="text-lg font-bold text-orange-400">{multiBookOdds.bestAwayML.odds > 0 ? '+' : ''}{multiBookOdds.bestAwayML.odds}</p>
-                <p className="text-xs text-slate-400">{multiBookOdds.bestAwayML.book}</p>
+                <p className="text-xs text-slate-400">{formatBookmakerName(multiBookOdds.bestAwayML.book)}</p>
               </div>
               <div className="p-3 rounded-lg bg-purple-500/10 border border-purple-500/20">
                 <p className="text-xs text-slate-500">Books Compared</p>
@@ -1186,7 +1318,7 @@ export default function GameDetailPage() {
                 <tbody>
                   {multiBookOdds.books.slice(0, 6).map((book, i) => (
                     <tr key={i} className="border-b border-slate-800/50 hover:bg-slate-800/30">
-                      <td className="py-2 px-3 font-medium text-white capitalize">{book.bookmaker.replace(/_/g, ' ')}</td>
+                      <td className="py-2 px-3 font-medium text-white">{formatBookmakerName(book.bookmaker)}</td>
                       <td className="py-2 px-3 text-center">
                         <span className="text-white font-mono">{book.spread > 0 ? '+' : ''}{book.spread}</span>
                         <span className="text-slate-500 ml-1">({book.spreadOdds > 0 ? '+' : ''}{book.spreadOdds})</span>
@@ -1237,14 +1369,17 @@ export default function GameDetailPage() {
           <div className="lg:col-span-2 space-y-6">
             
             {/* =========================================== */}
-            {/* KEY BETTING METRICS */}
+            {/* KEY BETTING METRICS - Only show if we have real data */}
             {/* =========================================== */}
+            {(game.metrics.publicPct > 0 || game.metrics.handlePct > 0 || 
+              (game.metrics.lineMovement && game.metrics.lineMovement !== 'No movement data' && game.metrics.lineMovement.includes('→'))) && (
             <div className="rounded-2xl p-6 bg-slate-900/50 border border-slate-800">
               <h3 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
                 <DollarSign className="w-5 h-5 text-green-500" />
                 Key Betting Metrics
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {game.metrics.lineMovement && game.metrics.lineMovement !== 'No movement data' && game.metrics.lineMovement.includes('→') && (
                 <div className="rounded-xl p-4 bg-slate-800/50 text-center">
                   <p className="text-xs text-slate-500 mb-1">Line Movement</p>
                   <p className="text-2xl font-bold text-white">{game.metrics.lineMovement.split('→')[0].trim()}</p>
@@ -1260,17 +1395,21 @@ export default function GameDetailPage() {
                       game.metrics.lineDirection === 'up' ? 'text-red-400' : 
                       game.metrics.lineDirection === 'down' ? 'text-green-400' : 'text-slate-400'
                     }`}>
-                      {game.metrics.lineMovement.split('→')[1]?.trim() || 'No Movement'}
+                      {game.metrics.lineMovement.split('→')[1]?.trim() || 'Stable'}
                     </span>
                   </div>
                 </div>
+                )}
                 
+                {game.metrics.publicPct > 0 && (
                 <div className="rounded-xl p-4 bg-slate-800/50 text-center">
                   <p className="text-xs text-slate-500 mb-1">Public %</p>
                   <p className="text-2xl font-bold text-white">{game.metrics.publicPct}%</p>
                   <p className="text-sm text-slate-400 mt-1">{game.metrics.publicSide}</p>
                 </div>
+                )}
                 
+                {game.metrics.sharpMoney && (
                 <div className="rounded-xl p-4 bg-slate-800/50 text-center">
                   <p className="text-xs text-slate-500 mb-1">Sharp Action</p>
                   <p className="text-2xl font-bold text-white">{game.metrics.sharpMoney}</p>
@@ -1282,18 +1421,23 @@ export default function GameDetailPage() {
                     ) : null}
                   </div>
                 </div>
+                )}
                 
+                {game.metrics.handlePct > 0 && (
                 <div className="rounded-xl p-4 bg-slate-800/50 text-center">
                   <p className="text-xs text-slate-500 mb-1">Handle %</p>
                   <p className="text-2xl font-bold text-white">{game.metrics.handlePct}%</p>
                   <p className="text-sm text-slate-400 mt-1">{game.metrics.handleSide}</p>
                 </div>
+                )}
               </div>
             </div>
+            )}
 
             {/* =========================================== */}
-            {/* TEAM RANKINGS COMPARISON */}
+            {/* TEAM RANKINGS COMPARISON - Only show if we have data */}
             {/* =========================================== */}
+            {(game.matchup.homeOffRank > 0 || game.matchup.awayOffRank > 0) && (
             <div className="rounded-2xl p-6 bg-slate-900/50 border border-slate-800">
               <h3 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
                 <BarChart3 className="w-5 h-5 text-blue-500" />
@@ -1309,13 +1453,13 @@ export default function GameDetailPage() {
                     <div className="flex items-center justify-between p-3 rounded-lg bg-slate-800/30">
                       <span className="text-slate-400">{game.away.abbr}</span>
                       <span className={`font-bold ${game.matchup.awayOffRank <= 10 ? 'text-green-400' : game.matchup.awayOffRank <= 20 ? 'text-yellow-400' : 'text-red-400'}`}>
-                        #{game.matchup.awayOffRank}
+                        #{game.matchup.awayOffRank || 'N/A'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between p-3 rounded-lg bg-slate-800/30">
                       <span className="text-slate-400">{game.home.abbr}</span>
                       <span className={`font-bold ${game.matchup.homeOffRank <= 10 ? 'text-green-400' : game.matchup.homeOffRank <= 20 ? 'text-yellow-400' : 'text-red-400'}`}>
-                        #{game.matchup.homeOffRank}
+                        #{game.matchup.homeOffRank || 'N/A'}
                       </span>
                     </div>
                   </div>
@@ -1330,13 +1474,13 @@ export default function GameDetailPage() {
                     <div className="flex items-center justify-between p-3 rounded-lg bg-slate-800/30">
                       <span className="text-slate-400">{game.away.abbr}</span>
                       <span className={`font-bold ${game.matchup.awayDefRank <= 10 ? 'text-green-400' : game.matchup.awayDefRank <= 20 ? 'text-yellow-400' : 'text-red-400'}`}>
-                        #{game.matchup.awayDefRank}
+                        #{game.matchup.awayDefRank || 'N/A'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between p-3 rounded-lg bg-slate-800/30">
                       <span className="text-slate-400">{game.home.abbr}</span>
                       <span className={`font-bold ${game.matchup.homeDefRank <= 10 ? 'text-green-400' : game.matchup.homeDefRank <= 20 ? 'text-yellow-400' : 'text-red-400'}`}>
-                        #{game.matchup.homeDefRank}
+                        #{game.matchup.homeDefRank || 'N/A'}
                       </span>
                     </div>
                   </div>
@@ -1358,6 +1502,7 @@ export default function GameDetailPage() {
                 </div>
               )}
             </div>
+            )}
 
             {/* =========================================== */}
             {/* ESPN TEAM LEADERS - REAL DATA */}
@@ -1770,7 +1915,8 @@ export default function GameDetailPage() {
           {/* =========================================== */}
           <div className="space-y-6">
             
-            {/* Quick Signals */}
+            {/* Quick Signals - Only show if we have signals */}
+            {game.signals && game.signals.length > 0 && (
             <div className="rounded-2xl p-5 bg-slate-900/50 border border-slate-800">
               <h3 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
                 <Zap className="w-5 h-5 text-yellow-500" />
@@ -1796,8 +1942,9 @@ export default function GameDetailPage() {
                 ))}
               </div>
             </div>
+            )}
 
-            {/* Injury Report - Real ESPN Data */}
+            {/* Injury Report - Real ESPN Data - Sorted by impact */}
             <div className="rounded-2xl p-5 bg-slate-900/50 border border-slate-800">
               <h3 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
                 <AlertTriangle className="w-5 h-5 text-red-500" />
@@ -1808,14 +1955,24 @@ export default function GameDetailPage() {
                   <RefreshCw className="w-4 h-4 text-orange-500 animate-spin mr-2" />
                   <span className="text-slate-500 text-sm">Loading...</span>
                 </div>
-              ) : [...gameSummary.injuries.homeTeam, ...gameSummary.injuries.awayTeam]
-                .filter(inj => inj.status === 'Out' || inj.status === 'Injured Reserve' || inj.status === 'Doubtful' || inj.status === 'Questionable')
-                .slice(0, 5).length > 0 ? (
+              ) : (() => {
+                // Sort injuries by status priority and position importance
+                const sortedInjuries = [...gameSummary.injuries.homeTeam, ...gameSummary.injuries.awayTeam]
+                  .filter(inj => inj.status === 'Out' || inj.status === 'Injured Reserve' || inj.status === 'Doubtful' || inj.status === 'Questionable')
+                  .sort((a, b) => {
+                    // First sort by status (Out > Doubtful > Questionable)
+                    const statusDiff = (PRIORITY_STATUS[a.status] || 99) - (PRIORITY_STATUS[b.status] || 99)
+                    if (statusDiff !== 0) return statusDiff
+                    // Then by position priority (QB > WR > RB etc)
+                    const posA = PRIORITY_POSITIONS[a.athlete?.position?.toUpperCase()] || 50
+                    const posB = PRIORITY_POSITIONS[b.athlete?.position?.toUpperCase()] || 50
+                    return posA - posB
+                  })
+                  .slice(0, 6) // Show top 6 impactful injuries
+                
+                return sortedInjuries.length > 0 ? (
                 <div className="space-y-3">
-                  {[...gameSummary.injuries.homeTeam, ...gameSummary.injuries.awayTeam]
-                    .filter(inj => inj.status === 'Out' || inj.status === 'Injured Reserve' || inj.status === 'Doubtful' || inj.status === 'Questionable')
-                    .slice(0, 5)
-                    .map((injury, i) => (
+                  {sortedInjuries.map((injury, i) => (
                     <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-slate-800/30">
                       <div>
                         <p className="text-sm font-semibold text-white">{injury.athlete.displayName}</p>
@@ -1832,9 +1989,10 @@ export default function GameDetailPage() {
                     </div>
                   ))}
                 </div>
-              ) : (
-                <p className="text-sm text-slate-500">No significant injuries reported</p>
-              )}
+                ) : (
+                  <p className="text-sm text-slate-500">No significant injuries reported</p>
+                )
+              })()}
             </div>
 
             {/* ESPN Odds & Line Movement */}

@@ -68,243 +68,6 @@ interface SusPlay {
   source: string
 }
 
-// Mock data - In production this would come from Twitter/X API scraping
-const mockSusPlays: SusPlay[] = [
-  // NEW: Texans XP Miss - Under hits exactly
-  {
-    id: 'texans-xp-2026',
-    sport: 'nfl',
-    playerName: 'Ka\'imi Fairbairn',
-    team: 'HOU',
-    opponent: 'N/A',
-    gameDate: '2026-01-12',
-    description: 'Texans miss extra point in WILD fashion. Game O/U was 36.5 - the missed XP caused the under to hit. Sports gamblers demanding NFL investigate. "We have never seen a missed kick like this."',
-    susType: 'total',
-    relatedBet: 'Under 36.5',
-    videoUrl: '#',
-    twitterUrl: 'https://x.com/mlfootball/status/2010935098791559253',
-    views: 1200000,
-    susScore: 95,
-    votes: { sus: 8920, legit: 591 },
-    comments: 837,
-    trending: true,
-    verified: false,
-    postedAt: '1 hour ago',
-    source: '@MLFootball'
-  },
-  // NEW: From @RIGGEDFORVEGAS
-  {
-    id: 'rigged-1',
-    sport: 'nfl',
-    playerName: 'Unknown',
-    team: 'N/A',
-    opponent: 'N/A',
-    gameDate: '2025-01-10',
-    description: 'Questionable call at the goal line that directly impacted the spread. The refs seemed to have a different view than everyone watching.',
-    susType: 'spread',
-    relatedBet: 'Spread Impact',
-    videoUrl: '#',
-    twitterUrl: 'https://x.com/RIGGEDFORVEGAS/status/1949878466884648994',
-    views: 245000,
-    susScore: 91,
-    votes: { sus: 4520, legit: 380 },
-    comments: 892,
-    trending: true,
-    verified: false,
-    postedAt: '12 hours ago',
-    source: '@RIGGEDFORVEGAS'
-  },
-  {
-    id: 'rigged-2',
-    sport: 'nba',
-    playerName: 'Multiple',
-    team: 'N/A',
-    opponent: 'N/A',
-    gameDate: '2025-01-09',
-    description: 'Late game sequence with multiple questionable plays that pushed the total over. Timing was too perfect.',
-    susType: 'total',
-    relatedBet: 'Over Total',
-    videoUrl: '#',
-    twitterUrl: 'https://x.com/RIGGEDFORVEGAS/status/2010510272956334229',
-    views: 189000,
-    susScore: 85,
-    votes: { sus: 3890, legit: 612 },
-    comments: 567,
-    trending: true,
-    verified: false,
-    postedAt: '1 day ago',
-    source: '@RIGGEDFORVEGAS'
-  },
-  // NEW: From @SavageSports_
-  {
-    id: 'savage-1',
-    sport: 'nfl',
-    playerName: 'Unknown',
-    team: 'N/A',
-    opponent: 'N/A',
-    gameDate: '2025-01-08',
-    description: 'End of game play call that made zero sense from a football perspective but perfectly covered the spread. Coaches have action too?',
-    susType: 'spread',
-    relatedBet: 'ATS Result',
-    videoUrl: '#',
-    twitterUrl: 'https://x.com/SavageSports_/status/1981353713718439999',
-    views: 312000,
-    susScore: 88,
-    votes: { sus: 5670, legit: 890 },
-    comments: 1234,
-    trending: true,
-    verified: false,
-    postedAt: '2 days ago',
-    source: '@SavageSports_'
-  },
-  {
-    id: '0',
-    sport: 'nfl',
-    playerName: 'Unknown',
-    team: 'N/A',
-    opponent: 'N/A',
-    gameDate: '2025-06-06',
-    description: 'Team didn\'t take the field goal when they been kicking all year long. The fix is on.',
-    susType: 'spread',
-    relatedBet: 'Spread/Total Impact',
-    videoUrl: '#',
-    twitterUrl: 'https://x.com/dyce4pf/status/2007623922582466723',
-    views: 115,
-    susScore: 88,
-    votes: { sus: 94, legit: 12 },
-    comments: 47,
-    trending: true,
-    verified: false,
-    postedAt: 'Recently',
-    source: '@dyce4pf'
-  },
-  {
-    id: '1',
-    sport: 'nba',
-    playerName: 'Player A',
-    team: 'LAL',
-    opponent: 'BOS',
-    gameDate: '2026-01-03',
-    description: 'Passes up wide-open layup with 10 seconds left, team down by 2. His under 24.5 points hits by exactly 0.5 points.',
-    susType: 'prop',
-    relatedBet: 'Under 24.5 Points',
-    videoUrl: '#',
-    twitterUrl: '#',
-    views: 2400000,
-    susScore: 89,
-    votes: { sus: 8420, legit: 1203 },
-    comments: 1847,
-    trending: true,
-    verified: true,
-    postedAt: '2 hours ago',
-    source: '@SportsCenter'
-  },
-  {
-    id: '2',
-    sport: 'nfl',
-    playerName: 'Player B',
-    team: 'DAL',
-    opponent: 'PHI',
-    gameDate: '2026-01-02',
-    description: 'Takes intentional safety instead of punting with team +6.5. Final score: team loses by 7 exactly.',
-    susType: 'spread',
-    relatedBet: 'PHI -6.5',
-    videoUrl: '#',
-    twitterUrl: '#',
-    views: 1800000,
-    susScore: 94,
-    votes: { sus: 12340, legit: 890 },
-    comments: 2341,
-    trending: true,
-    verified: true,
-    postedAt: '8 hours ago',
-    source: '@BleacherReport'
-  },
-  {
-    id: '3',
-    sport: 'nba',
-    playerName: 'Player C',
-    team: 'MIA',
-    opponent: 'NYK',
-    gameDate: '2026-01-03',
-    description: 'Turns ball over twice in final minute, completely unforced. Game total was 218, final score 219.',
-    susType: 'total',
-    relatedBet: 'Over 218.5',
-    videoUrl: '#',
-    twitterUrl: '#',
-    views: 890000,
-    susScore: 72,
-    votes: { sus: 4520, legit: 2103 },
-    comments: 892,
-    trending: true,
-    verified: false,
-    postedAt: '4 hours ago',
-    source: '@BarstoolSports'
-  },
-  {
-    id: '4',
-    sport: 'nhl',
-    playerName: 'Player D',
-    team: 'TOR',
-    opponent: 'MTL',
-    gameDate: '2026-01-02',
-    description: 'Goalie lets in soft goal with 30 seconds left after standing on his head all game. His saves over hits by 1.',
-    susType: 'prop',
-    relatedBet: 'Over 28.5 Saves',
-    videoUrl: '#',
-    twitterUrl: '#',
-    views: 450000,
-    susScore: 65,
-    votes: { sus: 2100, legit: 1850 },
-    comments: 423,
-    trending: false,
-    verified: false,
-    postedAt: '12 hours ago',
-    source: '@NHLNetwork'
-  },
-  {
-    id: '5',
-    sport: 'mlb',
-    playerName: 'Player E',
-    team: 'NYY',
-    opponent: 'BOS',
-    gameDate: '2026-01-01',
-    description: 'Strike 3 looking on a pitch 6 inches outside. His strikeout over hits by exactly 1.',
-    susType: 'prop',
-    relatedBet: 'Over 1.5 Strikeouts',
-    videoUrl: '#',
-    twitterUrl: '#',
-    views: 320000,
-    susScore: 45,
-    votes: { sus: 1200, legit: 2400 },
-    comments: 234,
-    trending: false,
-    verified: false,
-    postedAt: '1 day ago',
-    source: '@MLBNetwork'
-  },
-  {
-    id: '6',
-    sport: 'ncaab',
-    playerName: 'Player F',
-    team: 'DUKE',
-    opponent: 'UNC',
-    gameDate: '2026-01-02',
-    description: 'Star player picks up 2 quick fouls in first 3 minutes, sits most of first half. Duke -8 loses by 9.',
-    susType: 'spread',
-    relatedBet: 'UNC +8',
-    videoUrl: '#',
-    twitterUrl: '#',
-    views: 670000,
-    susScore: 58,
-    votes: { sus: 3100, legit: 2900 },
-    comments: 567,
-    trending: true,
-    verified: false,
-    postedAt: '18 hours ago',
-    source: '@CBSSports'
-  }
-]
 
 const formatViews = (views: number): string => {
   if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M`
@@ -558,6 +321,55 @@ export default function SusPlaysPage() {
   const [sortBy, setSortBy] = useState<'trending' | 'susScore' | 'views' | 'recent'>('trending')
   const [showSubmitModal, setShowSubmitModal] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [susPlays, setSusPlays] = useState<SusPlay[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Fetch sus plays from API
+  useEffect(() => {
+    async function fetchSusPlays() {
+      setLoading(true)
+      try {
+        const params = new URLSearchParams({
+          sport,
+          susType,
+          timeFrame: timeframe,
+          trending: sortBy === 'trending' ? 'true' : 'false',
+        })
+        const res = await fetch(`/api/sus?${params}`)
+        if (res.ok) {
+          const data = await res.json()
+          // Map API response to SusPlay interface
+          const plays: SusPlay[] = data.susPlays.map((p: Record<string, unknown>) => ({
+            id: p.id as string,
+            sport: (p.sport as string || 'nfl') as Sport,
+            playerName: p.playerName as string || 'Unknown',
+            team: p.team as string || 'N/A',
+            opponent: 'N/A',
+            gameDate: new Date().toISOString(),
+            description: p.description as string || p.title as string || '',
+            susType: (p.susType as string || 'other') as SusType,
+            relatedBet: p.relatedBet as string,
+            videoUrl: p.videoUrl as string,
+            twitterUrl: p.twitterUrl as string,
+            thumbnailUrl: p.thumbnailUrl as string,
+            views: p.views as number || 0,
+            susScore: p.susScore as number || 50,
+            votes: p.votes as { sus: number; legit: number } || { sus: 0, legit: 0 },
+            comments: 0,
+            trending: p.trending as boolean || false,
+            verified: p.verified as boolean || false,
+            postedAt: p.postedAt as string || 'Recently',
+            source: '@SusPlays',
+          }))
+          setSusPlays(plays)
+        }
+      } catch (error) {
+        console.error('Failed to fetch sus plays:', error)
+      }
+      setLoading(false)
+    }
+    fetchSusPlays()
+  }, [sport, susType, timeframe, sortBy])
 
   // Handle copy share link
   const handleCopyLink = useCallback(async (play: SusPlay) => {
@@ -568,10 +380,8 @@ export default function SusPlaysPage() {
     }
   }, [])
 
-  // Filter plays
-  const filteredPlays = mockSusPlays.filter(play => {
-    if (sport !== 'all' && play.sport !== sport) return false
-    if (susType !== 'all' && play.susType !== susType) return false
+  // Filter plays locally for search
+  const filteredPlays = susPlays.filter(play => {
     if (searchQuery) {
       const q = searchQuery.toLowerCase()
       return play.playerName.toLowerCase().includes(q) || 
@@ -584,7 +394,7 @@ export default function SusPlaysPage() {
       case 'trending': return (b.trending ? 1 : 0) - (a.trending ? 1 : 0) || b.views - a.views
       case 'susScore': return b.susScore - a.susScore
       case 'views': return b.views - a.views
-      case 'recent': return 0 // Would sort by date in production
+      case 'recent': return 0
       default: return 0
     }
   })
@@ -741,7 +551,18 @@ export default function SusPlaysPage() {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Plays List */}
           <div className="lg:col-span-2 space-y-4">
-            {filteredPlays.map((play) => (
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full" />
+              </div>
+            ) : filteredPlays.length === 0 ? (
+              <div className="text-center py-12">
+                <AlertTriangle className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-400">No suspicious plays found</p>
+                <p className="text-gray-500 text-sm">Try adjusting your filters</p>
+              </div>
+            ) : (
+              filteredPlays.map((play) => (
               <div 
                 key={play.id} 
                 className="rounded-2xl overflow-hidden transition-all hover:scale-[1.01]"
@@ -881,14 +702,7 @@ export default function SusPlaysPage() {
                   </div>
                 </div>
               </div>
-            ))}
-
-            {filteredPlays.length === 0 && (
-              <div className="text-center py-12 rounded-2xl" style={{ background: '#12121A' }}>
-                <AlertTriangle className="w-12 h-12 mx-auto mb-4" style={{ color: '#808090' }} />
-                <p className="text-lg font-semibold text-white mb-2">No Sus Plays Found</p>
-                <p style={{ color: '#808090' }}>Try adjusting your filters</p>
-              </div>
+            ))
             )}
           </div>
 
@@ -921,7 +735,7 @@ export default function SusPlaysPage() {
                 Most Sus This Week
               </h3>
               <div className="space-y-3">
-                {mockSusPlays.sort((a, b) => b.susScore - a.susScore).slice(0, 5).map((play, i) => (
+                {[...susPlays].sort((a, b) => b.susScore - a.susScore).slice(0, 5).map((play, i) => (
                   <div key={play.id} className="flex items-center gap-3">
                     <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
                          style={{ background: getSusColor(play.susScore), color: '#000' }}>

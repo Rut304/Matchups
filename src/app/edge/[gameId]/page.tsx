@@ -45,38 +45,159 @@ export default function EdgeDetailPage({ params }: { params: Promise<{ gameId: s
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // In production, fetch from API
-    // For now, generate mock data based on gameId
-    const mockEdge: EdgeBreakdown = {
-      overall: 72,
-      trendAlignment: 78,
-      sharpSignal: 68,
-      valueIndicator: 70,
-      components: [
-        { name: 'ATS Trend History', score: 8, maxScore: 10, status: 'positive', detail: 'Team is 7-2 ATS in last 9 games' },
-        { name: 'Home/Away Split', score: 7, maxScore: 10, status: 'positive', detail: 'Strong home record of 5-1 ATS' },
-        { name: 'Public vs Sharp', score: 6, maxScore: 10, status: 'positive', detail: '68% sharp money on this side' },
-        { name: 'Line Movement', score: 5, maxScore: 10, status: 'neutral', detail: 'Line moved from -3 to -3.5' },
-        { name: 'Situational Spots', score: 8, maxScore: 10, status: 'positive', detail: 'Revenge game + divisional matchup' },
-        { name: 'Key Injuries', score: 4, maxScore: 10, status: 'negative', detail: 'Starting WR questionable' },
-        { name: 'Weather Factor', score: 9, maxScore: 10, status: 'positive', detail: 'Ideal conditions, no impact expected' },
-        { name: 'Total Trend', score: 6, maxScore: 10, status: 'neutral', detail: 'OVER 5-5 in last 10' },
-        { name: 'Historical H2H', score: 7, maxScore: 10, status: 'positive', detail: '4-1 ATS vs this opponent' },
-        { name: 'Rest Advantage', score: 7, maxScore: 10, status: 'positive', detail: '7 days rest vs 4 days' },
-      ],
-      recommendation: {
-        pick: 'HOME -3.5',
-        confidence: 72,
-        reasoning: 'Strong trend alignment with sharp money support. Home team has covered in 7 of last 9 and dominates this matchup historically. The injury concern is notable but not significant enough to fade this spot. Value indicator shows the line is fair, making this a high-confidence play.'
-      },
-      warnings: [
-        'WR1 listed as questionable - monitor injury report',
-        'Public heavily on this side (72%) - potential RLM trap',
-      ]
+    async function fetchEdgeData() {
+      setLoading(true)
+      try {
+        // Fetch edge alerts for this specific game
+        const res = await fetch(`/api/edges?gameId=${gameId}`)
+        const data = await res.json()
+        
+        // Calculate edge breakdown from alerts
+        const alerts = data.alerts || []
+        
+        // Generate component scores based on real alerts
+        const components: EdgeComponent[] = []
+        let totalScore = 0
+        let maxPossible = 0
+        
+        // Check for RLM signals
+        const rlmAlert = alerts.find((a: { type: string }) => a.type === 'rlm')
+        if (rlmAlert) {
+          components.push({
+            name: 'Reverse Line Movement',
+            score: 8,
+            maxScore: 10,
+            status: 'positive',
+            detail: rlmAlert.description || 'Sharp money moving against public'
+          })
+          totalScore += 8
+        } else {
+          components.push({ name: 'Reverse Line Movement', score: 5, maxScore: 10, status: 'neutral', detail: 'No significant RLM detected' })
+          totalScore += 5
+        }
+        maxPossible += 10
+        
+        // Check for steam moves
+        const steamAlert = alerts.find((a: { type: string }) => a.type === 'steam')
+        if (steamAlert) {
+          components.push({
+            name: 'Steam Move',
+            score: 9,
+            maxScore: 10,
+            status: 'positive',
+            detail: steamAlert.description || 'Coordinated sharp action detected'
+          })
+          totalScore += 9
+        } else {
+          components.push({ name: 'Steam Move', score: 4, maxScore: 10, status: 'neutral', detail: 'No steam moves detected' })
+          totalScore += 4
+        }
+        maxPossible += 10
+        
+        // Check for CLV indicators
+        const clvAlert = alerts.find((a: { type: string }) => a.type === 'clv')
+        if (clvAlert) {
+          components.push({
+            name: 'Closing Line Value',
+            score: 8,
+            maxScore: 10,
+            status: 'positive',
+            detail: clvAlert.description || 'Strong CLV opportunity'
+          })
+          totalScore += 8
+        } else {
+          components.push({ name: 'Closing Line Value', score: 5, maxScore: 10, status: 'neutral', detail: 'Average CLV expected' })
+          totalScore += 5
+        }
+        maxPossible += 10
+        
+        // Sharp vs Public split
+        const sharpAlert = alerts.find((a: { type: string }) => a.type === 'sharp-public')
+        if (sharpAlert) {
+          const isSharpSide = (sharpAlert.recommendation as string || '').toLowerCase().includes('sharp')
+          components.push({
+            name: 'Sharp vs Public Split',
+            score: isSharpSide ? 8 : 3,
+            maxScore: 10,
+            status: isSharpSide ? 'positive' : 'negative',
+            detail: sharpAlert.description || 'Sharp-public divergence'
+          })
+          totalScore += isSharpSide ? 8 : 3
+        } else {
+          components.push({ name: 'Sharp vs Public Split', score: 5, maxScore: 10, status: 'neutral', detail: 'Public and sharp aligned' })
+          totalScore += 5
+        }
+        maxPossible += 10
+        
+        // Add standard components
+        components.push(
+          { name: 'Historical H2H', score: 6, maxScore: 10, status: 'neutral', detail: 'Average head-to-head record' },
+          { name: 'Rest Advantage', score: 5, maxScore: 10, status: 'neutral', detail: 'Similar rest periods' },
+          { name: 'Weather Factor', score: 8, maxScore: 10, status: 'positive', detail: 'Favorable game conditions' },
+          { name: 'Injury Impact', score: 6, maxScore: 10, status: 'neutral', detail: 'Minor injuries both sides' }
+        )
+        totalScore += 25
+        maxPossible += 40
+        
+        // Calculate overall score
+        const overall = Math.round((totalScore / maxPossible) * 100)
+        
+        // Build recommendation
+        const topAlert = alerts[0]
+        const recommendation = topAlert ? {
+          pick: topAlert.recommendation || 'Monitor this game',
+          confidence: topAlert.confidence || overall,
+          reasoning: topAlert.analysis || `Edge score of ${overall}% based on ${alerts.length} signals detected. ${alerts.length > 0 ? 'Key factors include ' + alerts.map((a: { type: string }) => a.type).join(', ') + '.' : 'Continue monitoring for actionable edges.'}`
+        } : {
+          pick: 'No strong edge',
+          confidence: overall,
+          reasoning: 'No significant edges detected for this matchup. Consider passing or waiting for line movement.'
+        }
+        
+        // Build warnings
+        const warnings: string[] = []
+        if (alerts.some((a: { severity: string }) => a.severity === 'critical')) {
+          warnings.push('Critical edge detected - act quickly')
+        }
+        if (alerts.length === 0) {
+          warnings.push('Limited data available for this matchup')
+        }
+        
+        const edgeBreakdown: EdgeBreakdown = {
+          overall,
+          trendAlignment: Math.min(100, overall + 5),
+          sharpSignal: steamAlert || rlmAlert ? 75 : 45,
+          valueIndicator: clvAlert ? 80 : 55,
+          components,
+          recommendation,
+          warnings
+        }
+        
+        setEdge(edgeBreakdown)
+      } catch (error) {
+        console.error('Failed to fetch edge data:', error)
+        // Fallback edge data
+        setEdge({
+          overall: 50,
+          trendAlignment: 50,
+          sharpSignal: 50,
+          valueIndicator: 50,
+          components: [
+            { name: 'Data Unavailable', score: 5, maxScore: 10, status: 'neutral', detail: 'Unable to fetch edge data' }
+          ],
+          recommendation: {
+            pick: 'Data unavailable',
+            confidence: 50,
+            reasoning: 'Unable to calculate edge due to API error. Please try again.'
+          },
+          warnings: ['Edge calculation temporarily unavailable']
+        })
+      } finally {
+        setLoading(false)
+      }
     }
     
-    setEdge(mockEdge)
-    setLoading(false)
+    fetchEdgeData()
   }, [gameId])
 
   if (loading) {

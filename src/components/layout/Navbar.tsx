@@ -32,10 +32,12 @@ import {
   User,
   LogOut,
   LayoutDashboard,
-  Sparkles
+  Sparkles,
+  Search
 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
+import { GlobalSearch } from '@/components/search/GlobalSearch'
 
 // Sports organized by category for cleaner navigation
 const proSportsNav = [
@@ -141,8 +143,11 @@ const sportsNav = [...proSportsNav, ...collegeSportsNav]
 
 const toolsNav = [
   { name: 'Trend Finder', href: '/trend-finder', icon: Sparkles, desc: 'AI-powered trend analysis' },
+  { name: 'Prop Correlations', href: '/props/correlations', icon: Activity, desc: 'Build smart same-game parlays' },
+  { name: 'Pattern Matcher', href: '/patterns', icon: PieChart, desc: 'Match historical betting patterns' },
   { name: 'Marketplace', href: '/marketplace', icon: TrendingUp, desc: 'Copy winning systems' },
   { name: 'Line Shop', href: '/lineshop', icon: PieChart, desc: 'Best odds across sportsbooks' },
+  { name: 'CLV Tracker', href: '/performance/clv', icon: Target, desc: 'Track closing line value' },
   { name: 'Calculators', href: '/calculators', icon: Calculator, desc: 'Parlay & hedge calculators' },
   { name: 'Alerts', href: '/alerts', icon: Bell, desc: 'Line moves & sharp action' },
   { name: 'Trends', href: '/trends', icon: TrendingUp, desc: 'Betting systems & angles' },
@@ -505,6 +510,9 @@ export function Navbar() {
 
           {/* Right side CTAs */}
           <div className="flex items-center gap-3">
+            {/* Global Search */}
+            <GlobalSearch />
+
             {/* The Edge - Primary CTA */}
             <Link 
               href="/markets/edge" 

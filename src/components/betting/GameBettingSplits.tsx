@@ -114,28 +114,31 @@ function SplitBar({
   const normalizedRight = 100 - normalizedLeft
 
   return (
-    <div className="space-y-1">
-      <div className="flex justify-between text-xs">
-        <span className={`font-medium ${isSharpLeft ? 'text-purple-400' : 'text-slate-300'}`}>
-          {leftLabel}
-          {isSharpLeft && <Zap className="inline w-3 h-3 ml-1 text-purple-400" />}
-        </span>
-        <span className={`font-medium ${isSharpRight ? 'text-purple-400' : 'text-slate-300'}`}>
-          {isSharpRight && <Zap className="inline w-3 h-3 mr-1 text-purple-400" />}
-          {rightLabel}
-        </span>
+    <div className="flex items-center gap-3">
+      {/* Left Side */}
+      <div className={`flex-1 text-right ${isSharpLeft ? 'text-purple-400' : 'text-slate-300'}`}>
+        <span className="text-lg font-bold">{leftPct}%</span>
+        <span className="text-xs text-slate-500 ml-1">{leftLabel.split(' ')[0]}</span>
+        {isSharpLeft && <Zap className="inline w-3 h-3 ml-1 text-purple-400" />}
       </div>
-      <div className="relative h-3 bg-slate-800 rounded-full overflow-hidden">
+      
+      {/* Visual Bar - More compact */}
+      <div className="w-32 h-2 bg-slate-800 rounded-full overflow-hidden flex">
         <div 
-          className={`absolute top-0 left-0 h-full ${isSharpLeft ? 'bg-purple-500' : leftColor} rounded-l-full transition-all duration-500`}
+          className={`h-full ${isSharpLeft ? 'bg-purple-500' : leftColor} transition-all duration-500`}
           style={{ width: `${normalizedLeft}%` }}
         />
         <div 
-          className={`absolute top-0 right-0 h-full ${isSharpRight ? 'bg-purple-500' : rightColor} rounded-r-full transition-all duration-500`}
+          className={`h-full ${isSharpRight ? 'bg-purple-500' : rightColor} transition-all duration-500`}
           style={{ width: `${normalizedRight}%` }}
         />
-        {/* Center line */}
-        <div className="absolute top-0 left-1/2 w-0.5 h-full bg-slate-950 transform -translate-x-1/2" />
+      </div>
+      
+      {/* Right Side */}
+      <div className={`flex-1 text-left ${isSharpRight ? 'text-purple-400' : 'text-slate-300'}`}>
+        {isSharpRight && <Zap className="inline w-3 h-3 mr-1 text-purple-400" />}
+        <span className="text-lg font-bold">{rightPct}%</span>
+        <span className="text-xs text-slate-500 ml-1">{rightLabel.split(' ')[0]}</span>
       </div>
     </div>
   )
@@ -231,25 +234,17 @@ function BetTypeSection({
         <SplitBar
           leftPct={leftTickets}
           rightPct={rightTickets}
-          leftLabel={`${leftTeam} ${leftTickets}%`}
-          rightLabel={`${rightTeam} ${rightTickets}%`}
+          leftLabel={`${leftTeam}`}
+          rightLabel={`${rightTeam}`}
           isSharpLeft={leftSharp}
           isSharpRight={rightSharp}
         />
-        {/* Money bar */}
-        <div className="flex items-center gap-2 text-xs text-slate-500">
-          <DollarSign className="w-3 h-3" />
-          <div className="flex-1 flex justify-between">
-            <span className={leftSharp ? 'text-purple-400 font-medium' : ''}>{leftMoney}% money</span>
-            <span className={rightSharp ? 'text-purple-400 font-medium' : ''}>{rightMoney}% money</span>
-          </div>
-        </div>
       </div>
     )
   }
 
   return (
-    <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800">
+    <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           {icon}
@@ -264,60 +259,64 @@ function BetTypeSection({
         )}
       </div>
 
-      {/* Ticket % Row */}
-      <div className="mb-3">
-        <div className="flex items-center gap-2 mb-2 text-xs text-slate-400">
-          <Users className="w-3 h-3" />
-          <span>Tickets (# of bets)</span>
-        </div>
-        <SplitBar
-          leftPct={leftTickets}
-          rightPct={rightTickets}
-          leftLabel={`${leftTeam} ${leftTickets}%`}
-          rightLabel={`${rightTeam} ${rightTickets}%`}
-          leftColor="bg-blue-500"
-          rightColor="bg-blue-500/40"
-          isSharpLeft={leftSharp}
-          isSharpRight={rightSharp}
-        />
-      </div>
-
-      {/* Money % Row */}
-      <div>
-        <div className="flex items-center gap-2 mb-2 text-xs text-slate-400">
-          <DollarSign className="w-3 h-3" />
-          <span>Money ($ handle)</span>
-        </div>
-        <SplitBar
-          leftPct={leftMoney}
-          rightPct={rightMoney}
-          leftLabel={`${leftTeam} ${leftMoney}%`}
-          rightLabel={`${rightTeam} ${rightMoney}%`}
-          leftColor="bg-green-500"
-          rightColor="bg-green-500/40"
-          isSharpLeft={leftSharp}
-          isSharpRight={rightSharp}
-        />
-      </div>
-
-      {/* Sharp Money Alert */}
-      {hasSharpSignal && (
-        <div className="mt-4 p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg">
-          <div className="flex items-start gap-2">
-            <AlertTriangle className="w-4 h-4 text-purple-400 mt-0.5 flex-shrink-0" />
-            <div className="text-xs">
-              <span className="font-medium text-purple-300">Sharp Money Alert:</span>
-              <span className="text-slate-400 ml-1">
-                {leftSharp ? (
-                  <>Public betting {rightTeam} ({rightTickets}% tickets), but {leftMoney}% of money on {leftTeam}</>
-                ) : (
-                  <>Public betting {leftTeam} ({leftTickets}% tickets), but {rightMoney}% of money on {rightTeam}</>
-                )}
-              </span>
+      {/* Cleaner Card-Based Layout */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* Left Team Card */}
+        <div className={`p-3 rounded-lg text-center ${leftSharp ? 'bg-purple-500/10 border border-purple-500/30' : 'bg-slate-900/50'}`}>
+          <div className="text-sm font-semibold text-slate-400 mb-2">{leftTeam}</div>
+          <div className="flex items-center justify-center gap-4">
+            <div>
+              <div className="flex items-center justify-center gap-1 text-xs text-slate-500">
+                <Users className="w-3 h-3 text-blue-400" />
+                <span>Bets</span>
+              </div>
+              <div className={`text-xl font-bold ${leftSharp ? 'text-purple-400' : 'text-blue-400'}`}>{leftTickets}%</div>
+            </div>
+            <div className="w-px h-8 bg-slate-700" />
+            <div>
+              <div className="flex items-center justify-center gap-1 text-xs text-slate-500">
+                <DollarSign className="w-3 h-3 text-green-400" />
+                <span>Money</span>
+              </div>
+              <div className={`text-xl font-bold ${leftSharp ? 'text-purple-400' : 'text-green-400'}`}>{leftMoney}%</div>
             </div>
           </div>
+          {leftSharp && (
+            <div className="mt-2 flex items-center justify-center gap-1 text-xs text-purple-400">
+              <Zap className="w-3 h-3" />
+              <span>Sharp Money</span>
+            </div>
+          )}
         </div>
-      )}
+
+        {/* Right Team Card */}
+        <div className={`p-3 rounded-lg text-center ${rightSharp ? 'bg-purple-500/10 border border-purple-500/30' : 'bg-slate-900/50'}`}>
+          <div className="text-sm font-semibold text-slate-400 mb-2">{rightTeam}</div>
+          <div className="flex items-center justify-center gap-4">
+            <div>
+              <div className="flex items-center justify-center gap-1 text-xs text-slate-500">
+                <Users className="w-3 h-3 text-blue-400" />
+                <span>Bets</span>
+              </div>
+              <div className={`text-xl font-bold ${rightSharp ? 'text-purple-400' : 'text-blue-400'}`}>{rightTickets}%</div>
+            </div>
+            <div className="w-px h-8 bg-slate-700" />
+            <div>
+              <div className="flex items-center justify-center gap-1 text-xs text-slate-500">
+                <DollarSign className="w-3 h-3 text-green-400" />
+                <span>Money</span>
+              </div>
+              <div className={`text-xl font-bold ${rightSharp ? 'text-purple-400' : 'text-green-400'}`}>{rightMoney}%</div>
+            </div>
+          </div>
+          {rightSharp && (
+            <div className="mt-2 flex items-center justify-center gap-1 text-xs text-purple-400">
+              <Zap className="w-3 h-3" />
+              <span>Sharp Money</span>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
@@ -485,13 +484,21 @@ export function GameBettingSplits({
 
   // Full expanded view
   return (
-    <div className={`bg-slate-900/50 rounded-xl ${compact ? 'p-4' : 'p-6'} border border-slate-800`}>
+    <div className={`bg-slate-900/50 rounded-xl ${compact ? 'p-4' : 'p-6'} border border-slate-800 mb-6`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <Target className="w-5 h-5 text-orange-500" />
           <h3 className="font-semibold text-white">Public Betting Splits</h3>
           <span className="text-xs px-2 py-0.5 bg-green-500/20 text-green-400 rounded">LIVE</span>
+          <div className="group relative">
+            <Info className="w-4 h-4 text-slate-500 cursor-help" />
+            <div className="invisible group-hover:visible absolute bottom-full left-0 mb-2 w-72 p-3 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-300 z-10 shadow-xl">
+              <p className="font-semibold text-white mb-1">What are Betting Splits?</p>
+              <p className="mb-2">Shows where the public is betting (# of bets) vs where the money is going ($ handle).</p>
+              <p><span className="text-purple-400 font-medium">Sharp Money</span> = When money % differs significantly from ticket %. This often indicates professional bettors taking a side.</p>
+            </div>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {lastUpdated && (

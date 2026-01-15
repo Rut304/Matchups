@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { 
   Target, Plus, Calendar, DollarSign, TrendingUp, TrendingDown,
@@ -27,108 +27,7 @@ interface UserPick {
   notes?: string
 }
 
-// Mock user picks data
-const mockUserPicks: UserPick[] = [
-  {
-    id: '1',
-    date: '2025-01-03',
-    sport: 'nfl',
-    betType: 'spread',
-    matchup: 'DET Lions vs MIN Vikings',
-    pick: 'DET -3.5',
-    odds: -110,
-    stake: 100,
-    result: 'pending',
-    profit: 0,
-    notes: 'Lions playoff push, sharp money on DET'
-  },
-  {
-    id: '2',
-    date: '2025-01-02',
-    sport: 'nba',
-    betType: 'spread',
-    matchup: 'BOS Celtics @ MIA Heat',
-    pick: 'BOS -4',
-    odds: -108,
-    stake: 110,
-    result: 'win',
-    profit: 101.85,
-  },
-  {
-    id: '3',
-    date: '2025-01-02',
-    sport: 'nba',
-    betType: 'total',
-    matchup: 'LAL Lakers vs GSW Warriors',
-    pick: 'OVER 224.5',
-    odds: -110,
-    stake: 55,
-    result: 'loss',
-    profit: -55,
-  },
-  {
-    id: '4',
-    date: '2025-01-01',
-    sport: 'nfl',
-    betType: 'moneyline',
-    matchup: 'KC Chiefs vs DEN Broncos',
-    pick: 'KC ML',
-    odds: -180,
-    stake: 180,
-    result: 'win',
-    profit: 100,
-    notes: 'Chiefs clinching home field'
-  },
-  {
-    id: '5',
-    date: '2024-12-31',
-    sport: 'nhl',
-    betType: 'spread',
-    matchup: 'BOS Bruins vs NYR Rangers',
-    pick: 'BOS -1.5',
-    odds: +145,
-    stake: 50,
-    result: 'loss',
-    profit: -50,
-  },
-  {
-    id: '6',
-    date: '2024-12-30',
-    sport: 'nba',
-    betType: 'prop',
-    matchup: 'PHX Suns vs DAL Mavericks',
-    pick: 'Kevin Durant o26.5 pts',
-    odds: -115,
-    stake: 115,
-    result: 'win',
-    profit: 100,
-    notes: 'KD revenge game'
-  },
-  {
-    id: '7',
-    date: '2024-12-29',
-    sport: 'nfl',
-    betType: 'parlay',
-    matchup: 'Multiple Games',
-    pick: 'KC ML / BUF ML / DET -3',
-    odds: +260,
-    stake: 50,
-    result: 'win',
-    profit: 130,
-  },
-  {
-    id: '8',
-    date: '2024-12-28',
-    sport: 'mlb',
-    betType: 'spread',
-    matchup: 'LAD Dodgers vs SD Padres',
-    pick: 'LAD -1.5',
-    odds: +105,
-    stake: 100,
-    result: 'push',
-    profit: 0,
-  },
-]
+// No mock data - fetching from API
 
 const sportColors: Record<Sport, string> = {
   nfl: '#FF6B00',
@@ -140,7 +39,8 @@ const sportColors: Record<Sport, string> = {
 }
 
 export default function MyPicksPage() {
-  const [picks, setPicks] = useState<UserPick[]>(mockUserPicks)
+  const [picks, setPicks] = useState<UserPick[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
   const [filterSport, setFilterSport] = useState<Sport | 'all'>('all')
   const [filterBetType, setFilterBetType] = useState<BetType | 'all'>('all')
@@ -148,6 +48,45 @@ export default function MyPicksPage() {
   const [sortBy, setSortBy] = useState<'date' | 'stake' | 'profit'>('date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year' | 'all'>('month')
+
+  // Fetch user picks from API
+  useEffect(() => {
+    async function fetchPicks() {
+      setIsLoading(true)
+      try {
+        const params = new URLSearchParams()
+        if (filterSport !== 'all') params.set('sport', filterSport)
+        if (filterBetType !== 'all') params.set('betType', filterBetType)
+        if (filterResult !== 'all') params.set('result', filterResult)
+        if (timeRange !== 'all') params.set('timeRange', timeRange)
+        
+        const res = await fetch(`/api/user-picks?${params.toString()}`)
+        const data = await res.json()
+        
+        if (data.picks) {
+          const transformed: UserPick[] = data.picks.map((p: Record<string, unknown>) => ({
+            id: p.id as string,
+            date: (p.date as string)?.split('T')[0] || new Date().toISOString().split('T')[0],
+            sport: (p.sport as Sport) || 'nfl',
+            betType: (p.betType as BetType) || 'spread',
+            matchup: p.matchup as string || 'Game',
+            pick: p.pick as string || '',
+            odds: p.odds as number || -110,
+            stake: p.stake as number || 100,
+            result: (p.result as PickResult) || 'pending',
+            profit: p.profit as number || 0,
+            notes: p.notes as string || '',
+          }))
+          setPicks(transformed)
+        }
+      } catch (error) {
+        console.error('Failed to fetch picks:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchPicks()
+  }, [filterSport, filterBetType, filterResult, timeRange])
 
   // New pick form state
   const [newPick, setNewPick] = useState<Partial<UserPick>>({

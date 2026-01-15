@@ -35,84 +35,7 @@ interface Alert {
   }
 }
 
-// Mock alerts
-const mockAlerts: Alert[] = [
-  {
-    id: '1',
-    type: 'line_move',
-    sport: 'NFL',
-    title: 'Major Line Movement',
-    description: 'Line moved 3.5 points in 2 hours',
-    game: 'Chiefs @ Ravens',
-    timestamp: '5 mins ago',
-    severity: 'critical',
-    data: { oldLine: -7, newLine: -3.5, movement: 3.5 }
-  },
-  {
-    id: '2',
-    type: 'sharp_action',
-    sport: 'NBA',
-    title: 'Sharp Money Detected',
-    description: '65% of money on Celtics despite 40% of bets',
-    game: 'Celtics @ Lakers',
-    timestamp: '12 mins ago',
-    severity: 'high',
-    data: { percentage: 65 }
-  },
-  {
-    id: '3',
-    type: 'injury',
-    sport: 'NBA',
-    title: 'Star Player Out',
-    description: 'Ja Morant ruled OUT - Line shifting',
-    game: 'Grizzlies @ Suns',
-    timestamp: '20 mins ago',
-    severity: 'critical'
-  },
-  {
-    id: '4',
-    type: 'public_money',
-    sport: 'NFL',
-    title: 'Heavy Public Action',
-    description: '85% of public bets on Cowboys',
-    game: 'Cowboys @ Eagles',
-    timestamp: '35 mins ago',
-    severity: 'medium',
-    data: { percentage: 85 }
-  },
-  {
-    id: '5',
-    type: 'line_move',
-    sport: 'NHL',
-    title: 'Reverse Line Movement',
-    description: 'Line moving against public money',
-    game: 'Oilers @ Flames',
-    timestamp: '1 hour ago',
-    severity: 'high',
-    data: { oldLine: -150, newLine: -130, movement: 20 }
-  },
-  {
-    id: '6',
-    type: 'weather',
-    sport: 'MLB',
-    title: 'Weather Alert',
-    description: 'High winds (25mph) at Wrigley Field',
-    game: 'Cubs @ Cardinals',
-    timestamp: '2 hours ago',
-    severity: 'medium'
-  },
-  {
-    id: '7',
-    type: 'sharp_action',
-    sport: 'NFL',
-    title: 'Steam Move',
-    description: 'Coordinated sharp action detected',
-    game: 'Bills @ Dolphins',
-    timestamp: '3 hours ago',
-    severity: 'high',
-    data: { percentage: 70 }
-  }
-]
+// Alert data now fetched from API
 
 const getAlertIcon = (type: string) => {
   switch (type) {
@@ -147,10 +70,49 @@ const getSeverityColor = (severity: string) => {
 }
 
 export default function AlertsPage() {
-  const [alerts, setAlerts] = useState<Alert[]>(mockAlerts)
+  const [alerts, setAlerts] = useState<Alert[]>([])
   const [selectedType, setSelectedType] = useState<string>('all')
   const [selectedSport, setSelectedSport] = useState<string>('all')
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Fetch alerts from API
+  useEffect(() => {
+    async function fetchAlerts() {
+      setIsLoading(true)
+      try {
+        const res = await fetch('/api/alerts')
+        const data = await res.json()
+        
+        // Transform timestamps to relative time
+        const transformedAlerts = (data.alerts || []).map((alert: Alert) => ({
+          ...alert,
+          timestamp: formatRelativeTime(alert.timestamp)
+        }))
+        
+        setAlerts(transformedAlerts)
+      } catch (error) {
+        console.error('Failed to fetch alerts:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchAlerts()
+  }, [])
+  
+  // Format timestamp to relative time
+  function formatRelativeTime(timestamp: string): string {
+    const date = new Date(timestamp)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    
+    if (diffMins < 1) return 'Just now'
+    if (diffMins < 60) return `${diffMins} mins ago`
+    const diffHours = Math.floor(diffMins / 60)
+    if (diffHours < 24) return `${diffHours} hours ago`
+    const diffDays = Math.floor(diffHours / 24)
+    return `${diffDays} days ago`
+  }
 
   const filteredAlerts = alerts.filter(alert => {
     if (selectedType !== 'all' && alert.type !== selectedType) return false
@@ -158,11 +120,21 @@ export default function AlertsPage() {
     return true
   })
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsLoading(true)
-    setTimeout(() => {
+    try {
+      const res = await fetch('/api/alerts')
+      const data = await res.json()
+      const transformedAlerts = (data.alerts || []).map((alert: Alert) => ({
+        ...alert,
+        timestamp: formatRelativeTime(alert.timestamp)
+      }))
+      setAlerts(transformedAlerts)
+    } catch (error) {
+      console.error('Failed to refresh alerts:', error)
+    } finally {
       setIsLoading(false)
-    }, 1500)
+    }
   }
 
   const alertTypes = [

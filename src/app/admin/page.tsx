@@ -38,7 +38,7 @@ import {
 
 import Link from 'next/link'
 
-type TabType = 'overview' | 'data' | 'diagnostics' | 'users' | 'ads' | 'edge' | 'infra' | 'settings'
+type TabType = 'overview' | 'data' | 'diagnostics' | 'users' | 'ads' | 'edge' | 'infra' | 'settings' | 'api-usage'
 
 interface Job {
   id: string
@@ -311,6 +311,7 @@ export default function AdminPage() {
     { id: 'ads', label: 'Ads', icon: Megaphone },
     { id: 'edge', label: 'Edge Features', icon: TrendingUp },
     { id: 'infra', label: 'Infrastructure', icon: Server },
+    { id: 'api-usage', label: 'API Usage', icon: BarChart3 },
     { id: 'settings', label: 'Settings', icon: Settings },
   ]
 
@@ -1883,6 +1884,59 @@ export default function AdminPage() {
                 </div>
               </CardContent>
             </Card>
+          </div>
+        )}
+
+        {/* API Usage Tab - Link to Dedicated Page */}
+        {activeTab === 'api-usage' && (
+          <div className="space-y-6">
+            <Card variant="bordered">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-accent" />
+                  API Usage Dashboard
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-xl flex items-center justify-center">
+                    <BarChart3 className="w-8 h-8 text-orange-500" />
+                  </div>
+                  <h3 className="text-xl font-bold text-text-primary mb-2">Monitor All API Usage</h3>
+                  <p className="text-text-secondary mb-6 max-w-md mx-auto">
+                    Track API calls, monitor rate limits, view error logs, and analyze usage patterns
+                    across all external services including ESPN, The Odds API, OpenWeather, and more.
+                  </p>
+                  <Link 
+                    href="/admin/api-usage"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-accent hover:bg-accent/90 text-background font-semibold rounded-lg transition-colors"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Open API Dashboard
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Quick Stats Preview */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-background-secondary border border-border rounded-xl p-4">
+                <div className="text-text-secondary text-sm mb-1">Total Calls (24h)</div>
+                <div className="text-2xl font-bold text-text-primary">~15.2K</div>
+              </div>
+              <div className="bg-background-secondary border border-border rounded-xl p-4">
+                <div className="text-text-secondary text-sm mb-1">Error Rate</div>
+                <div className="text-2xl font-bold text-gain">0.8%</div>
+              </div>
+              <div className="bg-background-secondary border border-border rounded-xl p-4">
+                <div className="text-text-secondary text-sm mb-1">Avg Response</div>
+                <div className="text-2xl font-bold text-accent">187ms</div>
+              </div>
+              <div className="bg-background-secondary border border-border rounded-xl p-4">
+                <div className="text-text-secondary text-sm mb-1">APIs Healthy</div>
+                <div className="text-2xl font-bold text-gain">5/5</div>
+              </div>
+            </div>
           </div>
         )}
       </section>

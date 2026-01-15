@@ -37,94 +37,6 @@ interface GameWeather {
   bettingImpact: string
 }
 
-// Mock weather data for demo
-const mockGamesWeather: GameWeather[] = [
-  {
-    gameId: '1',
-    homeTeam: 'Green Bay Packers',
-    awayTeam: 'Chicago Bears',
-    venue: 'Lambeau Field',
-    gameTime: 'Sun 1:00 PM',
-    sport: 'NFL',
-    isOutdoor: true,
-    weather: {
-      temp: 28,
-      feelsLike: 18,
-      condition: 'snow',
-      description: 'Light Snow',
-      humidity: 85,
-      windSpeed: 15,
-      windDirection: 'NW',
-      precipitation: 60,
-      visibility: 5
-    },
-    bettingImpact: 'Heavy snow expected - favors running game, look at UNDER'
-  },
-  {
-    gameId: '2',
-    homeTeam: 'Buffalo Bills',
-    awayTeam: 'Miami Dolphins',
-    venue: 'Highmark Stadium',
-    gameTime: 'Sun 4:25 PM',
-    sport: 'NFL',
-    isOutdoor: true,
-    weather: {
-      temp: 22,
-      feelsLike: 10,
-      condition: 'wind',
-      description: 'Windy & Cold',
-      humidity: 45,
-      windSpeed: 28,
-      windDirection: 'W',
-      precipitation: 10,
-      visibility: 10
-    },
-    bettingImpact: 'High winds will impact passing game - Miami speed less effective'
-  },
-  {
-    gameId: '3',
-    homeTeam: 'Denver Broncos',
-    awayTeam: 'Las Vegas Raiders',
-    venue: 'Empower Field',
-    gameTime: 'Sun 4:25 PM',
-    sport: 'NFL',
-    isOutdoor: true,
-    weather: {
-      temp: 45,
-      feelsLike: 42,
-      condition: 'sunny',
-      description: 'Clear Skies',
-      humidity: 30,
-      windSpeed: 8,
-      windDirection: 'S',
-      precipitation: 0,
-      visibility: 10
-    },
-    bettingImpact: 'Perfect conditions - no weather impact expected'
-  },
-  {
-    gameId: '4',
-    homeTeam: 'Seattle Seahawks',
-    awayTeam: 'San Francisco 49ers',
-    venue: 'Lumen Field',
-    gameTime: 'Mon 8:15 PM',
-    sport: 'NFL',
-    isOutdoor: true,
-    weather: {
-      temp: 48,
-      feelsLike: 44,
-      condition: 'rain',
-      description: 'Light Rain',
-      humidity: 90,
-      windSpeed: 12,
-      windDirection: 'SW',
-      precipitation: 80,
-      visibility: 6
-    },
-    bettingImpact: 'Wet conditions favor ground game - watch fumble props'
-  }
-]
-
 const getWeatherIcon = (condition: string) => {
   switch (condition) {
     case 'sunny': return <Sun className="w-8 h-8" style={{ color: '#FFD700' }} />
@@ -158,17 +70,84 @@ const getImpactLevel = (weather: WeatherData): { level: 'low' | 'medium' | 'high
 }
 
 export function WeatherWidget({ compact = false }: { compact?: boolean }) {
-  const [games, setGames] = useState<GameWeather[]>(mockGamesWeather)
+  const [games, setGames] = useState<GameWeather[]>([])
   const [selectedSport, setSelectedSport] = useState<'all' | 'NFL' | 'MLB'>('all')
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchWeather() {
+      setIsLoading(true)
+      try {
+        const res = await fetch('/api/weather?sport=all')
+        const data = await res.json()
+        // Transform API response to match component interface
+        const transformed: GameWeather[] = (data.games || []).map((g: Record<string, unknown>) => ({
+          gameId: g.gameId || g.id || String(Math.random()),
+          homeTeam: g.homeTeam as string || '',
+          awayTeam: g.awayTeam as string || '',
+          venue: g.venue as string || '',
+          gameTime: g.gameTime as string || '',
+          sport: (g.sport as 'NFL' | 'MLB') || 'NFL',
+          isOutdoor: g.isOutdoor !== false,
+          weather: {
+            temp: (g.weather as Record<string, unknown>)?.temp as number || 70,
+            feelsLike: (g.weather as Record<string, unknown>)?.feelsLike as number || 70,
+            condition: (g.weather as Record<string, unknown>)?.condition as 'sunny' | 'cloudy' | 'rain' | 'snow' | 'wind' || 'sunny',
+            description: (g.weather as Record<string, unknown>)?.description as string || 'Clear',
+            humidity: (g.weather as Record<string, unknown>)?.humidity as number || 50,
+            windSpeed: (g.weather as Record<string, unknown>)?.windSpeed as number || 5,
+            windDirection: (g.weather as Record<string, unknown>)?.windDirection as string || 'N',
+            precipitation: (g.weather as Record<string, unknown>)?.precipitation as number || 0,
+            visibility: (g.weather as Record<string, unknown>)?.visibility as number || 10
+          },
+          bettingImpact: g.bettingImpact as string || 'No significant weather impact'
+        }))
+        setGames(transformed)
+      } catch (error) {
+        console.error('Failed to fetch weather:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchWeather()
+  }, [])
 
   const filteredGames = games.filter(g => 
     selectedSport === 'all' || g.sport === selectedSport
   )
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsLoading(true)
-    setTimeout(() => setIsLoading(false), 1500)
+    try {
+      const res = await fetch('/api/weather?sport=all')
+      const data = await res.json()
+      const transformed: GameWeather[] = (data.games || []).map((g: Record<string, unknown>) => ({
+        gameId: g.gameId || g.id || String(Math.random()),
+        homeTeam: g.homeTeam as string || '',
+        awayTeam: g.awayTeam as string || '',
+        venue: g.venue as string || '',
+        gameTime: g.gameTime as string || '',
+        sport: (g.sport as 'NFL' | 'MLB') || 'NFL',
+        isOutdoor: g.isOutdoor !== false,
+        weather: {
+          temp: (g.weather as Record<string, unknown>)?.temp as number || 70,
+          feelsLike: (g.weather as Record<string, unknown>)?.feelsLike as number || 70,
+          condition: (g.weather as Record<string, unknown>)?.condition as 'sunny' | 'cloudy' | 'rain' | 'snow' | 'wind' || 'sunny',
+          description: (g.weather as Record<string, unknown>)?.description as string || 'Clear',
+          humidity: (g.weather as Record<string, unknown>)?.humidity as number || 50,
+          windSpeed: (g.weather as Record<string, unknown>)?.windSpeed as number || 5,
+          windDirection: (g.weather as Record<string, unknown>)?.windDirection as string || 'N',
+          precipitation: (g.weather as Record<string, unknown>)?.precipitation as number || 0,
+          visibility: (g.weather as Record<string, unknown>)?.visibility as number || 10
+        },
+        bettingImpact: g.bettingImpact as string || 'No significant weather impact'
+      }))
+      setGames(transformed)
+    } catch (error) {
+      console.error('Failed to refresh weather:', error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   if (compact) {
