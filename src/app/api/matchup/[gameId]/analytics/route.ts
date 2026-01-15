@@ -132,6 +132,14 @@ export async function GET(
           const total = liveGame.odds?.total || 45
           const isPlayoffs = liveGame.sport === 'NFL' && new Date(liveGame.scheduledAt) > new Date('2026-01-01')
           
+          // Fetch actual H2H history for live games
+          const liveH2H = await getTeamVsTeamHistory(
+            liveGame.sport,
+            liveGame.homeTeam.abbreviation,
+            liveGame.awayTeam.abbreviation,
+            10
+          )
+          
           // Generate synthetic trends based on game context
           const spreadTrends = []
           const totalTrends = []
@@ -222,15 +230,23 @@ export async function GET(
               aggregateConfidence: topPick?.confidence || 0,
               topPick
             },
-            h2h: {
-              gamesPlayed: 5,
-              homeATSRecord: '3-2-0',
-              awayATSRecord: '2-3-0',
-              overUnderRecord: '2O-3U',
-              avgMargin: 7.2,
-              avgTotal: 42.6,
-              recentGames: []
-            },
+            h2h: liveH2H.games.length > 0 ? {
+              gamesPlayed: liveH2H.games.length,
+              homeATSRecord: `${liveH2H.homeATS.wins}-${liveH2H.homeATS.losses}-${liveH2H.homeATS.pushes}`,
+              awayATSRecord: `${liveH2H.awayATS.wins}-${liveH2H.awayATS.losses}-${liveH2H.awayATS.pushes}`,
+              overUnderRecord: `${liveH2H.overs}O-${liveH2H.unders}U`,
+              avgMargin: liveH2H.avgMargin,
+              avgTotal: liveH2H.avgTotal,
+              recentGames: liveH2H.games.slice(0, 5).map(g => ({
+                date: g.game_date,
+                homeTeam: g.home_team_abbrev,
+                awayTeam: g.away_team_abbrev,
+                homeScore: g.home_score,
+                awayScore: g.away_score,
+                spreadResult: g.spread_result,
+                totalResult: g.total_result
+              }))
+            } : null,
             edgePicks: [],
             aiInsights: null,
             edgeScore,
