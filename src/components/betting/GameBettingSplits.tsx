@@ -243,59 +243,56 @@ function BetTypeSection({
     )
   }
 
-  // Compact full view - single row per bet type
+  // Card-based vertical layout - two columns showing each side
   return (
     <div className="bg-slate-800/30 rounded-lg p-3 border border-slate-700/50">
-      <div className="flex items-center justify-between">
-        {/* Title + Line */}
-        <div className="flex items-center gap-2 w-28 flex-shrink-0">
+      {/* Header Row */}
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
           {icon}
-          <div>
-            <span className="font-semibold text-white text-sm">{title}</span>
-            {line && <div className="text-xs text-slate-500">{line}</div>}
-          </div>
+          <span className="font-semibold text-white text-sm">{title}</span>
+          {line && <span className="text-xs text-slate-500">({line})</span>}
         </div>
-        
-        {/* Left Team Stats */}
-        <div className={`flex items-center gap-3 px-3 py-1 rounded ${leftSharp ? 'bg-purple-500/10' : ''}`}>
-          <span className="text-sm font-medium text-slate-400 w-12">{leftTeam}</span>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
-              <Users className="w-3 h-3 text-blue-400" />
-              <span className={`text-sm font-bold ${leftSharp ? 'text-purple-400' : 'text-blue-400'}`}>{leftTickets}%</span>
-            </div>
-            <span className="text-slate-700">|</span>
-            <div className="flex items-center gap-1">
-              <DollarSign className="w-3 h-3 text-green-400" />
-              <span className={`text-sm font-bold ${leftSharp ? 'text-purple-400' : 'text-green-400'}`}>{leftMoney}%</span>
-            </div>
-          </div>
-          {leftSharp && <Zap className="w-3 h-3 text-purple-400" />}
-        </div>
-        
-        {/* Sharp Indicator */}
         {hasSharpSignal && (
-          <div className="px-2 py-1 bg-purple-500/20 rounded text-xs text-purple-400 font-medium flex items-center gap-1">
+          <span className="flex items-center gap-1 text-xs text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded">
             <Zap className="w-3 h-3" />
             Sharp on {leftSharp ? leftTeam : rightTeam}
-          </div>
+          </span>
         )}
-        
-        {/* Right Team Stats */}
-        <div className={`flex items-center gap-3 px-3 py-1 rounded ${rightSharp ? 'bg-purple-500/10' : ''}`}>
-          <span className="text-sm font-medium text-slate-400 w-12 text-right">{rightTeam}</span>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
+      </div>
+      
+      {/* Two Column Stats */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Left Team */}
+        <div className={`p-2 rounded ${leftSharp ? 'bg-purple-500/10 border border-purple-500/30' : 'bg-slate-900/50'}`}>
+          <div className="text-sm font-bold text-white mb-1">{leftTeam}</div>
+          <div className="flex items-center gap-3 text-xs">
+            <span className="flex items-center gap-1">
               <Users className="w-3 h-3 text-blue-400" />
-              <span className={`text-sm font-bold ${rightSharp ? 'text-purple-400' : 'text-blue-400'}`}>{rightTickets}%</span>
-            </div>
-            <span className="text-slate-700">|</span>
-            <div className="flex items-center gap-1">
+              <span className={leftSharp ? 'text-purple-400 font-bold' : 'text-slate-300'}>{leftTickets}%</span>
+            </span>
+            <span className="flex items-center gap-1">
               <DollarSign className="w-3 h-3 text-green-400" />
-              <span className={`text-sm font-bold ${rightSharp ? 'text-purple-400' : 'text-green-400'}`}>{rightMoney}%</span>
-            </div>
+              <span className={leftSharp ? 'text-purple-400 font-bold' : 'text-slate-300'}>{leftMoney}%</span>
+            </span>
+            {leftSharp && <Zap className="w-3 h-3 text-purple-400" />}
           </div>
-          {rightSharp && <Zap className="w-3 h-3 text-purple-400" />}
+        </div>
+        
+        {/* Right Team */}
+        <div className={`p-2 rounded ${rightSharp ? 'bg-purple-500/10 border border-purple-500/30' : 'bg-slate-900/50'}`}>
+          <div className="text-sm font-bold text-white mb-1">{rightTeam}</div>
+          <div className="flex items-center gap-3 text-xs">
+            <span className="flex items-center gap-1">
+              <Users className="w-3 h-3 text-blue-400" />
+              <span className={rightSharp ? 'text-purple-400 font-bold' : 'text-slate-300'}>{rightTickets}%</span>
+            </span>
+            <span className="flex items-center gap-1">
+              <DollarSign className="w-3 h-3 text-green-400" />
+              <span className={rightSharp ? 'text-purple-400 font-bold' : 'text-slate-300'}>{rightMoney}%</span>
+            </span>
+            {rightSharp && <Zap className="w-3 h-3 text-purple-400" />}
+          </div>
         </div>
       </div>
     </div>

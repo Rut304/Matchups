@@ -97,9 +97,9 @@ export default function MatchupLayout({
     <div className="min-h-screen bg-[#050508]">
       {/* Header */}
       <div className="border-b border-white/5 bg-[#0a0a12]">
-        <div className="max-w-[1600px] mx-auto px-4 py-4">
+        <div className="max-w-[1400px] mx-auto px-3 py-3">
           {/* Top bar with back button and refresh */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-2">
             <Link 
               href={`/${sport}/matchups`} 
               className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
@@ -125,8 +125,8 @@ export default function MatchupLayout({
           </div>
 
           {/* Sport and Date */}
-          <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-            <span className="text-lg">{config.emoji}</span>
+          <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+            <span className="text-sm">{config.emoji}</span>
             <span>{config.name}</span>
             <span className="text-gray-700">•</span>
             <Clock className="w-4 h-4" />
@@ -134,45 +134,45 @@ export default function MatchupLayout({
           </div>
 
           {/* Teams Matchup Header - Compact */}
-          <div className="grid grid-cols-3 gap-2 md:gap-4 items-center py-2 md:py-3">
+          <div className="grid grid-cols-3 gap-2 items-center py-1">
             {/* Away Team */}
             <Link 
               href={`/team/${sport}/${game.awayTeam.abbreviation?.toLowerCase()}`}
               className="flex items-center gap-2 md:gap-3 group hover:opacity-80 transition-opacity"
             >
-              <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl bg-white/5 flex items-center justify-center overflow-hidden group-hover:ring-2 ring-orange-500/50 transition-all flex-shrink-0">
+              <div className="w-9 h-9 md:w-12 md:h-12 rounded-lg bg-white/5 flex items-center justify-center overflow-hidden group-hover:ring-2 ring-orange-500/50 transition-all flex-shrink-0">
                 {game.awayTeam.logo ? (
-                  <img src={game.awayTeam.logo} alt={game.awayTeam.name} className="w-8 h-8 md:w-11 md:h-11 object-contain" />
+                  <img src={game.awayTeam.logo} alt={game.awayTeam.name} className="w-7 h-7 md:w-10 md:h-10 object-contain" />
                 ) : (
                   <span className="text-lg md:text-2xl">{config.emoji}</span>
                 )}
               </div>
               <div className="min-w-0">
-                <div className="text-base md:text-xl font-bold text-white group-hover:text-orange-400 transition-colors truncate">
+                <div className="text-sm md:text-base font-bold text-white group-hover:text-orange-400 transition-colors truncate">
                   {game.awayTeam.name}
                 </div>
-                <div className="text-xs text-gray-500">{game.awayTeam.record || ''}</div>
+                <div className="text-[10px] text-gray-500">{game.awayTeam.record || ''}</div>
                 {game.status !== 'scheduled' && (
-                  <div className="text-xl md:text-2xl font-black text-white">{game.awayTeam.score ?? '-'}</div>
+                  <div className="text-lg md:text-xl font-black text-white">{game.awayTeam.score ?? '-'}</div>
                 )}
               </div>
             </Link>
 
             {/* Center - Odds & Status - Compact */}
             <div className="text-center">
-              <div className="text-gray-500 text-xs mb-1">VS</div>
+              <div className="text-gray-500 text-[10px] mb-0.5">VS</div>
               
               {game.odds && (
-                <div className="flex flex-col md:flex-row items-center justify-center gap-1.5 md:gap-3">
-                  <div className="inline-flex flex-col px-3 py-1.5 md:py-2 rounded-lg bg-orange-500/10 border border-orange-500/30">
-                    <div className="text-[10px] text-gray-500">{config.spreadLabel.toUpperCase()}</div>
-                    <div className="text-sm md:text-base font-bold text-orange-400">
+                <div className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2">
+                  <div className="inline-flex flex-col px-2 py-1 rounded bg-orange-500/10 border border-orange-500/30">
+                    <div className="text-[9px] text-gray-500">{config.spreadLabel.toUpperCase()}</div>
+                    <div className="text-xs md:text-sm font-bold text-orange-400">
                       {game.awayTeam.abbreviation} {getSpread()}
                     </div>
                   </div>
-                  <div className="inline-flex flex-col px-3 py-1.5 md:py-2 rounded-lg bg-green-500/10 border border-green-500/30">
-                    <div className="text-[10px] text-gray-500">TOTAL</div>
-                    <div className="text-sm md:text-base font-bold text-green-400">O/U {game.odds.total}</div>
+                  <div className="inline-flex flex-col px-2 py-1 rounded bg-green-500/10 border border-green-500/30">
+                    <div className="text-[9px] text-gray-500">TOTAL</div>
+                    <div className="text-xs md:text-sm font-bold text-green-400">O/U {game.odds.total}</div>
                   </div>
                 </div>
               )}
@@ -194,17 +194,17 @@ export default function MatchupLayout({
               className="flex items-center gap-2 md:gap-3 justify-end group hover:opacity-80 transition-opacity"
             >
               <div className="text-right min-w-0">
-                <div className="text-base md:text-xl font-bold text-white group-hover:text-orange-400 transition-colors truncate">
+                <div className="text-sm md:text-base font-bold text-white group-hover:text-orange-400 transition-colors truncate">
                   {game.homeTeam.name}
                 </div>
-                <div className="text-xs text-gray-500">{game.homeTeam.record || ''}</div>
+                <div className="text-[10px] text-gray-500">{game.homeTeam.record || ''}</div>
                 {game.status !== 'scheduled' && (
-                  <div className="text-xl md:text-2xl font-black text-white">{game.homeTeam.score ?? '-'}</div>
+                  <div className="text-lg md:text-xl font-black text-white">{game.homeTeam.score ?? '-'}</div>
                 )}
               </div>
-              <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl bg-white/5 flex items-center justify-center overflow-hidden group-hover:ring-2 ring-orange-500/50 transition-all flex-shrink-0">
+              <div className="w-9 h-9 md:w-12 md:h-12 rounded-lg bg-white/5 flex items-center justify-center overflow-hidden group-hover:ring-2 ring-orange-500/50 transition-all flex-shrink-0">
                 {game.homeTeam.logo ? (
-                  <img src={game.homeTeam.logo} alt={game.homeTeam.name} className="w-8 h-8 md:w-11 md:h-11 object-contain" />
+                  <img src={game.homeTeam.logo} alt={game.homeTeam.name} className="w-7 h-7 md:w-10 md:h-10 object-contain" />
                 ) : (
                   <span className="text-lg md:text-2xl">{config.emoji}</span>
                 )}
@@ -243,7 +243,7 @@ export default function MatchupLayout({
       </div>
 
       {/* Main Content */}
-      <div className="max-w-[1600px] mx-auto px-4 py-6">
+      <div className="max-w-[1400px] mx-auto px-3 py-4">
         {children}
       </div>
     </div>

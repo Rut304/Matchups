@@ -640,64 +640,68 @@ export default function GameMatchupPage({ params }: { params: Promise<{ gameId: 
             )}
           </div>
 
-          {/* Betting Trends */}
+          {/* Betting Trends - Only show if we have trends OR matched system trends */}
+          {(homeTeamTrends.length > 0 || awayTeamTrends.length > 0 || (trends && trends.matched > 0)) && (
           <div className="bg-[#0c0c14] rounded-xl border border-white/10 overflow-hidden">
             <button
               onClick={() => toggleSection('trends')}
-              className="w-full p-6 flex items-center justify-between hover:bg-white/5 transition-colors"
+              className="w-full p-4 flex items-center justify-between hover:bg-white/5 transition-colors"
             >
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-orange-500" />
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-orange-500" />
                 Betting Trends
+                {trends && trends.matched > 0 && (
+                  <span className="text-xs px-2 py-0.5 bg-orange-500/20 text-orange-400 rounded">{trends.matched} matched</span>
+                )}
               </h3>
               {expandedSections.trends ? (
-                <ChevronUp className="w-5 h-5 text-gray-500" />
+                <ChevronUp className="w-4 h-4 text-gray-500" />
               ) : (
-                <ChevronDown className="w-5 h-5 text-gray-500" />
+                <ChevronDown className="w-4 h-4 text-gray-500" />
               )}
             </button>
             
             {expandedSections.trends && (
-              <div className="px-6 pb-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="px-4 pb-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Home Team Trends */}
                   <div>
-                    <div className="flex items-center gap-2 mb-3 text-sm text-yellow-400 font-semibold">
-                      <Trophy className="w-4 h-4" /> {game.homeTeam.abbreviation} TRENDS
+                    <div className="flex items-center gap-2 mb-2 text-xs text-yellow-400 font-semibold">
+                      <Trophy className="w-3 h-3" /> {game.homeTeam.abbreviation} TRENDS
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       {homeTeamTrends.length > 0 ? (
                         homeTeamTrends.map((trend, i) => (
-                          <div key={i} className="p-3 bg-[#16161e] rounded-lg text-sm">
+                          <div key={i} className="p-2 bg-[#16161e] rounded text-xs">
                             <div className="text-gray-300">{trend.description || trend.text || trend.name}</div>
                             {trend.record && (
-                              <div className="text-xs text-gray-500 mt-1">Record: {trend.record}</div>
+                              <div className="text-[10px] text-gray-500 mt-0.5">Record: {trend.record}</div>
                             )}
                           </div>
                         ))
                       ) : (
-                        <div className="text-gray-500 text-sm">No trends available</div>
+                        <div className="text-gray-500 text-xs">No team-specific trends</div>
                       )}
                     </div>
                   </div>
                   
                   {/* Away Team Trends */}
                   <div>
-                    <div className="flex items-center gap-2 mb-3 text-sm text-yellow-400 font-semibold">
-                      <Trophy className="w-4 h-4" /> {game.awayTeam.abbreviation} TRENDS
+                    <div className="flex items-center gap-2 mb-2 text-xs text-yellow-400 font-semibold">
+                      <Trophy className="w-3 h-3" /> {game.awayTeam.abbreviation} TRENDS
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       {awayTeamTrends.length > 0 ? (
                         awayTeamTrends.map((trend, i) => (
-                          <div key={i} className="p-3 bg-[#16161e] rounded-lg text-sm">
+                          <div key={i} className="p-2 bg-[#16161e] rounded text-xs">
                             <div className="text-gray-300">{trend.description || trend.text || trend.name}</div>
                             {trend.record && (
-                              <div className="text-xs text-gray-500 mt-1">Record: {trend.record}</div>
+                              <div className="text-[10px] text-gray-500 mt-0.5">Record: {trend.record}</div>
                             )}
                           </div>
                         ))
                       ) : (
-                        <div className="text-gray-500 text-sm">No trends available</div>
+                        <div className="text-gray-500 text-xs">No team-specific trends</div>
                       )}
                     </div>
                   </div>
@@ -705,26 +709,26 @@ export default function GameMatchupPage({ params }: { params: Promise<{ gameId: 
                 
                 {/* Matched Trends from Analytics */}
                 {trends && trends.matched > 0 && trends.spreadTrends && (
-                  <div className="mt-6 pt-6 border-t border-white/10">
-                    <div className="text-sm text-gray-400 mb-3">
+                  <div className="mt-4 pt-3 border-t border-white/10">
+                    <div className="text-xs text-gray-400 mb-2">
                       📊 {trends.matched} Matched System Trends
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       {trends.spreadTrends.slice(0, 5).map((trend: any, i: number) => (
                         <Link 
                           key={i} 
                           href={`/trends?sport=${sport}&team=${game.homeTeam.abbreviation}`}
-                          className="flex items-center justify-between p-3 bg-[#16161e] rounded-lg hover:bg-white/10 transition-colors group"
+                          className="flex items-center justify-between p-2 bg-[#16161e] rounded hover:bg-white/10 transition-colors group text-xs"
                         >
                           <span className="text-gray-300 group-hover:text-white transition-colors">
                             {trend.description || trend.text}
                           </span>
                           <div className="flex items-center gap-2">
-                            <span className={`text-sm font-bold ${trend.confidence >= 70 ? 'text-green-400' : 'text-amber-400'}`}>
+                            <span className={`font-bold ${trend.confidence >= 70 ? 'text-green-400' : 'text-amber-400'}`}>
                               {trend.confidence}%
                             </span>
                             {trend.edge && (
-                              <span className="text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-400">
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/20 text-green-400">
                                 +{trend.edge}% edge
                               </span>
                             )}
@@ -737,62 +741,59 @@ export default function GameMatchupPage({ params }: { params: Promise<{ gameId: 
               </div>
             )}
           </div>
+          )}
 
-          {/* AI Analysis */}
+          {/* AI Analysis - Only show when we have actual analysis OR a top pick */}
+          {(aiAnalysis && aiAnalysis !== 'AI analysis requires Gemini API integration. Real-time analysis coming soon.') || topPick ? (
           <div className="bg-gradient-to-br from-[#0c0c14] to-orange-500/5 rounded-xl border border-orange-500/20 overflow-hidden">
             <button
               onClick={() => toggleSection('ai')}
-              className="w-full p-6 flex items-center justify-between hover:bg-white/5 transition-colors"
+              className="w-full p-4 flex items-center justify-between hover:bg-white/5 transition-colors"
             >
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <Brain className="w-5 h-5 text-orange-400" />
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Brain className="w-4 h-4 text-orange-400" />
                 AI Analysis
               </h3>
               {expandedSections.ai ? (
-                <ChevronUp className="w-5 h-5 text-gray-500" />
+                <ChevronUp className="w-4 h-4 text-gray-500" />
               ) : (
-                <ChevronDown className="w-5 h-5 text-gray-500" />
+                <ChevronDown className="w-4 h-4 text-gray-500" />
               )}
             </button>
             
             {expandedSections.ai && (
-              <div className="px-6 pb-6">
+              <div className="px-4 pb-4">
                 {aiAnalysis && aiAnalysis !== 'AI analysis requires Gemini API integration. Real-time analysis coming soon.' ? (
-                  <div className="space-y-4">
-                    <p className="text-gray-300 leading-relaxed">{aiAnalysis}</p>
+                  <div className="space-y-3">
+                    <p className="text-gray-300 leading-relaxed text-sm">{aiAnalysis}</p>
                     
                     {/* Top Pick from AI */}
                     {topPick && (
-                      <div className="mt-4 p-4 bg-gradient-to-r from-orange-500/10 to-transparent rounded-lg border border-orange-500/30">
-                        <div className="text-lg font-bold text-orange-400">{topPick.selection}</div>
-                        <div className="text-sm text-gray-400 mt-1">
+                      <div className="mt-3 p-3 bg-gradient-to-r from-orange-500/10 to-transparent rounded border border-orange-500/30">
+                        <div className="text-base font-bold text-orange-400">{topPick.selection}</div>
+                        <div className="text-xs text-gray-400 mt-1">
                           {topPick.confidence}% confidence • {topPick.supportingTrends} supporting trends
                         </div>
                       </div>
                     )}
                     
                     {/* Cache indicator */}
-                    <div className="text-xs text-gray-600 mt-2">
+                    <div className="text-[10px] text-gray-600 mt-2">
                       Analysis cached for 30 minutes. Updates on significant line movement or injury changes.
                     </div>
                   </div>
-                ) : (
-                  <div className="text-gray-400">
-                    <p>AI analysis generates insights based on:</p>
-                    <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
-                      <li>Historical betting trends and patterns</li>
-                      <li>Team performance metrics and matchup data</li>
-                      <li>Line movement and sharp money signals</li>
-                      <li>Injury impact analysis</li>
-                    </ul>
-                    <p className="mt-3 text-xs text-gray-500">
-                      Full AI analysis requires Gemini API integration.
-                    </p>
+                ) : topPick ? (
+                  <div className="p-3 bg-gradient-to-r from-orange-500/10 to-transparent rounded border border-orange-500/30">
+                    <div className="text-base font-bold text-orange-400">{topPick.selection}</div>
+                    <div className="text-xs text-gray-400 mt-1">
+                      {topPick.confidence}% confidence • {topPick.supportingTrends} supporting trends
+                    </div>
                   </div>
-                )}
+                ) : null}
               </div>
             )}
           </div>
+          ) : null}
         </MatchupLayout.MainContent>
 
         {/* Sidebar */}
