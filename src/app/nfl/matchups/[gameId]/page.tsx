@@ -446,11 +446,11 @@ export default function GameMatchupPage({ params }: { params: Promise<{ gameId: 
                     </div>
                     
                     {/* Recent H2H Games */}
-                    {h2h.recentGames && h2h.recentGames.length > 0 && (
+                    {h2h && 'recentGames' in h2h && Array.isArray((h2h as any).recentGames) && (h2h as any).recentGames.length > 0 && (
                       <div className="mt-4">
                         <div className="text-sm text-gray-400 mb-2">Recent Meetings</div>
                         <div className="space-y-2">
-                          {h2h.recentGames.slice(0, 5).map((g: any, i: number) => (
+                          {(h2h as any).recentGames.slice(0, 5).map((g: any, i: number) => (
                             <div key={i} className="flex justify-between items-center p-2 bg-[#16161e] rounded text-sm">
                               <span className="text-gray-400">{new Date(g.date).toLocaleDateString()}</span>
                               <span className="text-white font-medium">{g.homeScore}-{g.awayScore}</span>

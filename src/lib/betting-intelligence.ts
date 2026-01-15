@@ -1273,28 +1273,30 @@ Away Team Trends: ${data.awayAnalytics?.trends?.join(', ') || 'N/A'}
 
 === ANALYSIS REQUEST ===
 
+IMPORTANT: Always use the actual team names (${data.homeTeam.name}, ${data.awayTeam.name}) instead of "home team" or "away team".
+
 Provide a comprehensive betting analysis considering ALL 12 data points. Return JSON:
 
 {
-  "summary": "2-3 sentence executive summary weighing all factors",
+  "summary": "A detailed 2-4 paragraph analysis (150-250 words) that reads like expert commentary. Start with the headline matchup angle, then discuss the key betting factors: sharp money signals vs public betting, line movement significance, injury impact, and situational angles. Always reference teams by their actual names (${data.homeTeam.name}, ${data.awayTeam.name}). End with a clear lean and reasoning. Make it insightful and actionable for serious bettors.",
   "winProbability": { "home": 0.55, "away": 0.45 },
   "projectedScore": { "home": 24, "away": 21 },
   "spreadAnalysis": {
-    "pick": "TEAM -/+ X",
+    "pick": "${data.awayTeam.name} +X or ${data.homeTeam.name} -X (use actual team name)",
     "confidence": 0.65,
-    "reasoning": "Main thesis for spread pick",
-    "keyFactors": ["Factor 1", "Factor 2", "Factor 3"],
+    "reasoning": "Main thesis for spread pick using team names",
+    "keyFactors": ["Factor 1 with team names", "Factor 2", "Factor 3"],
     "risks": ["Risk 1", "Risk 2"]
   },
   "totalAnalysis": {
-    "pick": "OVER/UNDER X",
+    "pick": "Over X or Under X",
     "confidence": 0.70,
     "reasoning": "Main thesis for total pick",
     "keyFactors": ["Factor 1", "Factor 2"],
     "paceProjection": "Expected pace and scoring environment"
   },
   "mlAnalysis": {
-    "pick": "TEAM",
+    "pick": "${data.homeTeam.name} or ${data.awayTeam.name} (use actual team name)",
     "confidence": 0.60,
     "value": 3.5,
     "reasoning": "ML value analysis"
@@ -1302,8 +1304,8 @@ Provide a comprehensive betting analysis considering ALL 12 data points. Return 
   "propPicks": [
     { "player": "Player Name", "prop": "Prop description", "pick": "Over/Under X", "confidence": 0.65, "reasoning": "Why" }
   ],
-  "keyEdges": ["Edge 1 from the data", "Edge 2", "Edge 3"],
-  "majorRisks": ["Risk 1", "Risk 2"],
+  "keyEdges": ["Edge 1 with team names", "Edge 2", "Edge 3"],
+  "majorRisks": ["Risk 1 with team names", "Risk 2"],
   "betGrades": {
     "spread": "A/B/C/D/F based on edge strength",
     "total": "A/B/C/D/F",

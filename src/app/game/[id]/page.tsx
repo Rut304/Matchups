@@ -1115,7 +1115,9 @@ export default function GameDetailPage() {
                 <span className="text-sm font-semibold text-yellow-400">REVERSE LINE MOVEMENT DETECTED</span>
               </div>
               <p className="text-sm text-slate-300 mt-1">
-                Sharp money on <span className="font-semibold text-white">{intelligence.sharpMoney.side}</span> • 
+                Sharp money on <span className="font-semibold text-white">
+                  {intelligence.sharpMoney.side === 'home' ? game.home.name : game.away.name}
+                </span> • 
                 Strength: <span className="font-semibold text-yellow-400">{intelligence.sharpMoney.strength}</span>
               </p>
             </div>

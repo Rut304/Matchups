@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
         id: entry.team?.id || '',
         name: entry.team?.displayName || '',
         abbreviation: entry.team?.abbreviation || '',
-        logo: entry.team?.logos?.[0]?.href,
+        logo: entry.team?.logo,
         wins,
         losses,
         ties: ties > 0 ? ties : undefined,

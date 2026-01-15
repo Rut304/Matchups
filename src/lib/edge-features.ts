@@ -549,8 +549,8 @@ export function getGameEdgeAlerts(gameId: string, sport: string): EdgeAlert[] {
       gameId,
       sport,
       severity: 'minor',
-      title: 'Sharp/Public Split',
-      description: '68% of bets on home team, but 61% of money on away team.',
+      title: 'Sharp vs Public Split',
+      description: 'Sharp money and public bets are on opposite sides - monitor for reverse line movement.',
       data: {
         publicSide: 'home',
         sharpSide: 'away',

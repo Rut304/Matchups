@@ -133,56 +133,56 @@ export default function MatchupLayout({
             <span>{formatDateTime(game.scheduledAt || game.startTime)}</span>
           </div>
 
-          {/* Teams Matchup Header */}
-          <div className="grid grid-cols-3 gap-4 md:gap-8 items-center py-4 md:py-6">
+          {/* Teams Matchup Header - Compact */}
+          <div className="grid grid-cols-3 gap-2 md:gap-4 items-center py-2 md:py-3">
             {/* Away Team */}
             <Link 
               href={`/team/${sport}/${game.awayTeam.abbreviation?.toLowerCase()}`}
-              className="flex items-center gap-2 md:gap-4 group hover:opacity-80 transition-opacity"
+              className="flex items-center gap-2 md:gap-3 group hover:opacity-80 transition-opacity"
             >
-              <div className="w-14 h-14 md:w-20 md:h-20 rounded-2xl bg-white/5 flex items-center justify-center overflow-hidden group-hover:ring-2 ring-orange-500/50 transition-all">
+              <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl bg-white/5 flex items-center justify-center overflow-hidden group-hover:ring-2 ring-orange-500/50 transition-all flex-shrink-0">
                 {game.awayTeam.logo ? (
-                  <img src={game.awayTeam.logo} alt={game.awayTeam.name} className="w-12 h-12 md:w-16 md:h-16 object-contain" />
+                  <img src={game.awayTeam.logo} alt={game.awayTeam.name} className="w-8 h-8 md:w-11 md:h-11 object-contain" />
                 ) : (
-                  <span className="text-2xl md:text-4xl">{config.emoji}</span>
+                  <span className="text-lg md:text-2xl">{config.emoji}</span>
                 )}
               </div>
               <div className="min-w-0">
-                <div className="text-lg md:text-2xl font-black text-white group-hover:text-orange-400 transition-colors truncate">
+                <div className="text-base md:text-xl font-bold text-white group-hover:text-orange-400 transition-colors truncate">
                   {game.awayTeam.name}
                 </div>
-                <div className="text-xs md:text-sm text-gray-500">{game.awayTeam.record || ''}</div>
+                <div className="text-xs text-gray-500">{game.awayTeam.record || ''}</div>
                 {game.status !== 'scheduled' && (
-                  <div className="text-2xl md:text-4xl font-black text-white mt-1">{game.awayTeam.score ?? '-'}</div>
+                  <div className="text-xl md:text-2xl font-black text-white">{game.awayTeam.score ?? '-'}</div>
                 )}
               </div>
             </Link>
 
-            {/* Center - Odds & Status */}
+            {/* Center - Odds & Status - Compact */}
             <div className="text-center">
-              <div className="text-gray-500 text-sm mb-2 md:mb-3">VS</div>
+              <div className="text-gray-500 text-xs mb-1">VS</div>
               
               {game.odds && (
-                <div className="space-y-2 md:space-y-3">
-                  <div className="inline-flex flex-col p-2 md:p-4 rounded-xl bg-orange-500/10 border border-orange-500/30">
-                    <div className="text-xs text-gray-500 mb-1">{config.spreadLabel.toUpperCase()}</div>
-                    <div className="text-lg md:text-xl font-bold text-orange-400">
+                <div className="flex flex-col md:flex-row items-center justify-center gap-1.5 md:gap-3">
+                  <div className="inline-flex flex-col px-3 py-1.5 md:py-2 rounded-lg bg-orange-500/10 border border-orange-500/30">
+                    <div className="text-[10px] text-gray-500">{config.spreadLabel.toUpperCase()}</div>
+                    <div className="text-sm md:text-base font-bold text-orange-400">
                       {game.awayTeam.abbreviation} {getSpread()}
                     </div>
                   </div>
-                  <div className="inline-flex flex-col p-2 md:p-4 rounded-xl bg-green-500/10 border border-green-500/30">
-                    <div className="text-xs text-gray-500 mb-1">TOTAL</div>
-                    <div className="text-lg md:text-xl font-bold text-green-400">O/U {game.odds.total}</div>
+                  <div className="inline-flex flex-col px-3 py-1.5 md:py-2 rounded-lg bg-green-500/10 border border-green-500/30">
+                    <div className="text-[10px] text-gray-500">TOTAL</div>
+                    <div className="text-sm md:text-base font-bold text-green-400">O/U {game.odds.total}</div>
                   </div>
                 </div>
               )}
               
               {isLive && (
-                <div className="mt-3 md:mt-4 flex items-center justify-center gap-2 px-3 py-1.5 bg-green-500/20 rounded-lg">
-                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                  <span className="text-green-400 font-bold text-sm">LIVE</span>
+                <div className="mt-2 flex items-center justify-center gap-2 px-2 py-1 bg-green-500/20 rounded-lg">
+                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                  <span className="text-green-400 font-bold text-xs">LIVE</span>
                   {game.period && (
-                    <span className="text-gray-400 text-sm">• {game.period} {game.clock}</span>
+                    <span className="text-gray-400 text-xs">• {game.period} {game.clock}</span>
                   )}
                 </div>
               )}
@@ -191,22 +191,22 @@ export default function MatchupLayout({
             {/* Home Team */}
             <Link 
               href={`/team/${sport}/${game.homeTeam.abbreviation?.toLowerCase()}`}
-              className="flex items-center gap-2 md:gap-4 justify-end group hover:opacity-80 transition-opacity"
+              className="flex items-center gap-2 md:gap-3 justify-end group hover:opacity-80 transition-opacity"
             >
               <div className="text-right min-w-0">
-                <div className="text-lg md:text-2xl font-black text-white group-hover:text-orange-400 transition-colors truncate">
+                <div className="text-base md:text-xl font-bold text-white group-hover:text-orange-400 transition-colors truncate">
                   {game.homeTeam.name}
                 </div>
-                <div className="text-xs md:text-sm text-gray-500">{game.homeTeam.record || ''}</div>
+                <div className="text-xs text-gray-500">{game.homeTeam.record || ''}</div>
                 {game.status !== 'scheduled' && (
-                  <div className="text-2xl md:text-4xl font-black text-white mt-1">{game.homeTeam.score ?? '-'}</div>
+                  <div className="text-xl md:text-2xl font-black text-white">{game.homeTeam.score ?? '-'}</div>
                 )}
               </div>
-              <div className="w-14 h-14 md:w-20 md:h-20 rounded-2xl bg-white/5 flex items-center justify-center overflow-hidden group-hover:ring-2 ring-orange-500/50 transition-all">
+              <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl bg-white/5 flex items-center justify-center overflow-hidden group-hover:ring-2 ring-orange-500/50 transition-all flex-shrink-0">
                 {game.homeTeam.logo ? (
-                  <img src={game.homeTeam.logo} alt={game.homeTeam.name} className="w-12 h-12 md:w-16 md:h-16 object-contain" />
+                  <img src={game.homeTeam.logo} alt={game.homeTeam.name} className="w-8 h-8 md:w-11 md:h-11 object-contain" />
                 ) : (
-                  <span className="text-2xl md:text-4xl">{config.emoji}</span>
+                  <span className="text-lg md:text-2xl">{config.emoji}</span>
                 )}
               </div>
             </Link>
