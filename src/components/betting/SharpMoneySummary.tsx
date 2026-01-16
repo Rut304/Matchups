@@ -78,6 +78,9 @@ export function SharpMoneySummary({
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 6000) // 6 second timeout
+
     const fetchAllSports = async () => {
       setLoading(true)
       setError(null)
@@ -89,15 +92,21 @@ export function SharpMoneySummary({
         // Fetch splits for each sport in parallel
         const results = await Promise.all(
           sports.map(async (sport) => {
-            const res = await fetch(`/api/betting-splits?sport=${sport}`)
-            if (!res.ok) return { signals: [], splits: [] }
-            const data = await res.json()
-            return {
-              signals: data.data?.sharpSignals || [],
-              splits: data.data?.splits || []
+            try {
+              const res = await fetch(`/api/betting-splits?sport=${sport}`, { signal: controller.signal })
+              if (!res.ok) return { signals: [], splits: [] }
+              const data = await res.json()
+              return {
+                signals: data.data?.sharpSignals || [],
+                splits: data.data?.splits || []
+              }
+            } catch {
+              return { signals: [], splits: [] }
             }
           })
         )
+        
+        clearTimeout(timeoutId)
 
         results.forEach(result => {
           allSignals.push(...result.signals)
@@ -116,8 +125,13 @@ export function SharpMoneySummary({
         setSignals(sortedSignals)
         setSplits(allSplits)
       } catch (err) {
-        console.error('Error fetching sharp signals:', err)
-        setError('Failed to load sharp money data')
+        if (err instanceof Error && err.name === 'AbortError') {
+          // Timeout - show empty state instead of error
+          setError(null)
+        } else {
+          console.error('Error fetching sharp signals:', err)
+          setError('Failed to load sharp money data')
+        }
       } finally {
         setLoading(false)
       }
@@ -127,7 +141,11 @@ export function SharpMoneySummary({
 
     // Refresh every 3 minutes
     const interval = setInterval(fetchAllSports, 180000)
-    return () => clearInterval(interval)
+    return () => {
+      clearTimeout(timeoutId)
+      controller.abort()
+      clearInterval(interval)
+    }
   }, [sports, limit])
 
   // Get sport emoji

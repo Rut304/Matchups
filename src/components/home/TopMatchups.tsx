@@ -188,24 +188,29 @@ export function TopMatchups() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 8000) // 8 second timeout
+    
     async function fetchGames() {
       try {
         setLoading(true)
         
         // Fetch from multiple sports (including women's sports)
-        const sports = ['NFL', 'NCAAF', 'NBA', 'NHL', 'WNBA', 'WNCAAB']
+        const sports = ['NFL', 'NCAAF', 'NBA', 'NHL', 'WNBA']
         const responses = await Promise.all(
           sports.map(sport => 
-            fetch(`/api/games?sport=${sport}`)
-              .then(r => r.json())
+            fetch(`/api/games?sport=${sport}`, { signal: controller.signal })
+              .then(r => r.ok ? r.json() : { games: [] })
               .catch(() => ({ games: [] }))
           )
         )
         
+        clearTimeout(timeoutId)
+        
         // Combine all games
         let allGames: Game[] = []
         responses.forEach(res => {
-          if (res.games) {
+          if (res.games && Array.isArray(res.games)) {
             allGames = [...allGames, ...res.games]
           }
         })
@@ -221,15 +226,28 @@ export function TopMatchups() {
           .slice(0, 8)
         
         setGames(sortedGames)
+        if (sortedGames.length === 0) {
+          setError('No games available')
+        }
       } catch (err) {
-        console.error('Error fetching games:', err)
-        setError('Failed to load matchups')
+        if (err instanceof Error && err.name === 'AbortError') {
+          console.log('Games fetch timed out')
+          setError('Loading timeout - try refreshing')
+        } else {
+          console.error('Error fetching games:', err)
+          setError('Failed to load matchups')
+        }
       } finally {
         setLoading(false)
       }
     }
     
     fetchGames()
+    
+    return () => {
+      clearTimeout(timeoutId)
+      controller.abort()
+    }
   }, [])
 
   if (loading) {

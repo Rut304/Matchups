@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, Suspense } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { 
   Search, Send, Loader2, Sparkles, TrendingUp, History, 
   ChevronRight, BarChart3, Lightbulb, RefreshCw, Copy, Check,
@@ -198,7 +198,27 @@ const EXAMPLE_QUERIES = [
 ]
 
 export default function TrendFinderPage() {
+  return (
+    <Suspense fallback={<TrendFinderLoading />}>
+      <TrendFinderContent />
+    </Suspense>
+  )
+}
+
+function TrendFinderLoading() {
+  return (
+    <div className="min-h-screen bg-[#050508] flex items-center justify-center">
+      <div className="flex items-center gap-3">
+        <Loader2 className="w-6 h-6 animate-spin text-green-500" />
+        <span className="text-gray-400">Loading Trend Finder...</span>
+      </div>
+    </div>
+  )
+}
+
+function TrendFinderContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user } = useAuth()
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -207,12 +227,23 @@ export default function TrendFinderPage() {
   const [showExamples, setShowExamples] = useState(true)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const [initialQueryProcessed, setInitialQueryProcessed] = useState(false)
   
   // Save system state
   const [showSaveModal, setShowSaveModal] = useState(false)
   const [saveQuery, setSaveQuery] = useState('')
   const [savingSystem, setSavingSystem] = useState(false)
   const [savedSuccess, setSavedSuccess] = useState<string | null>(null)
+
+  // Handle query param from home page search
+  useEffect(() => {
+    const queryParam = searchParams.get('q')
+    if (queryParam && !initialQueryProcessed) {
+      setInitialQueryProcessed(true)
+      // Auto-submit the query from URL
+      handleSubmit(queryParam)
+    }
+  }, [searchParams, initialQueryProcessed])
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {

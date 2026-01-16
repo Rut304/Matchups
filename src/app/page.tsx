@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { EdgeDashboardWithFiltersWrapper } from '@/components/edge'
 import { TopMatchups } from '@/components/home/TopMatchups'
+import { TrendFinderSearch } from '@/components/home/TrendFinderSearch'
 import { HomeLeaderboard } from '@/components/home/HomeLeaderboard'
 import { HomeTrends } from '@/components/home/HomeTrends'
 import { HomeInjuries } from '@/components/home/HomeInjuries'
@@ -29,12 +30,7 @@ export default function Home() {
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 relative z-10">
           <div className="text-center max-w-4xl mx-auto">
-            {/* FREE Banner */}
-            <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full mb-6 bg-green-500/10 border-2 border-green-500/50 shadow-[0_0_30px_rgba(0,255,136,0.3)]">
-              <span className="text-xl">🎉</span>
-              <span className="text-green-400 font-extrabold tracking-wide">100% FREE — NO SIGN UP REQUIRED</span>
-              <span className="text-xl">🎉</span>
-            </div>
+
             
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black mb-6 text-white tracking-tight leading-tight">
               Sports Betting{' '}
@@ -81,28 +77,8 @@ export default function Home() {
               </Link>
             </div>
 
-            {/* Trend Finder - THE KILLER FEATURE */}
-            <div className="max-w-3xl mx-auto mb-6">
-              <Link href="/trend-finder" className="block group">
-                <div className="p-4 rounded-xl bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-cyan-500/10 border border-purple-500/30 hover:border-purple-500/50 transition-all hover:scale-[1.02]">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-lg">🔍</span>
-                    <span className="text-sm font-bold text-purple-400">TREND FINDER</span>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">Ask anything</span>
-                  </div>
-                  <p className="text-white font-medium mb-2">
-                    &quot;How often do NFL playoff underdogs cover when getting 3+ points at home?&quot;
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    Find any historical trend across all sports. Ask questions like: <span className="text-gray-300">Both teams score a rushing &amp; passing TD?</span> • <span className="text-gray-300">NBA back-to-back games ATS?</span> • <span className="text-gray-300">NHL goalies on short rest?</span>
-                  </p>
-                  <div className="mt-3 flex items-center gap-2 text-xs text-purple-400 group-hover:text-purple-300">
-                    <span>Try it now</span>
-                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </div>
-              </Link>
-            </div>
+            {/* Trend Finder - Interactive Search */}
+            <TrendFinderSearch />
             
             {/* Pro Tip */}
             <p className="text-xs text-center text-gray-500 mb-4">
