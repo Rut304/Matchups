@@ -268,6 +268,26 @@ VALUES
     '@riggedforvegas',
     false,
     'approved'
+  ),
+  (
+    'Field of 68 sus play breakdown',
+    'College basketball sus play analyzed by @thefieldof68 - one of the most trusted CBB analysts. The timing and execution raised questions.',
+    'ncaab',
+    NULL,
+    NULL,
+    'error',
+    'late game',
+    'spread',
+    3200,
+    1400,
+    true,
+    true,
+    'twitter',
+    '2011851588063637744',
+    'https://x.com/thefieldof68/status/2011851588063637744',
+    '@thefieldof68',
+    true,
+    'approved'
   );
 
 -- Create index for tweet lookups

@@ -239,28 +239,14 @@ const HISTORICAL_PATTERNS: Record<string, HistoricalPattern[]> = {
   ],
 }
 
-// Generate current matching games for patterns
-function generateCurrentMatches(patterns: HistoricalPattern[]): HistoricalPattern[] {
-  return patterns.map(pattern => {
-    // Randomly assign 0-2 matching games per pattern
-    const numMatches = Math.floor(Math.random() * 3)
-    const matches: MatchingGame[] = []
-    
-    for (let i = 0; i < numMatches; i++) {
-      matches.push({
-        gameId: `game-${pattern.id}-${i}`,
-        sport: pattern.sport,
-        homeTeam: pattern.sport === 'NFL' ? 'Chiefs' : pattern.sport === 'NBA' ? 'Lakers' : pattern.sport === 'MLB' ? 'Dodgers' : 'Oilers',
-        awayTeam: pattern.sport === 'NFL' ? 'Bills' : pattern.sport === 'NBA' ? 'Celtics' : pattern.sport === 'MLB' ? 'Yankees' : 'Avalanche',
-        gameTime: new Date(Date.now() + Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-        matchedConditions: pattern.conditions.slice(0, Math.floor(Math.random() * pattern.conditions.length) + 1),
-        recommendedBet: `${pattern.category === 'rest' || pattern.category === 'situational' ? 'Under' : 'Home Team ATS'}`,
-        edge: Math.round((pattern.historicalRecord.roi * 0.8 + Math.random() * 3) * 10) / 10,
-      })
-    }
-    
-    return { ...pattern, currentMatches: matches }
-  })
+// Note: generateCurrentMatches removed - NO FAKE DATA policy
+// Current matching games should be determined by actual game schedule and conditions
+// For now, return patterns without fake current matches
+function addEmptyMatchesField(patterns: HistoricalPattern[]): HistoricalPattern[] {
+  return patterns.map(pattern => ({
+    ...pattern,
+    currentMatches: [] // Empty until real game-matching logic is implemented
+  }))
 }
 
 export async function GET(request: Request) {
@@ -287,8 +273,8 @@ export async function GET(request: Request) {
     // Apply confidence filter
     patterns = patterns.filter(p => p.confidenceScore >= minConfidence)
     
-    // Generate current matches
-    patterns = generateCurrentMatches(patterns)
+    // Add empty matches field (real game-matching to be implemented)
+    patterns = addEmptyMatchesField(patterns)
     
     // Filter to only patterns with matches if requested
     if (withMatches) {

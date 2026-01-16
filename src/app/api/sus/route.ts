@@ -58,26 +58,28 @@ export async function GET(request: Request) {
 
     if (error) {
       console.error('Supabase error:', error)
-      // If no table exists yet, return sample data
+      // If no table exists yet, return empty array with message - NO FAKE DATA
       // Handle both PostgreSQL error codes and Supabase schema cache errors
       if (error.code === '42P01' || error.message?.includes('schema cache') || error.code === 'PGRST200') {
-        console.log('Sus plays table not found, returning sample data')
+        console.log('Sus plays table not found')
         return NextResponse.json({
-          susPlays: getSampleData(),
-          pagination: { page: 1, limit: 20, total: 8, totalPages: 1 },
+          susPlays: [],
+          pagination: { page: 1, limit: 20, total: 0, totalPages: 0 },
           filters: { sport, susType, timeFrame, trending },
-          source: 'sample', // Indicate this is sample data
+          source: 'database',
+          message: 'Sus plays not available. Database table needs to be created.',
         })
       }
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // If no data in DB, return sample data
+    // If no data in DB, return empty array with message - NO FAKE DATA
     if (!susPlays || susPlays.length === 0) {
       return NextResponse.json({
-        susPlays: getSampleData(),
-        pagination: { page: 1, limit: 20, total: 8, totalPages: 1 },
+        susPlays: [],
+        pagination: { page: 1, limit: 20, total: 0, totalPages: 0 },
         filters: { sport, susType, timeFrame, trending },
+        message: 'No sus plays found matching your criteria.',
       })
     }
 
@@ -225,181 +227,5 @@ function formatRelativeTime(dateStr: string): string {
   return date.toLocaleDateString()
 }
 
-function getSampleData() {
-  return [
-    {
-      id: 'sample-1',
-      sport: 'nfl',
-      playerName: 'Ka\'imi Fairbairn',
-      team: 'HOU',
-      title: 'Wild XP Miss Causes Under to Hit',
-      description: 'Texans miss extra point in WILD fashion. Game O/U was 36.5 - the missed XP caused the under to hit.',
-      susType: 'total',
-      videoUrl: '#',
-      views: 1200000,
-      susScore: 95,
-      votes: { sus: 8920, legit: 591 },
-      trending: true,
-      verified: false,
-      postedAt: '2 hours ago',
-      gameContext: '4th Quarter',
-    },
-    {
-      id: 'sample-2',
-      sport: 'nba',
-      playerName: 'Multiple Players',
-      team: 'LAL',
-      title: 'Intentional Free Throw Miss?',
-      description: 'Late game free throw miss with spread at exactly 5.5 points. Ball went nowhere near rim.',
-      susType: 'spread',
-      views: 450000,
-      susScore: 78,
-      votes: { sus: 3420, legit: 980 },
-      trending: true,
-      verified: false,
-      postedAt: '5 hours ago',
-      gameContext: 'Final minute',
-    },
-    {
-      id: 'sample-3',
-      sport: 'nfl',
-      playerName: 'Travis Kelce',
-      team: 'KC',
-      title: 'Dropped TD - Prop Line Exact',
-      description: 'Easy TD drop in endzone. His receiving yards prop was 74.5 - he finished with exactly 74.',
-      susType: 'prop',
-      views: 890000,
-      susScore: 82,
-      votes: { sus: 5670, legit: 1230 },
-      trending: false,
-      verified: false,
-      postedAt: '1 day ago',
-      gameContext: '3rd Quarter',
-    },
-    {
-      id: 'sample-4',
-      sport: 'nhl',
-      playerName: 'Connor McDavid',
-      team: 'EDM',
-      title: 'Empty Net Miss - Game Total',
-      description: 'McDavid misses wide open empty net. Game total was 5.5 and stayed under.',
-      susType: 'total',
-      views: 320000,
-      susScore: 65,
-      votes: { sus: 1890, legit: 1010 },
-      trending: false,
-      verified: false,
-      postedAt: '2 days ago',
-      gameContext: 'Final minute',
-    },
-    {
-      id: 'sample-5',
-      sport: 'mlb',
-      playerName: 'Shohei Ohtani',
-      team: 'LAD',
-      title: 'Bizarre Baserunning Out',
-      description: 'Gets tagged out on inexplicable baserunning decision. First 5 Under hit by half run.',
-      susType: 'total',
-      views: 560000,
-      susScore: 71,
-      votes: { sus: 2340, legit: 950 },
-      trending: false,
-      verified: false,
-      postedAt: '3 days ago',
-      gameContext: '5th Inning',
-    },
-    {
-      id: 'sample-6',
-      sport: 'nba',
-      playerName: 'Jayson Tatum',
-      team: 'BOS',
-      title: 'Late Points Prop Hit',
-      description: 'Tatum scores meaningless basket in garbage time to hit his points prop exactly.',
-      susType: 'prop',
-      views: 230000,
-      susScore: 55,
-      votes: { sus: 1120, legit: 920 },
-      trending: false,
-      verified: false,
-      postedAt: '4 days ago',
-      gameContext: 'Garbage Time',
-    },
-    // X/Twitter sourced sus plays
-    {
-      id: 'twitter-1',
-      sport: 'nfl',
-      playerName: null,
-      team: null,
-      title: 'Dirty play spotted by @dirtyfootbaiier',
-      description: 'Suspicious play caught on camera and shared by popular sports betting sleuth. Community is divided on whether this was intentional.',
-      susType: 'spread',
-      views: 892000,
-      susScore: 71,
-      votes: { sus: 4521, legit: 1832 },
-      trending: true,
-      verified: false,
-      postedAt: '6 hours ago',
-      gameContext: 'Key moment',
-      source: 'twitter',
-      tweetUrl: 'https://x.com/dirtyfootbaiier/status/2011469607316656579',
-      tweetAuthor: '@dirtyfootbaiier',
-    },
-    {
-      id: 'twitter-2',
-      sport: 'nfl',
-      playerName: null,
-      team: null,
-      title: 'Rigged for Vegas breakdown #1',
-      description: 'Detailed analysis of a questionable play that had major betting implications. The timing and execution raised serious eyebrows.',
-      susType: 'multiple',
-      views: 1450000,
-      susScore: 72,
-      votes: { sus: 5892, legit: 2341 },
-      trending: true,
-      verified: false,
-      postedAt: '1 day ago',
-      gameContext: 'Late game',
-      source: 'twitter',
-      tweetUrl: 'https://x.com/riggedforvegas/status/2008758808584012099',
-      tweetAuthor: '@riggedforvegas',
-    },
-    {
-      id: 'twitter-3',
-      sport: 'nfl',
-      playerName: null,
-      team: null,
-      title: 'Rigged for Vegas breakdown #2',
-      description: 'Another suspicious sequence of events that benefited the sportsbooks. Pattern recognition analysis included.',
-      susType: 'spread',
-      views: 1890000,
-      susScore: 80,
-      votes: { sus: 6234, legit: 1567 },
-      trending: true,
-      verified: false,
-      postedAt: '3 days ago',
-      gameContext: '4th Quarter',
-      source: 'twitter',
-      tweetUrl: 'https://x.com/riggedforvegas/status/1999952158293377061',
-      tweetAuthor: '@riggedforvegas',
-    },
-    {
-      id: 'twitter-4',
-      sport: 'nba',
-      playerName: null,
-      team: null,
-      title: 'Rigged for Vegas breakdown #3',
-      description: 'Yet another play that defies logic. The probability of this outcome was extremely low given the circumstances.',
-      susType: 'spread',
-      views: 2340000,
-      susScore: 71,
-      votes: { sus: 7103, legit: 2891 },
-      trending: true,
-      verified: false,
-      postedAt: '5 days ago',
-      gameContext: 'Final play',
-      source: 'twitter',
-      tweetUrl: 'https://x.com/riggedforvegas/status/2004051758239322283',
-      tweetAuthor: '@riggedforvegas',
-    },
-  ]
-}
+// getSampleData function removed - NO FAKE DATA policy
+// All sus plays must come from the database (Supabase)

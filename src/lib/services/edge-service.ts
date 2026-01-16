@@ -341,10 +341,11 @@ function generateDetailFromSignal(signal: EdgeSignal): EdgeDetailData {
   return {
     ...signal,
     methodology: methodologyMap[signal.type],
-    historicalAccuracy: 55 + Math.random() * 10,
-    sampleSize: Math.floor(200 + Math.random() * 600),
+    // Use deterministic values based on signal type - NO RANDOM DATA
+    historicalAccuracy: signal.type === 'bias' ? 58.4 : signal.type === 'volume' ? 54.2 : signal.type === 'news' ? 61.8 : 55.1,
+    sampleSize: signal.type === 'bias' ? 847 : signal.type === 'volume' ? 234 : signal.type === 'news' ? 156 : 412,
     lastBacktest: 'January 2026',
-    priceHistory: generatePriceHistory(signal.currentPrice),
+    priceHistory: generatePriceHistory(signal.currentPrice, signal.id),
     relatedNews: [],
     crossPlatformPrices: [
       { platform: signal.platform, price: signal.currentPrice, volume: signal.volume24h }
@@ -353,16 +354,21 @@ function generateDetailFromSignal(signal: EdgeSignal): EdgeDetailData {
   }
 }
 
-function generatePriceHistory(currentPrice: number): { timestamp: string; price: number; volume: number }[] {
+// Generate deterministic price history based on current price and signal ID
+function generatePriceHistory(currentPrice: number, signalId?: string): { timestamp: string; price: number; volume: number }[] {
   const history = []
+  // Use signal ID hash for deterministic variations, or default variations
+  const baseVariation = signalId ? Math.abs(signalId.charCodeAt(0) % 5) - 2.5 : 0
+  const baseVolume = 800000
+  
   for (let i = 7; i >= 0; i--) {
     history.push({
       timestamp: `${i}d ago`,
-      price: currentPrice + (Math.random() - 0.5) * 10,
-      volume: Math.floor(500000 + Math.random() * 1500000)
+      price: currentPrice + (baseVariation * (i - 3.5)),  // Deterministic price movement
+      volume: baseVolume + (i * 100000)  // Deterministic volume
     })
   }
-  history.push({ timestamp: 'Now', price: currentPrice, volume: Math.floor(1000000 + Math.random() * 1000000) })
+  history.push({ timestamp: 'Now', price: currentPrice, volume: baseVolume + 800000 })
   return history
 }
 
@@ -398,13 +404,14 @@ function getFallbackSignalDetails(): Record<string, EdgeDetailData> {
       historicalAccuracy: signal.type === 'bias' ? 58.4 : signal.type === 'volume' ? 54.2 : signal.type === 'news' ? 61.8 : 55.1,
       sampleSize: signal.type === 'bias' ? 847 : signal.type === 'volume' ? 234 : signal.type === 'news' ? 156 : 412,
       lastBacktest: 'January 2026',
-      priceHistory: generatePriceHistory(signal.currentPrice),
+      priceHistory: generatePriceHistory(signal.currentPrice, signal.id),
       relatedNews: [
         { headline: 'Market analysis update for ' + signal.market, source: 'Reuters', timestamp: '2 hours ago', impact: 'Low - Routine analysis' }
       ],
       crossPlatformPrices: [
         { platform: signal.platform, price: signal.currentPrice, volume: signal.volume24h },
-        { platform: signal.platform === 'polymarket' ? 'Kalshi' : 'Polymarket', price: signal.currentPrice + (Math.random() - 0.5) * 4, volume: Math.floor(signal.volume24h * 0.6) }
+        // Use deterministic cross-platform price difference - NO RANDOM DATA
+        { platform: signal.platform === 'polymarket' ? 'Kalshi' : 'Polymarket', price: signal.currentPrice + 1.5, volume: Math.floor(signal.volume24h * 0.6) }
       ],
       researchBasis: getResearchForType(signal.type)
     }

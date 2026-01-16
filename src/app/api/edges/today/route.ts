@@ -93,11 +93,11 @@ export async function GET(request: Request) {
     }
     
     if (!edgePicks || edgePicks.length === 0) {
-      // Return demo data if no real edges yet
+      // Return empty array if no edges - NO FAKE DATA
       return NextResponse.json({ 
-        edges: getDemoEdges(),
-        total: 6,
-        isDemo: true
+        edges: [],
+        total: 0,
+        message: 'No edge picks available for today. Check back later or view historical trends.'
       })
     }
     
@@ -179,139 +179,13 @@ export async function GET(request: Request) {
     
   } catch (error) {
     console.error('Today edges API error:', error)
+    // Return empty array on error - NO FAKE DATA
     return NextResponse.json(
-      { error: 'Failed to fetch today\'s edges', edges: getDemoEdges(), isDemo: true },
-      { status: 200 } // Return 200 with demo data so UI still works
+      { error: 'Failed to fetch today\'s edges', edges: [], total: 0, message: 'Unable to load edges. Please try again later.' },
+      { status: 500 }
     )
   }
 }
 
-// Demo data for when database is empty
-function getDemoEdges(): TodayEdge[] {
-  return [
-    {
-      gameId: 'demo-1',
-      sport: 'NFL',
-      sportIcon: '🏈',
-      matchup: 'Eagles @ Commanders',
-      gameTime: '1:00 PM',
-      pick: 'Commanders +3.5',
-      odds: '-110',
-      edgeScore: 84,
-      confidence: 84,
-      trendCount: 4,
-      topTrends: [
-        'Home dogs +3 or less: 67% ATS',
-        'Division games with RLM: 71% ATS'
-      ],
-      publicPct: 68,
-      publicSide: 'away',
-      sharpSide: 'home',
-      lineMovement: '+1.5',
-      isRLM: true,
-      h2hRecord: '4-1 ATS L5'
-    },
-    {
-      gameId: 'demo-2',
-      sport: 'NBA',
-      sportIcon: '🏀',
-      matchup: 'Nuggets @ Celtics',
-      gameTime: '7:30 PM',
-      pick: 'Under 224.5',
-      odds: '-108',
-      edgeScore: 78,
-      confidence: 78,
-      trendCount: 3,
-      topTrends: [
-        'Back-to-back unders: 64% hit rate',
-        'Heavy favorite unders: 59% ATS'
-      ],
-      publicPct: 72,
-      publicSide: 'away',
-      lineMovement: '-2.5',
-      h2hRecord: '3-2 U L5'
-    },
-    {
-      gameId: 'demo-3',
-      sport: 'NHL',
-      sportIcon: '🏒',
-      matchup: 'Panthers @ Lightning',
-      gameTime: '7:00 PM',
-      pick: 'Lightning ML',
-      odds: '+150',
-      edgeScore: 72,
-      confidence: 72,
-      trendCount: 3,
-      topTrends: [
-        'Home underdogs: 58% ML win rate',
-        'Division rivalry games: 61% home'
-      ],
-      publicPct: 55,
-      publicSide: 'away',
-      sharpSide: 'home',
-      h2hRecord: '2-3 PL L5'
-    },
-    {
-      gameId: 'demo-4',
-      sport: 'MLB',
-      sportIcon: '⚾',
-      matchup: 'Yankees @ Red Sox',
-      gameTime: '4:05 PM',
-      pick: 'Over 9.5',
-      odds: '-105',
-      edgeScore: 69,
-      confidence: 69,
-      trendCount: 2,
-      topTrends: [
-        'Day game overs: 57% hit rate',
-        'Rivalry games total movement'
-      ],
-      publicPct: 61,
-      publicSide: 'home',
-      lineMovement: '+0.5'
-    },
-    {
-      gameId: 'demo-5',
-      sport: 'NBA',
-      sportIcon: '🏀',
-      matchup: 'Warriors @ Suns',
-      gameTime: '9:00 PM',
-      pick: 'Warriors +5.5',
-      odds: '-110',
-      edgeScore: 76,
-      confidence: 76,
-      trendCount: 4,
-      topTrends: [
-        'Road dogs 5-7: 62% ATS',
-        'Sharp money on dog: 65% win'
-      ],
-      publicPct: 65,
-      publicSide: 'home',
-      sharpSide: 'away',
-      isRLM: true,
-      h2hRecord: '3-1 ATS L4'
-    },
-    {
-      gameId: 'demo-6',
-      sport: 'NFL',
-      sportIcon: '🏈',
-      matchup: 'Eagles @ Cowboys',
-      gameTime: '4:25 PM',
-      pick: 'Cowboys +3',
-      odds: '-105',
-      edgeScore: 81,
-      confidence: 81,
-      trendCount: 5,
-      topTrends: [
-        'Home dogs divisional: 68% ATS',
-        'Prime time contrarian: 64% ATS'
-      ],
-      publicPct: 74,
-      publicSide: 'away',
-      sharpSide: 'home',
-      lineMovement: '+0.5',
-      isRLM: true,
-      h2hRecord: '4-2 ATS L6'
-    }
-  ]
-}
+// getDemoEdges function removed - NO FAKE DATA policy
+// All edges must come from database (historical_trends + edge_picks tables)

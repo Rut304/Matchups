@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 
-const ODDS_API_KEY = process.env.THE_ODDS_API_KEY
+const ODDS_API_KEY = process.env.ODDS_API_KEY || process.env.THE_ODDS_API_KEY
 
 // Sport key mapping for The Odds API
 const SPORT_KEYS: Record<string, string> = {
@@ -119,14 +119,15 @@ export async function GET(
     // Get sport key for The Odds API
     const sportKey = SPORT_KEYS[sport]
     if (!sportKey || !ODDS_API_KEY) {
-      // Return demo data if no API key
+      // Return empty array with message - NO FAKE DATA
       return NextResponse.json({
-        success: true,
+        success: false,
         gameId,
         sport,
-        props: generateDemoProps(sport, gameId),
-        source: 'demo',
-        message: 'Demo data - configure THE_ODDS_API_KEY for live props'
+        props: [],
+        source: null,
+        message: 'Player props not available. THE_ODDS_API_KEY required for live props data.',
+        apiKeyConfigured: !!ODDS_API_KEY,
       })
     }
 
@@ -139,14 +140,14 @@ export async function GET(
     const response = await fetch(url, { next: { revalidate: 300 } }) // Cache for 5 min
     
     if (!response.ok) {
-      // Return demo data on API error
+      // Return empty array on API error - NO FAKE DATA
       return NextResponse.json({
-        success: true,
+        success: false,
         gameId,
         sport,
-        props: generateDemoProps(sport, gameId),
-        source: 'demo',
-        message: 'API unavailable - showing demo data'
+        props: [],
+        source: null,
+        message: `The Odds API returned status ${response.status}. Props not available for this game.`,
       })
     }
     
@@ -154,6 +155,17 @@ export async function GET(
     
     // Parse the odds data into player props
     const props = parseOddsApiProps(data, sport)
+    
+    if (props.length === 0) {
+      return NextResponse.json({
+        success: false,
+        gameId,
+        sport,
+        props: [],
+        source: 'the-odds-api',
+        message: 'No player props available for this game yet.',
+      })
+    }
     
     return NextResponse.json({
       success: true,
@@ -167,12 +179,13 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching player props:', error)
     return NextResponse.json({
-      success: true,
+      success: false,
       gameId,
       sport,
-      props: generateDemoProps(sport, gameId),
-      source: 'demo',
-      error: 'Failed to fetch live props'
+      props: [],
+      source: null,
+      error: 'Failed to fetch player props',
+      message: 'Unable to load player props. Please try again later.'
     })
   }
 }
@@ -181,7 +194,8 @@ function parseOddsApiProps(data: any, sport: string): PlayerPropLine[] {
   const props: PlayerPropLine[] = []
   const propMap = new Map<string, PlayerPropLine>()
   
-  if (!data.bookmakers) return generateDemoProps(sport, data.id || '')
+  // Return empty array if no bookmaker data - NO FAKE DATA
+  if (!data.bookmakers) return []
   
   for (const bookmaker of data.bookmakers) {
     for (const market of bookmaker.markets || []) {
@@ -257,91 +271,4 @@ function parseOddsApiProps(data: any, sport: string): PlayerPropLine[] {
   return Array.from(propMap.values()).slice(0, 20)
 }
 
-function generateDemoProps(sport: string, gameId: string): PlayerPropLine[] {
-  // Generate realistic demo props based on sport
-  const demoPlayers: Record<string, { players: string[], propTypes: string[] }> = {
-    NFL: {
-      players: ['Patrick Mahomes', 'Travis Kelce', 'Isiah Pacheco', 'Jalen Hurts', 'A.J. Brown', 'DeVonta Smith'],
-      propTypes: ['player_pass_yds', 'player_rush_yds', 'player_reception_yds', 'player_receptions', 'player_anytime_td']
-    },
-    NBA: {
-      players: ['LeBron James', 'Anthony Davis', 'Jayson Tatum', 'Jaylen Brown', 'Stephen Curry', 'Draymond Green'],
-      propTypes: ['player_points', 'player_rebounds', 'player_assists', 'player_points_rebounds_assists', 'player_threes']
-    },
-    NHL: {
-      players: ['Connor McDavid', 'Leon Draisaitl', 'Nathan MacKinnon', 'Cale Makar', 'Auston Matthews'],
-      propTypes: ['player_points', 'player_goals', 'player_assists', 'player_shots_on_goal']
-    },
-    MLB: {
-      players: ['Shohei Ohtani', 'Mike Trout', 'Mookie Betts', 'Aaron Judge', 'Gerrit Cole'],
-      propTypes: ['batter_hits', 'batter_total_bases', 'pitcher_strikeouts', 'batter_runs_scored']
-    },
-    NCAAF: {
-      players: ['QB #1', 'RB #2', 'WR #3', 'QB #4', 'RB #5'],
-      propTypes: ['player_pass_yds', 'player_rush_yds', 'player_reception_yds']
-    },
-    NCAAB: {
-      players: ['Guard #1', 'Forward #2', 'Center #3', 'Guard #4'],
-      propTypes: ['player_points', 'player_rebounds', 'player_assists']
-    },
-    WNBA: {
-      players: ['A\'ja Wilson', 'Breanna Stewart', 'Sabrina Ionescu', 'Caitlin Clark'],
-      propTypes: ['player_points', 'player_rebounds', 'player_assists']
-    },
-    WNCAAB: {
-      players: ['Guard #1', 'Forward #2', 'Center #3'],
-      propTypes: ['player_points', 'player_rebounds', 'player_assists']
-    }
-  }
-  
-  const sportData = demoPlayers[sport] || demoPlayers.NBA
-  const props: PlayerPropLine[] = []
-  
-  for (const player of sportData.players.slice(0, 4)) {
-    for (const propType of sportData.propTypes.slice(0, 2)) {
-      const baseOdds = -110
-      const variance = () => Math.floor(Math.random() * 20) - 10
-      
-      props.push({
-        player,
-        team: '',
-        propType,
-        propDisplayName: PROP_DISPLAY_NAMES[propType] || propType,
-        line: getDefaultLine(propType),
-        books: [
-          { name: 'DraftKings', over: { odds: baseOdds + variance(), price: getDefaultLine(propType) }, under: { odds: baseOdds + variance(), price: getDefaultLine(propType) } },
-          { name: 'FanDuel', over: { odds: baseOdds + variance(), price: getDefaultLine(propType) }, under: { odds: baseOdds + variance(), price: getDefaultLine(propType) } },
-          { name: 'BetMGM', over: { odds: baseOdds + variance(), price: getDefaultLine(propType) }, under: { odds: baseOdds + variance(), price: getDefaultLine(propType) } },
-          { name: 'Caesars', over: { odds: baseOdds + variance(), price: getDefaultLine(propType) }, under: { odds: baseOdds + variance(), price: getDefaultLine(propType) } },
-        ],
-        bestOver: { book: 'DraftKings', odds: -105 },
-        bestUnder: { book: 'FanDuel', odds: -105 },
-        overUnderSplit: 45 + Math.floor(Math.random() * 20)
-      })
-    }
-  }
-  
-  return props
-}
-
-function getDefaultLine(propType: string): number {
-  const defaults: Record<string, number> = {
-    'player_pass_yds': 250.5,
-    'player_pass_tds': 1.5,
-    'player_rush_yds': 55.5,
-    'player_reception_yds': 50.5,
-    'player_receptions': 4.5,
-    'player_anytime_td': 0.5,
-    'player_points': 22.5,
-    'player_rebounds': 7.5,
-    'player_assists': 5.5,
-    'player_points_rebounds_assists': 35.5,
-    'player_threes': 2.5,
-    'player_goals': 0.5,
-    'player_shots_on_goal': 3.5,
-    'batter_hits': 0.5,
-    'batter_total_bases': 1.5,
-    'pitcher_strikeouts': 5.5,
-  }
-  return defaults[propType] || 0.5
-}
+// generateDemoProps and getDefaultLine removed - NO FAKE DATA policy

@@ -7,7 +7,7 @@ import * as apiSports from './api-sports'
 const oddsApi = axios.create({
   baseURL: 'https://api.the-odds-api.com/v4',
   params: {
-    apiKey: process.env.THE_ODDS_API_KEY,
+    apiKey: process.env.ODDS_API_KEY || process.env.THE_ODDS_API_KEY,
   },
 })
 
@@ -172,8 +172,8 @@ class OddsClient {
       if (!sportKey) return []
 
       // Check if API key is configured
-      if (!process.env.THE_ODDS_API_KEY) {
-        console.warn('[Odds] THE_ODDS_API_KEY not configured')
+      if (!process.env.ODDS_API_KEY && !process.env.THE_ODDS_API_KEY) {
+        console.warn('[Odds] ODDS_API_KEY not configured')
         return []
       }
 

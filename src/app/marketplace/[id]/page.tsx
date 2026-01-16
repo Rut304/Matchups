@@ -61,6 +61,7 @@ interface SystemDetail {
 }
 
 // Convert standard system to full detail
+// NOTE: stats, recentPicks, and monthlyPerformance will be empty until database integration
 function getSystemFromStandard(system: StandardBettingSystem): SystemDetail {
   return {
     ...system,
@@ -70,51 +71,21 @@ function getSystemFromStandard(system: StandardBettingSystem): SystemDetail {
       avatar: '/avatars/muschnick.png',
       verified: true
     },
+    // Real stats will come from database - NO FAKE DATA
     stats: {
-      copies: Math.floor(Math.random() * 500) + 100,
-      likes: Math.floor(Math.random() * 1000) + 200,
-      followers: Math.floor(Math.random() * 300) + 50,
-      views: Math.floor(Math.random() * 5000) + 1000
+      copies: 0,
+      likes: 0,
+      followers: 0,
+      views: 0
     },
-    recentPicks: generateMockRecentPicks(system),
-    monthlyPerformance: generateMockMonthlyPerformance()
+    // Empty until database integration - NO FAKE DATA
+    recentPicks: [],
+    monthlyPerformance: []
   }
 }
 
-function generateMockRecentPicks(system: StandardBettingSystem): SystemDetail['recentPicks'] {
-  const teams = system.sport === 'NFL' 
-    ? ['KC', 'BUF', 'PHI', 'SF', 'DAL', 'DET', 'MIA', 'BAL']
-    : system.sport === 'NBA'
-    ? ['BOS', 'DEN', 'MIL', 'PHX', 'LAL', 'GSW', 'MIA', 'PHI']
-    : system.sport === 'NHL'
-    ? ['BOS', 'COL', 'VGK', 'CAR', 'NJD', 'TOR', 'EDM', 'DAL']
-    : ['LAD', 'ATL', 'HOU', 'NYY', 'TB', 'SD', 'PHI', 'SEA']
-  
-  const results: ('win' | 'loss' | 'push' | 'pending')[] = ['win', 'loss', 'push', 'pending']
-  
-  return Array.from({ length: 10 }, (_, i) => ({
-    id: `pick-${i}`,
-    date: new Date(Date.now() - i * 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    game: `${teams[Math.floor(Math.random() * 4)]} @ ${teams[Math.floor(Math.random() * 4) + 4]}`,
-    pick: system.betType === 'spread' 
-      ? `${teams[Math.floor(Math.random() * teams.length)]} ${Math.random() > 0.5 ? '+' : '-'}${(Math.floor(Math.random() * 7) + 1)}`
-      : system.betType === 'total'
-      ? `${Math.random() > 0.5 ? 'Over' : 'Under'} ${Math.floor(Math.random() * 20) + 40}`
-      : `${teams[Math.floor(Math.random() * teams.length)]} ML`,
-    result: i < 2 ? 'pending' : results[Math.floor(Math.random() * 3)] as 'win' | 'loss' | 'push',
-    odds: -110
-  }))
-}
-
-function generateMockMonthlyPerformance() {
-  const months = ['Sep 2025', 'Oct 2025', 'Nov 2025', 'Dec 2025', 'Jan 2026']
-  return months.map(month => ({
-    month,
-    wins: Math.floor(Math.random() * 20) + 10,
-    losses: Math.floor(Math.random() * 18) + 8,
-    roi: (Math.random() * 15) - 3
-  }))
-}
+// Mock pick/performance generation functions removed - NO FAKE DATA policy
+// Real picks and performance will come from database queries
 
 export default function SystemDetailPage() {
   const params = useParams()

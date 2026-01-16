@@ -165,94 +165,26 @@ function filterByQuality(results: SusResult[]): SusResult[] {
     .sort((a, b) => b.qualityScore - a.qualityScore)
 }
 
-// Mock search results - QUALITY FILTERED (only high-engagement viral clips)
-const mockSearchResultsRaw = [
-  {
-    id: 'mock-1',
-    platform: 'twitter' as const,
-    author: 'RIGGEDFORVEGAS',
-    authorHandle: '@RIGGEDFORVEGAS',
-    content: '🚨 This ref just called a phantom foul with 2 seconds left to give the Lakers the cover. Someone check this guys bank account. #RiggedNBA #SusPlay',
-    timestamp: '2025-01-07T22:15:00Z',
-    url: 'https://x.com/RIGGEDFORVEGAS/status/1949878466884648994',
-    sport: 'NBA',
-    hasVideo: true,
-    engagement: { likes: 4523, retweets: 1890, comments: 342 },
-    susScore: 91,
-    tags: ['ref', 'phantom foul', 'cover', 'nba'],
-    accountCredibility: 92,
-    qualityScore: 0 // Will be calculated
-  },
-  {
-    id: 'mock-2',
-    platform: 'twitter' as const,
-    author: 'SavageSports_',
-    authorHandle: '@SavageSports_',
-    content: 'How does this happen? QB takes a knee on 3rd down with 30 seconds left when theyre down by 3? Vegas had them -2.5. Investigate. 🔍',
-    timestamp: '2025-01-07T21:30:00Z',
-    url: 'https://x.com/SavageSports_/status/1981353713718439999',
-    sport: 'NFL',
-    hasVideo: true,
-    engagement: { likes: 3201, retweets: 980, comments: 567 },
-    susScore: 88,
-    tags: ['garbage time', 'spread', 'tank', 'nfl'],
-    accountCredibility: 88,
-    qualityScore: 0
-  },
-  {
-    id: 'mock-3',
-    platform: 'reddit' as const,
-    author: 'SportsbookMod',
-    content: '[Serious] That Celtics/Heat ending was absolutely criminal. 3 straight missed calls in the final minute, all benefiting Heat who covered -4.5. Vegas cleaned up tonight.',
-    timestamp: '2025-01-07T20:45:00Z',
-    url: 'https://reddit.com/r/sportsbook/comments/abc123',
-    sport: 'NBA',
-    hasVideo: true,
-    engagement: { likes: 2341, comments: 456 },
-    susScore: 85,
-    tags: ['missed calls', 'cover', 'nba', 'refs'],
-    accountCredibility: 75,
-    qualityScore: 0
-  },
-  {
-    id: 'mock-4',
-    platform: 'twitter' as const,
-    author: 'BadRefCalls',
-    authorHandle: '@BadRefCalls',
-    content: 'COMPILATION: Every questionable call from todays NFL playoff games. Thread 🧵 The over hit in 4/4 games after late game penalties. Coincidence?',
-    timestamp: '2025-01-07T19:00:00Z',
-    url: 'https://x.com/BadRefCalls/status/123456789',
-    sport: 'NFL',
-    hasVideo: true,
-    engagement: { likes: 8921, retweets: 3456, comments: 890 },
-    susScore: 79,
-    tags: ['compilation', 'penalties', 'over', 'nfl'],
-    accountCredibility: 85,
-    qualityScore: 0
-  }
-]
-
-const mockSearchResults: SusResult[] = mockSearchResultsRaw.map(r => ({ 
-  ...r, 
-  qualityScore: calculateQualityScore(r as Omit<SusResult, 'qualityScore'>) 
-}))
+// Mock data removed - NO FAKE DATA policy
+// Results will come from real Twitter/Reddit API integration or manual database entries
+// Empty array as initial state
+const initialSearchResults: SusResult[] = []
 
 export function SusSearchAggregator() {
   const [isSearching, setIsSearching] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [results, setResults] = useState<SusResult[]>(mockSearchResults)
+  const [results, setResults] = useState<SusResult[]>(initialSearchResults)
   const [selectedSport, setSelectedSport] = useState('ALL')
   const [selectedTime, setSelectedTime] = useState('24h')
   const [showFilters, setShowFilters] = useState(false)
 
-  // Simulate search
+  // Search is not yet functional - needs Twitter/Reddit API integration
   const performSearch = useCallback(async () => {
     setIsSearching(true)
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    setResults(mockSearchResults.filter(r => 
-      selectedSport === 'ALL' || r.sport === selectedSport
-    ))
+    // TODO: Implement real Twitter/Reddit API calls
+    // For now, show message that search is not yet available
+    await new Promise(resolve => setTimeout(resolve, 500))
+    setResults([])
     setIsSearching(false)
   }, [selectedSport])
 

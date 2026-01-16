@@ -38,7 +38,7 @@ export async function GET(request: Request) {
     
     for (const sportKey of sports) {
       try {
-        const oddsApiKey = process.env.THE_ODDS_API_KEY
+        const oddsApiKey = process.env.ODDS_API_KEY || process.env.THE_ODDS_API_KEY
         if (!oddsApiKey) {
           results[sportKey] = { error: 'No API key configured' }
           continue

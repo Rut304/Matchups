@@ -217,9 +217,10 @@ export async function GET(request: NextRequest) {
           roi: sys.historicalRecord.roi,
           avg_odds: -110,
           streak: 0,
-          copies_count: Math.floor(Math.random() * 500) + 100,
-          views_count: Math.floor(Math.random() * 5000) + 1000,
-          likes_count: Math.floor(Math.random() * 200) + 50,
+          // Use 0 for stats until real tracking is implemented - NO FAKE DATA
+          copies_count: 0,
+          views_count: 0,
+          likes_count: 0,
           status: 'published',
           is_featured: true,
           published_at: new Date().toISOString(),

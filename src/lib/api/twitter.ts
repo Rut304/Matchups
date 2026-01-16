@@ -2,7 +2,7 @@
  * X/Twitter API Service
  * Uses X API v2 to fetch recent tweets about teams and players
  * 
- * Requires: X_BEARER_TOKEN in environment
+ * Requires: X_BEARER_TOKEN or TWITTER_BEARER_TOKEN in environment
  * 
  * Use cases:
  * - Show top 3-5 tweets about teams in game matchups
@@ -10,7 +10,7 @@
  * - Social sentiment for Team Pages
  */
 
-const X_BEARER_TOKEN = process.env.X_BEARER_TOKEN || ''
+const X_BEARER_TOKEN = process.env.X_BEARER_TOKEN || process.env.TWITTER_BEARER_TOKEN || ''
 
 const X_API_BASE = 'https://api.twitter.com/2'
 

@@ -138,9 +138,10 @@ export async function POST(request: NextRequest) {
               roi: system.historicalRecord.roi,
               avg_odds: -110,
               streak: 0,
-              copies_count: Math.floor(Math.random() * 500) + 100, // Simulated copies
-              views_count: Math.floor(Math.random() * 5000) + 1000, // Simulated views
-              likes_count: Math.floor(Math.random() * 200) + 50, // Simulated likes
+              // Start with 0 - real counts tracked in database - NO FAKE DATA
+              copies_count: 0,
+              views_count: 0,
+              likes_count: 0,
               status: 'active',
               is_featured: true,
               published_at: new Date().toISOString()
@@ -194,9 +195,10 @@ export async function POST(request: NextRequest) {
             roi: 0,
             avg_odds: -110,
             streak: 0,
-            copies_count: Math.floor(Math.random() * 300) + 50,
-            views_count: Math.floor(Math.random() * 3000) + 500,
-            likes_count: Math.floor(Math.random() * 100) + 20,
+            // Start with 0 - real counts tracked in database - NO FAKE DATA
+            copies_count: 0,
+            views_count: 0,
+            likes_count: 0,
             status: 'active',
             is_featured: stakingSystem.difficulty === 'beginner' || stakingSystem.category === 'value',
             published_at: new Date().toISOString()

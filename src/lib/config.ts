@@ -8,7 +8,7 @@
 export const config = {
   // Sports Data APIs
   theOddsApi: {
-    key: process.env.THE_ODDS_API_KEY || '',
+    key: process.env.ODDS_API_KEY || process.env.THE_ODDS_API_KEY || '',
     baseUrl: 'https://api.the-odds-api.com/v4',
   },
   apiSports: {
