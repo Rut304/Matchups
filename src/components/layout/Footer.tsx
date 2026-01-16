@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import { Settings } from 'lucide-react'
 
 export function Footer() {
   return (
@@ -64,15 +63,19 @@ export function Footer() {
             </div>
           </div>
           
-          {/* Admin (Bottom Left concept - leftmost column) */}
+          {/* Tools */}
           <div>
             <h4 className="font-bold mb-4" style={{ color: '#FFF' }}>Tools</h4>
             <div className="space-y-2">
-              <Link href="/admin" 
+              <Link href="/calculators" 
                     className="flex items-center gap-2 text-sm transition-colors hover:text-white"
                     style={{ color: '#606070' }}>
-                <Settings style={{ width: '14px', height: '14px' }} />
-                Admin Dashboard
+                🧮 Calculators
+              </Link>
+              <Link href="/alerts" 
+                    className="flex items-center gap-2 text-sm transition-colors hover:text-white"
+                    style={{ color: '#606070' }}>
+                🔔 Alerts
               </Link>
               <Link href="/admin/docs" 
                     className="flex items-center gap-2 text-sm transition-colors hover:text-white"

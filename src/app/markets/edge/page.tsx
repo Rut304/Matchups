@@ -331,9 +331,10 @@ export default function EdgePage() {
                     const Icon = config.icon
                     
                     return (
-                      <div
+                      <Link
                         key={signal.id}
-                        className={`p-5 rounded-2xl ${config.bg} ${config.border} border transition-all hover:scale-[1.01]`}
+                        href={`/game/${signal.gameId}?sport=${signal.sport.toLowerCase()}`}
+                        className={`block p-5 rounded-2xl ${config.bg} ${config.border} border transition-all hover:scale-[1.01] cursor-pointer`}
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-3">
@@ -394,7 +395,7 @@ export default function EdgePage() {
                           <span className="capitalize">{signal.betType}</span>
                           <span>{signal.gameTime}</span>
                         </div>
-                      </div>
+                      </Link>
                     )
                   })
                 )}

@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, Suspense } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useSearchParams } from 'next/navigation'
 import {
   Clock,
   RefreshCw,
@@ -127,20 +128,20 @@ function GameCard({ game }: { game: GameData }) {
           : 'bg-gradient-to-br from-white/3 to-white/1 border border-white/6'
       }`}
     >
-      {/* Live indicator pulse */}
-      {isLive && (
-        <div className="absolute top-3 left-3 flex items-center gap-2">
-          <span className="relative flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-          </span>
-          <span className="text-xs font-bold text-green-400">LIVE</span>
-        </div>
-      )}
-
       {/* Sport & Time Header */}
       <div className="flex items-center justify-between px-4 pt-3 pb-2">
         <div className="flex items-center gap-2">
+          {/* Live indicator inline with sport */}
+          {isLive && (
+            <div className="flex items-center gap-1.5 mr-1">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+              </span>
+              <span className="text-xs font-bold text-green-400">LIVE</span>
+              <span className="text-gray-600">•</span>
+            </div>
+          )}
           <span className="text-lg">{game.sportEmoji}</span>
           <span className="text-xs font-semibold text-gray-400">{game.sport}</span>
         </div>
@@ -428,14 +429,43 @@ function DateNavigation({
 }
 
 export default function ScoresPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="flex items-center gap-3">
+          <RefreshCw className="w-6 h-6 animate-spin text-blue-500" />
+          <span className="text-gray-400">Loading scores...</span>
+        </div>
+      </div>
+    }>
+      <ScoresPageContent />
+    </Suspense>
+  )
+}
+
+function ScoresPageContent() {
+  const searchParams = useSearchParams()
   const [games, setGames] = useState<GameData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [sportFilter, setSportFilter] = useState<SportFilter>('ALL')
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [selectedDate, setSelectedDate] = useState<Date>(getEasternDate())
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
+
+  // Read sport filter from URL param or default to ALL
+  const sportFromUrl = searchParams.get('sport')?.toUpperCase() as SportFilter | null
+  const validSports: SportFilter[] = ['ALL', 'NFL', 'NBA', 'NHL', 'MLB', 'NCAAF', 'NCAAB', 'WNBA', 'WNCAAB']
+  const initialSport = sportFromUrl && validSports.includes(sportFromUrl) ? sportFromUrl : 'ALL'
+  
+  const [sportFilter, setSportFilter] = useState<SportFilter>(initialSport)
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+
+  // Sync sport filter with URL param when it changes
+  useEffect(() => {
+    if (sportFromUrl && validSports.includes(sportFromUrl) && sportFromUrl !== sportFilter) {
+      setSportFilter(sportFromUrl)
+    }
+  }, [sportFromUrl, sportFilter])
 
   const isToday = useMemo(() => {
     return formatDateString(selectedDate) === formatDateString(getEasternDate())

@@ -43,29 +43,29 @@ function getDemoEdges(): EdgeCard[] {
       gameId: 'demo-1',
       sport: 'NFL',
       sportIcon: '🏈',
-      matchup: 'Chiefs @ Bills',
+      matchup: 'Commanders @ Eagles',
       gameTime: '1:00 PM',
-      pick: 'Bills +2.5',
+      pick: 'Eagles -6',
       odds: '-110',
       edgeScore: 84,
       confidence: 84,
       trendCount: 4,
       topTrends: [
-        'Home dogs +3 or less: 67% ATS',
-        'Division games with RLM: 71% ATS'
+        'Home favorites in playoff: 72% ATS',
+        'Division rivalry games: 68% ATS'
       ],
       publicPct: 68,
       publicSide: 'away',
       sharpSide: 'home',
-      lineMovement: '+1.5',
+      lineMovement: '-1.5',
       isRLM: true,
-      h2hRecord: '4-1 ATS L5'
+      h2hRecord: '5-1 ATS L6'
     },
     {
       gameId: 'demo-2',
       sport: 'NBA',
       sportIcon: '🏀',
-      matchup: 'Lakers @ Celtics',
+      matchup: 'Cavaliers @ Celtics',
       gameTime: '7:30 PM',
       pick: 'Under 224.5',
       odds: '-108',
@@ -74,7 +74,7 @@ function getDemoEdges(): EdgeCard[] {
       trendCount: 3,
       topTrends: [
         'Back-to-back unders: 64% hit rate',
-        'Heavy favorite unders: 59% ATS'
+        'Top teams defense: 59% under'
       ],
       publicPct: 72,
       publicSide: 'away',

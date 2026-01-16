@@ -339,7 +339,7 @@ const popularSystems: SystemResult[] = [
       { date: 'Jan 1', matchup: 'CHI +10 @ GB', pick: 'CHI +10', result: 'W', profit: 1.0 },
     ],
     upcomingPicks: [
-      { matchup: 'KC +2.5 @ BUF', pick: 'KC +2.5', confidence: 62, time: 'Sun 4:25 PM' },
+      { matchup: 'WAS +6 @ PHI', pick: 'WAS +6', confidence: 62, time: 'Sun 3:00 PM' },
     ],
   },
 ]

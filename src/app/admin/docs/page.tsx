@@ -49,7 +49,8 @@ export default function AdminDocsPage() {
               { label: '🔌 API & Data Sources', href: '#apis' },
               { label: '✨ Features Overview', href: '#features' },
               { label: '⚙️ Tech Stack', href: '#techstack' },
-              { label: '🚀 Deployment', href: '#deployment' },
+              { label: '� Recent Updates', href: '#changelog' },
+              { label: '�🚀 Deployment', href: '#deployment' },
             ].map(item => (
               <a key={item.href} href={item.href} 
                  className="px-4 py-2 rounded-lg text-sm hover:bg-white/5 transition-colors"
@@ -549,6 +550,90 @@ STEP 4: Leaderboard Data Pipeline
                 <div className="text-xs mt-2 font-mono" style={{ color: '#606070' }}>{table.fields}</div>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Recent Updates Changelog */}
+        <div id="changelog" className="rounded-2xl p-6 mb-8" style={{ background: '#0c0c14', border: '1px solid rgba(139,92,246,0.3)' }}>
+          <div className="flex items-center gap-2 mb-6">
+            <RefreshCw style={{ color: '#8B5CF6', width: '24px', height: '24px' }} />
+            <h2 className="text-xl font-bold" style={{ color: '#FFF' }}>🔄 Recent Updates</h2>
+          </div>
+          
+          <div className="space-y-6">
+            {/* Latest Update */}
+            <div className="p-4 rounded-xl" style={{ background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)' }}>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="px-2 py-1 rounded text-xs font-bold" style={{ background: '#8B5CF6', color: '#FFF' }}>LATEST</span>
+                <span className="text-sm" style={{ color: '#808090' }}>January 2025</span>
+              </div>
+              <h3 className="font-bold text-lg mb-3" style={{ color: '#FFF' }}>Navigation & News Improvements</h3>
+              <ul className="space-y-2 text-sm" style={{ color: '#A0A0B0' }}>
+                <li className="flex items-start gap-2">
+                  <span style={{ color: '#00FF88' }}>✓</span>
+                  <span><strong>Admin Access Restructured:</strong> Removed admin link from footer. Admin Dashboard now only appears in user dropdown for authenticated admin users.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span style={{ color: '#00FF88' }}>✓</span>
+                  <span><strong>User Menu Enhanced:</strong> Added Control Panel and Alerts links to user dropdown for quick access to personalized features.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span style={{ color: '#00FF88' }}>✓</span>
+                  <span><strong>News Page Filtering:</strong> Added comprehensive filtering with sport tabs, team dropdown, date sorting (newest/oldest/popular), and player/text search.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span style={{ color: '#00FF88' }}>✓</span>
+                  <span><strong>Footer Tools Section:</strong> Added quick links to Calculators, Alerts, and Documentation.</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Previous Updates */}
+            <div className="p-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)' }}>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-sm" style={{ color: '#808090' }}>December 2024</span>
+              </div>
+              <h3 className="font-bold mb-2" style={{ color: '#FFF' }}>Game Matchup Page Improvements</h3>
+              <ul className="space-y-1 text-sm" style={{ color: '#A0A0B0' }}>
+                <li className="flex items-start gap-2">
+                  <span style={{ color: '#00FF88' }}>✓</span>
+                  <span>Fixed H2H data to fetch actual historical game data instead of mock records</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span style={{ color: '#00FF88' }}>✓</span>
+                  <span>Redesigned betting splits UI with proper green/red color coding</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span style={{ color: '#00FF88' }}>✓</span>
+                  <span>Fixed NaN score displays and team stats calculation issues</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span style={{ color: '#00FF88' }}>✓</span>
+                  <span>Enhanced mobile responsiveness for game detail pages</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="p-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)' }}>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-sm" style={{ color: '#808090' }}>November 2024</span>
+              </div>
+              <h3 className="font-bold mb-2" style={{ color: '#FFF' }}>Data Layer & API Improvements</h3>
+              <ul className="space-y-1 text-sm" style={{ color: '#A0A0B0' }}>
+                <li className="flex items-start gap-2">
+                  <span style={{ color: '#00FF88' }}>✓</span>
+                  <span>Props correlations API uses research-based betting patterns (labeled as pattern-based data)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span style={{ color: '#00FF88' }}>✓</span>
+                  <span>Historical data service with graceful fallback to research patterns when database unavailable</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span style={{ color: '#00FF88' }}>✓</span>
+                  <span>Edge detection uses real-time odds data where available</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
 

@@ -37,6 +37,7 @@ import {
 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
+import { useIsAdmin } from '@/components/auth/AdminGuard'
 import { GlobalSearch } from '@/components/search/GlobalSearch'
 
 // Sports organized by category for cleaner navigation
@@ -221,6 +222,7 @@ export function Navbar() {
   const dropdownRef = useRef<HTMLDivElement>(null)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   const { user, loading: authLoading, signOut } = useAuth()
+  const { isAdmin } = useIsAdmin()
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -260,7 +262,7 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Navigation - Clean & Simple */}
-          <div className="hidden lg:flex items-center gap-1" ref={dropdownRef}>
+          <div className="hidden lg:flex items-center gap-0.5" ref={dropdownRef}>
             {/* Sports Dropdown */}
             <div 
               className="relative"
@@ -269,7 +271,7 @@ export function Navbar() {
             >
               <button
                 className={cn(
-                  'flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all',
+                  'flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all',
                   activeDropdown === 'sports' 
                     ? 'bg-white/10 text-white' 
                     : 'text-gray-300 hover:text-white hover:bg-white/5'
@@ -371,7 +373,7 @@ export function Navbar() {
             >
               <button
                 className={cn(
-                  'flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all',
+                  'flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all',
                   activeDropdown === 'markets' 
                     ? 'bg-purple-500/20 text-purple-300' 
                     : 'text-gray-300 hover:text-white hover:bg-white/5'
@@ -449,7 +451,7 @@ export function Navbar() {
             >
               <button 
                 className={cn(
-                  'flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all',
+                  'flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all',
                   activeDropdown === 'tools' 
                     ? 'bg-white/10 text-white' 
                     : 'text-gray-300 hover:text-white hover:bg-white/5'
@@ -487,7 +489,7 @@ export function Navbar() {
             <Link 
               href="/scores" 
               className={cn(
-                'flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all',
+                'flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all',
                 pathname === '/scores' 
                   ? 'bg-green-500/20 text-green-400' 
                   : 'text-gray-300 hover:text-white hover:bg-white/5'
@@ -500,23 +502,23 @@ export function Navbar() {
             {/* Expert Tracker - Gold Button in Nav */}
             <Link 
               href="/leaderboard" 
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold hover:scale-105 transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold hover:scale-105 transition-all"
               style={{ background: 'linear-gradient(135deg, #FFD700, #FF8C00)', color: '#000' }}
             >
               <Trophy className="w-4 h-4" />
-              <span>Check the "Experts"</span>
+              <span className="hidden xl:inline">Check the</span> <span>"Experts"</span>
             </Link>
           </div>
 
           {/* Right side CTAs */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {/* Global Search */}
             <GlobalSearch />
 
             {/* The Edge - Primary CTA */}
             <Link 
               href="/markets/edge" 
-              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white hover:scale-105 transition-all shadow-lg shadow-purple-500/20"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold text-white hover:scale-105 transition-all shadow-lg shadow-purple-500/20"
               style={{ background: 'linear-gradient(135deg, #9B59B6, #6B46C1)' }}
             >
               <Target className="w-4 h-4" />
@@ -526,7 +528,7 @@ export function Navbar() {
             {/* Sus Plays - Secondary CTA */}
             <Link 
               href="/sus" 
-              className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white hover:scale-105 transition-all shadow-lg shadow-red-500/20"
+              className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold text-white hover:scale-105 transition-all shadow-lg shadow-red-500/20"
               style={{ background: 'linear-gradient(135deg, #FF3366, #FF6B00)' }}
             >
               <AlertTriangle className="w-4 h-4" />
@@ -573,16 +575,44 @@ export function Navbar() {
                         <LayoutDashboard className="w-4 h-4 text-green-400" />
                         <span className="text-sm font-medium">Dashboard</span>
                       </Link>
-                      <button 
-                        onClick={() => {
-                          signOut()
-                          setActiveDropdown(null)
-                        }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-500/10 transition-all text-gray-300 hover:text-red-400"
+                      <Link 
+                        href="/control-panel" 
+                        onClick={() => setActiveDropdown(null)}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-all text-gray-300 hover:text-white"
                       >
-                        <LogOut className="w-4 h-4" />
-                        <span className="text-sm font-medium">Sign Out</span>
-                      </button>
+                        <Target className="w-4 h-4 text-blue-400" />
+                        <span className="text-sm font-medium">Control Panel</span>
+                      </Link>
+                      <Link 
+                        href="/alerts" 
+                        onClick={() => setActiveDropdown(null)}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-all text-gray-300 hover:text-white"
+                      >
+                        <Bell className="w-4 h-4 text-yellow-400" />
+                        <span className="text-sm font-medium">Alerts & Notifications</span>
+                      </Link>
+                      {isAdmin && (
+                        <Link 
+                          href="/admin" 
+                          onClick={() => setActiveDropdown(null)}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-purple-500/10 transition-all text-gray-300 hover:text-purple-400"
+                        >
+                          <Shield className="w-4 h-4 text-purple-400" />
+                          <span className="text-sm font-medium">Admin Dashboard</span>
+                        </Link>
+                      )}
+                      <div className="border-t border-white/10 mt-2 pt-2">
+                        <button 
+                          onClick={() => {
+                            signOut()
+                            setActiveDropdown(null)
+                          }}
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-500/10 transition-all text-gray-300 hover:text-red-400"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          <span className="text-sm font-medium">Sign Out</span>
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -752,17 +782,43 @@ export function Navbar() {
                         <LayoutDashboard className="w-5 h-5 text-green-400" />
                         <span className="text-sm font-semibold text-white">Dashboard</span>
                       </Link>
-                      <button 
-                        onClick={() => {
-                          signOut()
-                          setMobileMenuOpen(false)
-                        }}
-                        className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-all"
+                      <Link 
+                        href="/control-panel" 
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-3 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 transition-all"
                       >
-                        <LogOut className="w-5 h-5 text-red-400" />
-                        <span className="text-sm font-semibold text-white">Sign Out</span>
-                      </button>
+                        <Target className="w-5 h-5 text-blue-400" />
+                        <span className="text-sm font-semibold text-white">Control Panel</span>
+                      </Link>
+                      <Link 
+                        href="/alerts" 
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-3 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20 hover:bg-yellow-500/20 transition-all"
+                      >
+                        <Bell className="w-5 h-5 text-yellow-400" />
+                        <span className="text-sm font-semibold text-white">Alerts</span>
+                      </Link>
+                      {isAdmin && (
+                        <Link 
+                          href="/admin" 
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="flex items-center gap-3 p-4 rounded-xl bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20 transition-all"
+                        >
+                          <Shield className="w-5 h-5 text-purple-400" />
+                          <span className="text-sm font-semibold text-white">Admin</span>
+                        </Link>
+                      )}
                     </div>
+                    <button 
+                      onClick={() => {
+                        signOut()
+                        setMobileMenuOpen(false)
+                      }}
+                      className="w-full flex items-center justify-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-all"
+                    >
+                      <LogOut className="w-5 h-5 text-red-400" />
+                      <span className="text-sm font-semibold text-white">Sign Out</span>
+                    </button>
                   </div>
                 ) : (
                   <Link 

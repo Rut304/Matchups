@@ -166,8 +166,26 @@ export default function CapperProfilePage() {
             
             {/* Action Buttons */}
             <div className="flex items-center gap-2">
-              <button className="p-3 rounded-xl transition-all hover:bg-white/10"
-                      style={{ background: 'rgba(255,255,255,0.05)' }}>
+              <button 
+                onClick={async () => {
+                  const url = `https://matchups-eta.vercel.app/leaderboard/${slug}`
+                  const text = `Check out ${capper.name}'s picks on Matchups! ${capper.network ? `(${capper.network})` : ''}`
+                  
+                  if (navigator.share) {
+                    try {
+                      await navigator.share({ title: `${capper.name} - Matchups`, text, url })
+                    } catch {
+                      await navigator.clipboard.writeText(url)
+                    }
+                  } else {
+                    await navigator.clipboard.writeText(url)
+                    alert('Link copied to clipboard!')
+                  }
+                }}
+                className="p-3 rounded-xl transition-all hover:bg-white/10"
+                style={{ background: 'rgba(255,255,255,0.05)' }}
+                title="Share this capper"
+              >
                 <Share2 className="w-5 h-5" style={{ color: '#808090' }} />
               </button>
             </div>

@@ -216,6 +216,7 @@ WHERE trend_id = 'all-sharp-follow';
 
 -- ===========================================
 -- ADD MORE HISTORICAL TRENDS (20-Year Proven)
+-- Uses UPSERT to handle existing records gracefully
 -- ===========================================
 
 INSERT INTO public.historical_trends (
@@ -320,11 +321,45 @@ INSERT INTO public.historical_trends (
  '{"wind_mph_min": 15, "temp_max": 32, "bet": "under"}',
  '8-4', 4.2, 14.5, -110, '25-15', 12.5, 13.8, -110, '98-62', 42.5, 14.2, -110, '1985-1285', 825.5, 14.5, -110, 3270,
  TRUE, FALSE, 86,
- '[{"month": "Nov", "year": 2025, "record": "4-2", "units": 2.0}, {"month": "Dec", "year": 2025, "record": "4-2", "units": 2.2}]');
+ '[{"month": "Nov", "year": 2025, "record": "4-2", "units": 2.0}, {"month": "Dec", "year": 2025, "record": "4-2", "units": 2.2}]')
+ON CONFLICT (trend_id) DO UPDATE SET
+  trend_name = EXCLUDED.trend_name,
+  trend_description = EXCLUDED.trend_description,
+  trend_criteria = EXCLUDED.trend_criteria,
+  l30_record = EXCLUDED.l30_record,
+  l30_units = EXCLUDED.l30_units,
+  l30_roi = EXCLUDED.l30_roi,
+  l30_avg_odds = EXCLUDED.l30_avg_odds,
+  l90_record = EXCLUDED.l90_record,
+  l90_units = EXCLUDED.l90_units,
+  l90_roi = EXCLUDED.l90_roi,
+  l90_avg_odds = EXCLUDED.l90_avg_odds,
+  l365_record = EXCLUDED.l365_record,
+  l365_units = EXCLUDED.l365_units,
+  l365_roi = EXCLUDED.l365_roi,
+  l365_avg_odds = EXCLUDED.l365_avg_odds,
+  all_time_record = EXCLUDED.all_time_record,
+  all_time_units = EXCLUDED.all_time_units,
+  all_time_roi = EXCLUDED.all_time_roi,
+  all_time_avg_odds = EXCLUDED.all_time_avg_odds,
+  all_time_sample_size = EXCLUDED.all_time_sample_size,
+  is_active = EXCLUDED.is_active,
+  hot_streak = EXCLUDED.hot_streak,
+  confidence_score = EXCLUDED.confidence_score,
+  monthly_performance = EXCLUDED.monthly_performance,
+  last_updated = NOW();
 
 -- ===========================================
 -- ADD MORE HISTORICAL PREDICTION MARKETS (2006-2026)
+-- Delete existing sample data and insert fresh 20-year data
 -- ===========================================
+
+-- Clean up any existing sample prediction market data to ensure fresh insert
+DELETE FROM public.historical_prediction_markets 
+WHERE market_title LIKE '%Super Bowl%' 
+   OR market_title LIKE '%NBA Championship%' 
+   OR market_title LIKE '%World Series%'
+   OR market_title LIKE '%NBA Finals%';
 
 INSERT INTO public.historical_prediction_markets (
   platform, market_category, market_title, market_description, sport, event_name,
@@ -423,7 +458,13 @@ INSERT INTO public.historical_prediction_markets (
 
 -- ===========================================
 -- SAMPLE HISTORICAL GAMES (Representative Years)
+-- Delete existing sample games and insert fresh 20-year data
 -- ===========================================
+
+-- Clean up existing sample historical games from key years
+DELETE FROM public.historical_games 
+WHERE (season_year IN (2006, 2010, 2015, 2016, 2020, 2023) AND season_type = 'postseason')
+   OR (season_year = 2006 AND season_type = 'regular' AND week_number = 10);
 
 -- Add representative games from key years
 INSERT INTO public.historical_games (
@@ -460,7 +501,12 @@ INSERT INTO public.historical_games (
 
 -- ===========================================
 -- ADD HISTORICAL EDGE PICKS (20 Years)
+-- Delete existing sample picks and insert fresh 20-year data
 -- ===========================================
+
+-- Clean up existing sample edge picks from key dates
+DELETE FROM public.historical_edge_picks 
+WHERE pick_date IN ('2007-02-04', '2007-10-28', '2011-02-06', '2016-06-19', '2016-11-02', '2017-02-05', '2021-02-07', '2023-06-12', '2023-11-01');
 
 INSERT INTO public.historical_edge_picks (
   pick_date, sport, pick_type, selection, odds, edge_source, edge_score, confidence,

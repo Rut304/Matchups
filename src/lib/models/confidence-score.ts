@@ -790,37 +790,37 @@ export class ConfidenceModel {
 export function getMockConfidenceScores(): ConfidenceScore[] {
   return [
     {
-      gameId: 'nfl-kc-buf-1',
+      gameId: 'nfl-phi-was-1',
       sport: 'NFL',
-      homeTeam: 'BUF',
-      awayTeam: 'KC',
+      homeTeam: 'PHI',
+      awayTeam: 'WAS',
       
-      spreadPick: 'away',
+      spreadPick: 'home',
       spreadConfidence: 74,
-      spreadLine: 2.5,
+      spreadLine: -6,
       spreadFactors: [
-        { name: 'Key Injuries', category: 'injury', weight: 0.20, impact: -2.5, description: 'Josh Allen (elbow) questionable - 30% snap reduction expected', confidence: 82 },
-        { name: 'Sharp Money', category: 'sharp', weight: 0.18, impact: 2.0, description: 'Sharp money (68%) on KC', confidence: 78 },
-        { name: 'Matchup Edge', category: 'matchup', weight: 0.15, impact: 1.5, description: 'KC offense vs BUF defense: 8-2 ATS in last 10', confidence: 72 },
+        { name: 'Season Series', category: 'matchup', weight: 0.20, impact: 2.5, description: 'Eagles swept Commanders 2-0 this season', confidence: 82 },
+        { name: 'Sharp Money', category: 'sharp', weight: 0.18, impact: 2.0, description: 'Sharp money (72%) on PHI', confidence: 78 },
+        { name: 'Matchup Edge', category: 'matchup', weight: 0.15, impact: 1.5, description: 'PHI rushing offense vs WAS run defense: Eagles dominate', confidence: 72 },
       ],
       spreadEdge: 1.8,
       
       totalPick: 'under',
       totalConfidence: 71,
-      totalLine: 47.5,
+      totalLine: 48.5,
       totalFactors: [
-        { name: 'Weather Impact', category: 'weather', weight: 0.12, impact: -4.5, description: '22mph wind, 28°F - favors UNDER', confidence: 85 },
-        { name: 'Pace Mismatch', category: 'pace', weight: 0.15, impact: -1.5, description: 'Both teams rank bottom-10 in pace this playoff run', confidence: 68 },
+        { name: 'Weather Impact', category: 'weather', weight: 0.12, impact: -2.5, description: '38°F, 12mph wind - slightly favors UNDER', confidence: 75 },
+        { name: 'Defense First', category: 'matchup', weight: 0.15, impact: -1.5, description: 'Both teams rank top-10 in defense this season', confidence: 68 },
       ],
-      projectedTotal: 44.2,
+      projectedTotal: 45.5,
       
       overallConfidence: 72,
       bestBet: 'spread',
       reasoning: [
-        '✓ Sharp money heavily on KC spread',
-        '✓ Weather conditions favor defensive game',
-        '✓ KC 8-2 ATS in playoff matchups',
-        '⚠️ Josh Allen injury status uncertain',
+        '✓ Sharp money heavily on PHI spread',
+        '✓ Eagles 9-2 ATS at home this season',
+        '✓ Saquon Barkley 289 rushing yards vs WAS in 2024',
+        '⚠️ Jayden Daniels playoff experience unknown',
       ],
       
       timestamp: new Date(),
