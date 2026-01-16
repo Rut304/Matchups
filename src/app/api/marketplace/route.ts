@@ -146,7 +146,13 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Marketplace query error:', error)
-      return NextResponse.json({ error: 'Failed to fetch listings' }, { status: 500 })
+      // If table doesn't exist, fall through to standard systems fallback
+      if (error.code === 'PGRST205' || error.message?.includes('schema cache')) {
+        console.log('Marketplace table not found, using standard systems fallback')
+        // Fall through to the standard systems fallback below
+      } else {
+        return NextResponse.json({ error: 'Failed to fetch listings' }, { status: 500 })
+      }
     }
 
     // Transform data
