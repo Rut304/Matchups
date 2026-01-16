@@ -81,15 +81,34 @@ export default function Home() {
               </Link>
             </div>
 
-            {/* Truth Bomb - Don't Trust Sportsbooks */}
-            <div className="max-w-2xl mx-auto mb-6 p-3 rounded-lg bg-orange-500/5 border border-orange-500/20">
-              <p className="text-xs text-center text-orange-300/80">
-                <span className="font-bold">⚠️ Remember:</span> When DraftKings or FanDuel &quot;suggests&quot; a player prop, they&apos;re not trying to help you win — 
-                they&apos;re setting lines to maximize <span className="font-semibold">their</span> profit. 
-                <Link href="/lineshop" className="underline ml-1 hover:text-orange-300">Always shop lines</Link> and 
-                <Link href="/props/correlations" className="underline ml-1 hover:text-orange-300">do your own research</Link>.
-              </p>
+            {/* Trend Finder - THE KILLER FEATURE */}
+            <div className="max-w-3xl mx-auto mb-6">
+              <Link href="/trend-finder" className="block group">
+                <div className="p-4 rounded-xl bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-cyan-500/10 border border-purple-500/30 hover:border-purple-500/50 transition-all hover:scale-[1.02]">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-lg">🔍</span>
+                    <span className="text-sm font-bold text-purple-400">TREND FINDER</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">Ask anything</span>
+                  </div>
+                  <p className="text-white font-medium mb-2">
+                    &quot;How often do NFL playoff underdogs cover when getting 3+ points at home?&quot;
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    Find any historical trend across all sports. Ask questions like: <span className="text-gray-300">Both teams score a rushing &amp; passing TD?</span> • <span className="text-gray-300">NBA back-to-back games ATS?</span> • <span className="text-gray-300">NHL goalies on short rest?</span>
+                  </p>
+                  <div className="mt-3 flex items-center gap-2 text-xs text-purple-400 group-hover:text-purple-300">
+                    <span>Try it now</span>
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+              </Link>
             </div>
+            
+            {/* Pro Tip */}
+            <p className="text-xs text-center text-gray-500 mb-4">
+              💡 <span className="text-gray-400">Pro tip:</span> The books set lines to maximize their profit, not yours. 
+              <Link href="/lineshop" className="underline hover:text-gray-300">Always shop for the best odds</Link>.
+            </p>
             
             {/* Secondary CTAs with descriptions */}
             <div className="flex flex-wrap justify-center gap-3">
