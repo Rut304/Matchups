@@ -86,25 +86,25 @@ export default function Home() {
               <Link href="/lineshop" className="underline hover:text-gray-300">Always shop for the best odds</Link>.
             </p>
             
-            {/* Secondary CTAs with descriptions */}
+            {/* Secondary CTAs - Unique features */}
             <div className="flex flex-wrap justify-center gap-3">
               <Link href="/sus"
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all hover:scale-105 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20">
                 <AlertCircle className="w-4 h-4" />
-                Suspect Plays
+                Sus Plays
                 <span className="text-xs text-red-400/70 hidden sm:inline">— Who&apos;s his Mizuhara?</span>
               </Link>
-              <Link href="/trends"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all hover:scale-105 bg-green-500/10 border border-green-500/30 text-green-400 hover:bg-green-500/20">
-                <TrendingUp className="w-4 h-4" />
-                Hot Trends
-                <span className="text-xs text-green-400/70 hidden sm:inline">— Systems beating the market</span>
-              </Link>
-              <Link href="/markets/edge"
+              <Link href="/edge"
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all hover:scale-105 bg-purple-500/10 border border-purple-500/30 text-purple-400 hover:bg-purple-500/20">
                 <Target className="w-4 h-4" />
-                The Edge
-                <span className="text-xs text-purple-400/70 hidden sm:inline">— Prediction market analytics</span>
+                Sharp Money
+                <span className="text-xs text-purple-400/70 hidden sm:inline">— Follow the pros</span>
+              </Link>
+              <Link href="/markets"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all hover:scale-105 bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20">
+                <BarChart3 className="w-4 h-4" />
+                Prediction Markets
+                <span className="text-xs text-blue-400/70 hidden sm:inline">— Polymarket + Kalshi</span>
               </Link>
             </div>
           </div>
@@ -207,14 +207,12 @@ export default function Home() {
               <h3 className="font-bold mb-4 text-white">Bettor Tools</h3>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { label: '🔍 Line Shop', href: '/lineshop', desc: 'Compare odds' },
-                  { label: '💰 Sharp Money', href: '/markets/edge', desc: 'Follow the pros' },
-                  { label: '🎯 Player Props', href: '/props/correlations', desc: 'Prop analysis' },
-                  { label: '📉 Line Movement', href: '/live', desc: 'Track changes' },
+                  { label: '🎯 Sharp Money', href: '/edge', desc: 'Follow pro action' },
+                  { label: '🛒 Line Shop', href: '/lineshop', desc: 'Best odds' },
+                  { label: '📈 Trends', href: '/trends', desc: 'Hot systems' },
+                  { label: '🎲 Props', href: '/props/correlations', desc: 'Correlations' },
                   { label: '🏥 Injuries', href: '/injuries', desc: 'Impact reports' },
-                  { label: '🔥 Hot Trends', href: '/trends', desc: '7+ units profit' },
-                  { label: '🧾 Expert Fails', href: '/leaderboard', desc: 'Track records' },
-                  { label: '⚠️ Sus Plays', href: '/sus', desc: 'Questionable plays' },
+                  { label: '🧾 Experts', href: '/leaderboard', desc: 'Track records' },
                 ].map((link) => (
                   <Link key={link.href} href={link.href}
                         className="p-2.5 rounded-lg text-left transition-all hover:scale-105 hover:bg-white/10 bg-white/[0.03] group">
