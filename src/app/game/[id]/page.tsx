@@ -47,7 +47,7 @@ import {
   Database
 } from 'lucide-react'
 import { getGameById, type GameDetail } from '@/lib/api/games'
-import { BoxScore, LiveGameDashboard } from '@/components/game'
+import { BoxScore, LiveGameDashboard, GamePlayerProps } from '@/components/game'
 import { GameBettingSplits } from '@/components/betting/GameBettingSplits'
 import { getTeamSchedule, getTeamId, type TeamGameResult } from '@/lib/api/team-schedule'
 import { type SportKey } from '@/lib/api/espn'
@@ -1357,6 +1357,18 @@ export default function GameDetailPage() {
           awayAbbr={game.away.abbr}
           compact={false}
           showTitle={true}
+        />
+
+        {/* =========================================== */}
+        {/* PLAYER PROPS - Multi-book comparison */}
+        {/* What gamblers REALLY want - prop lines from all books */}
+        {/* DraftKings doesn't always have the best odds! */}
+        {/* =========================================== */}
+        <GamePlayerProps
+          gameId={gameId}
+          sport={sport}
+          homeTeam={game.home.name}
+          awayTeam={game.away.name}
         />
 
         {/* =========================================== */}

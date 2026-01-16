@@ -80,6 +80,16 @@ export default function Home() {
                 Expert Tracker 🧾
               </Link>
             </div>
+
+            {/* Truth Bomb - Don't Trust Sportsbooks */}
+            <div className="max-w-2xl mx-auto mb-6 p-3 rounded-lg bg-orange-500/5 border border-orange-500/20">
+              <p className="text-xs text-center text-orange-300/80">
+                <span className="font-bold">⚠️ Remember:</span> When DraftKings or FanDuel &quot;suggests&quot; a player prop, they&apos;re not trying to help you win — 
+                they&apos;re setting lines to maximize <span className="font-semibold">their</span> profit. 
+                <Link href="/lineshop" className="underline ml-1 hover:text-orange-300">Always shop lines</Link> and 
+                <Link href="/props/correlations" className="underline ml-1 hover:text-orange-300">do your own research</Link>.
+              </p>
+            </div>
             
             {/* Secondary CTAs with descriptions */}
             <div className="flex flex-wrap justify-center gap-3">
@@ -197,23 +207,24 @@ export default function Home() {
             {/* Key Injuries - Real data from ESPN */}
             <HomeInjuries />
             
-            {/* Quick Links */}
+            {/* Quick Links - Bettor Decision Tools */}
             <div className="rounded-2xl p-5 bg-[#0c0c14] border border-white/5">
-              <h3 className="font-bold mb-4 text-white">Quick Links</h3>
+              <h3 className="font-bold mb-4 text-white">Bettor Tools</h3>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { label: '🏈 NFL', href: '/nfl' },
-                  { label: '🏀 NBA', href: '/nba' },
-                  { label: '🏒 NHL', href: '/nhl' },
-                  { label: '⚾ MLB', href: '/mlb' },
-                  { label: '📊 Stats', href: '/stats' },
-                  { label: '📈 Markets', href: '/markets' },
-                  { label: '🧾 Experts', href: '/leaderboard' },
-                  { label: '🔥 Trends', href: '/trends' },
+                  { label: '🔍 Line Shop', href: '/lineshop', desc: 'Compare odds' },
+                  { label: '💰 Sharp Money', href: '/markets/edge', desc: 'Follow the pros' },
+                  { label: '🎯 Player Props', href: '/props/correlations', desc: 'Prop analysis' },
+                  { label: '📉 Line Movement', href: '/live', desc: 'Track changes' },
+                  { label: '🏥 Injuries', href: '/injuries', desc: 'Impact reports' },
+                  { label: '🔥 Hot Trends', href: '/trends', desc: '7+ units profit' },
+                  { label: '🧾 Expert Fails', href: '/leaderboard', desc: 'Track records' },
+                  { label: '⚠️ Sus Plays', href: '/sus', desc: 'Questionable plays' },
                 ].map((link) => (
                   <Link key={link.href} href={link.href}
-                        className="p-3 rounded-lg text-center text-sm font-semibold transition-all hover:scale-105 hover:bg-white/10 bg-white/[0.03] text-white">
-                    {link.label}
+                        className="p-2.5 rounded-lg text-left transition-all hover:scale-105 hover:bg-white/10 bg-white/[0.03] group">
+                    <div className="text-sm font-semibold text-white">{link.label}</div>
+                    <div className="text-[10px] text-gray-500 group-hover:text-gray-400">{link.desc}</div>
                   </Link>
                 ))}
               </div>

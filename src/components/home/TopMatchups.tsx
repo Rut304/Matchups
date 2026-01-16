@@ -192,8 +192,8 @@ export function TopMatchups() {
       try {
         setLoading(true)
         
-        // Fetch from multiple sports
-        const sports = ['NFL', 'NCAAF', 'NBA', 'NHL']
+        // Fetch from multiple sports (including women's sports)
+        const sports = ['NFL', 'NCAAF', 'NBA', 'NHL', 'WNBA', 'WNCAAB']
         const responses = await Promise.all(
           sports.map(sport => 
             fetch(`/api/games?sport=${sport}`)
