@@ -48,11 +48,15 @@ export interface EdgeData {
   clvValue?: number
   
   // Sharp vs Public
-  publicSide?: 'home' | 'away'
-  sharpSide?: 'home' | 'away'
+  publicSide?: string // 'home', 'away', 'Over', 'Under', team name
+  sharpSide?: string // 'home', 'away', 'Over', 'Under', team name
   publicPct?: number
   sharpPct?: number
+  moneyPct?: number
   moneyDifferential?: number
+  betType?: string
+  fadeSide?: string
+  line?: number
   
   // Arbitrage
   book1?: string
@@ -68,6 +72,12 @@ export interface EdgeData {
   bestOdds?: number
   avgOdds?: number
   edgePct?: number
+  
+  // Data source
+  source?: 'action-network' | 'database' | 'odds-api'
+  
+  // Allow additional properties
+  [key: string]: unknown
 }
 
 // Edge feature configuration

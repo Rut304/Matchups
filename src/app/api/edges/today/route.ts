@@ -1,10 +1,21 @@
 // =============================================================================
 // TODAY'S EDGES API - Aggregated top betting edges for dashboard
 // GET /api/edges/today
+// 
+// DATA SOURCES (in priority order):
+// 1. ACTION NETWORK (PRIMARY) - Real-time betting splits, sharp money signals
+// 2. Database (SECONDARY) - Stored edge picks, historical patterns
+// 3. The Odds API (SUPPLEMENTAL) - Multi-book odds for arbitrage detection
 // =============================================================================
 
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { 
+  fetchBettingSplitsFromActionNetwork, 
+  detectSharpMoney 
+} from '@/lib/scrapers/action-network'
+
+export const revalidate = 120 // Cache for 2 minutes
 
 export interface TodayEdge {
   gameId: string
@@ -24,6 +35,7 @@ export interface TodayEdge {
   lineMovement?: string
   isRLM?: boolean
   h2hRecord?: string
+  source: 'action-network' | 'database' | 'odds-api'
 }
 
 const sportIcons: Record<string, string> = {
@@ -32,160 +44,206 @@ const sportIcons: Record<string, string> = {
   'NHL': '🏒',
   'MLB': '⚾',
   'NCAAF': '🏈',
-  'NCAAB': '🏀'
+  'NCAAB': '🏀',
+  'WNBA': '🏀',
 }
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const sport = searchParams.get('sport') // Optional: filter by sport
-    const minScore = parseInt(searchParams.get('minScore') || '60', 10)
-    const limit = parseInt(searchParams.get('limit') || '9', 10)
+    const sport = searchParams.get('sport')?.toUpperCase()
+    const minScore = parseInt(searchParams.get('minScore') || '55', 10)
+    const limit = parseInt(searchParams.get('limit') || '12', 10)
     
-    const supabase = await createClient()
+    const edges: TodayEdge[] = []
+    const seenGames = new Set<string>()
     
-    // Get today's date range
-    const today = new Date()
-    const startOfDay = new Date(today.setHours(0, 0, 0, 0)).toISOString()
-    const endOfDay = new Date(today.setHours(23, 59, 59, 999)).toISOString()
+    // ==========================================================================
+    // 1. PRIMARY: Action Network - Real-time betting splits & sharp money
+    // ==========================================================================
+    const sportsToFetch = sport ? [sport] : ['NBA', 'NHL', 'NCAAB', 'MLB']
     
-    // Fetch edge picks with game data
-    let query = supabase
-      .from('historical_edge_picks')
-      .select(`
-        id,
-        game_id,
-        sport,
-        pick_type,
-        pick,
-        odds,
-        confidence,
-        result,
-        created_at,
-        historical_games!inner (
-          id,
-          home_team,
-          away_team,
-          game_date,
-          close_spread,
-          public_spread_home_pct,
-          public_money_home_pct,
-          open_spread
-        )
-      `)
-      .gte('created_at', startOfDay)
-      .lte('created_at', endOfDay)
-      .gte('confidence', minScore)
-      .is('result', null) // Only pending picks
-      .order('confidence', { ascending: false })
-      .limit(limit * 2) // Fetch more to account for filtering
-    
-    if (sport) {
-      query = query.eq('sport', sport.toUpperCase())
-    }
-    
-    const { data: edgePicks, error: edgeError } = await query
-    
-    if (edgeError) {
-      console.error('Error fetching edge picks:', edgeError)
-      // Return empty array if table doesn't exist yet
-      return NextResponse.json({ edges: [], total: 0 })
-    }
-    
-    if (!edgePicks || edgePicks.length === 0) {
-      // Return empty array if no edges - NO FAKE DATA
-      return NextResponse.json({ 
-        edges: [],
-        total: 0,
-        message: 'No edge picks available for today. Check back later or view historical trends.'
-      })
-    }
-    
-    // Get trend counts for each game
-    const gameIds = [...new Set(edgePicks.map(p => p.game_id))]
-    
-    const { data: trends } = await supabase
-      .from('historical_trends')
-      .select('id, trend_name, sport')
-      .in('sport', [...new Set(edgePicks.map(p => p.sport))])
-    
-    // Format edges
-    const edges: TodayEdge[] = edgePicks
-      .filter(pick => pick.historical_games)
-      .slice(0, limit)
-      .map(pick => {
-        // The join returns an object when using !inner
-        const game = pick.historical_games as unknown as {
-          id: string
-          home_team: string
-          away_team: string
-          game_date: string
-          close_spread: number
-          public_spread_home_pct: number
-          public_money_home_pct: number
-          open_spread: number
+    for (const s of sportsToFetch) {
+      try {
+        const splits = await fetchBettingSplitsFromActionNetwork(s)
+        
+        if (splits && splits.length > 0) {
+          // Detect sharp money signals from Action Network data
+          const sharpSignals = detectSharpMoney(splits)
+          
+          for (const split of splits) {
+            // Skip if we already have this game
+            if (seenGames.has(split.gameId)) continue
+            
+            const gameSignals = sharpSignals.filter(sig => sig.gameId === split.gameId)
+            
+            // Calculate edge score based on betting divergence
+            const spreadDivergence = Math.abs(split.spread.homeBetPct - split.spread.homeMoneyPct)
+            const mlDivergence = Math.abs(split.moneyline.homeBetPct - split.moneyline.homeMoneyPct)
+            const totalDivergence = Math.abs(split.total.overBetPct - split.total.overMoneyPct)
+            const maxDivergence = Math.max(spreadDivergence, mlDivergence, totalDivergence)
+            
+            // Only include games with meaningful signals
+            if (maxDivergence < 8 && gameSignals.length === 0) continue
+            
+            const edgeScore = Math.min(95, 50 + maxDivergence + gameSignals.length * 10)
+            if (edgeScore < minScore) continue
+            
+            // Determine pick based on sharp money direction
+            const publicSpreadSide = split.spread.homeBetPct > 50 ? 'home' : 'away'
+            const sharpSpreadSide = split.spread.homeMoneyPct > split.spread.homeBetPct ? 'home' : 'away'
+            const isRLM = publicSpreadSide !== sharpSpreadSide && maxDivergence > 12
+            
+            const pickTeam = sharpSpreadSide === 'home' ? split.homeTeam : split.awayTeam
+            const pickLine = sharpSpreadSide === 'home' ? split.spread.line : -split.spread.line
+            const pickStr = `${pickTeam} ${pickLine > 0 ? '+' : ''}${pickLine.toFixed(1)}`
+            
+            const gameTime = new Date(split.gameTime).toLocaleTimeString('en-US', {
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            })
+            
+            edges.push({
+              gameId: split.gameId,
+              sport: s,
+              sportIcon: sportIcons[s] || '🎯',
+              matchup: `${split.awayTeam} @ ${split.homeTeam}`,
+              gameTime,
+              pick: pickStr,
+              odds: '-110',
+              edgeScore,
+              confidence: edgeScore,
+              trendCount: gameSignals.length,
+              topTrends: gameSignals.slice(0, 2).map(g => g.signal.substring(0, 60)),
+              publicPct: publicSpreadSide === 'home' ? split.spread.homeBetPct : split.spread.awayBetPct,
+              publicSide: publicSpreadSide as 'home' | 'away',
+              sharpSide: sharpSpreadSide as 'home' | 'away',
+              isRLM,
+              source: 'action-network',
+            })
+            
+            seenGames.add(split.gameId)
+          }
         }
-        
-        // Calculate line movement
-        const lineMove = game.open_spread && game.close_spread 
-          ? (game.close_spread - game.open_spread).toFixed(1)
-          : undefined
-        
-        // Check for reverse line movement (ticket % high but money % low = sharps on other side)
-        const ticketPct = game.public_spread_home_pct || 50
-        const moneyPct = game.public_money_home_pct || 50
-        const isRLM = Boolean(
-          (ticketPct > 60 && moneyPct < 40 && lineMove && parseFloat(lineMove) > 0) ||
-          (ticketPct < 40 && moneyPct > 60 && lineMove && parseFloat(lineMove) < 0)
-        )
-        
-        // Get relevant trends for this sport
-        const sportTrends = trends?.filter(t => t.sport === pick.sport) || []
-        const trendCount = Math.min(sportTrends.length, 5) // Cap at 5 for display
-        
-        // Format game time
-        const parsedGameDate = new Date(game.game_date)
-        const gameTime = parsedGameDate.toLocaleTimeString('en-US', { 
-          hour: 'numeric', 
-          minute: '2-digit',
-          hour12: true 
-        })
-        
-        return {
-          gameId: game.id,
-          sport: pick.sport,
-          sportIcon: sportIcons[pick.sport] || '🎯',
-          matchup: `${game.away_team} @ ${game.home_team}`,
-          gameTime,
-          pick: pick.pick,
-          odds: pick.odds || '-110',
-          edgeScore: pick.confidence,
-          confidence: pick.confidence,
-          trendCount,
-          topTrends: sportTrends.slice(0, 2).map(t => t.trend_name),
-          publicPct: ticketPct,
-          publicSide: 'home' as const,
-          sharpSide: moneyPct > ticketPct ? 'home' as const : 'away' as const,
-          lineMovement: lineMove ? (parseFloat(lineMove) > 0 ? `+${lineMove}` : lineMove) : undefined,
-          isRLM,
-          h2hRecord: '3-2 ATS L5' // Would come from H2H query
-        }
-      })
+      } catch (sportErr) {
+        console.error(`[Edges Today] Action Network error for ${s}:`, sportErr)
+      }
+    }
     
-    return NextResponse.json({ 
-      edges,
-      total: edges.length
+    // ==========================================================================
+    // 2. SECONDARY: Database - Stored edge picks from historical analysis
+    // ==========================================================================
+    try {
+      const supabase = await createClient()
+      const today = new Date()
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString()
+      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59).toISOString()
+      
+      let query = supabase
+        .from('historical_edge_picks')
+        .select(`
+          id, game_id, sport, pick_type, selection, odds, confidence, result, created_at,
+          historical_games!inner (
+            id, home_team, away_team, game_date, close_spread,
+            public_spread_home_pct, public_money_home_pct, open_spread
+          )
+        `)
+        .gte('created_at', startOfDay)
+        .lte('created_at', endOfDay)
+        .gte('confidence', minScore)
+        .is('result', null)
+        .order('confidence', { ascending: false })
+        .limit(20)
+      
+      if (sport) {
+        query = query.eq('sport', sport)
+      }
+      
+      const { data: dbPicks } = await query
+      
+      if (dbPicks && dbPicks.length > 0) {
+        for (const pick of dbPicks) {
+          // Skip if we already have this game from Action Network
+          if (seenGames.has(pick.game_id)) continue
+          
+          const game = pick.historical_games as unknown as {
+            id: string
+            home_team: string
+            away_team: string
+            game_date: string
+            close_spread: number
+            public_spread_home_pct: number
+            public_money_home_pct: number
+            open_spread: number
+          }
+          
+          if (!game) continue
+          
+          const ticketPct = game.public_spread_home_pct || 50
+          const moneyPct = game.public_money_home_pct || 50
+          const lineMove = game.open_spread && game.close_spread 
+            ? game.close_spread - game.open_spread 
+            : 0
+          const isRLM = (ticketPct > 60 && moneyPct < 40) || (ticketPct < 40 && moneyPct > 60)
+          
+          const gameTime = new Date(game.game_date).toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          })
+          
+          edges.push({
+            gameId: game.id,
+            sport: pick.sport,
+            sportIcon: sportIcons[pick.sport] || '🎯',
+            matchup: `${game.away_team} @ ${game.home_team}`,
+            gameTime,
+            pick: pick.selection || pick.pick_type,
+            odds: String(pick.odds) || '-110',
+            edgeScore: pick.confidence,
+            confidence: pick.confidence,
+            trendCount: 0,
+            topTrends: [],
+            publicPct: ticketPct,
+            publicSide: ticketPct > 50 ? 'home' : 'away',
+            sharpSide: moneyPct > ticketPct ? 'home' : 'away',
+            lineMovement: lineMove !== 0 ? (lineMove > 0 ? `+${lineMove.toFixed(1)}` : lineMove.toFixed(1)) : undefined,
+            isRLM,
+            source: 'database',
+          })
+          
+          seenGames.add(pick.game_id)
+        }
+      }
+    } catch (dbErr) {
+      console.error('[Edges Today] Database error:', dbErr)
+      // Continue - Action Network data is still available
+    }
+    
+    // ==========================================================================
+    // 3. Sort by edge score and limit results
+    // ==========================================================================
+    edges.sort((a, b) => b.edgeScore - a.edgeScore)
+    const finalEdges = edges.slice(0, limit)
+    
+    return NextResponse.json({
+      edges: finalEdges,
+      total: finalEdges.length,
+      sources: {
+        actionNetwork: edges.filter(e => e.source === 'action-network').length,
+        database: edges.filter(e => e.source === 'database').length,
+      },
+      timestamp: new Date().toISOString(),
     })
     
   } catch (error) {
     console.error('Today edges API error:', error)
-    // Return empty array on error - NO FAKE DATA
-    return NextResponse.json(
-      { error: 'Failed to fetch today\'s edges', edges: [], total: 0, message: 'Unable to load edges. Please try again later.' },
-      { status: 500 }
-    )
+    return NextResponse.json({
+      edges: [],
+      total: 0,
+      error: 'Failed to fetch edges',
+      timestamp: new Date().toISOString(),
+    }, { status: 200 }) // Return 200 with empty array, not 500
   }
 }
-
-// getDemoEdges function removed - NO FAKE DATA policy
-// All edges must come from database (historical_trends + edge_picks tables)
