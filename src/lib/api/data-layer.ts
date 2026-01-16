@@ -1,11 +1,11 @@
 /**
  * Unified Data Layer
- * Combines ESPN + Action Network (+ The Odds API fallback) into a single normalized data source
+ * Combines Action Network + ESPN + The Odds API into a single normalized data source
  * 
- * API PRIORITY:
- * 1. ESPN - Game data, scores, schedules (free, unlimited)
- * 2. Action Network - Betting lines, splits, multi-book odds (free public API)
- * 3. The Odds API - Fallback for odds if AN fails (paid, rate limited)
+ * API PRIORITY (FREE SOURCES FIRST):
+ * 1. Action Network - Betting lines, splits, multi-book odds (FREE public API - PRIMARY)
+ * 2. ESPN - Game data, scores, schedules (FREE, unlimited)
+ * 3. The Odds API - LAST RESORT fallback (PAID, rate limited - only if AN fails)
  * 4. Supabase - Historical data, caching
  */
 

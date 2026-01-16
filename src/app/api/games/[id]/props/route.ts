@@ -109,9 +109,9 @@ interface PlayerPropLine {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ gameId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { gameId } = await params
+  const { id: gameId } = await params
   const { searchParams } = new URL(request.url)
   const sport = searchParams.get('sport')?.toUpperCase() || 'NFL'
   
