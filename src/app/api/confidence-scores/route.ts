@@ -19,6 +19,15 @@ function getModel(): ConfidenceModel {
 /**
  * GET /api/confidence-scores
  * Returns confidence scores for today's games
+ * 
+ * TODO: Currently returns mock data. In production:
+ * 1. Fetch real games from ESPN API
+ * 2. Calculate confidence based on:
+ *    - Injury data (from ESPN/Rotowire)
+ *    - Sharp money data (from Action Network or RLM)
+ *    - Weather data (for outdoor sports)
+ *    - Historical matchup data
+ * 3. Use the ConfidenceModel class to generate real-time scores
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -26,7 +35,8 @@ export async function GET(request: Request) {
   const gameId = searchParams.get('gameId')
   
   try {
-    // Get mock scores (in production, calculate dynamically)
+    // TODO: Replace with dynamic calculation from real data sources
+    // Currently using mock scores for demonstration
     let scores = getMockConfidenceScores()
     
     // Filter by sport

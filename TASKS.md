@@ -282,7 +282,31 @@ The `/game/[id]` page is fully functional with real ESPN data:
 
 ---
 
-## 🚀 Deployment Checklist
+## � Future Enhancements (Deferred)
+
+### NFL/NCAAF Week View
+
+**Status:** Deferred (requires significant refactoring)
+
+The scores page currently shows games day-by-day. For NFL and NCAAF, it would be better to show the entire week:
+
+**Requirements:**
+1. Week calculation utility:
+   - NFL: Weeks 1-18 based on season schedule
+   - NCAAF: Weeks 0-15 based on college schedule
+2. API changes:
+   - Support date range queries (startDate, endDate)
+   - Or week-based queries (sport, week)
+3. UI changes:
+   - Week selector instead of date picker for football
+   - "Week X" display with date range
+   - Show Thursday-Monday games together
+
+**Complexity:** High (2-3 days of work)
+
+---
+
+## �🚀 Deployment Checklist
 
 Before each deploy:
 
