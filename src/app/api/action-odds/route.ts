@@ -1,8 +1,7 @@
 // =============================================================================
-// ACTION NETWORK MULTI-BOOK ODDS API
+// MULTI-BOOK ODDS API
 // GET /api/action-odds
-// Returns odds from multiple sportsbooks via Action Network
-// FREE - No API key required!
+// Returns odds from multiple sportsbooks
 // =============================================================================
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -40,7 +39,7 @@ export async function GET(request: NextRequest) {
         cached: true,
         sport,
         gameCount: cached.data.length,
-        source: 'actionnetwork',
+        source: 'live',
         timestamp: new Date().toISOString()
       })
     }
@@ -67,15 +66,15 @@ export async function GET(request: NextRequest) {
       cached: false,
       sport,
       gameCount: odds.length,
-      source: 'actionnetwork',
+      source: 'live',
       timestamp: new Date().toISOString()
     })
 
   } catch (error) {
-    console.error('Action Network odds error:', error)
+    console.error('Odds fetch error:', error)
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch odds from Action Network'
+      error: error instanceof Error ? error.message : 'Failed to fetch odds'
     }, { status: 500 })
   }
 }

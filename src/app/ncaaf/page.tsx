@@ -11,9 +11,9 @@ import {
   Activity,
   Star,
 } from 'lucide-react'
-import { getGames, getAllStandings, getNews, type LiveGame, type Standing } from '@/lib/api/live-sports'
+import { getGames, getAllStandings, getNews, getRankings, type LiveGame, type Standing, type RankedTeam } from '@/lib/api/live-sports'
 
-// NCAA Conference Rankings
+// NCAA Conference Rankings (static - could be computed from team records)
 const conferences = [
   { name: 'SEC', rank: 1, record: '67-23', bowl: '8-2', color: '#FF6B00' },
   { name: 'Big Ten', rank: 2, record: '61-27', bowl: '6-4', color: '#00A8FF' },
@@ -22,21 +22,7 @@ const conferences = [
   { name: 'Pac-12', rank: 5, record: '12-8', bowl: '1-1', color: '#FF3366' },
 ]
 
-// AP Top 25 mock data (would come from API)
-const top25 = [
-  { rank: 1, team: 'Ohio State', record: '13-1', conf: 'Big Ten', change: 0 },
-  { rank: 2, team: 'Texas', record: '13-2', conf: 'SEC', change: 1 },
-  { rank: 3, team: 'Penn State', record: '13-2', conf: 'Big Ten', change: -1 },
-  { rank: 4, team: 'Notre Dame', record: '12-1', conf: 'Ind', change: 0 },
-  { rank: 5, team: 'Georgia', record: '11-2', conf: 'SEC', change: 2 },
-  { rank: 6, team: 'Oregon', record: '12-2', conf: 'Big Ten', change: -1 },
-  { rank: 7, team: 'Tennessee', record: '10-3', conf: 'SEC', change: 3 },
-  { rank: 8, team: 'Indiana', record: '11-2', conf: 'Big Ten', change: -2 },
-  { rank: 9, team: 'Boise State', record: '12-2', conf: 'MWC', change: 1 },
-  { rank: 10, team: 'SMU', record: '11-3', conf: 'ACC', change: -1 },
-]
-
-// Heisman Watch
+// Heisman Watch - static for current season (would be from awards API if available)
 const heismanWatch = [
   { name: 'Ashton Jeanty', team: 'Boise State', pos: 'RB', yards: 2601, td: 29, odds: '-150' },
   { name: 'Travis Hunter', team: 'Colorado', pos: 'WR/CB', yards: 1258, td: 15, odds: '+200' },
@@ -45,11 +31,15 @@ const heismanWatch = [
 ]
 
 export default async function NCAAFPage() {
-  // Fetch live data from ESPN
-  const [games, news] = await Promise.all([
+  // Fetch live data from ESPN including rankings
+  const [games, news, rankings] = await Promise.all([
     getGames('ncaaf'),
     getNews('ncaaf', 5),
+    getRankings('ncaaf'),
   ])
+  
+  // Use real rankings if available, otherwise use empty array
+  const top25 = rankings.length > 0 ? rankings : []
   
   const liveGames = games.filter(g => g.status === 'in_progress')
   const upcomingGames = games.filter(g => g.status === 'scheduled').slice(0, 8)
@@ -139,32 +129,38 @@ export default async function NCAAFPage() {
                 </div>
               </div>
               
-              <div className="space-y-2">
-                {top25.map((team) => (
-                  <div key={team.rank} className="flex items-center justify-between p-3 rounded-lg transition-colors hover:bg-white/[0.02]"
-                       style={{ background: 'rgba(255,255,255,0.02)' }}>
-                    <div className="flex items-center gap-3">
-                      <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${
-                        team.rank <= 4 ? 'bg-orange-500/20 text-orange-400' : 'bg-white/5 text-gray-400'
-                      }`}>
-                        {team.rank}
-                      </span>
-                      <div>
-                        <span className="font-semibold" style={{ color: '#FFF' }}>{team.team}</span>
-                        <span className="text-xs ml-2" style={{ color: '#606070' }}>{team.conf}</span>
+              {top25.length === 0 ? (
+                <div className="text-center py-4">
+                  <p className="text-sm" style={{ color: '#808090' }}>Rankings loading...</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {top25.map((team) => (
+                    <div key={team.rank} className="flex items-center justify-between p-3 rounded-lg transition-colors hover:bg-white/[0.02]"
+                         style={{ background: 'rgba(255,255,255,0.02)' }}>
+                      <div className="flex items-center gap-3">
+                        <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${
+                          team.rank <= 4 ? 'bg-orange-500/20 text-orange-400' : 'bg-white/5 text-gray-400'
+                        }`}>
+                          {team.rank}
+                        </span>
+                        <div>
+                          <span className="font-semibold" style={{ color: '#FFF' }}>{team.team}</span>
+                          <span className="text-xs ml-2" style={{ color: '#606070' }}>{team.conference}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="text-sm font-mono" style={{ color: '#A0A0B0' }}>{team.record}</span>
+                        {team.change !== 0 && (
+                          <span className={`text-xs font-bold ${team.change > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                            {team.change > 0 ? `↑${team.change}` : `↓${Math.abs(team.change)}`}
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-sm font-mono" style={{ color: '#A0A0B0' }}>{team.record}</span>
-                      {team.change !== 0 && (
-                        <span className={`text-xs font-bold ${team.change > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                          {team.change > 0 ? `↑${team.change}` : `↓${Math.abs(team.change)}`}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           

@@ -106,11 +106,11 @@ export default function LivePage() {
   const filteredUpcoming = activeSport === 'all' ? upcomingGames : upcomingGames.filter(g => g.sport === activeSport)
   const filteredAlerts = alertFilter === 'all' ? alerts : alerts.filter(a => a.type === alertFilter)
 
-  const getSeverityColor = (severity: string) => {
+  const getSeverityClasses = (severity: string) => {
     switch (severity) {
-      case 'critical': return { bg: 'rgba(239,68,68,0.2)', text: '#EF4444', border: 'rgba(239,68,68,0.3)' }
-      case 'high': return { bg: 'rgba(255,107,0,0.2)', text: '#FF6B00', border: 'rgba(255,107,0,0.3)' }
-      default: return { bg: 'rgba(59,130,246,0.2)', text: '#3B82F6', border: 'rgba(59,130,246,0.3)' }
+      case 'critical': return { container: 'alert-bg-critical', text: 'text-red-500' }
+      case 'high': return { container: 'alert-bg-high', text: 'text-orange' }
+      default: return { container: 'alert-bg-medium', text: 'text-blue' }
     }
   }
 
@@ -125,52 +125,52 @@ export default function LivePage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: '#050508' }}>
+    <div className="min-h-screen bg-page-dark">
       <LiveScoresTicker />
-      <section className="relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #0a0a12 0%, #050508 100%)' }}>
+      <section className="relative overflow-hidden bg-page-gradient">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full opacity-20 blur-[100px]" style={{ background: 'radial-gradient(circle, #00FF88 0%, transparent 70%)' }} />
+          <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full opacity-20 blur-[100px] bg-glow-green" />
         </div>
         <div className="max-w-7xl mx-auto px-4 py-8 relative z-10">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-3 mb-3">
-              <Activity className="w-10 h-10" style={{ color: '#00FF88' }} />
-              <h1 className="text-4xl sm:text-5xl font-black" style={{ background: 'linear-gradient(135deg, #00FF88 0%, #FFF 50%, #00FF88 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <Activity className="w-10 h-10 text-green" />
+              <h1 className="text-4xl sm:text-5xl font-black text-gradient-green">
                 LIVE CENTER
               </h1>
-              <span className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold animate-pulse" style={{ background: 'rgba(0,255,136,0.2)', color: '#00FF88' }}>
+              <span className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold animate-pulse badge-green">
                 <span className="w-2 h-2 bg-green-400 rounded-full" />{filteredLiveGames.length} LIVE
               </span>
             </div>
-            <p className="text-lg" style={{ color: '#808090' }}>Real-time scores • Live odds • Sharp action alerts</p>
-            <p className="text-xs mt-1" style={{ color: '#505060' }}>Data from ESPN & The Odds API • Auto-refreshes every 30 seconds</p>
+            <p className="text-lg text-muted">Real-time scores • Live odds • Sharp action alerts</p>
+            <p className="text-xs mt-1 text-dimmed">Data from ESPN & The Odds API • Auto-refreshes every 30 seconds</p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-            <div className="p-4 rounded-2xl text-center" style={{ background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.2)' }}>
-              <Zap className="w-5 h-5 mx-auto mb-1" style={{ color: '#00FF88' }} />
-              <div className="text-2xl font-black" style={{ color: '#00FF88' }}>{liveGames.length}</div>
-              <div className="text-xs" style={{ color: '#808090' }}>Live Games</div>
+            <div className="p-4 rounded-2xl text-center bg-green-soft">
+              <Zap className="w-5 h-5 mx-auto mb-1 text-green" />
+              <div className="text-2xl font-black text-green">{liveGames.length}</div>
+              <div className="text-xs text-muted">Live Games</div>
             </div>
-            <div className="p-4 rounded-2xl text-center" style={{ background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.2)' }}>
-              <Clock className="w-5 h-5 mx-auto mb-1" style={{ color: '#FF6B00' }} />
-              <div className="text-2xl font-black" style={{ color: '#FF6B00' }}>{upcomingGames.length}</div>
-              <div className="text-xs" style={{ color: '#808090' }}>Upcoming</div>
+            <div className="p-4 rounded-2xl text-center bg-orange-soft">
+              <Clock className="w-5 h-5 mx-auto mb-1 text-orange" />
+              <div className="text-2xl font-black text-orange">{upcomingGames.length}</div>
+              <div className="text-xs text-muted">Upcoming</div>
             </div>
-            <div className="p-4 rounded-2xl text-center" style={{ background: 'rgba(155,89,182,0.1)', border: '1px solid rgba(155,89,182,0.2)' }}>
-              <AlertTriangle className="w-5 h-5 mx-auto mb-1" style={{ color: '#9B59B6' }} />
-              <div className="text-2xl font-black" style={{ color: '#9B59B6' }}>{alerts.filter(a => a.severity === 'high' || a.severity === 'critical').length}</div>
-              <div className="text-xs" style={{ color: '#808090' }}>Sharp Alerts</div>
+            <div className="p-4 rounded-2xl text-center bg-purple-soft">
+              <AlertTriangle className="w-5 h-5 mx-auto mb-1 text-purple" />
+              <div className="text-2xl font-black text-purple">{alerts.filter(a => a.severity === 'high' || a.severity === 'critical').length}</div>
+              <div className="text-xs text-muted">Sharp Alerts</div>
             </div>
-            <button onClick={fetchLiveData} disabled={refreshing} className="p-4 rounded-2xl text-center hover:scale-105 transition-all" style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)' }}>
-              <RefreshCw className={`w-5 h-5 mx-auto mb-1 ${refreshing ? 'animate-spin' : ''}`} style={{ color: '#3B82F6' }} />
-              <div className="text-xs font-bold" style={{ color: '#3B82F6' }}>REFRESH</div>
-              <div className="text-xs" style={{ color: '#808090' }}>{lastRefresh ? lastRefresh.toLocaleTimeString() : '-'}</div>
+            <button onClick={fetchLiveData} disabled={refreshing} className="p-4 rounded-2xl text-center hover:scale-105 transition-all bg-blue-soft">
+              <RefreshCw className={`w-5 h-5 mx-auto mb-1 text-blue ${refreshing ? 'animate-spin' : ''}`} />
+              <div className="text-xs font-bold text-blue">REFRESH</div>
+              <div className="text-xs text-muted">{lastRefresh ? lastRefresh.toLocaleTimeString() : '-'}</div>
             </button>
           </div>
           <div className="flex items-center justify-center gap-2 flex-wrap">
-            <button onClick={() => setActiveSport('all')} className="px-4 py-2 rounded-xl text-sm font-bold" style={{ background: activeSport === 'all' ? 'linear-gradient(135deg, #00FF88, #00CC6A)' : 'rgba(255,255,255,0.05)', color: activeSport === 'all' ? '#000' : '#808090' }}>ALL SPORTS</button>
+            <button onClick={() => setActiveSport('all')} className={`px-4 py-2 rounded-xl text-sm font-bold ${activeSport === 'all' ? 'btn-gradient-green' : 'bg-white-soft text-muted'}`}>ALL SPORTS</button>
             {SPORTS.map(sport => (
-              <button key={sport.key} onClick={() => setActiveSport(sport.key)} className="px-4 py-2 rounded-xl text-sm font-bold" style={{ background: activeSport === sport.key ? 'linear-gradient(135deg, #00FF88, #00CC6A)' : 'rgba(255,255,255,0.05)', color: activeSport === sport.key ? '#000' : '#808090' }}>
+              <button key={sport.key} onClick={() => setActiveSport(sport.key)} className={`px-4 py-2 rounded-xl text-sm font-bold ${activeSport === sport.key ? 'btn-gradient-green' : 'bg-white-soft text-muted'}`}>
                 {sport.icon} {sport.key}
               </button>
             ))}
@@ -179,7 +179,7 @@ export default function LivePage() {
       </section>
       <div className="max-w-7xl mx-auto px-4 py-8">
         {loading ? (
-          <div className="flex items-center justify-center py-20"><RefreshCw className="w-8 h-8 animate-spin" style={{ color: '#00FF88' }} /></div>
+          <div className="flex items-center justify-center py-20"><RefreshCw className="w-8 h-8 animate-spin text-green" /></div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
@@ -188,15 +188,15 @@ export default function LivePage() {
                   <div className="flex items-center gap-2 mb-4"><span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" /><h2 className="text-xl font-bold text-white">LIVE NOW</h2></div>
                   <div className="grid gap-4">
                     {filteredLiveGames.map(game => (
-                      <Link key={game.id} href={`/live/${game.id}`} className="block rounded-2xl p-4 hover:scale-[1.02] transition-all" style={{ background: 'linear-gradient(135deg, rgba(0,255,136,0.1), rgba(15,15,25,0.9))', border: '1px solid rgba(0,255,136,0.3)' }}>
+                      <Link key={game.id} href={`/live/${game.id}`} className="block rounded-2xl p-4 hover:scale-[1.02] transition-all card-live-game">
                         <div className="flex items-center justify-between mb-3">
-                          <span className="text-xs font-bold px-2 py-1 rounded" style={{ background: 'rgba(0,255,136,0.2)', color: '#00FF88' }}>{game.sport} • {game.period} {game.clock}</span>
+                          <span className="text-xs font-bold px-2 py-1 rounded badge-green">{game.sport} • {game.period} {game.clock}</span>
                           <ExternalLink className="w-4 h-4 text-slate-500" />
                         </div>
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2"><span className="text-white font-bold">{game.awayTeam.name}</span><span className="text-2xl font-black" style={{ color: '#00FF88' }}>{game.awayTeam.score}</span></div>
-                            <div className="flex items-center gap-3"><span className="text-white font-bold">{game.homeTeam.name}</span><span className="text-2xl font-black" style={{ color: '#00FF88' }}>{game.homeTeam.score}</span></div>
+                            <div className="flex items-center gap-3 mb-2"><span className="text-white font-bold">{game.awayTeam.name}</span><span className="text-2xl font-black text-green">{game.awayTeam.score}</span></div>
+                            <div className="flex items-center gap-3"><span className="text-white font-bold">{game.homeTeam.name}</span><span className="text-2xl font-black text-green">{game.homeTeam.score}</span></div>
                           </div>
                           {game.odds && (
                             <div className="text-right text-sm">
@@ -207,7 +207,7 @@ export default function LivePage() {
                         </div>
                         <div className="mt-3 pt-3 border-t border-slate-700 flex items-center justify-between">
                           <span className="text-xs text-slate-500">{game.venue}</span>
-                          <span className="text-xs font-bold" style={{ color: '#00FF88' }}>Track Game →</span>
+                          <span className="text-xs font-bold text-green">Track Game →</span>
                         </div>
                       </Link>
                     ))}
@@ -219,10 +219,10 @@ export default function LivePage() {
                   <div className="flex items-center gap-2 mb-4"><Clock className="w-5 h-5 text-slate-400" /><h2 className="text-xl font-bold text-white">UPCOMING</h2></div>
                   <div className="grid gap-3">
                     {filteredUpcoming.slice(0, 10).map(game => (
-                      <Link key={game.id} href={`/game/${game.id}?sport=${game.sport}`} className="block rounded-xl p-4 hover:bg-slate-800/50 transition-all" style={{ background: 'rgba(15,15,25,0.5)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      <Link key={game.id} href={`/game/${game.id}?sport=${game.sport}`} className="block rounded-xl p-4 hover:bg-slate-800/50 transition-all card-upcoming-game">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
-                            <span className="text-xs font-bold px-2 py-1 rounded" style={{ background: 'rgba(255,255,255,0.05)', color: '#808090' }}>{game.sport}</span>
+                            <span className="text-xs font-bold px-2 py-1 rounded bg-white-soft text-muted">{game.sport}</span>
                             <div><span className="text-white font-medium">{game.awayTeam.name}</span><span className="text-slate-500 mx-2">@</span><span className="text-white font-medium">{game.homeTeam.name}</span></div>
                           </div>
                           <div className="text-right">
@@ -241,23 +241,23 @@ export default function LivePage() {
             </div>
             <div>
               <div className="sticky top-4">
-                <div className="flex items-center gap-2 mb-4"><Bell className="w-5 h-5" style={{ color: '#FF6B00' }} /><h2 className="text-xl font-bold text-white">EDGE ALERTS</h2></div>
+                <div className="flex items-center gap-2 mb-4"><Bell className="w-5 h-5 text-orange" /><h2 className="text-xl font-bold text-white">EDGE ALERTS</h2></div>
                 <div className="flex gap-2 mb-4 flex-wrap">
                   {(['all', 'steam', 'rlm', 'sharp'] as const).map(filter => (
-                    <button key={filter} onClick={() => setAlertFilter(filter)} className="px-3 py-1 rounded-lg text-xs font-bold uppercase" style={{ background: alertFilter === filter ? 'rgba(255,107,0,0.2)' : 'rgba(255,255,255,0.05)', color: alertFilter === filter ? '#FF6B00' : '#808090', border: alertFilter === filter ? '1px solid rgba(255,107,0,0.3)' : 'none' }}>{filter}</button>
+                    <button key={filter} onClick={() => setAlertFilter(filter)} className={`px-3 py-1 rounded-lg text-xs font-bold uppercase ${alertFilter === filter ? 'badge-orange border border-orange-500/30' : 'bg-white-soft text-muted'}`}>{filter}</button>
                   ))}
                 </div>
                 <div className="space-y-3 max-h-[600px] overflow-y-auto">
                   {filteredAlerts.length > 0 ? filteredAlerts.map(alert => {
-                    const colors = getSeverityColor(alert.severity)
+                    const classes = getSeverityClasses(alert.severity)
                     return (
-                      <div key={alert.id} className="rounded-xl p-4" style={{ background: colors.bg, border: `1px solid ${colors.border}` }}>
+                      <div key={alert.id} className={`rounded-xl p-4 ${classes.container}`}>
                         <div className="flex items-start gap-3">
-                          <div style={{ color: colors.text }}>{getTypeIcon(alert.type)}</div>
+                          <div className={classes.text}>{getTypeIcon(alert.type)}</div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1"><span className="text-xs font-bold uppercase" style={{ color: colors.text }}>{alert.type}</span><span className="text-xs text-slate-500">{alert.timestamp}</span></div>
+                            <div className="flex items-center gap-2 mb-1"><span className={`text-xs font-bold uppercase ${classes.text}`}>{alert.type}</span><span className="text-xs text-slate-500">{alert.timestamp}</span></div>
                             <p className="text-sm text-slate-300">{alert.message}</p>
-                            {alert.gameId && <Link href={`/live/${alert.gameId}`} className="text-xs mt-2 inline-block" style={{ color: colors.text }}>View Game →</Link>}
+                            {alert.gameId && <Link href={`/live/${alert.gameId}`} className={`text-xs mt-2 inline-block ${classes.text}`}>View Game →</Link>}
                           </div>
                         </div>
                       </div>
@@ -266,7 +266,7 @@ export default function LivePage() {
                     <div className="text-center py-10 text-slate-500"><Bell className="w-8 h-8 mx-auto mb-2 opacity-30" /><p className="text-sm">No alerts at this time</p></div>
                   )}
                 </div>
-                <div className="mt-4 p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.02)' }}><p className="text-xs text-slate-500">Alerts powered by THE EDGE AI • Detecting RLM, steam moves, CLV & arbitrage</p></div>
+                <div className="mt-4 p-3 rounded-lg card-alert-bg"><p className="text-xs text-slate-500">Alerts powered by THE EDGE AI • Detecting RLM, steam moves, CLV & arbitrage</p></div>
               </div>
             </div>
           </div>

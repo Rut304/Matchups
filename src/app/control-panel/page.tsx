@@ -146,42 +146,39 @@ export default function ControlPanelPage() {
     else setLoading(true)
 
     try {
-      // Fetch live games from API
-      const gamesRes = await fetch('/api/games?status=live,scheduled&limit=20')
+      // Fetch live games from API (all sports)
+      const gamesRes = await fetch('/api/live?mode=all')
       const gamesData = await gamesRes.json()
 
-      // Transform to our format with bet tracking
-      const games: LiveGame[] = (gamesData.games || []).map((g: Record<string, unknown>) => ({
-        id: g.id,
-        gameId: g.id,
-        sport: g.sport || 'NFL',
+      // Transform live game states to our format
+      const liveGamesList: LiveGame[] = (gamesData.games || []).map((g: Record<string, unknown>) => ({
+        id: g.gameId as string,
+        gameId: g.gameId as string,
+        sport: (g.sport as string || 'NFL').toUpperCase(),
         homeTeam: {
-          name: (g.home as Record<string, unknown>)?.name || 'Home',
-          abbr: (g.home as Record<string, unknown>)?.abbreviation || 'HOM',
-          logo: (g.home as Record<string, unknown>)?.logo,
-          score: (g.home as Record<string, unknown>)?.score,
-          record: (g.home as Record<string, unknown>)?.record
+          name: 'Home',
+          abbr: 'HOM',
+          logo: undefined,
+          score: g.homeScore as number || 0,
+          record: undefined
         },
         awayTeam: {
-          name: (g.away as Record<string, unknown>)?.name || 'Away',
-          abbr: (g.away as Record<string, unknown>)?.abbreviation || 'AWY',
-          logo: (g.away as Record<string, unknown>)?.logo,
-          score: (g.away as Record<string, unknown>)?.score,
-          record: (g.away as Record<string, unknown>)?.record
+          name: 'Away',
+          abbr: 'AWY',
+          logo: undefined,
+          score: g.awayScore as number || 0,
+          record: undefined
         },
-        status: g.status === 'in_progress' ? 'live' : (g.status as 'scheduled' | 'live' | 'final'),
-        period: g.period as string,
-        clock: g.clock as string,
-        startTime: g.startTime as string,
-        odds: g.odds as LiveGame['odds'],
+        status: g.status === 'in' ? 'live' : (g.status === 'pre' ? 'scheduled' : 'final'),
+        period: `${g.period || ''}`,
+        clock: g.clock as string || '',
+        startTime: g.lastUpdate as string || new Date().toISOString(),
+        odds: undefined,
         isFollowed: false
       }))
 
-      const live = games.filter(g => g.status === 'live')
-      const upcoming = games.filter(g => g.status === 'scheduled').slice(0, 10)
-
-      setLiveGames(live)
-      setUpcomingGames(upcoming)
+      setLiveGames(liveGamesList)
+      // upcoming games are not fetched from live endpoint
 
       // Fetch user's bets
       const { data: betsData } = await supabase

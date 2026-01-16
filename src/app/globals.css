@@ -363,3 +363,269 @@ body {
 .progress-fill-danger {
   background: #FF4455;
 }
+
+/* ============================================ */
+/* Live Center Page Styles */
+/* ============================================ */
+.bg-page-dark {
+  background: #050508;
+}
+
+.bg-page-gradient {
+  background: linear-gradient(180deg, #0a0a12 0%, #050508 100%);
+}
+
+.bg-glow-green {
+  background: radial-gradient(circle, #00FF88 0%, transparent 70%);
+}
+
+.text-gradient-green {
+  background: linear-gradient(135deg, #00FF88 0%, #FFF 50%, #00FF88 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-green {
+  color: #00FF88;
+}
+
+.text-orange {
+  color: #FF6B00;
+}
+
+.text-purple {
+  color: #9B59B6;
+}
+
+.text-blue {
+  color: #3B82F6;
+}
+
+.text-hot {
+  color: #FF3366;
+}
+
+.text-gold {
+  color: #FFD700;
+}
+
+.text-cyan {
+  color: #00A8FF;
+}
+
+.bg-green-soft {
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid rgba(0, 255, 136, 0.2);
+}
+
+.bg-orange-soft {
+  background: rgba(255, 107, 0, 0.1);
+  border: 1px solid rgba(255, 107, 0, 0.2);
+}
+
+.bg-purple-soft {
+  background: rgba(155, 89, 182, 0.1);
+  border: 1px solid rgba(155, 89, 182, 0.2);
+}
+
+.bg-blue-soft {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.bg-hot-soft {
+  background: rgba(255, 51, 102, 0.1);
+  border: 1px solid rgba(255, 51, 102, 0.2);
+}
+
+.bg-gold-soft {
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.bg-cyan-soft {
+  background: rgba(0, 168, 255, 0.1);
+  border: 1px solid rgba(0, 168, 255, 0.2);
+}
+
+.bg-white-soft {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.bg-white-soft-border {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.badge-green {
+  background: rgba(0, 255, 136, 0.2);
+  color: #00FF88;
+}
+
+.badge-orange {
+  background: rgba(255, 107, 0, 0.2);
+  color: #FF6B00;
+}
+
+.btn-gradient-green {
+  background: linear-gradient(135deg, #00FF88, #00CC6A);
+  color: #000;
+}
+
+.btn-gradient-orange {
+  background: linear-gradient(135deg, #FF6B00, #FF3366);
+  color: #FFF;
+}
+
+.card-live-game {
+  background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(15, 15, 25, 0.9));
+  border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+.card-upcoming-game {
+  background: rgba(15, 15, 25, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.card-alert-bg {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ============================================ */
+/* Sus Page Styles */
+/* ============================================ */
+.bg-page-sus {
+  background: #0A0A0F;
+}
+
+.modal-sus {
+  background: #12121A;
+  border: 1px solid rgba(255, 107, 0, 0.3);
+}
+
+.modal-header-sus {
+  background: linear-gradient(135deg, rgba(255, 107, 0, 0.2), rgba(255, 51, 102, 0.2));
+}
+
+.stat-card-dark {
+  background: #12121A;
+}
+
+/* Alert colors for dynamic severity */
+.alert-bg-low {
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid rgba(0, 255, 136, 0.2);
+}
+
+.alert-bg-medium {
+  background: rgba(255, 170, 0, 0.1);
+  border: 1px solid rgba(255, 170, 0, 0.2);
+}
+
+.alert-bg-high {
+  background: rgba(255, 107, 0, 0.1);
+  border: 1px solid rgba(255, 107, 0, 0.2);
+}
+
+.alert-bg-critical {
+  background: rgba(255, 51, 102, 0.1);
+  border: 1px solid rgba(255, 51, 102, 0.2);
+}
+
+/* Confidence bar gradients */
+.confidence-bar-high {
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+}
+
+.confidence-bar-medium {
+  background: linear-gradient(90deg, #f97316, #fb923c);
+}
+
+.confidence-bar-low {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+/* ============================================ */
+/* Additional UI Components */
+/* ============================================ */
+.filter-group {
+  background: #12121A;
+}
+
+.badge-verified {
+  background: #00FF88;
+  color: #000;
+}
+
+.badge-trending {
+  background: #FF6B00;
+  color: #000;
+}
+
+.badge-sus-high {
+  background: #FF3366;
+  color: #000;
+}
+
+.badge-sus-medium {
+  background: #FF6B00;
+  color: #000;
+}
+
+.badge-sus-low {
+  background: #FFD700;
+  color: #000;
+}
+
+.badge-dark {
+  background: rgba(0, 0, 0, 0.7);
+  color: #FFF;
+}
+
+.card-sus {
+  background: #12121A;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.card-sus-trending {
+  background: #12121A;
+  border: 2px solid #FF6B00;
+}
+
+.vote-btn-sus {
+  background: rgba(255, 51, 102, 0.2);
+}
+
+.vote-btn-legit {
+  background: rgba(0, 255, 136, 0.2);
+}
+
+.dropdown-menu {
+  background: #1A1A24;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.search-input {
+  background: #12121A;
+  color: #FFF;
+  border: none;
+}
+
+.border-top-subtle {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Sidebar cards */
+.sidebar-cta {
+  background: linear-gradient(135deg, rgba(255, 107, 0, 0.2), rgba(255, 51, 102, 0.2));
+  border: 1px solid rgba(255, 107, 0, 0.3);
+}
+
+.icon-bg-orange {
+  background: rgba(255, 107, 0, 0.2);
+}
+
+.disclaimer-card {
+  background: rgba(128, 128, 144, 0.1);
+}

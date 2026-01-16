@@ -1,6 +1,6 @@
 /**
  * Betting Splits API Route
- * Fetches REAL betting percentages from Action Network's public API
+ * Fetches REAL betting percentages from multiple sources
  * 
  * Data includes:
  * - Ticket % (public bet count)

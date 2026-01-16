@@ -385,7 +385,7 @@ export function BettingSplitsTable({
         Data from SportsBettingDime (public %) + The Odds API (lines). Sharp % estimated from line movement.
         <br />
         <span className="text-yellow-600">
-          ⚠️ True sharp tracking requires paid services (Action Network, Don Best)
+          ⚠️ True sharp tracking requires premium data services (DonBest, SportsInsights)
         </span>
       </div>
     </div>

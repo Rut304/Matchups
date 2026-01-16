@@ -291,6 +291,7 @@ The `/game/[id]` page is fully functional with real ESPN data:
 The scores page currently shows games day-by-day. For NFL and NCAAF, it would be better to show the entire week:
 
 **Requirements:**
+
 1. Week calculation utility:
    - NFL: Weeks 1-18 based on season schedule
    - NCAAF: Weeks 0-15 based on college schedule

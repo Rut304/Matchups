@@ -24,7 +24,7 @@ import {
  * TOGGLE: Prediction markets (Polymarket, Kalshi)
  * 
  * Data Sources:
- * - Sports: Action Network API (real betting splits, sharp money)
+ * - Sports: Multiple sources (real betting splits, sharp money)
  * - Prediction Markets: Polymarket API, Kalshi API
  */
 

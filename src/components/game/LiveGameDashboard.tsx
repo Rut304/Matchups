@@ -111,7 +111,7 @@ export function LiveGameDashboard({
         movement: 'stable'
       },
       publicSplits: {
-        // Public betting % requires Action Network API - not available
+        // Public betting % requires premium API - not available
         spread: { home: 50, away: 50 },
         total: { over: 50, under: 50 },
         ml: { home: 50, away: 50 }

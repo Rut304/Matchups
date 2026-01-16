@@ -232,7 +232,7 @@ export function SharpMoneySummary({
       {/* Quick Stats */}
       <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-500">
         <span>{splits.length} games tracked</span>
-        <span>Data from Action Network</span>
+        <span>Live betting data</span>
       </div>
     </div>
   )

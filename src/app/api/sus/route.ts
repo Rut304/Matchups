@@ -59,11 +59,14 @@ export async function GET(request: Request) {
     if (error) {
       console.error('Supabase error:', error)
       // If no table exists yet, return sample data
-      if (error.code === '42P01') {
+      // Handle both PostgreSQL error codes and Supabase schema cache errors
+      if (error.code === '42P01' || error.message?.includes('schema cache') || error.code === 'PGRST200') {
+        console.log('Sus plays table not found, returning sample data')
         return NextResponse.json({
           susPlays: getSampleData(),
           pagination: { page: 1, limit: 20, total: 8, totalPages: 1 },
           filters: { sport, susType, timeFrame, trending },
+          source: 'sample', // Indicate this is sample data
         })
       }
       return NextResponse.json({ error: error.message }, { status: 500 })
@@ -320,6 +323,83 @@ function getSampleData() {
       verified: false,
       postedAt: '4 days ago',
       gameContext: 'Garbage Time',
+    },
+    // X/Twitter sourced sus plays
+    {
+      id: 'twitter-1',
+      sport: 'nfl',
+      playerName: null,
+      team: null,
+      title: 'Dirty play spotted by @dirtyfootbaiier',
+      description: 'Suspicious play caught on camera and shared by popular sports betting sleuth. Community is divided on whether this was intentional.',
+      susType: 'spread',
+      views: 892000,
+      susScore: 71,
+      votes: { sus: 4521, legit: 1832 },
+      trending: true,
+      verified: false,
+      postedAt: '6 hours ago',
+      gameContext: 'Key moment',
+      source: 'twitter',
+      tweetUrl: 'https://x.com/dirtyfootbaiier/status/2011469607316656579',
+      tweetAuthor: '@dirtyfootbaiier',
+    },
+    {
+      id: 'twitter-2',
+      sport: 'nfl',
+      playerName: null,
+      team: null,
+      title: 'Rigged for Vegas breakdown #1',
+      description: 'Detailed analysis of a questionable play that had major betting implications. The timing and execution raised serious eyebrows.',
+      susType: 'multiple',
+      views: 1450000,
+      susScore: 72,
+      votes: { sus: 5892, legit: 2341 },
+      trending: true,
+      verified: false,
+      postedAt: '1 day ago',
+      gameContext: 'Late game',
+      source: 'twitter',
+      tweetUrl: 'https://x.com/riggedforvegas/status/2008758808584012099',
+      tweetAuthor: '@riggedforvegas',
+    },
+    {
+      id: 'twitter-3',
+      sport: 'nfl',
+      playerName: null,
+      team: null,
+      title: 'Rigged for Vegas breakdown #2',
+      description: 'Another suspicious sequence of events that benefited the sportsbooks. Pattern recognition analysis included.',
+      susType: 'spread',
+      views: 1890000,
+      susScore: 80,
+      votes: { sus: 6234, legit: 1567 },
+      trending: true,
+      verified: false,
+      postedAt: '3 days ago',
+      gameContext: '4th Quarter',
+      source: 'twitter',
+      tweetUrl: 'https://x.com/riggedforvegas/status/1999952158293377061',
+      tweetAuthor: '@riggedforvegas',
+    },
+    {
+      id: 'twitter-4',
+      sport: 'nba',
+      playerName: null,
+      team: null,
+      title: 'Rigged for Vegas breakdown #3',
+      description: 'Yet another play that defies logic. The probability of this outcome was extremely low given the circumstances.',
+      susType: 'spread',
+      views: 2340000,
+      susScore: 71,
+      votes: { sus: 7103, legit: 2891 },
+      trending: true,
+      verified: false,
+      postedAt: '5 days ago',
+      gameContext: 'Final play',
+      source: 'twitter',
+      tweetUrl: 'https://x.com/riggedforvegas/status/2004051758239322283',
+      tweetAuthor: '@riggedforvegas',
     },
   ]
 }

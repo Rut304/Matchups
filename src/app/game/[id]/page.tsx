@@ -982,17 +982,16 @@ export default function GameDetailPage() {
             </div>
             {/* Confidence Bar - Shows our AI's confidence in the pick */}
             <div className="h-4 rounded-full overflow-hidden bg-slate-800">
-              <div 
-                className="h-full rounded-full transition-all"
-                style={{ 
-                  width: `${(intelligence.aiAnalysis?.spreadAnalysis?.confidence || game.aiConfidence / 100 || 0.5) * 100}%`,
-                  background: ((intelligence.aiAnalysis?.spreadAnalysis?.confidence || game.aiConfidence / 100 || 0.5) * 100) >= 70 
-                    ? 'linear-gradient(90deg, #22c55e, #4ade80)' 
-                    : ((intelligence.aiAnalysis?.spreadAnalysis?.confidence || game.aiConfidence / 100 || 0.5) * 100) >= 55 
-                    ? 'linear-gradient(90deg, #f97316, #fb923c)' 
-                    : 'linear-gradient(90deg, #ef4444, #f87171)'
-                }}
-              />
+              {(() => {
+                const confidence = (intelligence.aiAnalysis?.spreadAnalysis?.confidence || game.aiConfidence / 100 || 0.5) * 100;
+                const barClass = confidence >= 70 ? 'confidence-bar-high' : confidence >= 55 ? 'confidence-bar-medium' : 'confidence-bar-low';
+                return (
+                  <div 
+                    className={`h-full rounded-full transition-all ${barClass}`}
+                    style={{ width: `${confidence}%` }}
+                  />
+                );
+              })()}
             </div>
             <div className="flex justify-between text-sm mt-1 text-slate-500">
               <span>{Math.round((intelligence.aiAnalysis?.spreadAnalysis?.confidence || game.aiConfidence / 100 || 0.5) * 100)}% confidence</span>
@@ -1346,7 +1345,7 @@ export default function GameDetailPage() {
         )}
 
         {/* =========================================== */}
-        {/* PUBLIC BETTING SPLITS - Action Network Data */}
+        {/* PUBLIC BETTING SPLITS - Live Data */}
         {/* Critical for identifying sharp vs public money */}
         {/* =========================================== */}
         <GameBettingSplits

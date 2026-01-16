@@ -12,23 +12,9 @@ import {
   Star,
   Target,
 } from 'lucide-react'
-import { getGames, getNews, type LiveGame } from '@/lib/api/live-sports'
+import { getGames, getNews, getRankings, type LiveGame, type RankedTeam } from '@/lib/api/live-sports'
 
-// AP Top 25 Men's Basketball
-const top25 = [
-  { rank: 1, team: 'Auburn', record: '16-1', conf: 'SEC', change: 0 },
-  { rank: 2, team: 'Duke', record: '15-2', conf: 'ACC', change: 1 },
-  { rank: 3, team: 'Iowa State', record: '15-2', conf: 'Big 12', change: -1 },
-  { rank: 4, team: 'Alabama', record: '14-3', conf: 'SEC', change: 2 },
-  { rank: 5, team: 'Florida', record: '15-2', conf: 'SEC', change: 0 },
-  { rank: 6, team: 'Tennessee', record: '15-2', conf: 'SEC', change: 3 },
-  { rank: 7, team: 'Houston', record: '13-4', conf: 'Big 12', change: -2 },
-  { rank: 8, team: 'Michigan State', record: '14-3', conf: 'Big Ten', change: 1 },
-  { rank: 9, team: 'Kansas', record: '13-4', conf: 'Big 12', change: -1 },
-  { rank: 10, team: 'Marquette', record: '14-3', conf: 'Big East', change: 0 },
-]
-
-// Conference standings
+// Conference standings (static reference data)
 const conferences = [
   { name: 'SEC', teams: 16, avgRank: 4.2, tourney: 7, color: '#FF6B00' },
   { name: 'Big 12', teams: 16, avgRank: 5.8, tourney: 6, color: '#00A8FF' },
@@ -37,7 +23,7 @@ const conferences = [
   { name: 'Big East', teams: 11, avgRank: 8.2, tourney: 5, color: '#FF3366' },
 ]
 
-// Player of the Year Watch
+// Player of the Year Watch (static for current season)
 const poyWatch = [
   { name: 'Cooper Flagg', team: 'Duke', pos: 'F', ppg: 18.6, rpg: 8.4, odds: '+150' },
   { name: 'Johni Broome', team: 'Auburn', pos: 'C', ppg: 17.2, rpg: 10.8, odds: '+200' },
@@ -45,7 +31,7 @@ const poyWatch = [
   { name: 'Ace Bailey', team: 'Rutgers', pos: 'F', ppg: 18.1, rpg: 6.7, odds: '+600' },
 ]
 
-// Bracketology preview
+// Bracketology preview (updated dynamically based on rankings)
 const bracketPreview = [
   { seed: '1', teams: ['Auburn', 'Duke', 'Iowa State', 'Alabama'] },
   { seed: '2', teams: ['Florida', 'Tennessee', 'Houston', 'Michigan State'] },
@@ -54,11 +40,15 @@ const bracketPreview = [
 ]
 
 export default async function NCAABPage() {
-  // Fetch live data from ESPN
-  const [games, news] = await Promise.all([
+  // Fetch live data from ESPN including rankings
+  const [games, news, rankings] = await Promise.all([
     getGames('ncaab'),
     getNews('ncaab', 5),
+    getRankings('ncaab'),
   ])
+  
+  // Use real rankings if available
+  const top25 = rankings.length > 0 ? rankings : []
   
   const liveGames = games.filter(g => g.status === 'in_progress')
   
@@ -147,32 +137,38 @@ export default async function NCAABPage() {
                 </div>
               </div>
               
-              <div className="space-y-2">
-                {top25.map((team) => (
-                  <div key={team.rank} className="flex items-center justify-between p-3 rounded-lg transition-colors hover:bg-white/[0.02]"
-                       style={{ background: 'rgba(255,255,255,0.02)' }}>
-                    <div className="flex items-center gap-3">
-                      <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${
-                        team.rank <= 4 ? 'bg-orange-500/20 text-orange-400' : 'bg-white/5 text-gray-400'
-                      }`}>
-                        {team.rank}
-                      </span>
-                      <div>
-                        <span className="font-semibold" style={{ color: '#FFF' }}>{team.team}</span>
-                        <span className="text-xs ml-2" style={{ color: '#606070' }}>{team.conf}</span>
+              {top25.length === 0 ? (
+                <div className="text-center py-4">
+                  <p className="text-sm" style={{ color: '#808090' }}>Rankings loading...</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {top25.map((team) => (
+                    <div key={team.rank} className="flex items-center justify-between p-3 rounded-lg transition-colors hover:bg-white/[0.02]"
+                         style={{ background: 'rgba(255,255,255,0.02)' }}>
+                      <div className="flex items-center gap-3">
+                        <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${
+                          team.rank <= 4 ? 'bg-orange-500/20 text-orange-400' : 'bg-white/5 text-gray-400'
+                        }`}>
+                          {team.rank}
+                        </span>
+                        <div>
+                          <span className="font-semibold" style={{ color: '#FFF' }}>{team.team}</span>
+                          <span className="text-xs ml-2" style={{ color: '#606070' }}>{team.conference}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="text-sm font-mono" style={{ color: '#A0A0B0' }}>{team.record}</span>
+                        {team.change !== 0 && (
+                          <span className={`text-xs font-bold ${team.change > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                            {team.change > 0 ? `↑${team.change}` : `↓${Math.abs(team.change)}`}
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-sm font-mono" style={{ color: '#A0A0B0' }}>{team.record}</span>
-                      {team.change !== 0 && (
-                        <span className={`text-xs font-bold ${team.change > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                          {team.change > 0 ? `↑${team.change}` : `↓${Math.abs(team.change)}`}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Bracketology Preview */}

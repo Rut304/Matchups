@@ -372,7 +372,7 @@ export default function BettingSplitsPage() {
               <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
               <span>
                 <strong>Note:</strong> True sharp money tracking requires paid professional 
-                data services (Action Network PRO, Don Best, SportsInsights). Our sharp 
+                data services (DonBest, SportsInsights). Our sharp 
                 estimates are calculated from public betting % combined with line movement 
                 from multiple sportsbooks.
               </span>

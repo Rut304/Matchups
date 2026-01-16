@@ -189,7 +189,11 @@ export const DATA_SOURCES = {
     secondary: 'espn-scrape',
   },
   ODDS: {
-    primary: 'the-odds-api',
+    // Cascade: Primary -> ESPN -> The Odds API -> API-Sports
+    primary: 'internal',
+    fallback1: 'espn',
+    fallback2: 'the-odds-api',
+    fallback3: 'api-sports',
   },
   MARKETS: {
     primary: 'polymarket',

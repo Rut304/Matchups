@@ -684,6 +684,58 @@ export async function getNews(sport: SupportedSport, limit = 10): Promise<any[]>
 }
 
 // =============================================================================
+// RANKINGS (NCAA only)
+// =============================================================================
+
+export interface RankedTeam {
+  rank: number
+  team: string
+  abbreviation?: string
+  record: string
+  conference: string
+  change: number // +/- from previous week
+  logo?: string
+}
+
+export async function getRankings(sport: 'ncaaf' | 'ncaab'): Promise<RankedTeam[]> {
+  const sportPath = sport === 'ncaaf' 
+    ? 'football/college-football'
+    : 'basketball/mens-college-basketball'
+  
+  try {
+    const res = await fetch(
+      `https://site.api.espn.com/apis/site/v2/sports/${sportPath}/rankings`,
+      { next: { revalidate: 3600 } } // Cache for 1 hour
+    )
+    
+    if (!res.ok) {
+      console.error(`Rankings API error: ${res.status}`)
+      return []
+    }
+    
+    const data = await res.json()
+    
+    // ESPN returns multiple rankings (AP, Coaches, CFP)
+    // We'll use the first poll which is typically AP for regular season
+    const poll = data.rankings?.[0]
+    if (!poll?.ranks) return []
+    
+    return poll.ranks.slice(0, 25).map((team: any) => ({
+      rank: team.current,
+      team: team.team?.shortDisplayName || team.team?.displayName || 'Unknown',
+      abbreviation: team.team?.abbreviation,
+      record: team.recordSummary || `${team.team?.record?.items?.[0]?.summary || '0-0'}`,
+      conference: team.team?.groups?.name || 'Independent',
+      change: team.previous ? team.previous - team.current : 0,
+      logo: team.team?.logos?.[0]?.href,
+    }))
+  } catch (error) {
+    console.error('Failed to fetch rankings:', error)
+    return []
+  }
+}
+
+// =============================================================================
 // AGGREGATE DASHBOARD
 // =============================================================================
 

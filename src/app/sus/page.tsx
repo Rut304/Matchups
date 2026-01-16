@@ -82,6 +82,13 @@ const getSusColor = (score: number): string => {
   return '#00FF88' // Low
 }
 
+const getSusColorClass = (score: number): string => {
+  if (score >= 80) return 'badge-sus-high' // High sus
+  if (score >= 60) return 'badge-sus-medium' // Medium-high
+  if (score >= 40) return 'badge-sus-low' // Medium
+  return 'badge-verified' // Low
+}
+
 const getSportEmoji = (sport: Sport): string => {
   const emojis: Record<Sport, string> = {
     all: '🎯',
@@ -148,10 +155,9 @@ function SubmitSusPlayModal({ isOpen, onClose }: SubmitModalProps) {
   
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-2xl overflow-hidden" style={{ background: '#12121A', border: '1px solid rgba(255,107,0,0.3)' }}>
+      <div className="w-full max-w-lg rounded-2xl overflow-hidden modal-sus">
         {/* Header */}
-        <div className="p-4 border-b border-white/10 flex items-center justify-between"
-             style={{ background: 'linear-gradient(135deg, rgba(255,107,0,0.2), rgba(255,51,102,0.2))' }}>
+        <div className="p-4 border-b border-white/10 flex items-center justify-between modal-header-sus">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-orange-500/20">
               <Upload className="w-5 h-5 text-orange-500" />
@@ -241,8 +247,7 @@ function SubmitSusPlayModal({ isOpen, onClose }: SubmitModalProps) {
             <button
               onClick={handleSubmit}
               disabled={!twitterUrl || !description || submitting}
-              className="w-full py-3 rounded-xl font-bold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ background: submitting ? '#555' : 'linear-gradient(135deg, #FF6B00, #FF3366)' }}
+              className={`w-full py-3 rounded-xl font-bold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed ${submitting ? 'bg-slate-600' : 'btn-gradient-orange'}`}
             >
               {submitting ? 'Submitting...' : 'Submit for Review'}
             </button>
@@ -350,7 +355,7 @@ export default function SusPlaysPage() {
             susType: (p.susType as string || 'other') as SusType,
             relatedBet: p.relatedBet as string,
             videoUrl: p.videoUrl as string,
-            twitterUrl: p.twitterUrl as string,
+            twitterUrl: p.tweetUrl as string || p.twitterUrl as string, // Support both field names
             thumbnailUrl: p.thumbnailUrl as string,
             views: p.views as number || 0,
             susScore: p.susScore as number || 50,
@@ -359,7 +364,7 @@ export default function SusPlaysPage() {
             trending: p.trending as boolean || false,
             verified: p.verified as boolean || false,
             postedAt: p.postedAt as string || 'Recently',
-            source: '@SusPlays',
+            source: p.tweetAuthor as string || '@SusPlays',
           }))
           setSusPlays(plays)
         }
@@ -400,7 +405,7 @@ export default function SusPlaysPage() {
   })
 
   return (
-    <div className="min-h-screen" style={{ background: '#0A0A0F' }}>
+    <div className="min-h-screen bg-page-sus">
       {/* Submit Modal */}
       <SubmitSusPlayModal isOpen={showSubmitModal} onClose={() => setShowSubmitModal(false)} />
       
@@ -409,20 +414,19 @@ export default function SusPlaysPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl" style={{ background: 'linear-gradient(135deg, #FF3366, #FF6B00)' }}>
+              <div className="p-2 rounded-xl btn-gradient-orange">
                 <AlertTriangle className="w-8 h-8 text-white" />
               </div>
               <div>
                 <h1 className="text-4xl font-black text-white">Suspect Plays</h1>
-                <p style={{ color: '#808090' }} className="text-sm">Who&apos;s his Mizuhara? 🤔</p>
+                <p className="text-sm text-muted">Who&apos;s his Mizuhara? 🤔</p>
               </div>
             </div>
             
             {/* Submit Button */}
             <button
               onClick={() => setShowSubmitModal(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-white transition-all hover:scale-105"
-              style={{ background: 'linear-gradient(135deg, #FF6B00, #FF3366)' }}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-white transition-all hover:scale-105 btn-gradient-orange"
             >
               <Upload className="w-5 h-5" />
               <span className="hidden sm:inline">Submit Play</span>
@@ -430,14 +434,14 @@ export default function SusPlaysPage() {
           </div>
           
           {/* Warning Banner */}
-          <div className="mt-4 p-4 rounded-xl border" style={{ background: 'rgba(255,51,102,0.1)', borderColor: 'rgba(255,51,102,0.3)' }}>
+          <div className="mt-4 p-4 rounded-xl bg-hot-soft">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#FF3366' }} />
+              <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5 text-hot" />
               <div>
-                <p className="text-sm font-semibold" style={{ color: '#FF3366' }}>For Entertainment &amp; Discussion Only</p>
-                <p className="text-xs" style={{ color: '#A0A0B0' }}>
+                <p className="text-sm font-semibold text-hot">For Entertainment &amp; Discussion Only</p>
+                <p className="text-xs text-secondary">
                   When a play lands exactly on a number that benefits a specific bet, we archive it here. We track the player, the line, 
-                  and the outcome. <strong style={{ color: '#FFF' }}>Does someone close to them have action?</strong> Let the internet decide. 
+                  and the outcome. <strong className="text-white">Does someone close to them have action?</strong> Let the internet decide. 
                   We&apos;re not accusing anyone — just asking questions and keeping receipts. 🧾
                 </p>
               </div>
@@ -446,20 +450,20 @@ export default function SusPlaysPage() {
 
           {/* How It Works */}
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="p-3 rounded-xl" style={{ background: 'rgba(0,168,255,0.1)', border: '1px solid rgba(0,168,255,0.2)' }}>
+            <div className="p-3 rounded-xl bg-cyan-soft">
               <div className="text-lg mb-1">📹</div>
               <p className="text-xs font-semibold text-white">Video Evidence</p>
-              <p className="text-[10px]" style={{ color: '#808090' }}>Clips embedded from Twitter/X for instant playback</p>
+              <p className="text-[10px] text-muted">Clips embedded from Twitter/X for instant playback</p>
             </div>
-            <div className="p-3 rounded-xl" style={{ background: 'rgba(255,215,0,0.1)', border: '1px solid rgba(255,215,0,0.2)' }}>
+            <div className="p-3 rounded-xl bg-gold-soft">
               <div className="text-lg mb-1">📊</div>
               <p className="text-xs font-semibold text-white">Line Tracking</p>
-              <p className="text-[10px]" style={{ color: '#808090' }}>We show the exact bet that hit and by how much</p>
+              <p className="text-[10px] text-muted">We show the exact bet that hit and by how much</p>
             </div>
-            <div className="p-3 rounded-xl" style={{ background: 'rgba(255,51,102,0.1)', border: '1px solid rgba(255,51,102,0.2)' }}>
+            <div className="p-3 rounded-xl bg-hot-soft">
               <div className="text-lg mb-1">🗳️</div>
               <p className="text-xs font-semibold text-white">Community Voting</p>
-              <p className="text-[10px]" style={{ color: '#808090' }}>Vote SUS or LEGIT and see consensus</p>
+              <p className="text-[10px] text-muted">Vote SUS or LEGIT and see consensus</p>
             </div>
           </div>
         </div>
@@ -467,15 +471,15 @@ export default function SusPlaysPage() {
         {/* Stats Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {[
-            { label: 'Plays Tracked', value: '1,247', icon: Video, color: '#00A8FF' },
-            { label: 'Total Views', value: '42.3M', icon: Eye, color: '#FF6B00' },
-            { label: 'Verified Sus', value: '89', icon: AlertTriangle, color: '#FF3366' },
-            { label: 'Trending Now', value: '12', icon: Flame, color: '#FFD700' },
+            { label: 'Plays Tracked', value: '1,247', icon: Video, colorClass: 'text-cyan' },
+            { label: 'Total Views', value: '42.3M', icon: Eye, colorClass: 'text-orange' },
+            { label: 'Verified Sus', value: '89', icon: AlertTriangle, colorClass: 'text-hot' },
+            { label: 'Trending Now', value: '12', icon: Flame, colorClass: 'text-gold' },
           ].map((stat) => (
-            <div key={stat.label} className="p-4 rounded-xl" style={{ background: '#12121A' }}>
+            <div key={stat.label} className="p-4 rounded-xl stat-card-dark">
               <div className="flex items-center gap-2 mb-1">
-                <stat.icon className="w-4 h-4" style={{ color: stat.color }} />
-                <span className="text-xs" style={{ color: '#808090' }}>{stat.label}</span>
+                <stat.icon className={`w-4 h-4 ${stat.colorClass}`} />
+                <span className="text-xs text-muted">{stat.label}</span>
               </div>
               <div className="text-2xl font-bold text-white">{stat.value}</div>
             </div>
@@ -485,16 +489,12 @@ export default function SusPlaysPage() {
         {/* Filters */}
         <div className="flex flex-wrap gap-3 mb-6">
           {/* Sport Filter */}
-          <div className="flex gap-1 p-1 rounded-xl" style={{ background: '#12121A' }}>
+          <div className="flex gap-1 p-1 rounded-xl filter-group">
             {(['all', 'nfl', 'nba', 'nhl', 'mlb'] as Sport[]).map((s) => (
               <button
                 key={s}
                 onClick={() => setSport(s)}
-                className="px-3 py-1.5 rounded-lg text-sm font-semibold transition-all"
-                style={{
-                  background: sport === s ? 'linear-gradient(135deg, #FF6B00, #FF3366)' : 'transparent',
-                  color: sport === s ? '#FFF' : '#808090'
-                }}
+                className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${sport === s ? 'btn-gradient-orange' : 'text-muted'}`}
               >
                 {s === 'all' ? 'All' : s.toUpperCase()}
               </button>
@@ -502,16 +502,12 @@ export default function SusPlaysPage() {
           </div>
 
           {/* Type Filter */}
-          <div className="flex gap-1 p-1 rounded-xl" style={{ background: '#12121A' }}>
+          <div className="flex gap-1 p-1 rounded-xl filter-group">
             {(['all', 'prop', 'spread', 'total'] as SusType[]).map((t) => (
               <button
                 key={t}
                 onClick={() => setSusType(t)}
-                className="px-3 py-1.5 rounded-lg text-sm font-semibold transition-all capitalize"
-                style={{
-                  background: susType === t ? '#00A8FF' : 'transparent',
-                  color: susType === t ? '#FFF' : '#808090'
-                }}
+                className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all capitalize ${susType === t ? 'bg-cyan-500 text-white' : 'text-muted'}`}
               >
                 {t === 'all' ? 'All Types' : t}
               </button>
@@ -522,8 +518,8 @@ export default function SusPlaysPage() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-            className="px-3 py-2 rounded-xl text-sm font-semibold cursor-pointer"
-            style={{ background: '#12121A', color: '#FFF', border: 'none' }}
+            className="px-3 py-2 rounded-xl text-sm font-semibold cursor-pointer search-input"
+            aria-label="Sort sus plays by"
           >
             <option value="trending">🔥 Trending</option>
             <option value="susScore">⚠️ Most Sus</option>
@@ -534,14 +530,13 @@ export default function SusPlaysPage() {
           {/* Search */}
           <div className="flex-1 min-w-[200px]">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#808090' }} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
               <input
                 type="text"
                 placeholder="Search players, teams..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-xl text-sm"
-                style={{ background: '#12121A', color: '#FFF', border: 'none' }}
+                className="w-full pl-10 pr-4 py-2 rounded-xl text-sm search-input"
               />
             </div>
           </div>
@@ -565,8 +560,7 @@ export default function SusPlaysPage() {
               filteredPlays.map((play) => (
               <div 
                 key={play.id} 
-                className="rounded-2xl overflow-hidden transition-all hover:scale-[1.01]"
-                style={{ background: '#12121A', border: play.trending ? '2px solid #FF6B00' : '1px solid rgba(255,255,255,0.06)' }}
+                className={`rounded-2xl overflow-hidden transition-all hover:scale-[1.01] ${play.trending ? 'card-sus-trending' : 'card-sus'}`}
               >
                 {/* Video Thumbnail / Twitter Embed */}
                 <div className="relative aspect-video bg-black/50 flex items-center justify-center group">
@@ -581,29 +575,25 @@ export default function SusPlaysPage() {
                   
                   {/* Trending Badge */}
                   {play.trending && (
-                    <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold z-10"
-                         style={{ background: '#FF6B00', color: '#000' }}>
+                    <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold z-10 badge-trending">
                       <Flame className="w-3 h-3" />
                       TRENDING
                     </div>
                   )}
 
                   {/* Sus Score Badge */}
-                  <div className="absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-bold z-10"
-                       style={{ background: getSusColor(play.susScore), color: '#000' }}>
+                  <div className={`absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-bold z-10 ${getSusColorClass(play.susScore)}`}>
                     {play.susScore}% SUS
                   </div>
 
                   {/* Views */}
-                  <div className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold z-10"
-                       style={{ background: 'rgba(0,0,0,0.7)', color: '#FFF' }}>
+                  <div className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold z-10 badge-dark">
                     <Eye className="w-3 h-3" />
                     {formatViews(play.views)}
                   </div>
 
                   {/* Sport Badge */}
-                  <div className="absolute bottom-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold z-10"
-                       style={{ background: 'rgba(0,0,0,0.7)', color: '#FFF' }}>
+                  <div className="absolute bottom-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold z-10 badge-dark">
                     {getSportEmoji(play.sport)} {play.sport.toUpperCase()}
                   </div>
                 </div>
@@ -615,24 +605,24 @@ export default function SusPlaysPage() {
                       <h3 className="text-lg font-bold text-white">
                         {play.playerName} ({play.team} vs {play.opponent})
                       </h3>
-                      <p className="text-xs" style={{ color: '#808090' }}>{play.gameDate} • {play.postedAt}</p>
+                      <p className="text-xs text-muted">{play.gameDate} • {play.postedAt}</p>
                     </div>
                     {play.verified && (
-                      <div className="px-2 py-1 rounded text-xs font-bold" style={{ background: '#00FF88', color: '#000' }}>
+                      <div className="px-2 py-1 rounded text-xs font-bold badge-verified">
                         VERIFIED
                       </div>
                     )}
                   </div>
 
-                  <p className="text-sm mb-3" style={{ color: '#C0C0C8' }}>
+                  <p className="text-sm mb-3 text-secondary">
                     {play.description}
                   </p>
 
                   {/* Related Bet */}
                   {play.relatedBet && (
                     <div className="flex items-center gap-2 mb-4">
-                      <DollarSign className="w-4 h-4" style={{ color: '#FFD700' }} />
-                      <span className="text-sm font-semibold" style={{ color: '#FFD700' }}>
+                      <DollarSign className="w-4 h-4 text-gold" />
+                      <span className="text-sm font-semibold text-gold">
                         Related Bet: {play.relatedBet}
                       </span>
                     </div>
@@ -640,30 +630,27 @@ export default function SusPlaysPage() {
 
                   {/* Voting */}
                   <div className="flex items-center gap-4 mb-4">
-                    <button className="flex items-center gap-2 px-4 py-2 rounded-xl transition-all hover:bg-white/10"
-                            style={{ background: 'rgba(255,51,102,0.2)' }}>
-                      <ThumbsDown className="w-4 h-4" style={{ color: '#FF3366' }} />
-                      <span className="text-sm font-bold" style={{ color: '#FF3366' }}>{play.votes.sus.toLocaleString()} Sus</span>
+                    <button className="flex items-center gap-2 px-4 py-2 rounded-xl transition-all hover:bg-white/10 vote-btn-sus">
+                      <ThumbsDown className="w-4 h-4 text-hot" />
+                      <span className="text-sm font-bold text-hot">{play.votes.sus.toLocaleString()} Sus</span>
                     </button>
-                    <button className="flex items-center gap-2 px-4 py-2 rounded-xl transition-all hover:bg-white/10"
-                            style={{ background: 'rgba(0,255,136,0.2)' }}>
-                      <ThumbsUp className="w-4 h-4" style={{ color: '#00FF88' }} />
-                      <span className="text-sm font-bold" style={{ color: '#00FF88' }}>{play.votes.legit.toLocaleString()} Legit</span>
+                    <button className="flex items-center gap-2 px-4 py-2 rounded-xl transition-all hover:bg-white/10 vote-btn-legit">
+                      <ThumbsUp className="w-4 h-4 text-green" />
+                      <span className="text-sm font-bold text-green">{play.votes.legit.toLocaleString()} Legit</span>
                     </button>
                     <div className="flex-1" />
-                    <button className="flex items-center gap-1 text-xs" style={{ color: '#808090' }}>
+                    <button className="flex items-center gap-1 text-xs text-muted">
                       <MessageCircle className="w-4 h-4" />
                       {play.comments}
                     </button>
                     
                     {/* Share Dropdown */}
                     <div className="relative group">
-                      <button className="flex items-center gap-1 text-xs hover:text-white transition-all" style={{ color: '#808090' }}>
+                      <button className="flex items-center gap-1 text-xs hover:text-white transition-all text-muted">
                         <Share2 className="w-4 h-4" />
                         Share
                       </button>
-                      <div className="absolute bottom-full right-0 mb-2 w-40 rounded-xl overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all"
-                           style={{ background: '#1A1A24', border: '1px solid rgba(255,255,255,0.1)' }}>
+                      <div className="absolute bottom-full right-0 mb-2 w-40 rounded-xl overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all dropdown-menu">
                         <button
                           onClick={() => shareToTwitter(play)}
                           className="w-full px-3 py-2 flex items-center gap-2 text-xs text-white hover:bg-white/10 transition-all"
@@ -692,9 +679,9 @@ export default function SusPlaysPage() {
                   </div>
 
                   {/* Source */}
-                  <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div className="flex items-center justify-between pt-3 border-top-subtle">
                     <a href={play.twitterUrl} target="_blank" rel="noopener noreferrer"
-                       className="flex items-center gap-2 text-xs hover:underline" style={{ color: '#00A8FF' }}>
+                       className="flex items-center gap-2 text-xs hover:underline text-cyan">
                       <Twitter className="w-4 h-4" />
                       Source: {play.source}
                       <ExternalLink className="w-3 h-3" />
@@ -712,38 +699,36 @@ export default function SusPlaysPage() {
             <SusSearchCompact />
             
             {/* Submit a Sus Play */}
-            <div className="p-4 rounded-2xl" style={{ background: 'linear-gradient(135deg, rgba(255,107,0,0.2), rgba(255,51,102,0.2))', border: '1px solid rgba(255,107,0,0.3)' }}>
+            <div className="p-4 rounded-2xl sidebar-cta">
               <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                <Zap className="w-5 h-5" style={{ color: '#FF6B00' }} />
+                <Zap className="w-5 h-5 text-orange" />
                 Spot Something Sus?
               </h3>
-              <p className="text-sm mb-4" style={{ color: '#808090' }}>
+              <p className="text-sm mb-4 text-muted">
                 Found a questionable play? Submit it for community review.
               </p>
               <button 
                 onClick={() => setShowSubmitModal(true)}
-                className="w-full py-2 rounded-xl font-bold transition-all hover:scale-105"
-                style={{ background: 'linear-gradient(135deg, #FF6B00, #FF3366)', color: '#FFF' }}>
+                className="w-full py-2 rounded-xl font-bold transition-all hover:scale-105 btn-gradient-orange">
                 Submit a Play
               </button>
             </div>
 
             {/* Top Voted This Week */}
-            <div className="p-4 rounded-2xl" style={{ background: '#12121A' }}>
+            <div className="p-4 rounded-2xl stat-card-dark">
               <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <Target className="w-5 h-5" style={{ color: '#FF3366' }} />
+                <Target className="w-5 h-5 text-hot" />
                 Most Sus This Week
               </h3>
               <div className="space-y-3">
                 {[...susPlays].sort((a, b) => b.susScore - a.susScore).slice(0, 5).map((play, i) => (
                   <div key={play.id} className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-                         style={{ background: getSusColor(play.susScore), color: '#000' }}>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${getSusColorClass(play.susScore)}`}>
                       {i + 1}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-white truncate">{play.playerName}</p>
-                      <p className="text-xs" style={{ color: '#808090' }}>{play.susScore}% sus • {formatViews(play.views)} views</p>
+                      <p className="text-xs text-muted">{play.susScore}% sus • {formatViews(play.views)} views</p>
                     </div>
                   </div>
                 ))}
@@ -751,7 +736,7 @@ export default function SusPlaysPage() {
             </div>
 
             {/* How It Works */}
-            <div className="p-4 rounded-2xl" style={{ background: '#12121A' }}>
+            <div className="p-4 rounded-2xl stat-card-dark">
               <h3 className="text-lg font-bold text-white mb-4">How It Works</h3>
               <div className="space-y-3">
                 {[
@@ -761,18 +746,18 @@ export default function SusPlaysPage() {
                   { icon: AlertTriangle, text: 'High-voted plays get verified' },
                 ].map((item, i) => (
                   <div key={i} className="flex items-start gap-3">
-                    <div className="p-1.5 rounded-lg" style={{ background: 'rgba(255,107,0,0.2)' }}>
-                      <item.icon className="w-4 h-4" style={{ color: '#FF6B00' }} />
+                    <div className="p-1.5 rounded-lg icon-bg-orange">
+                      <item.icon className="w-4 h-4 text-orange" />
                     </div>
-                    <p className="text-sm" style={{ color: '#C0C0C8' }}>{item.text}</p>
+                    <p className="text-sm text-secondary">{item.text}</p>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Disclaimer */}
-            <div className="p-4 rounded-2xl text-center" style={{ background: 'rgba(128,128,144,0.1)' }}>
-              <p className="text-xs" style={{ color: '#808090' }}>
+            <div className="p-4 rounded-2xl text-center disclaimer-card">
+              <p className="text-xs text-muted">
                 <strong>Disclaimer:</strong> This page is for entertainment and discussion purposes only. 
                 We do not make accusations of wrongdoing. All plays are user-submitted and community-moderated.
               </p>

@@ -588,7 +588,7 @@ export async function GET(request: NextRequest) {
         rlm: 'calculated',
         sharpEstimate: 'calculated (line movement + inverse public)',
       },
-      note: 'Sharp money % is estimated. True sharp tracking requires paid services like Action Network or Don Best.',
+      note: 'Sharp money % is estimated. True sharp tracking requires premium services like DonBest or SportsInsights.',
     })
     
   } catch (error) {

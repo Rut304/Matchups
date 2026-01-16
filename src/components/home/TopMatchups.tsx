@@ -56,58 +56,88 @@ const sportEmojis: Record<string, string> = {
   WNBA: '🏀',
 }
 
-// Priority ranking for different game types
-function getGamePriority(game: Game): number {
-  let priority = 0
-  const name = `${game.homeTeam.name} ${game.awayTeam.name}`.toLowerCase()
+// Check if a game is a playoff game
+function isPlayoffGame(game: Game): boolean {
   const venue = (game.venue || '').toLowerCase()
   
-  // Playoff/Championship games get highest priority
-  if (name.includes('championship') || name.includes('final') || 
-      venue.includes('super bowl') || venue.includes('world series')) {
-    priority += 100
-  }
-  
-  // CFP games
-  if (game.sport === 'NCAAF' && (venue.includes('rose bowl') || venue.includes('sugar bowl') ||
-      venue.includes('fiesta bowl') || venue.includes('peach bowl') || 
-      venue.includes('mercedes-benz stadium') || venue.includes('at&t stadium'))) {
-    priority += 90
-  }
-  
-  // Playoff games in any sport
-  if (game.status === 'scheduled' && game.venue?.toLowerCase().includes('stadium')) {
-    // Check for playoff-like records (good teams)
-    const homeWins = parseInt(game.homeTeam.record?.split('-')[0] || '0')
-    const awayWins = parseInt(game.awayTeam.record?.split('-')[0] || '0')
-    if (homeWins >= 10 && awayWins >= 10) priority += 50
-  }
-  
-  // NFL playoff dates (Jan 10-13 for divisional, Jan 18-19 for conference)
+  // NFL playoffs: January games after regular season (typically Jan 10+)
   if (game.sport === 'NFL' && game.scheduledAt) {
     const gameDate = new Date(game.scheduledAt)
     const month = gameDate.getMonth()
     const day = gameDate.getDate()
-    if (month === 0 && day >= 10) priority += 80 // January playoffs
+    // NFL playoffs start mid-January
+    if (month === 0 && day >= 10) return true
+    // Super Bowl in February
+    if (month === 1 && day <= 15) return true
   }
   
-  // NCAAF CFP semifinal (Jan 9-10) and championship (Jan 20)
+  // NCAAF CFP games: Check for CFP venues and January dates
   if (game.sport === 'NCAAF' && game.scheduledAt) {
     const gameDate = new Date(game.scheduledAt)
     const month = gameDate.getMonth()
     const day = gameDate.getDate()
-    if (month === 0 && (day === 9 || day === 10)) priority += 95 // CFP Semifinal
-    if (month === 0 && day === 20) priority += 100 // CFP Championship
+    
+    // CFP Semifinal (Jan 9-10) and Championship (Jan 20)
+    if (month === 0 && day >= 9 && day <= 20) {
+      // Check for CFP venues
+      const cfpVenues = ['rose bowl', 'sugar bowl', 'orange bowl', 'cotton bowl', 'fiesta bowl', 'peach bowl',
+                         'mercedes-benz stadium', 'at&t stadium', 'hard rock stadium', 'state farm stadium']
+      if (cfpVenues.some(v => venue.includes(v))) return true
+      // High records in January = likely CFP
+      const homeWins = parseInt(game.homeTeam.record?.split('-')[0] || '0')
+      const awayWins = parseInt(game.awayTeam.record?.split('-')[0] || '0')
+      if (homeWins >= 12 && awayWins >= 12) return true
+    }
   }
+  
+  // NHL/NBA playoffs: Check for April-June postseason dates
+  if ((game.sport === 'NHL' || game.sport === 'NBA') && game.scheduledAt) {
+    const gameDate = new Date(game.scheduledAt)
+    const month = gameDate.getMonth()
+    // NHL/NBA playoffs typically April-June
+    if (month >= 3 && month <= 5) {
+      // Could add more specific logic here
+      return false // For now, regular season
+    }
+  }
+  
+  return false
+}
+
+// Priority ranking for different game types
+function getGamePriority(game: Game): number {
+  let priority = 0
+  const venue = (game.venue || '').toLowerCase()
+  
+  // Live games get highest visibility
+  if (game.status === 'in_progress' || game.status === 'live') priority += 200
+  
+  // Playoff games (using the proper detection)
+  if (isPlayoffGame(game)) {
+    // CFP Championship
+    if (game.sport === 'NCAAF') {
+      const gameDate = new Date(game.scheduledAt)
+      if (gameDate.getMonth() === 0 && gameDate.getDate() === 20) priority += 150 // CFP Championship
+      else priority += 130 // CFP Semifinal
+    }
+    // NFL playoffs
+    if (game.sport === 'NFL') {
+      const gameDate = new Date(game.scheduledAt)
+      if (gameDate.getMonth() === 1) priority += 160 // Super Bowl
+      else if (gameDate.getDate() >= 18) priority += 140 // Conference Championship
+      else priority += 120 // Divisional/Wild Card
+    }
+  }
+  
+  // Sport priority for non-playoffs: NFL > NCAAF > NBA > NHL
+  const sportPriority: Record<string, number> = { 'NFL': 50, 'NCAAF': 45, 'NBA': 40, 'NHL': 35, 'MLB': 30, 'WNBA': 25, 'NCAAB': 25 }
+  priority += sportPriority[game.sport] || 0
   
   // Games with odds get priority
   if (game.odds) priority += 20
   
   // Upcoming games over past games
   if (game.status === 'scheduled') priority += 30
-  
-  // Live games get highest visibility
-  if (game.status === 'in_progress' || game.status === 'live') priority += 150
   
   return priority
 }
@@ -185,10 +215,10 @@ export function TopMatchups() {
           g.status === 'scheduled' || g.status === 'in_progress' || g.status === 'live'
         )
         
-        // Sort by priority and get top 5
+        // Sort by priority and get top 8 (more compact cards now)
         const sortedGames = upcomingGames
           .sort((a, b) => getGamePriority(b) - getGamePriority(a))
-          .slice(0, 5)
+          .slice(0, 8)
         
         setGames(sortedGames)
       } catch (err) {
@@ -226,10 +256,10 @@ export function TopMatchups() {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {games.map((game, idx) => {
         const isLive = game.status === 'in_progress' || game.status === 'live'
-        const isPlayoff = getGamePriority(game) >= 80
+        const isPlayoff = isPlayoffGame(game)
         
         return (
           <Link
@@ -237,91 +267,91 @@ export function TopMatchups() {
             href={`/game/${game.id}?sport=${game.sport.toLowerCase()}`}
             className="block group"
           >
-            <div className={`p-4 rounded-xl border transition-all hover:scale-[1.02] ${
+            <div className={`p-3 rounded-lg border transition-all hover:scale-[1.01] ${
               isLive 
                 ? 'bg-red-500/10 border-red-500/30 hover:border-red-500/50' 
                 : isPlayoff
                   ? 'bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border-yellow-500/30 hover:border-yellow-500/50'
                   : 'bg-white/5 border-white/10 hover:border-white/20'
             }`}>
-              {/* Header */}
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">{sportEmojis[game.sport] || '🏆'}</span>
-                  <span className="text-xs font-bold text-gray-400">{game.sport}</span>
+              {/* Header - Compact */}
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm">{sportEmojis[game.sport] || '🏆'}</span>
+                  <span className="text-[10px] font-bold text-gray-400">{game.sport}</span>
                   {isPlayoff && (
-                    <span className="px-2 py-0.5 rounded text-xs font-bold bg-yellow-500/20 text-yellow-400">
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-yellow-500/20 text-yellow-400">
                       🏆 PLAYOFF
                     </span>
                   )}
                   {isLive && (
-                    <span className="flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold bg-red-500/20 text-red-400">
+                    <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500/20 text-red-400">
                       <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
                       LIVE
                     </span>
                   )}
                 </div>
-                <span className="text-xs text-gray-500 flex items-center gap-1">
+                <span className="text-[10px] text-gray-500 flex items-center gap-1">
                   <Clock className="w-3 h-3" />
                   {formatGameTime(game.scheduledAt)}
                 </span>
               </div>
               
-              {/* Teams */}
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
+              {/* Teams - Compact Row Layout */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex-1 min-w-0">
                   {/* Away Team */}
-                  <div className="flex items-center gap-3 mb-2">
+                  <div className="flex items-center gap-2 mb-1">
                     {game.awayTeam.logo ? (
-                      <img src={game.awayTeam.logo} alt={game.awayTeam.name} className="w-8 h-8 object-contain" />
+                      <img src={game.awayTeam.logo} alt={game.awayTeam.name} className="w-6 h-6 object-contain" />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold">
+                      <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold">
                         {game.awayTeam.abbreviation}
                       </div>
                     )}
-                    <div>
-                      <div className="font-bold text-white">{game.awayTeam.name}</div>
-                      <div className="text-xs text-gray-500">{game.awayTeam.record || ''}</div>
+                    <div className="min-w-0">
+                      <div className="font-bold text-white text-sm truncate">{game.awayTeam.name}</div>
+                      <div className="text-[10px] text-gray-500">{game.awayTeam.record || ''}</div>
                     </div>
                   </div>
                   
                   {/* Home Team */}
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     {game.homeTeam.logo ? (
-                      <img src={game.homeTeam.logo} alt={game.homeTeam.name} className="w-8 h-8 object-contain" />
+                      <img src={game.homeTeam.logo} alt={game.homeTeam.name} className="w-6 h-6 object-contain" />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold">
+                      <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold">
                         {game.homeTeam.abbreviation}
                       </div>
                     )}
-                    <div>
-                      <div className="font-bold text-white">{game.homeTeam.name}</div>
-                      <div className="text-xs text-gray-500">{game.homeTeam.record || ''}</div>
+                    <div className="min-w-0">
+                      <div className="font-bold text-white text-sm truncate">{game.homeTeam.name}</div>
+                      <div className="text-[10px] text-gray-500">{game.homeTeam.record || ''}</div>
                     </div>
                   </div>
                 </div>
                 
-                {/* Odds */}
+                {/* Odds - Compact */}
                 {game.odds && (
-                  <div className="text-right">
+                  <div className="text-right shrink-0">
                     <div className="text-sm font-bold text-white">
                       {game.homeTeam.abbreviation} {formatSpread(game.odds.spread)}
                     </div>
-                    <div className="text-xs text-gray-400">
+                    <div className="text-[10px] text-gray-400">
                       O/U {game.odds.total}
                     </div>
-                    <div className="text-xs text-green-400 mt-1">
+                    <div className="text-[10px] text-green-400">
                       ML: {formatML(game.odds.homeML)} / {formatML(game.odds.awayML)}
                     </div>
                   </div>
                 )}
               </div>
               
-              {/* Venue */}
+              {/* Venue - Single Line Compact */}
               {game.venue && (
-                <div className="mt-2 pt-2 border-t border-white/10 flex items-center justify-between text-xs text-gray-500">
-                  <span>{game.venue}</span>
-                  {game.broadcast && <span>📺 {game.broadcast}</span>}
+                <div className="mt-1.5 pt-1.5 border-t border-white/10 flex items-center justify-between text-[10px] text-gray-500">
+                  <span className="truncate">{game.venue}</span>
+                  {game.broadcast && <span className="shrink-0 ml-2">📺 {game.broadcast}</span>}
                 </div>
               )}
             </div>
@@ -329,13 +359,13 @@ export function TopMatchups() {
         )
       })}
       
-      {/* View All Link */}
+      {/* View All Link - Compact */}
       <Link 
         href="/scores"
-        className="flex items-center justify-center gap-2 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-sm font-medium text-gray-400 hover:text-white"
+        className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-xs font-medium text-gray-400 hover:text-white"
       >
         View All Games
-        <ChevronRight className="w-4 h-4" />
+        <ChevronRight className="w-3 h-3" />
       </Link>
     </div>
   )

@@ -3,7 +3,7 @@
 /**
  * GameBettingSplits Component
  * 
- * Displays real betting splits data from Action Network for a specific game.
+ * Displays real betting splits data for a specific game.
  * Shows ticket % vs money % to identify sharp vs public money.
  * 
  * Key Features:
@@ -574,7 +574,7 @@ export function GameBettingSplits({
 
       {/* Source Attribution - Smaller */}
       <div className="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-600">
-        <span>Data from Action Network</span>
+        <span>Live betting data</span>
         <span>Updates every 2 min</span>
       </div>
     </div>

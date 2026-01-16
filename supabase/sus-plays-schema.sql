@@ -1,6 +1,10 @@
 -- Sus Plays table for tracking questionable player decisions
 -- Run this in Supabase SQL editor to add the sus_plays table
 
+-- Drop existing table to recreate with new columns (comment out if you want to preserve data)
+-- DROP TABLE IF EXISTS sus_play_votes CASCADE;
+-- DROP TABLE IF EXISTS sus_plays CASCADE;
+
 CREATE TABLE IF NOT EXISTS sus_plays (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   title TEXT NOT NULL,
@@ -8,7 +12,7 @@ CREATE TABLE IF NOT EXISTS sus_plays (
   sport TEXT NOT NULL DEFAULT 'nfl',
   player_name TEXT,
   team TEXT,
-  game_id UUID REFERENCES games(id) ON DELETE SET NULL,
+  game_id TEXT, -- ESPN game ID or other reference
   video_url TEXT,
   thumbnail_url TEXT,
   play_type TEXT, -- 'drop', 'fumble', 'penalty', 'missed_shot', 'error', 'other'
@@ -19,10 +23,34 @@ CREATE TABLE IF NOT EXISTS sus_plays (
   is_trending BOOLEAN DEFAULT false,
   is_featured BOOLEAN DEFAULT false,
   submitted_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
-  moderation_status TEXT DEFAULT 'pending', -- 'pending', 'approved', 'rejected'
+  moderation_status TEXT DEFAULT 'approved', -- 'pending', 'approved', 'rejected'
+  -- X/Twitter integration fields
+  tweet_id TEXT UNIQUE, -- Twitter/X post ID for deduplication
+  tweet_url TEXT, -- Full URL to the tweet
+  tweet_author TEXT, -- @handle of the poster
+  tweet_author_name TEXT, -- Display name
+  tweet_author_verified BOOLEAN DEFAULT false,
+  tweet_media_url TEXT, -- Video/image from tweet
+  tweet_engagement JSONB, -- likes, retweets, views
+  source TEXT DEFAULT 'manual', -- 'manual', 'twitter', 'reddit', 'tiktok'
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
 );
+
+-- Add columns if table already exists (for upgrades)
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'sus_plays' AND column_name = 'tweet_id') THEN
+    ALTER TABLE sus_plays ADD COLUMN tweet_id TEXT UNIQUE;
+    ALTER TABLE sus_plays ADD COLUMN tweet_url TEXT;
+    ALTER TABLE sus_plays ADD COLUMN tweet_author TEXT;
+    ALTER TABLE sus_plays ADD COLUMN tweet_author_name TEXT;
+    ALTER TABLE sus_plays ADD COLUMN tweet_author_verified BOOLEAN DEFAULT false;
+    ALTER TABLE sus_plays ADD COLUMN tweet_media_url TEXT;
+    ALTER TABLE sus_plays ADD COLUMN tweet_engagement JSONB;
+    ALTER TABLE sus_plays ADD COLUMN source TEXT DEFAULT 'manual';
+  END IF;
+END $$;
 
 -- Create indexes for common queries
 CREATE INDEX IF NOT EXISTS idx_sus_plays_sport ON sus_plays(sport);
@@ -153,3 +181,95 @@ VALUES
     987,
     false
   );
+
+-- Insert X/Twitter sourced sus plays
+INSERT INTO sus_plays (
+  title, description, sport, player_name, team, play_type, game_context, betting_impact,
+  sus_votes, legit_votes, is_featured, is_trending, source, 
+  tweet_id, tweet_url, tweet_author, tweet_author_verified, moderation_status
+)
+VALUES 
+  (
+    'Dirty play spotted by @dirtyfootbaiier',
+    'Suspicious play caught on camera and shared by popular sports betting sleuth. Community is divided on whether this was intentional.',
+    'nfl',
+    NULL,
+    NULL,
+    'other',
+    'key moment',
+    'spread',
+    4521,
+    1832,
+    true,
+    true,
+    'twitter',
+    '2011469607316656579',
+    'https://x.com/dirtyfootbaiier/status/2011469607316656579',
+    '@dirtyfootbaiier',
+    false,
+    'approved'
+  ),
+  (
+    'Rigged for Vegas breakdown #1',
+    'Detailed analysis of a questionable play that had major betting implications. The timing and execution raised serious eyebrows.',
+    'nfl',
+    NULL,
+    NULL,
+    'other',
+    'late game',
+    'multiple',
+    5892,
+    2341,
+    true,
+    true,
+    'twitter',
+    '2008758808584012099',
+    'https://x.com/riggedforvegas/status/2008758808584012099',
+    '@riggedforvegas',
+    false,
+    'approved'
+  ),
+  (
+    'Rigged for Vegas breakdown #2',
+    'Another suspicious sequence of events that benefited the sportsbooks. Pattern recognition analysis included.',
+    'nfl',
+    NULL,
+    NULL,
+    'error',
+    '4th quarter',
+    'spread',
+    6234,
+    1567,
+    true,
+    true,
+    'twitter',
+    '1999952158293377061',
+    'https://x.com/riggedforvegas/status/1999952158293377061',
+    '@riggedforvegas',
+    false,
+    'approved'
+  ),
+  (
+    'Rigged for Vegas breakdown #3',
+    'Yet another play that defies logic. The probability of this outcome was extremely low given the circumstances.',
+    'nba',
+    NULL,
+    NULL,
+    'missed_shot',
+    'final play',
+    'spread',
+    7103,
+    2891,
+    true,
+    true,
+    'twitter',
+    '2004051758239322283',
+    'https://x.com/riggedforvegas/status/2004051758239322283',
+    '@riggedforvegas',
+    false,
+    'approved'
+  );
+
+-- Create index for tweet lookups
+CREATE INDEX IF NOT EXISTS idx_sus_plays_tweet_id ON sus_plays(tweet_id) WHERE tweet_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_sus_plays_source ON sus_plays(source);
