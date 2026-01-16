@@ -74,8 +74,14 @@ function ConfidenceBadge({ confidence }: { confidence: number }) {
 
 // Single Edge Card
 function EdgeCardComponent({ edge }: { edge: EdgeCard }) {
+  // Demo games (from fallback data) shouldn't link to non-existent pages
+  const isDemo = edge.gameId.startsWith('demo-') || edge.gameId.startsWith('market-')
+  const href = isDemo 
+    ? `/${edge.sport.toLowerCase()}` // Link to sport page instead of non-existent game
+    : `/game/${edge.gameId}?sport=${edge.sport.toLowerCase()}`
+  
   return (
-    <Link href={`/game/${edge.gameId}?sport=${edge.sport.toLowerCase()}`}>
+    <Link href={href}>
       <div className="rounded-xl p-4 hover:scale-[1.02] transition-all cursor-pointer group bg-zinc-900/80 border border-white/5 shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-3">

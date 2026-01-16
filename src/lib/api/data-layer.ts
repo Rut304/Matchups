@@ -1,12 +1,18 @@
 /**
  * Unified Data Layer
- * Combines ESPN + The Odds API into a single normalized data source
- * Stores in Supabase and provides real-time updates
+ * Combines ESPN + Action Network (+ The Odds API fallback) into a single normalized data source
+ * 
+ * API PRIORITY:
+ * 1. ESPN - Game data, scores, schedules (free, unlimited)
+ * 2. Action Network - Betting lines, splits, multi-book odds (free public API)
+ * 3. The Odds API - Fallback for odds if AN fails (paid, rate limited)
+ * 4. Supabase - Historical data, caching
  */
 
 import { createClient } from '@/lib/supabase/server'
 import { getScoreboard, getTeams, transformESPNGame, ESPN_SPORTS, type SportKey } from './espn'
 import { getOdds, transformOddsGame, ODDS_API_SPORTS, type OddsSportKey } from './the-odds-api'
+import { fetchActionNetworkGames } from '../scrapers/action-network'
 
 // Unified Game Type
 export interface UnifiedGame {
@@ -72,8 +78,8 @@ export interface UnifiedGame {
   
   // Data source metadata
   sourceInfo?: {
-    primary: 'espn' | 'odds-api' | 'supabase'
-    backup?: 'espn' | 'odds-api' | 'supabase'
+    primary: 'espn' | 'action-network' | 'odds-api' | 'supabase'
+    backup?: 'espn' | 'action-network' | 'odds-api' | 'supabase'
     confidence: number // 0-100
     fallbackUsed: boolean
   }
@@ -98,18 +104,30 @@ export async function syncGames(sport: SportKey): Promise<UnifiedGame[]> {
   const espnScoreboard = await getScoreboard(sport)
   const espnGames = espnScoreboard.events.map(g => transformESPNGame(g, sport))
   
-  // 2. Fetch odds (if API key is configured)
+  // 2. Fetch odds from Action Network FIRST (free, unlimited)
+  let actionNetworkGames: Awaited<ReturnType<typeof fetchActionNetworkGames>> = []
+  try {
+    actionNetworkGames = await fetchActionNetworkGames(sport)
+    if (actionNetworkGames.length > 0) {
+      console.log(`[DataLayer] Action Network: ${actionNetworkGames.length} games with odds for ${sport}`)
+    }
+  } catch (error) {
+    console.warn(`[DataLayer] Action Network failed for ${sport}, will try fallback:`, error)
+  }
+  
+  // 3. Fallback to The Odds API only if Action Network failed AND we have API key
   let oddsGames: ReturnType<typeof transformOddsGame>[] = []
-  if (process.env.ODDS_API_KEY && sport in ODDS_API_SPORTS) {
+  if (actionNetworkGames.length === 0 && process.env.ODDS_API_KEY && sport in ODDS_API_SPORTS) {
     try {
+      console.log(`[DataLayer] Falling back to The Odds API for ${sport}`)
       const oddsData = await getOdds(sport as OddsSportKey)
       oddsGames = oddsData.map(g => transformOddsGame(g, sport as OddsSportKey))
     } catch (error) {
-      console.error(`[DataLayer] Failed to fetch odds for ${sport}:`, error)
+      console.error(`[DataLayer] The Odds API also failed for ${sport}:`, error)
     }
   }
   
-  // 2.5. Resolve duplicate ESPN games using Odds API as backup
+  // 4. Resolve duplicate ESPN games
   const espnWithIdentifiers = espnGames.map(g => ({
     ...g,
     homeTeam: g.home.name || '',
@@ -134,15 +152,80 @@ export async function syncGames(sport: SportKey): Promise<UnifiedGame[]> {
     console.warn(`[DataLayer] Resolved ${duplicates.length} duplicate ESPN games for ${sport}`)
   }
   
-  // 3. Merge resolved ESPN games with odds data
+  // 5. Merge ESPN games with odds data (Action Network primary, Odds API fallback)
   for (const espnGame of resolvedEspnGames) {
-    // Match by team names (ESPN and Odds API use slightly different formats)
+    // Try to match with Action Network first
+    const matchingAN = actionNetworkGames.find(g => {
+      const homeTeam = g.teams.find(t => t.id === g.home_team_id)
+      const awayTeam = g.teams.find(t => t.id === g.away_team_id)
+      return homeTeam && awayTeam &&
+        fuzzyMatchTeam(homeTeam.full_name, espnGame.home.name || '') &&
+        fuzzyMatchTeam(awayTeam.full_name, espnGame.away.name || '')
+    })
+    
+    // Fallback to Odds API match
     const matchingOdds = oddsGames.find(og => 
       fuzzyMatchTeam(og.homeTeam, espnGame.home.name || '') &&
       fuzzyMatchTeam(og.awayTeam, espnGame.away.name || '')
     )
     
-    // Calculate match confidence if we found odds
+    // Extract odds from Action Network if available
+    let oddsData: UnifiedGame['odds'] | undefined
+    let oddsSource: 'action-network' | 'odds-api' | 'espn' | undefined
+    
+    if (matchingAN?.markets) {
+      // Get consensus odds (book ID 15)
+      const consensusMarket = matchingAN.markets['15']?.event
+      if (consensusMarket) {
+        const spreadHome = consensusMarket.spread?.find(s => s.side === 'home')
+        const spreadAway = consensusMarket.spread?.find(s => s.side === 'away')
+        const totalOver = consensusMarket.total?.find(t => t.side === 'over')
+        const totalUnder = consensusMarket.total?.find(t => t.side === 'under')
+        const mlHome = consensusMarket.moneyline?.find(m => m.side === 'home')
+        const mlAway = consensusMarket.moneyline?.find(m => m.side === 'away')
+        
+        oddsData = {
+          spread: spreadHome?.value ?? 0,
+          spreadOdds: spreadHome?.odds ?? -110,
+          total: totalOver?.value ?? 0,
+          overOdds: totalOver?.odds ?? -110,
+          underOdds: totalUnder?.odds ?? -110,
+          homeML: mlHome?.odds ?? 0,
+          awayML: mlAway?.odds ?? 0,
+        }
+        oddsSource = 'action-network'
+      }
+    }
+    
+    // Fallback to Odds API
+    if (!oddsData && matchingOdds?.odds) {
+      oddsData = {
+        spread: matchingOdds.odds.spread ?? 0,
+        spreadOdds: matchingOdds.odds.spreadOdds ?? -110,
+        total: matchingOdds.odds.total ?? 0,
+        overOdds: matchingOdds.odds.overOdds ?? -110,
+        underOdds: matchingOdds.odds.underOdds ?? -110,
+        homeML: matchingOdds.odds.homeML ?? 0,
+        awayML: matchingOdds.odds.awayML ?? 0,
+      }
+      oddsSource = 'odds-api'
+    }
+    
+    // Final fallback to ESPN odds
+    if (!oddsData && espnGame.odds) {
+      oddsData = {
+        spread: espnGame.odds.spread ?? 0,
+        spreadOdds: -110,
+        total: espnGame.odds.total ?? 0,
+        overOdds: -110,
+        underOdds: -110,
+        homeML: espnGame.odds.homeML ?? 0,
+        awayML: espnGame.odds.awayML ?? 0,
+      }
+      oddsSource = 'espn'
+    }
+    
+    // Calculate match confidence
     let matchConfidence = 100
     if (matchingOdds) {
       const { confidence } = matchGames(
@@ -180,25 +263,17 @@ export async function syncGames(sport: SportKey): Promise<UnifiedGame[]> {
       weather: espnGame.weather ?? undefined,
       period: espnGame.period ?? undefined,
       clock: espnGame.clock,
-      // Use Odds API as primary for odds, ESPN as backup
-      odds: matchingOdds?.odds || espnGame.odds ? {
-        spread: matchingOdds?.odds.spread ?? espnGame.odds?.spread ?? 0,
-        spreadOdds: matchingOdds?.odds.spreadOdds ?? -110,
-        total: matchingOdds?.odds.total ?? espnGame.odds?.total ?? 0,
-        overOdds: matchingOdds?.odds.overOdds ?? -110,
-        underOdds: matchingOdds?.odds.underOdds ?? -110,
-        homeML: matchingOdds?.odds.homeML ?? espnGame.odds?.homeML ?? 0,
-        awayML: matchingOdds?.odds.awayML ?? espnGame.odds?.awayML ?? 0,
-      } : undefined,
+      // Priority: Action Network (free) > Odds API (paid) > ESPN (limited)
+      odds: oddsData,
       consensus: matchingOdds?.consensus ?? undefined,
       espnId: espnGame.id,
       oddsApiId: matchingOdds?.id,
-      // Track data source hierarchy
+      // Track data source hierarchy: Action Network > Odds API > ESPN
       sourceInfo: {
         primary: 'espn',
-        backup: matchingOdds ? 'odds-api' : undefined,
+        backup: oddsSource || undefined,
         confidence: matchConfidence,
-        fallbackUsed: !matchingOdds && !!espnGame.odds,
+        fallbackUsed: !oddsData && !!espnGame.odds,
       },
       lastUpdated: new Date().toISOString(),
     }
