@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { type UnifiedGame } from '@/lib/api/data-layer'
 import { getRealEdgeAlerts, type EdgeAlert } from '@/lib/edge-features'
 
@@ -416,6 +417,14 @@ export function GameView({ game, expanded = false, showEdge = true, showAnalytic
               <span>🌡️ {liveData.weather.temp}°F - {liveData.weather.condition}</span>
             )}
           </div>
+          
+          {/* View Full Matchup Link */}
+          <Link 
+            href={`/${(game.sport || 'nfl').toLowerCase()}/matchups/${game.id}`}
+            className="flex items-center justify-center gap-2 w-full mt-3 py-2.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold transition-colors"
+          >
+            View Full Matchup Analysis →
+          </Link>
         </div>
       )}
     </div>

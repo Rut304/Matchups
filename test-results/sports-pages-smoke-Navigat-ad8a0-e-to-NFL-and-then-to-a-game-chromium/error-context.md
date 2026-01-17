@@ -1,0 +1,1195 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - link "Matchups 100% FREE" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img [ref=e7]
+        - generic [ref=e9]:
+          - generic [ref=e10]: Matchups
+          - generic [ref=e11]: 100% FREE
+      - generic [ref=e12]:
+        - button "Sports" [ref=e14]:
+          - text: Sports
+          - img [ref=e15]
+        - button "Markets" [ref=e18]:
+          - img [ref=e19]
+          - text: Markets
+          - img [ref=e21]
+        - button "Tools" [ref=e24]:
+          - text: Tools
+          - img [ref=e25]
+        - link "Scores" [ref=e27] [cursor=pointer]:
+          - /url: /scores
+          - img [ref=e28]
+          - text: Scores
+        - link "Check the \"Experts\"" [ref=e30] [cursor=pointer]:
+          - /url: /leaderboard
+          - img [ref=e31]
+          - generic [ref=e37]: Check the
+          - generic [ref=e38]: "\"Experts\""
+      - generic [ref=e39]:
+        - button "Search... K" [ref=e40]:
+          - img [ref=e41]
+          - generic [ref=e44]: Search...
+          - generic [ref=e45]:
+            - img [ref=e46]
+            - text: K
+        - link "The Edge" [ref=e48] [cursor=pointer]:
+          - /url: /markets/edge
+          - img [ref=e49]
+          - generic [ref=e53]: The Edge
+        - link "Sus Plays" [ref=e54] [cursor=pointer]:
+          - /url: /sus
+          - img [ref=e55]
+          - generic [ref=e57]: Sus Plays
+        - link "Sign In" [ref=e58] [cursor=pointer]:
+          - /url: /auth
+          - img [ref=e59]
+          - generic [ref=e62]: Sign In
+  - main [ref=e64]:
+    - generic [ref=e65]:
+      - generic [ref=e68]:
+        - heading "Sports Betting Intelligence" [level=1] [ref=e69]
+        - paragraph [ref=e70]: Real-time odds, betting trends, expert picks, and market analysis. Everything you need to make informed decisions — all in one place.
+        - generic [ref=e71]:
+          - generic [ref=e72]:
+            - img [ref=e73]
+            - generic [ref=e75]: Live Odds & Lines
+            - paragraph [ref=e76]: Compare lines across all major sportsbooks in real-time
+          - generic [ref=e77]:
+            - img [ref=e78]
+            - generic [ref=e81]: Betting Trends
+            - paragraph [ref=e82]: ATS records, public betting %, and sharp money indicators
+          - generic [ref=e83]:
+            - img "Wrong" [ref=e84]
+            - generic [ref=e85]: Expert Tracker
+            - paragraph [ref=e86]: See how the "experts" actually perform — receipts included
+        - generic [ref=e87]:
+          - link "Today's Scores & Odds" [ref=e88] [cursor=pointer]:
+            - /url: /scores
+            - img [ref=e89]
+            - text: Today's Scores & Odds
+          - link "Wrong Expert Tracker 🧾" [ref=e92] [cursor=pointer]:
+            - /url: /leaderboard
+            - img "Wrong" [ref=e93]
+            - text: Expert Tracker 🧾
+        - generic [ref=e97]:
+          - generic [ref=e98]:
+            - img [ref=e99]
+            - generic [ref=e102]: TREND FINDER
+            - generic [ref=e103]: AI-Powered
+          - generic [ref=e104]:
+            - img [ref=e105]
+            - textbox "Ask any sports betting question... e.g., 'How often do NFL playoff underdogs cover?'" [ref=e108]
+            - button "Search" [disabled] [ref=e109]:
+              - text: Search
+              - img [ref=e110]
+          - generic [ref=e112]:
+            - generic [ref=e113]: "Try:"
+            - button "NFL playoff underdogs cover rate?" [ref=e114]
+            - button "Both teams score rushing & passing TD?" [ref=e115]
+            - button "NBA back-to-back games ATS?" [ref=e116]
+        - paragraph [ref=e117]:
+          - text: "💡 Pro tip: The books set lines to maximize their profit, not yours."
+          - link "Always shop for the best odds" [ref=e118] [cursor=pointer]:
+            - /url: /lineshop
+          - text: .
+        - generic [ref=e119]:
+          - link "Sus Plays — Who's his Mizuhara?" [ref=e120] [cursor=pointer]:
+            - /url: /sus
+            - img [ref=e121]
+            - text: Sus Plays
+            - generic [ref=e123]: — Who's his Mizuhara?
+          - link "Sharp Money — Follow the pros" [ref=e124] [cursor=pointer]:
+            - /url: /edge
+            - img [ref=e125]
+            - text: Sharp Money
+            - generic [ref=e129]: — Follow the pros
+          - link "Prediction Markets — Polymarket + Kalshi" [ref=e130] [cursor=pointer]:
+            - /url: /markets
+            - img [ref=e131]
+            - text: Prediction Markets
+            - generic [ref=e133]: — Polymarket + Kalshi
+      - generic [ref=e134]:
+        - generic [ref=e135]:
+          - generic [ref=e136]:
+            - img [ref=e138]
+            - generic [ref=e140]:
+              - heading "Top Matchups" [level=2] [ref=e141]
+              - paragraph [ref=e142]: Biggest games with live odds • Playoffs highlighted
+          - link "All Games" [ref=e143] [cursor=pointer]:
+            - /url: /scores
+            - text: All Games
+            - img [ref=e144]
+        - generic [ref=e146]:
+          - generic [ref=e148]:
+            - 'link "🏀 NBA LIVE Thu, Jan 15, 10:00 PM Atlanta Hawks Atlanta Hawks 20-22 Portland Trail Blazers Portland Trail Blazers 19-22 POR -3.5 O/U 223.5 ML: -146 / +12100 Moda Center 📺 KUNP 16, BlazerVision" [ref=e149] [cursor=pointer]':
+              - /url: /game/401810440?sport=nba
+              - generic [ref=e150]:
+                - generic [ref=e151]:
+                  - generic [ref=e152]:
+                    - generic [ref=e153]: 🏀
+                    - generic [ref=e154]: NBA
+                    - generic [ref=e155]: LIVE
+                  - generic [ref=e157]:
+                    - img [ref=e158]
+                    - text: Thu, Jan 15, 10:00 PM
+                - generic [ref=e161]:
+                  - generic [ref=e162]:
+                    - generic [ref=e163]:
+                      - img "Atlanta Hawks" [ref=e164]
+                      - generic [ref=e165]:
+                        - generic [ref=e166]: Atlanta Hawks
+                        - generic [ref=e167]: 20-22
+                    - generic [ref=e168]:
+                      - img "Portland Trail Blazers" [ref=e169]
+                      - generic [ref=e170]:
+                        - generic [ref=e171]: Portland Trail Blazers
+                        - generic [ref=e172]: 19-22
+                  - generic [ref=e173]:
+                    - generic [ref=e174]: POR -3.5
+                    - generic [ref=e175]: O/U 223.5
+                    - generic [ref=e176]: "ML: -146 / +12100"
+                - generic [ref=e177]:
+                  - generic [ref=e178]: Moda Center
+                  - generic [ref=e179]: 📺 KUNP 16, BlazerVision
+            - 'link "🏈 NFL 🏆 PLAYOFF Tomorrow 3:00 PM EST Houston Texans Houston Texans 12-5 New England Patriots New England Patriots 14-3 NE -3 O/U 40.5 ML: -175 / +14400 Gillette Stadium 📺 ESPN, ABC" [ref=e180] [cursor=pointer]':
+              - /url: /game/401772983?sport=nfl
+              - generic [ref=e181]:
+                - generic [ref=e182]:
+                  - generic [ref=e183]:
+                    - generic [ref=e184]: 🏈
+                    - generic [ref=e185]: NFL
+                    - generic [ref=e186]: 🏆 PLAYOFF
+                  - generic [ref=e187]:
+                    - img [ref=e188]
+                    - text: Tomorrow 3:00 PM EST
+                - generic [ref=e191]:
+                  - generic [ref=e192]:
+                    - generic [ref=e193]:
+                      - img "Houston Texans" [ref=e194]
+                      - generic [ref=e195]:
+                        - generic [ref=e196]: Houston Texans
+                        - generic [ref=e197]: 12-5
+                    - generic [ref=e198]:
+                      - img "New England Patriots" [ref=e199]
+                      - generic [ref=e200]:
+                        - generic [ref=e201]: New England Patriots
+                        - generic [ref=e202]: 14-3
+                  - generic [ref=e203]:
+                    - generic [ref=e204]: NE -3
+                    - generic [ref=e205]: O/U 40.5
+                    - generic [ref=e206]: "ML: -175 / +14400"
+                - generic [ref=e207]:
+                  - generic [ref=e208]: Gillette Stadium
+                  - generic [ref=e209]: 📺 ESPN, ABC
+            - 'link "🏈 NFL 🏆 PLAYOFF Tomorrow 6:30 PM EST Los Angeles Rams Los Angeles Rams 12-5 Chicago Bears Chicago Bears 11-6 CHI +4 O/U 48.5 ML: +16400 / -200 Soldier Field 📺 NBC, Peacock" [ref=e210] [cursor=pointer]':
+              - /url: /game/401772985?sport=nfl
+              - generic [ref=e211]:
+                - generic [ref=e212]:
+                  - generic [ref=e213]:
+                    - generic [ref=e214]: 🏈
+                    - generic [ref=e215]: NFL
+                    - generic [ref=e216]: 🏆 PLAYOFF
+                  - generic [ref=e217]:
+                    - img [ref=e218]
+                    - text: Tomorrow 6:30 PM EST
+                - generic [ref=e221]:
+                  - generic [ref=e222]:
+                    - generic [ref=e223]:
+                      - img "Los Angeles Rams" [ref=e224]
+                      - generic [ref=e225]:
+                        - generic [ref=e226]: Los Angeles Rams
+                        - generic [ref=e227]: 12-5
+                    - generic [ref=e228]:
+                      - img "Chicago Bears" [ref=e229]
+                      - generic [ref=e230]:
+                        - generic [ref=e231]: Chicago Bears
+                        - generic [ref=e232]: 11-6
+                  - generic [ref=e233]:
+                    - generic [ref=e234]: CHI +4
+                    - generic [ref=e235]: O/U 48.5
+                    - generic [ref=e236]: "ML: +16400 / -200"
+                - generic [ref=e237]:
+                  - generic [ref=e238]: Soldier Field
+                  - generic [ref=e239]: 📺 NBC, Peacock
+            - link "🏀 NBA LIVE Thu, Jan 15, 10:00 PM New York Knicks New York Knicks 25-15 Golden State Warriors Golden State Warriors 22-19 Chase Center 📺 Prime Video" [ref=e240] [cursor=pointer]:
+              - /url: /game/401810439?sport=nba
+              - generic [ref=e241]:
+                - generic [ref=e242]:
+                  - generic [ref=e243]:
+                    - generic [ref=e244]: 🏀
+                    - generic [ref=e245]: NBA
+                    - generic [ref=e246]: LIVE
+                  - generic [ref=e248]:
+                    - img [ref=e249]
+                    - text: Thu, Jan 15, 10:00 PM
+                - generic [ref=e253]:
+                  - generic [ref=e254]:
+                    - img "New York Knicks" [ref=e255]
+                    - generic [ref=e256]:
+                      - generic [ref=e257]: New York Knicks
+                      - generic [ref=e258]: 25-15
+                  - generic [ref=e259]:
+                    - img "Golden State Warriors" [ref=e260]
+                    - generic [ref=e261]:
+                      - generic [ref=e262]: Golden State Warriors
+                      - generic [ref=e263]: 22-19
+                - generic [ref=e264]:
+                  - generic [ref=e265]: Chase Center
+                  - generic [ref=e266]: 📺 Prime Video
+            - link "🏀 NBA LIVE Thu, Jan 15, 10:30 PM Charlotte Hornets Charlotte Hornets 14-26 Los Angeles Lakers Los Angeles Lakers 24-14 crypto.com Arena 📺 Spectrum Sports Net, Spectrum Sports Net +" [ref=e267] [cursor=pointer]:
+              - /url: /game/401810441?sport=nba
+              - generic [ref=e268]:
+                - generic [ref=e269]:
+                  - generic [ref=e270]:
+                    - generic [ref=e271]: 🏀
+                    - generic [ref=e272]: NBA
+                    - generic [ref=e273]: LIVE
+                  - generic [ref=e275]:
+                    - img [ref=e276]
+                    - text: Thu, Jan 15, 10:30 PM
+                - generic [ref=e280]:
+                  - generic [ref=e281]:
+                    - img "Charlotte Hornets" [ref=e282]
+                    - generic [ref=e283]:
+                      - generic [ref=e284]: Charlotte Hornets
+                      - generic [ref=e285]: 14-26
+                  - generic [ref=e286]:
+                    - img "Los Angeles Lakers" [ref=e287]
+                    - generic [ref=e288]:
+                      - generic [ref=e289]: Los Angeles Lakers
+                      - generic [ref=e290]: 24-14
+                - generic [ref=e291]:
+                  - generic [ref=e292]: crypto.com Arena
+                  - generic [ref=e293]: 📺 Spectrum Sports Net, Spectrum Sports Net +
+            - link "🏒 NHL LIVE Thu, Jan 15, 9:30 PM Toronto Maple Leafs Toronto Maple Leafs 23-16-7 Vegas Golden Knights Vegas Golden Knights 22-11-12 T-Mobile Arena 📺 ESPN" [ref=e294] [cursor=pointer]:
+              - /url: /game/401803099?sport=nhl
+              - generic [ref=e295]:
+                - generic [ref=e296]:
+                  - generic [ref=e297]:
+                    - generic [ref=e298]: 🏒
+                    - generic [ref=e299]: NHL
+                    - generic [ref=e300]: LIVE
+                  - generic [ref=e302]:
+                    - img [ref=e303]
+                    - text: Thu, Jan 15, 9:30 PM
+                - generic [ref=e307]:
+                  - generic [ref=e308]:
+                    - img "Toronto Maple Leafs" [ref=e309]
+                    - generic [ref=e310]:
+                      - generic [ref=e311]: Toronto Maple Leafs
+                      - generic [ref=e312]: 23-16-7
+                  - generic [ref=e313]:
+                    - img "Vegas Golden Knights" [ref=e314]
+                    - generic [ref=e315]:
+                      - generic [ref=e316]: Vegas Golden Knights
+                      - generic [ref=e317]: 22-11-12
+                - generic [ref=e318]:
+                  - generic [ref=e319]: T-Mobile Arena
+                  - generic [ref=e320]: 📺 ESPN
+            - 'link "🏈 NCAAF 🏆 PLAYOFF Mon, Jan 19, 7:30 PM Miami Hurricanes Miami Hurricanes 13-2 Indiana Hoosiers Indiana Hoosiers 15-0 IU -8.5 O/U 47.5 ML: 0 / 0 Hard Rock Stadium 📺 ESPN" [ref=e321] [cursor=pointer]':
+              - /url: /game/401769076?sport=ncaaf
+              - generic [ref=e322]:
+                - generic [ref=e323]:
+                  - generic [ref=e324]:
+                    - generic [ref=e325]: 🏈
+                    - generic [ref=e326]: NCAAF
+                    - generic [ref=e327]: 🏆 PLAYOFF
+                  - generic [ref=e328]:
+                    - img [ref=e329]
+                    - text: Mon, Jan 19, 7:30 PM
+                - generic [ref=e332]:
+                  - generic [ref=e333]:
+                    - generic [ref=e334]:
+                      - img "Miami Hurricanes" [ref=e335]
+                      - generic [ref=e336]:
+                        - generic [ref=e337]: Miami Hurricanes
+                        - generic [ref=e338]: 13-2
+                    - generic [ref=e339]:
+                      - img "Indiana Hoosiers" [ref=e340]
+                      - generic [ref=e341]:
+                        - generic [ref=e342]: Indiana Hoosiers
+                        - generic [ref=e343]: 15-0
+                  - generic [ref=e344]:
+                    - generic [ref=e345]: IU -8.5
+                    - generic [ref=e346]: O/U 47.5
+                    - generic [ref=e347]: "ML: 0 / 0"
+                - generic [ref=e348]:
+                  - generic [ref=e349]: Hard Rock Stadium
+                  - generic [ref=e350]: 📺 ESPN
+            - 'link "🏈 NFL 🏆 PLAYOFF Today 4:30 PM EST Buffalo Bills Buffalo Bills 12-5 Denver Broncos Denver Broncos 14-3 DEN -1.5 O/U 45.5 ML: -120 / +9900 Empower Field at Mile High 📺 CBS" [ref=e351] [cursor=pointer]':
+              - /url: /game/401772982?sport=nfl
+              - generic [ref=e352]:
+                - generic [ref=e353]:
+                  - generic [ref=e354]:
+                    - generic [ref=e355]: 🏈
+                    - generic [ref=e356]: NFL
+                    - generic [ref=e357]: 🏆 PLAYOFF
+                  - generic [ref=e358]:
+                    - img [ref=e359]
+                    - text: Today 4:30 PM EST
+                - generic [ref=e362]:
+                  - generic [ref=e363]:
+                    - generic [ref=e364]:
+                      - img "Buffalo Bills" [ref=e365]
+                      - generic [ref=e366]:
+                        - generic [ref=e367]: Buffalo Bills
+                        - generic [ref=e368]: 12-5
+                    - generic [ref=e369]:
+                      - img "Denver Broncos" [ref=e370]
+                      - generic [ref=e371]:
+                        - generic [ref=e372]: Denver Broncos
+                        - generic [ref=e373]: 14-3
+                  - generic [ref=e374]:
+                    - generic [ref=e375]: DEN -1.5
+                    - generic [ref=e376]: O/U 45.5
+                    - generic [ref=e377]: "ML: -120 / +9900"
+                - generic [ref=e378]:
+                  - generic [ref=e379]: Empower Field at Mile High
+                  - generic [ref=e380]: 📺 CBS
+            - link "View All Games" [ref=e381] [cursor=pointer]:
+              - /url: /scores
+              - text: View All Games
+              - img [ref=e382]
+          - generic [ref=e384]:
+            - generic [ref=e385]:
+              - generic [ref=e388]: Live & Upcoming
+              - paragraph [ref=e389]: NFL Divisional Playoffs, CFP Semifinal, and more action today. Click any game for full matchup analysis.
+            - generic [ref=e390]:
+              - generic [ref=e391]:
+                - img [ref=e392]
+                - generic [ref=e398]: Playoff Watch
+              - generic [ref=e399]:
+                - generic [ref=e400]:
+                  - generic [ref=e401]: 🏈 NFL Divisional
+                  - generic [ref=e402]: Jan 10-12
+                - generic [ref=e403]:
+                  - generic [ref=e404]: 🏈 CFP Semifinal
+                  - generic [ref=e405]: Jan 9-10
+                - generic [ref=e406]:
+                  - generic [ref=e407]: 🏈 CFP Championship
+                  - generic [ref=e408]: Jan 20
+            - generic [ref=e409]:
+              - generic [ref=e410]:
+                - generic [ref=e411]:
+                  - img [ref=e412]
+                  - generic [ref=e414]: Sharp Money Signals
+                  - generic [ref=e415]: LIVE
+                - link "All" [ref=e416] [cursor=pointer]:
+                  - /url: /trends
+                  - text: All
+                  - img [ref=e417]
+              - generic [ref=e419]:
+                - generic [ref=e420]:
+                  - generic [ref=e421]:
+                    - generic [ref=e422]:
+                      - generic [ref=e423]: 🏒
+                      - generic [ref=e424]: NHL
+                      - generic [ref=e425]: HIGH
+                    - generic [ref=e426]: spread
+                  - paragraph [ref=e427]: Columbus Blue Jackets @ Pittsburgh Penguins
+                  - generic [ref=e428]:
+                    - generic [ref=e429]:
+                      - img [ref=e430]
+                      - generic [ref=e435]: 56% public on Columbus Blue Jackets
+                    - generic [ref=e436]: →
+                    - generic [ref=e437]:
+                      - img [ref=e438]
+                      - generic [ref=e440]: 79% money on Pittsburgh Penguins
+                - generic [ref=e441]:
+                  - generic [ref=e442]:
+                    - generic [ref=e443]:
+                      - generic [ref=e444]: 🏀
+                      - generic [ref=e445]: NCAAB
+                      - generic [ref=e446]: HIGH
+                    - generic [ref=e447]: moneyline
+                  - paragraph [ref=e448]: Florida Gators @ Vanderbilt Commodores
+                  - generic [ref=e449]:
+                    - generic [ref=e450]:
+                      - img [ref=e451]
+                      - generic [ref=e456]: 64% public on Vanderbilt Commodores
+                    - generic [ref=e457]: →
+                    - generic [ref=e458]:
+                      - img [ref=e459]
+                      - generic [ref=e461]: 73% money on Florida Gators
+                - generic [ref=e462]:
+                  - generic [ref=e463]:
+                    - generic [ref=e464]:
+                      - generic [ref=e465]: 🏈
+                      - generic [ref=e466]: NFL
+                      - generic [ref=e467]: HIGH
+                    - generic [ref=e468]: moneyline
+                  - paragraph [ref=e469]: Houston Texans @ New England Patriots
+                  - generic [ref=e470]:
+                    - generic [ref=e471]:
+                      - img [ref=e472]
+                      - generic [ref=e477]: 67% public on New England Patriots
+                    - generic [ref=e478]: →
+                    - generic [ref=e479]:
+                      - img [ref=e480]
+                      - generic [ref=e482]: 71% money on Houston Texans
+                - generic [ref=e483]:
+                  - generic [ref=e484]:
+                    - generic [ref=e485]:
+                      - generic [ref=e486]: 🏒
+                      - generic [ref=e487]: NHL
+                      - generic [ref=e488]: HIGH
+                    - generic [ref=e489]: spread
+                  - paragraph [ref=e490]: Florida Panthers @ Washington Capitals
+                  - generic [ref=e491]:
+                    - generic [ref=e492]:
+                      - img [ref=e493]
+                      - generic [ref=e498]: 57% public on Florida Panthers
+                    - generic [ref=e499]: →
+                    - generic [ref=e500]:
+                      - img [ref=e501]
+                      - generic [ref=e503]: 63% money on Washington Capitals
+              - generic [ref=e504]:
+                - generic [ref=e505]: 47 games tracked
+                - generic [ref=e506]: Live betting data
+      - generic [ref=e508]:
+        - generic [ref=e509]:
+          - generic [ref=e510]:
+            - img [ref=e512]
+            - generic [ref=e516]:
+              - heading "Today's Top Edges" [level=2] [ref=e517]
+              - paragraph [ref=e518]: AI-powered edge detection across all markets
+            - generic [ref=e519]: 12 ACTIVE
+          - generic [ref=e520]:
+            - generic [ref=e521]:
+              - button "Sports" [ref=e522]:
+                - img [ref=e523]
+                - text: Sports
+              - button "Prediction Markets" [ref=e525]:
+                - img [ref=e526]
+                - text: Prediction Markets
+            - button "📊 All Sports" [ref=e530]:
+              - generic [ref=e531]: 📊
+              - generic [ref=e532]: All Sports
+              - img [ref=e533]
+        - generic [ref=e535]:
+          - generic [ref=e536]:
+            - img [ref=e537]
+            - generic [ref=e545]:
+              - paragraph [ref=e546]: 20-Year Track Record
+              - paragraph [ref=e547]: 40,852 picks analyzed • 58.4% win rate • +9.0% ROI
+          - link "View Performance →" [ref=e548] [cursor=pointer]:
+            - /url: /performance
+        - generic [ref=e549]:
+          - link "🏒 NHL Columbus Blue Jackets @ Pittsburgh Penguins 7:00 PM THE EDGE Pittsburgh Penguins -1.5 -110 95 Edge Score 1 Trends Align 95% 56% public on Columbus Blue Jackets, but 79% of money on Pit Public 56% Away Reverse Line Movement - Sharp Money Signal Full Analysis" [ref=e550] [cursor=pointer]:
+            - /url: /game/an-260707?sport=nhl
+            - generic [ref=e551]:
+              - generic [ref=e552]:
+                - generic [ref=e553]:
+                  - generic [ref=e554]: 🏒
+                  - generic [ref=e555]:
+                    - paragraph [ref=e556]: NHL
+                    - paragraph [ref=e557]: Columbus Blue Jackets @ Pittsburgh Penguins
+                - generic [ref=e558]:
+                  - img [ref=e559]
+                  - generic [ref=e562]: 7:00 PM
+              - generic [ref=e564]:
+                - generic [ref=e565]:
+                  - paragraph [ref=e566]: THE EDGE
+                  - paragraph [ref=e567]: Pittsburgh Penguins -1.5
+                  - paragraph [ref=e568]: "-110"
+                - generic [ref=e569]:
+                  - generic [ref=e570]: "95"
+                  - paragraph [ref=e571]: Edge Score
+              - generic [ref=e572]:
+                - img [ref=e573]
+                - generic [ref=e576]: 1 Trends Align
+                - generic [ref=e577]: 95%
+              - generic [ref=e581]: 56% public on Columbus Blue Jackets, but 79% of money on Pit
+              - generic [ref=e583]:
+                - generic [ref=e584]:
+                  - img [ref=e585]
+                  - generic [ref=e590]: Public
+                - paragraph [ref=e591]: 56% Away
+              - generic [ref=e592]:
+                - img [ref=e593]
+                - generic [ref=e595]: Reverse Line Movement - Sharp Money Signal
+              - generic [ref=e596]:
+                - generic [ref=e597]: Full Analysis
+                - img [ref=e598]
+          - link "🏀 NCAAB Florida Gators @ Vanderbilt Commodores 2:00 PM THE EDGE Florida Gators -1.5 -110 95 Edge Score 1 Trends Align 95% 64% public tickets on Vanderbilt Commodores ML, but 73% of m Public 59% Away Full Analysis" [ref=e600] [cursor=pointer]:
+            - /url: /game/an-262463?sport=ncaab
+            - generic [ref=e601]:
+              - generic [ref=e602]:
+                - generic [ref=e603]:
+                  - generic [ref=e604]: 🏀
+                  - generic [ref=e605]:
+                    - paragraph [ref=e606]: NCAAB
+                    - paragraph [ref=e607]: Florida Gators @ Vanderbilt Commodores
+                - generic [ref=e608]:
+                  - img [ref=e609]
+                  - generic [ref=e612]: 2:00 PM
+              - generic [ref=e614]:
+                - generic [ref=e615]:
+                  - paragraph [ref=e616]: THE EDGE
+                  - paragraph [ref=e617]: Florida Gators -1.5
+                  - paragraph [ref=e618]: "-110"
+                - generic [ref=e619]:
+                  - generic [ref=e620]: "95"
+                  - paragraph [ref=e621]: Edge Score
+              - generic [ref=e622]:
+                - img [ref=e623]
+                - generic [ref=e626]: 1 Trends Align
+                - generic [ref=e627]: 95%
+              - generic [ref=e631]: 64% public tickets on Vanderbilt Commodores ML, but 73% of m
+              - generic [ref=e633]:
+                - generic [ref=e634]:
+                  - img [ref=e635]
+                  - generic [ref=e640]: Public
+                - paragraph [ref=e641]: 59% Away
+              - generic [ref=e642]:
+                - generic [ref=e643]: Full Analysis
+                - img [ref=e644]
+          - link "🏒 NHL Minnesota Wild @ Buffalo Sabres 12:30 PM THE EDGE Buffalo Sabres -1.5 -110 89 Edge Score 1 Trends Align 89% 67% public on Minnesota Wild, but 62% of money on Buffalo Sa Public 67% Away Reverse Line Movement - Sharp Money Signal Full Analysis" [ref=e646] [cursor=pointer]:
+            - /url: /game/an-260700?sport=nhl
+            - generic [ref=e647]:
+              - generic [ref=e648]:
+                - generic [ref=e649]:
+                  - generic [ref=e650]: 🏒
+                  - generic [ref=e651]:
+                    - paragraph [ref=e652]: NHL
+                    - paragraph [ref=e653]: Minnesota Wild @ Buffalo Sabres
+                - generic [ref=e654]:
+                  - img [ref=e655]
+                  - generic [ref=e658]: 12:30 PM
+              - generic [ref=e660]:
+                - generic [ref=e661]:
+                  - paragraph [ref=e662]: THE EDGE
+                  - paragraph [ref=e663]: Buffalo Sabres -1.5
+                  - paragraph [ref=e664]: "-110"
+                - generic [ref=e665]:
+                  - generic [ref=e666]: "89"
+                  - paragraph [ref=e667]: Edge Score
+              - generic [ref=e668]:
+                - img [ref=e669]
+                - generic [ref=e672]: 1 Trends Align
+                - generic [ref=e673]: 89%
+              - generic [ref=e677]: 67% public on Minnesota Wild, but 62% of money on Buffalo Sa
+              - generic [ref=e679]:
+                - generic [ref=e680]:
+                  - img [ref=e681]
+                  - generic [ref=e686]: Public
+                - paragraph [ref=e687]: 67% Away
+              - generic [ref=e688]:
+                - img [ref=e689]
+                - generic [ref=e691]: Reverse Line Movement - Sharp Money Signal
+              - generic [ref=e692]:
+                - generic [ref=e693]: Full Analysis
+                - img [ref=e694]
+          - link "🏀 NCAAB BYU Cougars @ Texas Tech Red Raiders 8:00 PM THE EDGE Texas Tech Red Raiders -3.0 -110 85 Edge Score 1 Trends Align 85% 68% public tickets on Texas Tech Red Raiders ML, but 57% of Public 64% Away Reverse Line Movement - Sharp Money Signal Full Analysis" [ref=e696] [cursor=pointer]:
+            - /url: /game/an-275227?sport=ncaab
+            - generic [ref=e697]:
+              - generic [ref=e698]:
+                - generic [ref=e699]:
+                  - generic [ref=e700]: 🏀
+                  - generic [ref=e701]:
+                    - paragraph [ref=e702]: NCAAB
+                    - paragraph [ref=e703]: BYU Cougars @ Texas Tech Red Raiders
+                - generic [ref=e704]:
+                  - img [ref=e705]
+                  - generic [ref=e708]: 8:00 PM
+              - generic [ref=e710]:
+                - generic [ref=e711]:
+                  - paragraph [ref=e712]: THE EDGE
+                  - paragraph [ref=e713]: Texas Tech Red Raiders -3.0
+                  - paragraph [ref=e714]: "-110"
+                - generic [ref=e715]:
+                  - generic [ref=e716]: "85"
+                  - paragraph [ref=e717]: Edge Score
+              - generic [ref=e718]:
+                - img [ref=e719]
+                - generic [ref=e722]: 1 Trends Align
+                - generic [ref=e723]: 85%
+              - generic [ref=e727]: 68% public tickets on Texas Tech Red Raiders ML, but 57% of
+              - generic [ref=e729]:
+                - generic [ref=e730]:
+                  - img [ref=e731]
+                  - generic [ref=e736]: Public
+                - paragraph [ref=e737]: 64% Away
+              - generic [ref=e738]:
+                - img [ref=e739]
+                - generic [ref=e741]: Reverse Line Movement - Sharp Money Signal
+              - generic [ref=e742]:
+                - generic [ref=e743]: Full Analysis
+                - img [ref=e744]
+          - link "🏀 NCAAB Michigan Wolverines @ Oregon Ducks 4:00 PM THE EDGE Michigan Wolverines -18.5 -110 81 Edge Score 1 Trends Align 81% 62% public on Oregon Ducks, but 59% of money on Michigan Wol Public 62% Home Reverse Line Movement - Sharp Money Signal Full Analysis" [ref=e746] [cursor=pointer]:
+            - /url: /game/an-275014?sport=ncaab
+            - generic [ref=e747]:
+              - generic [ref=e748]:
+                - generic [ref=e749]:
+                  - generic [ref=e750]: 🏀
+                  - generic [ref=e751]:
+                    - paragraph [ref=e752]: NCAAB
+                    - paragraph [ref=e753]: Michigan Wolverines @ Oregon Ducks
+                - generic [ref=e754]:
+                  - img [ref=e755]
+                  - generic [ref=e758]: 4:00 PM
+              - generic [ref=e760]:
+                - generic [ref=e761]:
+                  - paragraph [ref=e762]: THE EDGE
+                  - paragraph [ref=e763]: Michigan Wolverines -18.5
+                  - paragraph [ref=e764]: "-110"
+                - generic [ref=e765]:
+                  - generic [ref=e766]: "81"
+                  - paragraph [ref=e767]: Edge Score
+              - generic [ref=e768]:
+                - img [ref=e769]
+                - generic [ref=e772]: 1 Trends Align
+                - generic [ref=e773]: 81%
+              - generic [ref=e777]: 62% public on Oregon Ducks, but 59% of money on Michigan Wol
+              - generic [ref=e779]:
+                - generic [ref=e780]:
+                  - img [ref=e781]
+                  - generic [ref=e786]: Public
+                - paragraph [ref=e787]: 62% Home
+              - generic [ref=e788]:
+                - img [ref=e789]
+                - generic [ref=e791]: Reverse Line Movement - Sharp Money Signal
+              - generic [ref=e792]:
+                - generic [ref=e793]: Full Analysis
+                - img [ref=e794]
+          - link "🏒 NHL Florida Panthers @ Washington Capitals 7:00 PM THE EDGE Washington Capitals -1.5 -110 80 Edge Score 1 Trends Align 80% 57% public on Florida Panthers, but 63% of money on Washingt Public 57% Away Reverse Line Movement - Sharp Money Signal Full Analysis" [ref=e796] [cursor=pointer]:
+            - /url: /game/an-260706?sport=nhl
+            - generic [ref=e797]:
+              - generic [ref=e798]:
+                - generic [ref=e799]:
+                  - generic [ref=e800]: 🏒
+                  - generic [ref=e801]:
+                    - paragraph [ref=e802]: NHL
+                    - paragraph [ref=e803]: Florida Panthers @ Washington Capitals
+                - generic [ref=e804]:
+                  - img [ref=e805]
+                  - generic [ref=e808]: 7:00 PM
+              - generic [ref=e810]:
+                - generic [ref=e811]:
+                  - paragraph [ref=e812]: THE EDGE
+                  - paragraph [ref=e813]: Washington Capitals -1.5
+                  - paragraph [ref=e814]: "-110"
+                - generic [ref=e815]:
+                  - generic [ref=e816]: "80"
+                  - paragraph [ref=e817]: Edge Score
+              - generic [ref=e818]:
+                - img [ref=e819]
+                - generic [ref=e822]: 1 Trends Align
+                - generic [ref=e823]: 80%
+              - generic [ref=e827]: 57% public on Florida Panthers, but 63% of money on Washingt
+              - generic [ref=e829]:
+                - generic [ref=e830]:
+                  - img [ref=e831]
+                  - generic [ref=e836]: Public
+                - paragraph [ref=e837]: 57% Away
+              - generic [ref=e838]:
+                - img [ref=e839]
+                - generic [ref=e841]: Reverse Line Movement - Sharp Money Signal
+              - generic [ref=e842]:
+                - generic [ref=e843]: Full Analysis
+                - img [ref=e844]
+          - link "🏒 NHL Nashville Predators @ Vegas Golden Knights 10:00 PM THE EDGE Nashville Predators +1.5 -110 78 Edge Score 0 Trends Align 78% Public 53% Home Reverse Line Movement - Sharp Money Signal Full Analysis" [ref=e846] [cursor=pointer]:
+            - /url: /game/an-260712?sport=nhl
+            - generic [ref=e847]:
+              - generic [ref=e848]:
+                - generic [ref=e849]:
+                  - generic [ref=e850]: 🏒
+                  - generic [ref=e851]:
+                    - paragraph [ref=e852]: NHL
+                    - paragraph [ref=e853]: Nashville Predators @ Vegas Golden Knights
+                - generic [ref=e854]:
+                  - img [ref=e855]
+                  - generic [ref=e858]: 10:00 PM
+              - generic [ref=e860]:
+                - generic [ref=e861]:
+                  - paragraph [ref=e862]: THE EDGE
+                  - paragraph [ref=e863]: Nashville Predators +1.5
+                  - paragraph [ref=e864]: "-110"
+                - generic [ref=e865]:
+                  - generic [ref=e866]: "78"
+                  - paragraph [ref=e867]: Edge Score
+              - generic [ref=e868]:
+                - img [ref=e869]
+                - generic [ref=e872]: 0 Trends Align
+                - generic [ref=e873]: 78%
+              - generic [ref=e875]:
+                - generic [ref=e876]:
+                  - img [ref=e877]
+                  - generic [ref=e882]: Public
+                - paragraph [ref=e883]: 53% Home
+              - generic [ref=e884]:
+                - img [ref=e885]
+                - generic [ref=e887]: Reverse Line Movement - Sharp Money Signal
+              - generic [ref=e888]:
+                - generic [ref=e889]: Full Analysis
+                - img [ref=e890]
+          - link "🏀 NCAAB Minnesota Golden Gophers @ Illinois Fighting Illini 12:00 PM THE EDGE Illinois Fighting Illini -15.5 -110 78 Edge Score 0 Trends Align 78% Public 63% Away Reverse Line Movement - Sharp Money Signal Full Analysis" [ref=e892] [cursor=pointer]:
+            - /url: /game/an-275010?sport=ncaab
+            - generic [ref=e893]:
+              - generic [ref=e894]:
+                - generic [ref=e895]:
+                  - generic [ref=e896]: 🏀
+                  - generic [ref=e897]:
+                    - paragraph [ref=e898]: NCAAB
+                    - paragraph [ref=e899]: Minnesota Golden Gophers @ Illinois Fighting Illini
+                - generic [ref=e900]:
+                  - img [ref=e901]
+                  - generic [ref=e904]: 12:00 PM
+              - generic [ref=e906]:
+                - generic [ref=e907]:
+                  - paragraph [ref=e908]: THE EDGE
+                  - paragraph [ref=e909]: Illinois Fighting Illini -15.5
+                  - paragraph [ref=e910]: "-110"
+                - generic [ref=e911]:
+                  - generic [ref=e912]: "78"
+                  - paragraph [ref=e913]: Edge Score
+              - generic [ref=e914]:
+                - img [ref=e915]
+                - generic [ref=e918]: 0 Trends Align
+                - generic [ref=e919]: 78%
+              - generic [ref=e921]:
+                - generic [ref=e922]:
+                  - img [ref=e923]
+                  - generic [ref=e928]: Public
+                - paragraph [ref=e929]: 63% Away
+              - generic [ref=e930]:
+                - img [ref=e931]
+                - generic [ref=e933]: Reverse Line Movement - Sharp Money Signal
+              - generic [ref=e934]:
+                - generic [ref=e935]: Full Analysis
+                - img [ref=e936]
+          - link "🏒 NHL Carolina Hurricanes @ New Jersey Devils 7:00 PM THE EDGE Carolina Hurricanes -1.5 -110 76 Edge Score 0 Trends Align 76% Public 60% Away Full Analysis" [ref=e938] [cursor=pointer]:
+            - /url: /game/an-260704?sport=nhl
+            - generic [ref=e939]:
+              - generic [ref=e940]:
+                - generic [ref=e941]:
+                  - generic [ref=e942]: 🏒
+                  - generic [ref=e943]:
+                    - paragraph [ref=e944]: NHL
+                    - paragraph [ref=e945]: Carolina Hurricanes @ New Jersey Devils
+                - generic [ref=e946]:
+                  - img [ref=e947]
+                  - generic [ref=e950]: 7:00 PM
+              - generic [ref=e952]:
+                - generic [ref=e953]:
+                  - paragraph [ref=e954]: THE EDGE
+                  - paragraph [ref=e955]: Carolina Hurricanes -1.5
+                  - paragraph [ref=e956]: "-110"
+                - generic [ref=e957]:
+                  - generic [ref=e958]: "76"
+                  - paragraph [ref=e959]: Edge Score
+              - generic [ref=e960]:
+                - img [ref=e961]
+                - generic [ref=e964]: 0 Trends Align
+                - generic [ref=e965]: 76%
+              - generic [ref=e967]:
+                - generic [ref=e968]:
+                  - img [ref=e969]
+                  - generic [ref=e974]: Public
+                - paragraph [ref=e975]: 60% Away
+              - generic [ref=e976]:
+                - generic [ref=e977]: Full Analysis
+                - img [ref=e978]
+          - link "🏒 NHL Boston Bruins @ Chicago Blackhawks 8:00 PM THE EDGE Boston Bruins -1.5 -110 75 Edge Score 0 Trends Align 75% Public 64% Away Full Analysis" [ref=e980] [cursor=pointer]:
+            - /url: /game/an-260709?sport=nhl
+            - generic [ref=e981]:
+              - generic [ref=e982]:
+                - generic [ref=e983]:
+                  - generic [ref=e984]: 🏒
+                  - generic [ref=e985]:
+                    - paragraph [ref=e986]: NHL
+                    - paragraph [ref=e987]: Boston Bruins @ Chicago Blackhawks
+                - generic [ref=e988]:
+                  - img [ref=e989]
+                  - generic [ref=e992]: 8:00 PM
+              - generic [ref=e994]:
+                - generic [ref=e995]:
+                  - paragraph [ref=e996]: THE EDGE
+                  - paragraph [ref=e997]: Boston Bruins -1.5
+                  - paragraph [ref=e998]: "-110"
+                - generic [ref=e999]:
+                  - generic [ref=e1000]: "75"
+                  - paragraph [ref=e1001]: Edge Score
+              - generic [ref=e1002]:
+                - img [ref=e1003]
+                - generic [ref=e1006]: 0 Trends Align
+                - generic [ref=e1007]: 75%
+              - generic [ref=e1009]:
+                - generic [ref=e1010]:
+                  - img [ref=e1011]
+                  - generic [ref=e1016]: Public
+                - paragraph [ref=e1017]: 64% Away
+              - generic [ref=e1018]:
+                - generic [ref=e1019]: Full Analysis
+                - img [ref=e1020]
+          - link "🏒 NHL Montreal Canadiens @ Ottawa Senators 7:00 PM THE EDGE Montreal Canadiens +1.5 -110 74 Edge Score 0 Trends Align 74% Public 72% Away Full Analysis" [ref=e1022] [cursor=pointer]:
+            - /url: /game/an-260708?sport=nhl
+            - generic [ref=e1023]:
+              - generic [ref=e1024]:
+                - generic [ref=e1025]:
+                  - generic [ref=e1026]: 🏒
+                  - generic [ref=e1027]:
+                    - paragraph [ref=e1028]: NHL
+                    - paragraph [ref=e1029]: Montreal Canadiens @ Ottawa Senators
+                - generic [ref=e1030]:
+                  - img [ref=e1031]
+                  - generic [ref=e1034]: 7:00 PM
+              - generic [ref=e1036]:
+                - generic [ref=e1037]:
+                  - paragraph [ref=e1038]: THE EDGE
+                  - paragraph [ref=e1039]: Montreal Canadiens +1.5
+                  - paragraph [ref=e1040]: "-110"
+                - generic [ref=e1041]:
+                  - generic [ref=e1042]: "74"
+                  - paragraph [ref=e1043]: Edge Score
+              - generic [ref=e1044]:
+                - img [ref=e1045]
+                - generic [ref=e1048]: 0 Trends Align
+                - generic [ref=e1049]: 74%
+              - generic [ref=e1051]:
+                - generic [ref=e1052]:
+                  - img [ref=e1053]
+                  - generic [ref=e1058]: Public
+                - paragraph [ref=e1059]: 72% Away
+              - generic [ref=e1060]:
+                - generic [ref=e1061]: Full Analysis
+                - img [ref=e1062]
+          - link "🏒 NHL New York Rangers @ Philadelphia Flyers 1:00 PM THE EDGE Philadelphia Flyers -1.5 -110 73 Edge Score 0 Trends Align 73% Public 60% Away Reverse Line Movement - Sharp Money Signal Full Analysis" [ref=e1064] [cursor=pointer]:
+            - /url: /game/an-260701?sport=nhl
+            - generic [ref=e1065]:
+              - generic [ref=e1066]:
+                - generic [ref=e1067]:
+                  - generic [ref=e1068]: 🏒
+                  - generic [ref=e1069]:
+                    - paragraph [ref=e1070]: NHL
+                    - paragraph [ref=e1071]: New York Rangers @ Philadelphia Flyers
+                - generic [ref=e1072]:
+                  - img [ref=e1073]
+                  - generic [ref=e1076]: 1:00 PM
+              - generic [ref=e1078]:
+                - generic [ref=e1079]:
+                  - paragraph [ref=e1080]: THE EDGE
+                  - paragraph [ref=e1081]: Philadelphia Flyers -1.5
+                  - paragraph [ref=e1082]: "-110"
+                - generic [ref=e1083]:
+                  - generic [ref=e1084]: "73"
+                  - paragraph [ref=e1085]: Edge Score
+              - generic [ref=e1086]:
+                - img [ref=e1087]
+                - generic [ref=e1090]: 0 Trends Align
+                - generic [ref=e1091]: 73%
+              - generic [ref=e1093]:
+                - generic [ref=e1094]:
+                  - img [ref=e1095]
+                  - generic [ref=e1100]: Public
+                - paragraph [ref=e1101]: 60% Away
+              - generic [ref=e1102]:
+                - img [ref=e1103]
+                - generic [ref=e1105]: Reverse Line Movement - Sharp Money Signal
+              - generic [ref=e1106]:
+                - generic [ref=e1107]: Full Analysis
+                - img [ref=e1108]
+        - link "View All Edges" [ref=e1111] [cursor=pointer]:
+          - /url: /analytics
+          - text: View All Edges
+          - img [ref=e1112]
+      - generic [ref=e1115]:
+        - generic [ref=e1116]:
+          - generic [ref=e1117]:
+            - img "Wrong" [ref=e1119]
+            - generic [ref=e1120]:
+              - heading "Expert Tracker" [level=2] [ref=e1121]
+              - paragraph [ref=e1122]: How the "experts" are actually doing • Receipts don't lie
+          - link "Full Rankings" [ref=e1123] [cursor=pointer]:
+            - /url: /leaderboard
+            - img [ref=e1124]
+            - text: Full Rankings
+        - table [ref=e1130]:
+          - rowgroup [ref=e1131]:
+            - row "RANK CAPPER RECORD WIN % UNITS STREAK" [ref=e1132]:
+              - columnheader "RANK" [ref=e1133]
+              - columnheader "CAPPER" [ref=e1134]
+              - columnheader "RECORD" [ref=e1135]
+              - columnheader "WIN %" [ref=e1136]
+              - columnheader "UNITS" [ref=e1137]
+              - columnheader "STREAK" [ref=e1138]
+          - rowgroup [ref=e1139]:
+            - row "🥇 🏀 Isiah Thomas ✓ celebrity 50-91 54.1% +60.7 W6" [ref=e1140]:
+              - cell "🥇" [ref=e1141]:
+                - generic [ref=e1142]: 🥇
+              - cell "🏀 Isiah Thomas ✓ celebrity" [ref=e1143]:
+                - link "🏀 Isiah Thomas ✓ celebrity" [ref=e1144] [cursor=pointer]:
+                  - /url: /leaderboard/isiah-thomas
+                  - generic [ref=e1145]: 🏀
+                  - generic [ref=e1146]:
+                    - generic [ref=e1147]:
+                      - text: Isiah Thomas
+                      - generic [ref=e1148]: ✓
+                    - generic [ref=e1149]: celebrity
+              - cell "50-91" [ref=e1150]
+              - cell "54.1%" [ref=e1151]:
+                - generic [ref=e1152]: 54.1%
+              - cell "+60.7" [ref=e1153]:
+                - generic [ref=e1154]: "+60.7"
+              - cell "W6" [ref=e1155]
+            - row "🥈 ☘️ Paul Pierce ✓ celebrity 50-80 50.2% +0.9 W7" [ref=e1156]:
+              - cell "🥈" [ref=e1157]:
+                - generic [ref=e1158]: 🥈
+              - cell "☘️ Paul Pierce ✓ celebrity" [ref=e1159]:
+                - link "☘️ Paul Pierce ✓ celebrity" [ref=e1160] [cursor=pointer]:
+                  - /url: /leaderboard/paul-pierce
+                  - generic [ref=e1161]: ☘️
+                  - generic [ref=e1162]:
+                    - generic [ref=e1163]:
+                      - text: Paul Pierce
+                      - generic [ref=e1164]: ✓
+                    - generic [ref=e1165]: celebrity
+              - cell "50-80" [ref=e1166]
+              - cell "50.2%" [ref=e1167]:
+                - generic [ref=e1168]: 50.2%
+              - cell "+0.9" [ref=e1169]:
+                - generic [ref=e1170]: "+0.9"
+              - cell "W7" [ref=e1171]
+            - row "🥉 📺 Michael Wilbon ✓ celebrity 87-31 65.8% +38.1 L3" [ref=e1172]:
+              - cell "🥉" [ref=e1173]:
+                - generic [ref=e1174]: 🥉
+              - cell "📺 Michael Wilbon ✓ celebrity" [ref=e1175]:
+                - link "📺 Michael Wilbon ✓ celebrity" [ref=e1176] [cursor=pointer]:
+                  - /url: /leaderboard/michael-wilbon
+                  - generic [ref=e1177]: 📺
+                  - generic [ref=e1178]:
+                    - generic [ref=e1179]:
+                      - text: Michael Wilbon
+                      - generic [ref=e1180]: ✓
+                    - generic [ref=e1181]: celebrity
+              - cell "87-31" [ref=e1182]
+              - cell "65.8%" [ref=e1183]:
+                - generic [ref=e1184]: 65.8%
+              - cell "+38.1" [ref=e1185]:
+                - generic [ref=e1186]: "+38.1"
+              - cell "L3" [ref=e1187]
+            - row "4 💪 Lawrence Taylor ✓ celebrity 87-65 51.7% +60.2 L6" [ref=e1188]:
+              - cell "4" [ref=e1189]:
+                - generic [ref=e1190]: "4"
+              - cell "💪 Lawrence Taylor ✓ celebrity" [ref=e1191]:
+                - link "💪 Lawrence Taylor ✓ celebrity" [ref=e1192] [cursor=pointer]:
+                  - /url: /leaderboard/lawrence-taylor
+                  - generic [ref=e1193]: 💪
+                  - generic [ref=e1194]:
+                    - generic [ref=e1195]:
+                      - text: Lawrence Taylor
+                      - generic [ref=e1196]: ✓
+                    - generic [ref=e1197]: celebrity
+              - cell "87-65" [ref=e1198]
+              - cell "51.7%" [ref=e1199]:
+                - generic [ref=e1200]: 51.7%
+              - cell "+60.2" [ref=e1201]:
+                - generic [ref=e1202]: "+60.2"
+              - cell "L6" [ref=e1203]
+            - row "5 ✈️ Kenny Smith ✓ celebrity 109-79 67.0% +50.0 W7" [ref=e1204]:
+              - cell "5" [ref=e1205]:
+                - generic [ref=e1206]: "5"
+              - cell "✈️ Kenny Smith ✓ celebrity" [ref=e1207]:
+                - link "✈️ Kenny Smith ✓ celebrity" [ref=e1208] [cursor=pointer]:
+                  - /url: /leaderboard/kenny-smith
+                  - generic [ref=e1209]: ✈️
+                  - generic [ref=e1210]:
+                    - generic [ref=e1211]:
+                      - text: Kenny Smith
+                      - generic [ref=e1212]: ✓
+                    - generic [ref=e1213]: celebrity
+              - cell "109-79" [ref=e1214]
+              - cell "67.0%" [ref=e1215]:
+                - generic [ref=e1216]: 67.0%
+              - cell "+50.0" [ref=e1217]:
+                - generic [ref=e1218]: "+50.0"
+              - cell "W7" [ref=e1219]
+        - generic [ref=e1220]:
+          - generic [ref=e1221]: No more hiding — every pick is tracked
+          - link "Check the Receipts →" [ref=e1222] [cursor=pointer]:
+            - /url: /leaderboard
+      - generic [ref=e1224]:
+        - generic [ref=e1225]:
+          - generic [ref=e1226]:
+            - generic [ref=e1227]:
+              - img [ref=e1228]
+              - heading "Hot Trends" [level=3] [ref=e1230]
+            - link "View All" [ref=e1231] [cursor=pointer]:
+              - /url: /trends
+          - generic [ref=e1232]:
+            - link "ALL +18.2% Steam Move Indicator (2+ Points) 3785-2158" [ref=e1233] [cursor=pointer]:
+              - /url: /trends?sport=all
+              - generic [ref=e1234]:
+                - generic [ref=e1235]: ALL
+                - generic [ref=e1236]: +18.2%
+              - generic [ref=e1237]: Steam Move Indicator (2+ Points)
+              - generic [ref=e1241]: 3785-2158
+            - link "ALL +17.8% Reverse Line Movement 3425-1982" [ref=e1242] [cursor=pointer]:
+              - /url: /trends?sport=all
+              - generic [ref=e1243]:
+                - generic [ref=e1244]: ALL
+                - generic [ref=e1245]: +17.8%
+              - generic [ref=e1246]: Reverse Line Movement
+              - generic [ref=e1250]: 3425-1982
+            - link "NBA +16.5% Fade NBA Teams 3 Games in 4 Nights 2885-1782" [ref=e1251] [cursor=pointer]:
+              - /url: /trends?sport=nba
+              - generic [ref=e1252]:
+                - generic [ref=e1253]: NBA
+                - generic [ref=e1254]: +16.5%
+              - generic [ref=e1255]: Fade NBA Teams 3 Games in 4 Nights
+              - generic [ref=e1259]: 2885-1782
+            - link "ALL +16.2% Follow Sharp Money Movement 3425-1948" [ref=e1260] [cursor=pointer]:
+              - /url: /trends?sport=all
+              - generic [ref=e1261]:
+                - generic [ref=e1262]: ALL
+                - generic [ref=e1263]: +16.2%
+              - generic [ref=e1264]: Follow Sharp Money Movement
+              - generic [ref=e1268]: 3425-1948
+            - link "NBA +14.5% Fade NBA Back-to-Backs 3125-1968" [ref=e1269] [cursor=pointer]:
+              - /url: /trends?sport=nba
+              - generic [ref=e1270]:
+                - generic [ref=e1271]: NBA
+                - generic [ref=e1272]: +14.5%
+              - generic [ref=e1273]: Fade NBA Back-to-Backs
+              - generic [ref=e1277]: 3125-1968
+            - link "NBA +15.8% NBA 4+ Game Road Trip Fade 2285-1485" [ref=e1278] [cursor=pointer]:
+              - /url: /trends?sport=nba
+              - generic [ref=e1279]:
+                - generic [ref=e1280]: NBA
+                - generic [ref=e1281]: +15.8%
+              - generic [ref=e1282]: NBA 4+ Game Road Trip Fade
+              - generic [ref=e1286]: 2285-1485
+            - link "ALL +13.8% Fade Heavy Public Sides 3625-2285" [ref=e1287] [cursor=pointer]:
+              - /url: /trends?sport=all
+              - generic [ref=e1288]:
+                - generic [ref=e1289]: ALL
+                - generic [ref=e1290]: +13.8%
+              - generic [ref=e1291]: Fade Heavy Public Sides
+              - generic [ref=e1295]: 3625-2285
+            - link "NFL +10.8% NFL Home Underdogs ATS 1782-1248" [ref=e1296] [cursor=pointer]:
+              - /url: /trends?sport=nfl
+              - generic [ref=e1297]:
+                - generic [ref=e1298]: NFL
+                - generic [ref=e1299]: +10.8%
+              - generic [ref=e1300]: NFL Home Underdogs ATS
+              - generic [ref=e1304]: 1782-1248
+        - generic [ref=e1305]:
+          - generic [ref=e1306]:
+            - generic [ref=e1307]:
+              - img [ref=e1308]
+              - heading "Standings" [level=3] [ref=e1314]
+            - link "Full Standings" [ref=e1315] [cursor=pointer]:
+              - /url: /stats?view=standings
+          - generic [ref=e1316]:
+            - generic [ref=e1317]:
+              - generic [ref=e1318]:
+                - generic [ref=e1319]: 🏈
+                - generic [ref=e1320]: NFL LEADERS
+              - paragraph [ref=e1322]: No NFL standings available
+            - generic [ref=e1323]:
+              - generic [ref=e1324]:
+                - generic [ref=e1325]: 🏀
+                - generic [ref=e1326]: NBA LEADERS
+              - paragraph [ref=e1328]: No NBA standings available
+        - generic [ref=e1329]:
+          - generic [ref=e1330]:
+            - generic [ref=e1331]:
+              - generic [ref=e1332]:
+                - img [ref=e1333]
+                - heading "Key Injuries" [level=3] [ref=e1335]
+              - link "All Injuries" [ref=e1336] [cursor=pointer]:
+                - /url: /injuries
+            - paragraph [ref=e1338]: No injury updates available
+          - generic [ref=e1339]:
+            - heading "Bettor Tools" [level=3] [ref=e1340]
+            - generic [ref=e1341]:
+              - link "🎯 Sharp Money Follow pro action" [ref=e1342] [cursor=pointer]:
+                - /url: /edge
+                - generic [ref=e1343]: 🎯 Sharp Money
+                - generic [ref=e1344]: Follow pro action
+              - link "🛒 Line Shop Best odds" [ref=e1345] [cursor=pointer]:
+                - /url: /lineshop
+                - generic [ref=e1346]: 🛒 Line Shop
+                - generic [ref=e1347]: Best odds
+              - link "📈 Trends Hot systems" [ref=e1348] [cursor=pointer]:
+                - /url: /trends
+                - generic [ref=e1349]: 📈 Trends
+                - generic [ref=e1350]: Hot systems
+              - link "🎲 Props Correlations" [ref=e1351] [cursor=pointer]:
+                - /url: /props/correlations
+                - generic [ref=e1352]: 🎲 Props
+                - generic [ref=e1353]: Correlations
+              - link "🏥 Injuries Impact reports" [ref=e1354] [cursor=pointer]:
+                - /url: /injuries
+                - generic [ref=e1355]: 🏥 Injuries
+                - generic [ref=e1356]: Impact reports
+              - link "🧾 Experts Track records" [ref=e1357] [cursor=pointer]:
+                - /url: /leaderboard
+                - generic [ref=e1358]: 🧾 Experts
+                - generic [ref=e1359]: Track records
+  - contentinfo [ref=e1361]:
+    - generic [ref=e1362]:
+      - generic [ref=e1363]:
+        - generic [ref=e1364]:
+          - heading "Sports" [level=4] [ref=e1365]
+          - generic [ref=e1366]:
+            - link "🏈 NFL" [ref=e1367] [cursor=pointer]:
+              - /url: /nfl
+            - link "🏀 NBA" [ref=e1368] [cursor=pointer]:
+              - /url: /nba
+            - link "🏒 NHL" [ref=e1369] [cursor=pointer]:
+              - /url: /nhl
+            - link "⚾ MLB" [ref=e1370] [cursor=pointer]:
+              - /url: /mlb
+        - generic [ref=e1371]:
+          - heading "Features" [level=4] [ref=e1372]
+          - generic [ref=e1373]:
+            - link "📈 Markets" [ref=e1374] [cursor=pointer]:
+              - /url: /markets
+            - link "📊 Trends" [ref=e1375] [cursor=pointer]:
+              - /url: /trends
+            - link "🧾 Expert Tracker" [ref=e1376] [cursor=pointer]:
+              - /url: /leaderboard
+        - generic [ref=e1377]:
+          - heading "Company" [level=4] [ref=e1378]
+          - generic [ref=e1379]:
+            - link "About" [ref=e1380] [cursor=pointer]:
+              - /url: "#"
+            - link "Contact" [ref=e1381] [cursor=pointer]:
+              - /url: "#"
+            - link "Privacy" [ref=e1382] [cursor=pointer]:
+              - /url: "#"
+            - link "Terms" [ref=e1383] [cursor=pointer]:
+              - /url: "#"
+        - generic [ref=e1384]:
+          - heading "Tools" [level=4] [ref=e1385]
+          - generic [ref=e1386]:
+            - link "🧮 Calculators" [ref=e1387] [cursor=pointer]:
+              - /url: /calculators
+            - link "🔔 Alerts" [ref=e1388] [cursor=pointer]:
+              - /url: /alerts
+            - link "📄 Documentation" [ref=e1389] [cursor=pointer]:
+              - /url: /admin/docs
+      - generic [ref=e1390]:
+        - generic [ref=e1391]:
+          - generic [ref=e1393]: ⚡
+          - generic [ref=e1394]: Matchups
+        - paragraph [ref=e1395]: © 2026 Matchups. Sports betting analysis & trends.
+  - generic [ref=e1400] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e1401]:
+      - img [ref=e1402]
+    - generic [ref=e1405]:
+      - button "Open issues overlay" [ref=e1406]:
+        - generic [ref=e1407]:
+          - generic [ref=e1408]: "0"
+          - generic [ref=e1409]: "1"
+        - generic [ref=e1410]: Issue
+      - button "Collapse issues badge" [ref=e1411]:
+        - img [ref=e1412]
+  - alert [ref=e1414]
+```

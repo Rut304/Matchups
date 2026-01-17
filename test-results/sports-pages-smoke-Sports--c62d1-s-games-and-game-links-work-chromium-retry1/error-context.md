@@ -1,0 +1,507 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - link "Matchups 100% FREE" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img [ref=e7]
+        - generic [ref=e9]:
+          - generic [ref=e10]: Matchups
+          - generic [ref=e11]: 100% FREE
+      - generic [ref=e12]:
+        - button "Sports" [ref=e14]:
+          - text: Sports
+          - img [ref=e15]
+        - button "Markets" [ref=e18]:
+          - img [ref=e19]
+          - text: Markets
+          - img [ref=e21]
+        - button "Tools" [ref=e24]:
+          - text: Tools
+          - img [ref=e25]
+        - link "Scores" [ref=e27] [cursor=pointer]:
+          - /url: /scores
+          - img [ref=e28]
+          - text: Scores
+        - link "Check the \"Experts\"" [ref=e30] [cursor=pointer]:
+          - /url: /leaderboard
+          - img [ref=e31]
+          - generic [ref=e37]: Check the
+          - generic [ref=e38]: "\"Experts\""
+      - generic [ref=e39]:
+        - button "Search... K" [ref=e40]:
+          - img [ref=e41]
+          - generic [ref=e44]: Search...
+          - generic [ref=e45]:
+            - img [ref=e46]
+            - text: K
+        - link "The Edge" [ref=e48] [cursor=pointer]:
+          - /url: /markets/edge
+          - img [ref=e49]
+          - generic [ref=e53]: The Edge
+        - link "Sus Plays" [ref=e54] [cursor=pointer]:
+          - /url: /sus
+          - img [ref=e55]
+          - generic [ref=e57]: Sus Plays
+        - link "Sign In" [ref=e58] [cursor=pointer]:
+          - /url: /auth
+          - img [ref=e59]
+          - generic [ref=e62]: Sign In
+  - main [ref=e64]:
+    - generic [ref=e65]:
+      - generic [ref=e68]:
+        - generic [ref=e69]:
+          - generic [ref=e70]: 🏒
+          - generic [ref=e71]:
+            - heading "NHL Analytics" [level=1] [ref=e72]
+            - paragraph [ref=e73]: Puckline trends, goalie stats, and edge-finding data for hockey bettors
+        - generic [ref=e74]:
+          - button "📊 Team Analytics" [ref=e75]
+          - button "🎯 Today's Games" [ref=e76]
+          - button "🥅 Goalie Stats" [ref=e77]
+        - generic [ref=e78]:
+          - generic [ref=e79]:
+            - generic [ref=e80]: Best Puckline
+            - generic [ref=e81]: WPG
+            - generic [ref=e82]: 58.5%
+          - generic [ref=e83]:
+            - generic [ref=e84]: Most Overs
+            - generic [ref=e85]: WPG
+            - generic [ref=e86]: 46.3%
+          - generic [ref=e87]:
+            - generic [ref=e88]: Hot Streaks
+            - generic [ref=e89]: "1"
+            - generic [ref=e90]: teams
+          - generic [ref=e91]:
+            - generic [ref=e92]: Cold Streaks
+            - generic [ref=e93]: "0"
+            - generic [ref=e94]: teams
+      - generic [ref=e95]:
+        - generic [ref=e96]:
+          - generic [ref=e97]:
+            - img [ref=e98]
+            - heading "NHL Games" [level=2] [ref=e100]
+            - generic [ref=e101]: 1 LIVE
+          - generic [ref=e103]:
+            - generic [ref=e104]:
+              - img [ref=e105]
+              - text: 3:54 PM ET
+            - button "Refresh" [ref=e108]:
+              - img [ref=e109]
+        - generic [ref=e114]:
+          - button "All (13)" [ref=e115]
+          - button "Live (1)" [ref=e116]
+          - button "Upcoming (10)" [ref=e117]
+          - button "Final (2)" [ref=e118]
+        - generic [ref=e119]:
+          - generic [ref=e121] [cursor=pointer]:
+            - generic [ref=e122]:
+              - generic [ref=e123]:
+                - generic [ref=e124]: FINAL
+                - generic [ref=e125]: 4 • 0:00
+              - generic [ref=e126]: NHL Net
+            - generic [ref=e127]:
+              - generic [ref=e128]:
+                - generic [ref=e129]:
+                  - img "Minnesota Wild" [ref=e130]
+                  - generic [ref=e131]: Minnesota Wild
+                - generic [ref=e132]: "5"
+              - generic [ref=e133]:
+                - generic [ref=e134]:
+                  - img "Buffalo Sabres" [ref=e135]
+                  - generic [ref=e136]: Buffalo Sabres
+                - generic [ref=e137]: "4"
+          - generic [ref=e139] [cursor=pointer]:
+            - generic [ref=e140]:
+              - generic [ref=e141]:
+                - generic [ref=e142]: FINAL
+                - generic [ref=e143]: 3 • 0:00
+              - generic [ref=e144]: ESPN+
+            - generic [ref=e145]:
+              - generic [ref=e146]:
+                - generic [ref=e147]:
+                  - img "New York Rangers" [ref=e148]
+                  - generic [ref=e149]: New York Rangers
+                - generic [ref=e150]: "6"
+              - generic [ref=e151]:
+                - generic [ref=e152]:
+                  - img "Philadelphia Flyers" [ref=e153]
+                  - generic [ref=e154]: Philadelphia Flyers
+                - generic [ref=e155]: "3"
+          - generic [ref=e157] [cursor=pointer]:
+            - generic [ref=e158]:
+              - generic [ref=e159]:
+                - generic [ref=e160]: LIVE
+                - generic [ref=e162]: 1 • 0:00
+              - generic [ref=e163]: ESPN+
+            - generic [ref=e164]:
+              - generic [ref=e165]:
+                - generic [ref=e166]:
+                  - img "New York Islanders" [ref=e167]
+                  - generic [ref=e168]:
+                    - text: New York Islanders
+                    - generic [ref=e169]: (26-16-5)
+                - generic [ref=e170]: "0"
+              - generic [ref=e171]:
+                - generic [ref=e172]:
+                  - img "Calgary Flames" [ref=e173]
+                  - generic [ref=e174]:
+                    - text: Calgary Flames
+                    - generic [ref=e175]: (20-23-4)
+                - generic [ref=e176]: "1"
+            - generic [ref=e177]:
+              - generic [ref=e178]: "Spread: -1.5"
+              - generic [ref=e179]: "O/U: 5.5"
+              - generic [ref=e180]: "ML: -257"
+          - generic [ref=e182] [cursor=pointer]:
+            - generic [ref=e183]:
+              - generic [ref=e185]: 5:00 PM ET
+              - generic [ref=e186]: ESPN+
+            - generic [ref=e187]:
+              - generic [ref=e188]:
+                - generic [ref=e189]:
+                  - img "Seattle Kraken" [ref=e190]
+                  - generic [ref=e191]:
+                    - text: Seattle Kraken
+                    - generic [ref=e192]: (21-16-9)
+                - generic [ref=e193]: "0"
+              - generic [ref=e194]:
+                - generic [ref=e195]:
+                  - img "Utah Mammoth" [ref=e196]
+                  - generic [ref=e197]:
+                    - text: Utah Mammoth
+                    - generic [ref=e198]: (24-20-4)
+                - generic [ref=e199]: "0"
+            - generic [ref=e200]:
+              - generic [ref=e201]: "Spread: -1.5"
+              - generic [ref=e202]: "O/U: 5.5"
+              - generic [ref=e203]: "ML: -205"
+          - generic [ref=e205] [cursor=pointer]:
+            - generic [ref=e206]:
+              - generic [ref=e208]: 7:00 PM ET
+              - generic [ref=e209]: ESPN+
+            - generic [ref=e210]:
+              - generic [ref=e211]:
+                - generic [ref=e212]:
+                  - img "Montreal Canadiens" [ref=e213]
+                  - generic [ref=e214]:
+                    - text: Montreal Canadiens
+                    - generic [ref=e215]: (26-15-7)
+                - generic [ref=e216]: "0"
+              - generic [ref=e217]:
+                - generic [ref=e218]:
+                  - img "Ottawa Senators" [ref=e219]
+                  - generic [ref=e220]:
+                    - text: Ottawa Senators
+                    - generic [ref=e221]: (22-19-5)
+                - generic [ref=e222]: "0"
+            - generic [ref=e223]:
+              - generic [ref=e224]: "Spread: -1.5"
+              - generic [ref=e225]: "O/U: 6.5"
+              - generic [ref=e226]: "ML: -115"
+          - generic [ref=e228] [cursor=pointer]:
+            - generic [ref=e229]:
+              - generic [ref=e231]: 7:00 PM ET
+              - generic [ref=e232]: ESPN+
+            - generic [ref=e233]:
+              - generic [ref=e234]:
+                - generic [ref=e235]:
+                  - img "Carolina Hurricanes" [ref=e236]
+                  - generic [ref=e237]:
+                    - text: Carolina Hurricanes
+                    - generic [ref=e238]: (29-15-4)
+                - generic [ref=e239]: "0"
+              - generic [ref=e240]:
+                - generic [ref=e241]:
+                  - img "New Jersey Devils" [ref=e242]
+                  - generic [ref=e243]:
+                    - text: New Jersey Devils
+                    - generic [ref=e244]: (24-21-2)
+                - generic [ref=e245]: "0"
+            - generic [ref=e246]:
+              - generic [ref=e247]: "Spread: +1.5"
+              - generic [ref=e248]: "O/U: 6.5"
+              - generic [ref=e249]: "ML: -105"
+          - generic [ref=e251] [cursor=pointer]:
+            - generic [ref=e252]:
+              - generic [ref=e254]: 7:00 PM ET
+              - generic [ref=e255]: ESPN+
+            - generic [ref=e256]:
+              - generic [ref=e257]:
+                - generic [ref=e258]:
+                  - img "Columbus Blue Jackets" [ref=e259]
+                  - generic [ref=e260]:
+                    - text: Columbus Blue Jackets
+                    - generic [ref=e261]: (21-19-7)
+                - generic [ref=e262]: "0"
+              - generic [ref=e263]:
+                - generic [ref=e264]:
+                  - img "Pittsburgh Penguins" [ref=e265]
+                  - generic [ref=e266]:
+                    - text: Pittsburgh Penguins
+                    - generic [ref=e267]: (22-14-10)
+                - generic [ref=e268]: "0"
+            - generic [ref=e269]:
+              - generic [ref=e270]: "Spread: -1.5"
+              - generic [ref=e271]: "O/U: 6.5"
+              - generic [ref=e272]: "ML: -125"
+          - generic [ref=e274] [cursor=pointer]:
+            - generic [ref=e275]:
+              - generic [ref=e277]: 7:00 PM ET
+              - generic [ref=e278]: ESPN+
+            - generic [ref=e279]:
+              - generic [ref=e280]:
+                - generic [ref=e281]:
+                  - img "Florida Panthers" [ref=e282]
+                  - generic [ref=e283]:
+                    - text: Florida Panthers
+                    - generic [ref=e284]: (24-19-3)
+                - generic [ref=e285]: "0"
+              - generic [ref=e286]:
+                - generic [ref=e287]:
+                  - img "Washington Capitals" [ref=e288]
+                  - generic [ref=e289]:
+                    - text: Washington Capitals
+                    - generic [ref=e290]: (24-18-6)
+                - generic [ref=e291]: "0"
+            - generic [ref=e292]:
+              - generic [ref=e293]: "Spread: -1.5"
+              - generic [ref=e294]: "O/U: 6.5"
+              - generic [ref=e295]: "ML: -150"
+          - generic [ref=e297] [cursor=pointer]:
+            - generic [ref=e298]:
+              - generic [ref=e300]: 7:00 PM ET
+              - generic [ref=e301]: NHL Net
+            - generic [ref=e302]:
+              - generic [ref=e303]:
+                - generic [ref=e304]:
+                  - img "Toronto Maple Leafs" [ref=e305]
+                  - generic [ref=e306]:
+                    - text: Toronto Maple Leafs
+                    - generic [ref=e307]: (23-16-8)
+                - generic [ref=e308]: "0"
+              - generic [ref=e309]:
+                - generic [ref=e310]:
+                  - img "Winnipeg Jets" [ref=e311]
+                  - generic [ref=e312]:
+                    - text: Winnipeg Jets
+                    - generic [ref=e313]: (19-22-5)
+                - generic [ref=e314]: "0"
+            - generic [ref=e315]:
+              - generic [ref=e316]: "Spread: -1.5"
+              - generic [ref=e317]: "O/U: 6"
+              - generic [ref=e318]: "ML: -140"
+          - generic [ref=e320] [cursor=pointer]:
+            - generic [ref=e321]:
+              - generic [ref=e323]: 8:00 PM ET
+              - generic [ref=e324]: ESPN+
+            - generic [ref=e325]:
+              - generic [ref=e326]:
+                - generic [ref=e327]:
+                  - img "Boston Bruins" [ref=e328]
+                  - generic [ref=e329]:
+                    - text: Boston Bruins
+                    - generic [ref=e330]: (27-19-2)
+                - generic [ref=e331]: "0"
+              - generic [ref=e332]:
+                - generic [ref=e333]:
+                  - img "Chicago Blackhawks" [ref=e334]
+                  - generic [ref=e335]:
+                    - text: Chicago Blackhawks
+                    - generic [ref=e336]: (19-21-7)
+                - generic [ref=e337]: "0"
+            - generic [ref=e338]:
+              - generic [ref=e339]: "Spread: +1.5"
+              - generic [ref=e340]: "O/U: 6.5"
+              - generic [ref=e341]: "ML: +104"
+          - generic [ref=e343] [cursor=pointer]:
+            - generic [ref=e344]:
+              - generic [ref=e346]: 10:00 PM ET
+              - generic [ref=e347]: ESPN+
+            - generic [ref=e348]:
+              - generic [ref=e349]:
+                - generic [ref=e350]:
+                  - img "Edmonton Oilers" [ref=e351]
+                  - generic [ref=e352]:
+                    - text: Edmonton Oilers
+                    - generic [ref=e353]: (23-17-8)
+                - generic [ref=e354]: "0"
+              - generic [ref=e355]:
+                - generic [ref=e356]:
+                  - img "Vancouver Canucks" [ref=e357]
+                  - generic [ref=e358]:
+                    - text: Vancouver Canucks
+                    - generic [ref=e359]: (16-26-5)
+                - generic [ref=e360]: "0"
+            - generic [ref=e361]:
+              - generic [ref=e362]: "Spread: +1.5"
+              - generic [ref=e363]: "O/U: 6.5"
+              - generic [ref=e364]: "ML: +150"
+          - generic [ref=e366] [cursor=pointer]:
+            - generic [ref=e367]:
+              - generic [ref=e369]: 10:00 PM ET
+              - generic [ref=e370]: ESPN+
+            - generic [ref=e371]:
+              - generic [ref=e372]:
+                - generic [ref=e373]:
+                  - img "Nashville Predators" [ref=e374]
+                  - generic [ref=e375]:
+                    - text: Nashville Predators
+                    - generic [ref=e376]: (23-20-4)
+                - generic [ref=e377]: "0"
+              - generic [ref=e378]:
+                - generic [ref=e379]:
+                  - img "Vegas Golden Knights" [ref=e380]
+                  - generic [ref=e381]:
+                    - text: Vegas Golden Knights
+                    - generic [ref=e382]: (23-11-12)
+                - generic [ref=e383]: "0"
+            - generic [ref=e384]:
+              - generic [ref=e385]: "Spread: -1.5"
+              - generic [ref=e386]: "O/U: 6.5"
+              - generic [ref=e387]: "ML: -210"
+          - generic [ref=e389] [cursor=pointer]:
+            - generic [ref=e390]:
+              - generic [ref=e392]: 10:00 PM ET
+              - generic [ref=e393]: ESPN+
+            - generic [ref=e394]:
+              - generic [ref=e395]:
+                - generic [ref=e396]:
+                  - img "Los Angeles Kings" [ref=e397]
+                  - generic [ref=e398]:
+                    - text: Los Angeles Kings
+                    - generic [ref=e399]: (19-16-12)
+                - generic [ref=e400]: "0"
+              - generic [ref=e401]:
+                - generic [ref=e402]:
+                  - img "Anaheim Ducks" [ref=e403]
+                  - generic [ref=e404]:
+                    - text: Anaheim Ducks
+                    - generic [ref=e405]: (23-21-3)
+                - generic [ref=e406]: "0"
+            - generic [ref=e407]:
+              - generic [ref=e408]: "Spread: +1.5"
+              - generic [ref=e409]: "O/U: 6.5"
+              - generic [ref=e410]: "ML: -102"
+        - link "View all NHL games" [ref=e411] [cursor=pointer]:
+          - /url: /scores?sport=nhl
+          - text: View all NHL games
+          - img [ref=e412]
+      - generic [ref=e415]:
+        - generic [ref=e416]:
+          - generic [ref=e418]:
+            - generic [ref=e419]:
+              - img [ref=e420]
+              - textbox "Search teams..." [ref=e423]
+            - generic [ref=e424]:
+              - button "PL" [ref=e425]
+              - button "O/U" [ref=e426]
+              - button "ML" [ref=e427]
+            - combobox [ref=e428] [cursor=pointer]:
+              - option "All Games" [selected]
+              - option "Home Only"
+              - option "Away Only"
+              - option "As Favorite"
+              - option "As Underdog"
+          - generic [ref=e429]:
+            - heading "Puckline Records" [level=2] [ref=e431]
+            - generic [ref=e433] [cursor=pointer]:
+              - generic [ref=e434]:
+                - generic [ref=e435]: ✈️
+                - generic [ref=e436]:
+                  - generic [ref=e437]:
+                    - generic [ref=e438]: Winnipeg Jets
+                    - img [ref=e439]
+                  - generic [ref=e441]: Western
+              - generic [ref=e442]:
+                - generic [ref=e443]: 24-17
+                - generic [ref=e444]: Record
+              - generic [ref=e445]:
+                - generic [ref=e446]: 58.5%
+                - generic [ref=e447]: Win %
+              - generic [ref=e448]:
+                - generic [ref=e449]: +7.0u
+                - generic [ref=e450]: Profit
+              - img [ref=e451]
+        - generic [ref=e453]:
+          - generic [ref=e454]:
+            - generic [ref=e455]:
+              - img [ref=e456]
+              - heading "Hot Streaks (Puckline)" [level=2] [ref=e458]
+            - generic [ref=e460] [cursor=pointer]:
+              - generic [ref=e461]:
+                - generic [ref=e462]: ✈️
+                - generic [ref=e463]: WPG
+              - generic [ref=e464]: W3
+            - generic [ref=e465]:
+              - img [ref=e466]
+              - heading "Cold Streaks (Puckline)" [level=2] [ref=e479]
+            - paragraph [ref=e480]: No cold streaks right now
+          - generic [ref=e481]:
+            - generic [ref=e482]:
+              - img [ref=e483]
+              - heading "NHL Edge Tips" [level=2] [ref=e485]
+            - list [ref=e486]:
+              - listitem [ref=e487]:
+                - generic [ref=e488]: •
+                - text: Road favorites cover puckline 58% when playing back-to-backs
+              - listitem [ref=e489]:
+                - generic [ref=e490]: •
+                - text: Unders hit 55% in games with both starting goalies SV% above .915
+              - listitem [ref=e491]:
+                - generic [ref=e492]: •
+                - text: Home underdogs +1.5 cover 62% vs tired road teams
+  - contentinfo [ref=e494]:
+    - generic [ref=e495]:
+      - generic [ref=e496]:
+        - generic [ref=e497]:
+          - heading "Sports" [level=4] [ref=e498]
+          - generic [ref=e499]:
+            - link "🏈 NFL" [ref=e500] [cursor=pointer]:
+              - /url: /nfl
+            - link "🏀 NBA" [ref=e501] [cursor=pointer]:
+              - /url: /nba
+            - link "🏒 NHL" [ref=e502] [cursor=pointer]:
+              - /url: /nhl
+            - link "⚾ MLB" [ref=e503] [cursor=pointer]:
+              - /url: /mlb
+        - generic [ref=e504]:
+          - heading "Features" [level=4] [ref=e505]
+          - generic [ref=e506]:
+            - link "📈 Markets" [ref=e507] [cursor=pointer]:
+              - /url: /markets
+            - link "📊 Trends" [ref=e508] [cursor=pointer]:
+              - /url: /trends
+            - link "🧾 Expert Tracker" [ref=e509] [cursor=pointer]:
+              - /url: /leaderboard
+        - generic [ref=e510]:
+          - heading "Company" [level=4] [ref=e511]
+          - generic [ref=e512]:
+            - link "About" [ref=e513] [cursor=pointer]:
+              - /url: "#"
+            - link "Contact" [ref=e514] [cursor=pointer]:
+              - /url: "#"
+            - link "Privacy" [ref=e515] [cursor=pointer]:
+              - /url: "#"
+            - link "Terms" [ref=e516] [cursor=pointer]:
+              - /url: "#"
+        - generic [ref=e517]:
+          - heading "Tools" [level=4] [ref=e518]
+          - generic [ref=e519]:
+            - link "🧮 Calculators" [ref=e520] [cursor=pointer]:
+              - /url: /calculators
+            - link "🔔 Alerts" [ref=e521] [cursor=pointer]:
+              - /url: /alerts
+            - link "📄 Documentation" [ref=e522] [cursor=pointer]:
+              - /url: /admin/docs
+      - generic [ref=e523]:
+        - generic [ref=e524]:
+          - generic [ref=e526]: ⚡
+          - generic [ref=e527]: Matchups
+        - paragraph [ref=e528]: © 2026 Matchups. Sports betting analysis & trends.
+  - button "Open Next.js Dev Tools" [ref=e534] [cursor=pointer]:
+    - img [ref=e535]
+  - alert [ref=e538]
+```

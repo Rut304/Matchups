@@ -1,0 +1,466 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - link "Matchups 100% FREE" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img [ref=e7]
+        - generic [ref=e9]:
+          - generic [ref=e10]: Matchups
+          - generic [ref=e11]: 100% FREE
+      - generic [ref=e12]:
+        - button "Sports" [ref=e14]:
+          - text: Sports
+          - img [ref=e15]
+        - button "Markets" [ref=e18]:
+          - img [ref=e19]
+          - text: Markets
+          - img [ref=e21]
+        - button "Tools" [ref=e24]:
+          - text: Tools
+          - img [ref=e25]
+        - link "Scores" [ref=e27] [cursor=pointer]:
+          - /url: /scores
+          - img [ref=e28]
+          - text: Scores
+        - link "Check the \"Experts\"" [ref=e30] [cursor=pointer]:
+          - /url: /leaderboard
+          - img [ref=e31]
+          - generic [ref=e37]: Check the
+          - generic [ref=e38]: "\"Experts\""
+      - generic [ref=e39]:
+        - button "Search... K" [ref=e40]:
+          - img [ref=e41]
+          - generic [ref=e44]: Search...
+          - generic [ref=e45]:
+            - img [ref=e46]
+            - text: K
+        - link "The Edge" [ref=e48] [cursor=pointer]:
+          - /url: /markets/edge
+          - img [ref=e49]
+          - generic [ref=e53]: The Edge
+        - link "Sus Plays" [ref=e54] [cursor=pointer]:
+          - /url: /sus
+          - img [ref=e55]
+          - generic [ref=e57]: Sus Plays
+        - link "Sign In" [ref=e58] [cursor=pointer]:
+          - /url: /auth
+          - img [ref=e59]
+          - generic [ref=e62]: Sign In
+  - main [ref=e64]:
+    - generic [ref=e65]:
+      - generic [ref=e68]:
+        - generic [ref=e69]:
+          - generic [ref=e70]: 🏀
+          - generic [ref=e71]:
+            - heading "NBA Analytics" [level=1] [ref=e72]
+            - paragraph [ref=e73]: Team trends, player props, and edge-finding data for basketball bettors
+        - generic [ref=e74]:
+          - button "📊 Team Analytics" [ref=e75]
+          - button "🎯 Today's Games" [ref=e76]
+          - button "👤 Player Props" [ref=e77]
+        - generic [ref=e78]:
+          - generic [ref=e79]:
+            - generic [ref=e80]: Best ATS
+            - generic [ref=e81]: CLE
+            - generic [ref=e82]: 63.9%
+          - generic [ref=e83]:
+            - generic [ref=e84]: Most Overs
+            - generic [ref=e85]: OKC
+            - generic [ref=e86]: 50.0%
+          - generic [ref=e87]:
+            - generic [ref=e88]: Hot Streaks
+            - generic [ref=e89]: "2"
+            - generic [ref=e90]: teams
+          - generic [ref=e91]:
+            - generic [ref=e92]: Cold Streaks
+            - generic [ref=e93]: "0"
+            - generic [ref=e94]: teams
+      - generic [ref=e96]:
+        - generic [ref=e97]:
+          - generic [ref=e98]:
+            - img [ref=e99]
+            - heading "🏀 Today's NBA Games" [level=2] [ref=e101]
+          - generic [ref=e102]:
+            - generic [ref=e103]:
+              - img [ref=e104]
+              - text: 3:54 PM ET
+            - button "Refresh" [ref=e107]:
+              - img [ref=e108]
+        - generic [ref=e113]:
+          - button "All (9)" [ref=e114]
+          - button "Live (0)" [ref=e115]
+          - button "Upcoming (9)" [ref=e116]
+          - button "Final (0)" [ref=e117]
+        - generic [ref=e118]:
+          - generic [ref=e120] [cursor=pointer]:
+            - generic [ref=e121]:
+              - generic [ref=e123]: 5:00 PM ET
+              - generic [ref=e124]: KFAA-TV, Mavs.com
+            - generic [ref=e125]:
+              - generic [ref=e126]:
+                - generic [ref=e127]:
+                  - img "Utah Jazz" [ref=e128]
+                  - generic [ref=e129]:
+                    - text: Utah Jazz
+                    - generic [ref=e130]: (14-27)
+                - generic [ref=e131]: "0"
+              - generic [ref=e132]:
+                - generic [ref=e133]:
+                  - img "Dallas Mavericks" [ref=e134]
+                  - generic [ref=e135]:
+                    - text: Dallas Mavericks
+                    - generic [ref=e136]: (16-26)
+                - generic [ref=e137]: "0"
+            - generic [ref=e138]:
+              - generic [ref=e139]: "Spread: -3.5"
+              - generic [ref=e140]: "O/U: 241.5"
+              - generic [ref=e141]: "ML: -155"
+          - generic [ref=e143] [cursor=pointer]:
+            - generic [ref=e144]:
+              - generic [ref=e146]: 7:30 PM ET
+              - generic [ref=e147]: FanDuel SN SE
+            - generic [ref=e148]:
+              - generic [ref=e149]:
+                - generic [ref=e150]:
+                  - img "Boston Celtics" [ref=e151]
+                  - generic [ref=e152]:
+                    - text: Boston Celtics
+                    - generic [ref=e153]: (25-15)
+                - generic [ref=e154]: "0"
+              - generic [ref=e155]:
+                - generic [ref=e156]:
+                  - img "Atlanta Hawks" [ref=e157]
+                  - generic [ref=e158]:
+                    - text: Atlanta Hawks
+                    - generic [ref=e159]: (20-23)
+                - generic [ref=e160]: "0"
+            - generic [ref=e161]:
+              - generic [ref=e162]: "Spread: +3.5"
+              - generic [ref=e163]: "O/U: 229.5"
+              - generic [ref=e164]: "ML: +135"
+          - generic [ref=e166] [cursor=pointer]:
+            - generic [ref=e167]:
+              - generic [ref=e169]: 7:30 PM ET
+              - generic [ref=e170]: FanDuel SN IN, NBA League Pass
+            - generic [ref=e171]:
+              - generic [ref=e172]:
+                - generic [ref=e173]:
+                  - img "Indiana Pacers" [ref=e174]
+                  - generic [ref=e175]:
+                    - text: Indiana Pacers
+                    - generic [ref=e176]: (10-32)
+                - generic [ref=e177]: "0"
+              - generic [ref=e178]:
+                - generic [ref=e179]:
+                  - img "Detroit Pistons" [ref=e180]
+                  - generic [ref=e181]:
+                    - text: Detroit Pistons
+                    - generic [ref=e182]: (29-10)
+                - generic [ref=e183]: "0"
+            - generic [ref=e184]:
+              - generic [ref=e185]: "Spread: -15.5"
+              - generic [ref=e186]: "O/U: 225.5"
+              - generic [ref=e187]: "ML: -900"
+          - generic [ref=e189] [cursor=pointer]:
+            - generic [ref=e190]:
+              - generic [ref=e192]: 7:30 PM ET
+              - generic [ref=e193]: NBA TV
+            - generic [ref=e194]:
+              - generic [ref=e195]:
+                - generic [ref=e196]:
+                  - img "Phoenix Suns" [ref=e197]
+                  - generic [ref=e198]:
+                    - text: Phoenix Suns
+                    - generic [ref=e199]: (24-17)
+                - generic [ref=e200]: "0"
+              - generic [ref=e201]:
+                - generic [ref=e202]:
+                  - img "New York Knicks" [ref=e203]
+                  - generic [ref=e204]:
+                    - text: New York Knicks
+                    - generic [ref=e205]: (25-16)
+                - generic [ref=e206]: "0"
+            - generic [ref=e207]:
+              - generic [ref=e208]: "Spread: -2.5"
+              - generic [ref=e209]: "O/U: 226.5"
+              - generic [ref=e210]: "ML: -141"
+          - generic [ref=e212] [cursor=pointer]:
+            - generic [ref=e213]:
+              - generic [ref=e215]: 8:00 PM ET
+              - generic [ref=e216]: FanDuel SN OK, NBA League Pass
+            - generic [ref=e217]:
+              - generic [ref=e218]:
+                - generic [ref=e219]:
+                  - img "Oklahoma City Thunder" [ref=e220]
+                  - generic [ref=e221]:
+                    - text: Oklahoma City Thunder
+                    - generic [ref=e222]: (35-7)
+                - generic [ref=e223]: "0"
+              - generic [ref=e224]:
+                - generic [ref=e225]:
+                  - img "Miami Heat" [ref=e226]
+                  - generic [ref=e227]:
+                    - text: Miami Heat
+                    - generic [ref=e228]: (21-20)
+                - generic [ref=e229]: "0"
+            - generic [ref=e230]:
+              - generic [ref=e231]: "Spread: +10.5"
+              - generic [ref=e232]: "O/U: 235.5"
+              - generic [ref=e233]: "ML: +340"
+          - generic [ref=e235] [cursor=pointer]:
+            - generic [ref=e236]:
+              - generic [ref=e238]: 8:00 PM ET
+              - generic [ref=e239]: FanDuel SN North, NBA League Pass
+            - generic [ref=e240]:
+              - generic [ref=e241]:
+                - generic [ref=e242]:
+                  - img "Minnesota Timberwolves" [ref=e243]
+                  - generic [ref=e244]:
+                    - text: Minnesota Timberwolves
+                    - generic [ref=e245]: (27-15)
+                - generic [ref=e246]: "0"
+              - generic [ref=e247]:
+                - generic [ref=e248]:
+                  - img "San Antonio Spurs" [ref=e249]
+                  - generic [ref=e250]:
+                    - text: San Antonio Spurs
+                    - generic [ref=e251]: (28-13)
+                - generic [ref=e252]: "0"
+            - generic [ref=e253]:
+              - generic [ref=e254]: "Spread: -4.5"
+              - generic [ref=e255]: "O/U: 232.5"
+              - generic [ref=e256]: "ML: -185"
+          - generic [ref=e258] [cursor=pointer]:
+            - generic [ref=e259]:
+              - generic [ref=e261]: 8:30 PM ET
+              - generic [ref=e262]: FanDuel SN SE, NBA League Pass
+            - generic [ref=e263]:
+              - generic [ref=e264]:
+                - generic [ref=e265]:
+                  - img "Charlotte Hornets" [ref=e266]
+                  - generic [ref=e267]:
+                    - text: Charlotte Hornets
+                    - generic [ref=e268]: (15-26)
+                - generic [ref=e269]: "0"
+              - generic [ref=e270]:
+                - generic [ref=e271]:
+                  - img "Golden State Warriors" [ref=e272]
+                  - generic [ref=e273]:
+                    - text: Golden State Warriors
+                    - generic [ref=e274]: (23-19)
+                - generic [ref=e275]: "0"
+            - generic [ref=e276]:
+              - generic [ref=e277]: "Spread: -7.5"
+              - generic [ref=e278]: "O/U: 234.5"
+              - generic [ref=e279]: "ML: -276"
+          - generic [ref=e281] [cursor=pointer]:
+            - generic [ref=e282]:
+              - generic [ref=e284]: 9:00 PM ET
+              - generic [ref=e285]: MNMT, MNMT2, NBA League Pass
+            - generic [ref=e286]:
+              - generic [ref=e287]:
+                - generic [ref=e288]:
+                  - img "Washington Wizards" [ref=e289]
+                  - generic [ref=e290]:
+                    - text: Washington Wizards
+                    - generic [ref=e291]: (10-30)
+                - generic [ref=e292]: "0"
+              - generic [ref=e293]:
+                - generic [ref=e294]:
+                  - img "Denver Nuggets" [ref=e295]
+                  - generic [ref=e296]:
+                    - text: Denver Nuggets
+                    - generic [ref=e297]: (28-13)
+                - generic [ref=e298]: "0"
+            - generic [ref=e299]:
+              - generic [ref=e300]: "Spread: -11.5"
+              - generic [ref=e301]: "O/U: 229.5"
+              - generic [ref=e302]: "ML: -567"
+          - generic [ref=e304] [cursor=pointer]:
+            - generic [ref=e305]:
+              - generic [ref=e307]: 10:00 PM ET
+              - generic [ref=e308]: NBA TV
+            - generic [ref=e309]:
+              - generic [ref=e310]:
+                - generic [ref=e311]:
+                  - img "Los Angeles Lakers" [ref=e312]
+                  - generic [ref=e313]:
+                    - text: Los Angeles Lakers
+                    - generic [ref=e314]: (24-15)
+                - generic [ref=e315]: "0"
+              - generic [ref=e316]:
+                - generic [ref=e317]:
+                  - img "Portland Trail Blazers" [ref=e318]
+                  - generic [ref=e319]:
+                    - text: Portland Trail Blazers
+                    - generic [ref=e320]: (20-22)
+                - generic [ref=e321]: "0"
+            - generic [ref=e322]:
+              - generic [ref=e323]: "Spread: -3.5"
+              - generic [ref=e324]: "O/U: 223.5"
+              - generic [ref=e325]: "ML: -146"
+        - link "View all NBA games" [ref=e326] [cursor=pointer]:
+          - /url: /scores?sport=nba
+          - text: View all NBA games
+          - img [ref=e327]
+      - generic [ref=e330]:
+        - generic [ref=e331]:
+          - generic [ref=e333]:
+            - generic [ref=e334]:
+              - img [ref=e335]
+              - textbox "Search teams..." [ref=e338]
+            - generic [ref=e339]:
+              - button "ATS" [ref=e340]
+              - button "O/U" [ref=e341]
+              - button "ML" [ref=e342]
+            - combobox [ref=e343] [cursor=pointer]:
+              - option "All Games" [selected]
+              - option "Home Only"
+              - option "Away Only"
+              - option "As Favorite"
+              - option "As Underdog"
+              - option "Back-to-Back"
+          - generic [ref=e344]:
+            - heading "Against The Spread Records" [level=2] [ref=e346]
+            - generic [ref=e347]:
+              - generic [ref=e348] [cursor=pointer]:
+                - generic [ref=e349]:
+                  - generic [ref=e350]: 🍷
+                  - generic [ref=e351]:
+                    - generic [ref=e352]:
+                      - generic [ref=e353]: Cleveland Cavaliers
+                      - img [ref=e354]
+                    - generic [ref=e356]: Eastern
+                - generic [ref=e357]:
+                  - generic [ref=e358]: 23-13
+                  - generic [ref=e359]: Record
+                - generic [ref=e360]:
+                  - generic [ref=e361]: 63.9%
+                  - generic [ref=e362]: Win %
+                - generic [ref=e363]:
+                  - generic [ref=e364]: +2.8u
+                  - generic [ref=e365]: Profit
+                - img [ref=e366]
+              - generic [ref=e368] [cursor=pointer]:
+                - generic [ref=e369]:
+                  - generic [ref=e370]: ⚡
+                  - generic [ref=e371]:
+                    - generic [ref=e372]:
+                      - generic [ref=e373]: Oklahoma City Thunder
+                      - img [ref=e374]
+                    - generic [ref=e376]: Western
+                - generic [ref=e377]:
+                  - generic [ref=e378]: 22-14
+                  - generic [ref=e379]: Record
+                - generic [ref=e380]:
+                  - generic [ref=e381]: 61.1%
+                  - generic [ref=e382]: Win %
+                - generic [ref=e383]:
+                  - generic [ref=e384]: +2.2u
+                  - generic [ref=e385]: Profit
+                - img [ref=e386]
+              - generic [ref=e388] [cursor=pointer]:
+                - generic [ref=e389]:
+                  - generic [ref=e390]: ☘️
+                  - generic [ref=e391]:
+                    - generic [ref=e393]: Boston Celtics
+                    - generic [ref=e394]: Eastern
+                - generic [ref=e395]:
+                  - generic [ref=e396]: 19-18
+                  - generic [ref=e397]: Record
+                - generic [ref=e398]:
+                  - generic [ref=e399]: 51.4%
+                  - generic [ref=e400]: Win %
+                - generic [ref=e401]:
+                  - generic [ref=e402]: +0.3u
+                  - generic [ref=e403]: Profit
+                - img [ref=e404]
+        - generic [ref=e406]:
+          - generic [ref=e407]:
+            - generic [ref=e408]:
+              - img [ref=e409]
+              - heading "Hot Streaks (ATS)" [level=2] [ref=e411]
+            - generic [ref=e412]:
+              - generic [ref=e413] [cursor=pointer]:
+                - generic [ref=e414]:
+                  - generic [ref=e415]: ⚡
+                  - generic [ref=e416]: OKC
+                - generic [ref=e417]: W8
+              - generic [ref=e418] [cursor=pointer]:
+                - generic [ref=e419]:
+                  - generic [ref=e420]: 🍷
+                  - generic [ref=e421]: CLE
+                - generic [ref=e422]: W6
+            - generic [ref=e423]:
+              - img [ref=e424]
+              - heading "Cold Streaks (ATS)" [level=2] [ref=e437]
+            - paragraph [ref=e438]: No cold streaks right now
+          - generic [ref=e439]:
+            - generic [ref=e440]:
+              - img [ref=e441]
+              - heading "NBA Edge Tips" [level=2] [ref=e443]
+            - list [ref=e444]:
+              - listitem [ref=e445]:
+                - generic [ref=e446]: •
+                - text: Back-to-back unders hit 56% - tired legs = lower scores
+              - listitem [ref=e447]:
+                - generic [ref=e448]: •
+                - text: Home underdogs cover 54% in nationally televised games
+              - listitem [ref=e449]:
+                - generic [ref=e450]: •
+                - text: Teams off 3+ day rest cover spreads at 55%
+  - contentinfo [ref=e452]:
+    - generic [ref=e453]:
+      - generic [ref=e454]:
+        - generic [ref=e455]:
+          - heading "Sports" [level=4] [ref=e456]
+          - generic [ref=e457]:
+            - link "🏈 NFL" [ref=e458] [cursor=pointer]:
+              - /url: /nfl
+            - link "🏀 NBA" [ref=e459] [cursor=pointer]:
+              - /url: /nba
+            - link "🏒 NHL" [ref=e460] [cursor=pointer]:
+              - /url: /nhl
+            - link "⚾ MLB" [ref=e461] [cursor=pointer]:
+              - /url: /mlb
+        - generic [ref=e462]:
+          - heading "Features" [level=4] [ref=e463]
+          - generic [ref=e464]:
+            - link "📈 Markets" [ref=e465] [cursor=pointer]:
+              - /url: /markets
+            - link "📊 Trends" [ref=e466] [cursor=pointer]:
+              - /url: /trends
+            - link "🧾 Expert Tracker" [ref=e467] [cursor=pointer]:
+              - /url: /leaderboard
+        - generic [ref=e468]:
+          - heading "Company" [level=4] [ref=e469]
+          - generic [ref=e470]:
+            - link "About" [ref=e471] [cursor=pointer]:
+              - /url: "#"
+            - link "Contact" [ref=e472] [cursor=pointer]:
+              - /url: "#"
+            - link "Privacy" [ref=e473] [cursor=pointer]:
+              - /url: "#"
+            - link "Terms" [ref=e474] [cursor=pointer]:
+              - /url: "#"
+        - generic [ref=e475]:
+          - heading "Tools" [level=4] [ref=e476]
+          - generic [ref=e477]:
+            - link "🧮 Calculators" [ref=e478] [cursor=pointer]:
+              - /url: /calculators
+            - link "🔔 Alerts" [ref=e479] [cursor=pointer]:
+              - /url: /alerts
+            - link "📄 Documentation" [ref=e480] [cursor=pointer]:
+              - /url: /admin/docs
+      - generic [ref=e481]:
+        - generic [ref=e482]:
+          - generic [ref=e484]: ⚡
+          - generic [ref=e485]: Matchups
+        - paragraph [ref=e486]: © 2026 Matchups. Sports betting analysis & trends.
+  - button "Open Next.js Dev Tools" [ref=e492] [cursor=pointer]:
+    - img [ref=e493]
+  - alert [ref=e496]
+```

@@ -1,0 +1,294 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - link "Matchups 100% FREE" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img [ref=e7]
+        - generic [ref=e9]:
+          - generic [ref=e10]: Matchups
+          - generic [ref=e11]: 100% FREE
+      - generic [ref=e12]:
+        - button "Sports" [ref=e14]:
+          - text: Sports
+          - img [ref=e15]
+        - button "Markets" [ref=e18]:
+          - img [ref=e19]
+          - text: Markets
+          - img [ref=e21]
+        - button "Tools" [ref=e24]:
+          - text: Tools
+          - img [ref=e25]
+        - link "Scores" [ref=e27] [cursor=pointer]:
+          - /url: /scores
+          - img [ref=e28]
+          - text: Scores
+        - link "Check the \"Experts\"" [ref=e30] [cursor=pointer]:
+          - /url: /leaderboard
+          - img [ref=e31]
+          - generic [ref=e37]: Check the
+          - generic [ref=e38]: "\"Experts\""
+      - generic [ref=e39]:
+        - button "Search... K" [ref=e40]:
+          - img [ref=e41]
+          - generic [ref=e44]: Search...
+          - generic [ref=e45]:
+            - img [ref=e46]
+            - text: K
+        - link "The Edge" [ref=e48] [cursor=pointer]:
+          - /url: /markets/edge
+          - img [ref=e49]
+          - generic [ref=e53]: The Edge
+        - link "Sus Plays" [ref=e54] [cursor=pointer]:
+          - /url: /sus
+          - img [ref=e55]
+          - generic [ref=e57]: Sus Plays
+        - link "Sign In" [ref=e58] [cursor=pointer]:
+          - /url: /auth
+          - img [ref=e59]
+          - generic [ref=e62]: Sign In
+  - main [ref=e64]:
+    - generic [ref=e65]:
+      - generic [ref=e68]:
+        - generic [ref=e69]:
+          - generic [ref=e70]: ⚾
+          - generic [ref=e71]:
+            - heading "MLB Analytics" [level=1] [ref=e72]
+            - paragraph [ref=e73]: Runline trends, pitcher matchups, and edge-finding data for baseball bettors
+        - generic [ref=e74]:
+          - button "📊 Team Analytics" [ref=e75]
+          - button "🎯 Today's Games" [ref=e76]
+          - button "⚾ Pitcher Stats" [ref=e77]
+        - generic [ref=e78]:
+          - generic [ref=e79]:
+            - generic [ref=e80]: Best Runline
+            - generic [ref=e81]: LAD
+            - generic [ref=e82]: 54.3%
+          - generic [ref=e83]:
+            - generic [ref=e84]: Most Overs
+            - generic [ref=e85]: LAD
+            - generic [ref=e86]: 51.9%
+          - generic [ref=e87]:
+            - generic [ref=e88]: Hot Streaks
+            - generic [ref=e89]: "1"
+            - generic [ref=e90]: teams
+          - generic [ref=e91]:
+            - generic [ref=e92]: Cold Streaks
+            - generic [ref=e93]: "0"
+            - generic [ref=e94]: teams
+      - generic [ref=e95]:
+        - generic [ref=e96]:
+          - generic [ref=e97]:
+            - img [ref=e98]
+            - heading "MLB Games" [level=2] [ref=e100]
+          - generic [ref=e101]:
+            - generic [ref=e102]:
+              - img [ref=e103]
+              - text: 3:54 PM ET
+            - button "Refresh" [ref=e106]:
+              - img [ref=e107]
+        - generic [ref=e112]:
+          - button "All (5)" [ref=e113]
+          - button "Live (0)" [ref=e114]
+          - button "Upcoming (5)" [ref=e115]
+          - button "Final (0)" [ref=e116]
+        - generic [ref=e117]:
+          - generic [ref=e119] [cursor=pointer]:
+            - generic [ref=e120]:
+              - generic [ref=e121]:
+                - generic [ref=e122]: 1:05 PM ET
+                - generic [ref=e123]: 1 • 0:00
+              - generic [ref=e124]: MASN
+            - generic [ref=e125]:
+              - generic [ref=e126]:
+                - generic [ref=e127]:
+                  - img "New York Yankees" [ref=e128]
+                  - generic [ref=e129]: New York Yankees
+                - generic [ref=e130]: "0"
+              - generic [ref=e131]:
+                - generic [ref=e132]:
+                  - img "Baltimore Orioles" [ref=e133]
+                  - generic [ref=e134]: Baltimore Orioles
+                - generic [ref=e135]: "0"
+          - generic [ref=e137] [cursor=pointer]:
+            - generic [ref=e139]:
+              - generic [ref=e140]: 3:05 PM ET
+              - generic [ref=e141]: 1 • 0:00
+            - generic [ref=e142]:
+              - generic [ref=e143]:
+                - generic [ref=e144]:
+                  - img "Chicago White Sox" [ref=e145]
+                  - generic [ref=e146]: Chicago White Sox
+                - generic [ref=e147]: "0"
+              - generic [ref=e148]:
+                - generic [ref=e149]:
+                  - img "Chicago Cubs" [ref=e150]
+                  - generic [ref=e151]: Chicago Cubs
+                - generic [ref=e152]: "0"
+          - generic [ref=e154] [cursor=pointer]:
+            - generic [ref=e156]:
+              - generic [ref=e157]: 3:05 PM ET
+              - generic [ref=e158]: 1 • 0:00
+            - generic [ref=e159]:
+              - generic [ref=e160]:
+                - generic [ref=e161]:
+                  - img "Kansas City Royals" [ref=e162]
+                  - generic [ref=e163]: Kansas City Royals
+                - generic [ref=e164]: "0"
+              - generic [ref=e165]:
+                - generic [ref=e166]:
+                  - img "Texas Rangers" [ref=e167]
+                  - generic [ref=e168]: Texas Rangers
+                - generic [ref=e169]: "0"
+          - generic [ref=e171] [cursor=pointer]:
+            - generic [ref=e173]:
+              - generic [ref=e174]: 3:10 PM ET
+              - generic [ref=e175]: 1 • 0:00
+            - generic [ref=e176]:
+              - generic [ref=e177]:
+                - generic [ref=e178]:
+                  - img "Arizona Diamondbacks" [ref=e179]
+                  - generic [ref=e180]: Arizona Diamondbacks
+                - generic [ref=e181]: "0"
+              - generic [ref=e182]:
+                - generic [ref=e183]:
+                  - img "Colorado Rockies" [ref=e184]
+                  - generic [ref=e185]: Colorado Rockies
+                - generic [ref=e186]: "0"
+          - generic [ref=e188] [cursor=pointer]:
+            - generic [ref=e190]:
+              - generic [ref=e191]: 3:10 PM ET
+              - generic [ref=e192]: 1 • 0:00
+            - generic [ref=e193]:
+              - generic [ref=e194]:
+                - generic [ref=e195]:
+                  - img "San Diego Padres" [ref=e196]
+                  - generic [ref=e197]: San Diego Padres
+                - generic [ref=e198]: "0"
+              - generic [ref=e199]:
+                - generic [ref=e200]:
+                  - img "Seattle Mariners" [ref=e201]
+                  - generic [ref=e202]: Seattle Mariners
+                - generic [ref=e203]: "0"
+        - link "View all MLB games" [ref=e204] [cursor=pointer]:
+          - /url: /scores?sport=mlb
+          - text: View all MLB games
+          - img [ref=e205]
+      - generic [ref=e208]:
+        - generic [ref=e209]:
+          - generic [ref=e211]:
+            - generic [ref=e212]:
+              - img [ref=e213]
+              - textbox "Search teams..." [ref=e216]
+            - generic [ref=e217]:
+              - button "RL" [ref=e218]
+              - button "O/U" [ref=e219]
+              - button "ML" [ref=e220]
+            - combobox [ref=e221] [cursor=pointer]:
+              - option "All Games" [selected]
+              - option "Home Only"
+              - option "Away Only"
+              - option "As Favorite"
+              - option "As Underdog"
+          - generic [ref=e222]:
+            - heading "Runline Records" [level=2] [ref=e224]
+            - generic [ref=e226] [cursor=pointer]:
+              - generic [ref=e227]:
+                - generic [ref=e228]: 💙
+                - generic [ref=e229]:
+                  - generic [ref=e230]:
+                    - generic [ref=e231]: Los Angeles Dodgers
+                    - img [ref=e232]
+                  - generic [ref=e234]: National
+              - generic [ref=e235]:
+                - generic [ref=e236]: 88-74
+                - generic [ref=e237]: Record
+              - generic [ref=e238]:
+                - generic [ref=e239]: 54.3%
+                - generic [ref=e240]: Win %
+              - generic [ref=e241]:
+                - generic [ref=e242]: +0.9u
+                - generic [ref=e243]: Profit
+              - img [ref=e244]
+        - generic [ref=e246]:
+          - generic [ref=e247]:
+            - generic [ref=e248]:
+              - img [ref=e249]
+              - heading "Hot Streaks (Runline)" [level=2] [ref=e251]
+            - generic [ref=e253] [cursor=pointer]:
+              - generic [ref=e254]:
+                - generic [ref=e255]: 💙
+                - generic [ref=e256]: LAD
+              - generic [ref=e257]: W4
+            - generic [ref=e258]:
+              - img [ref=e259]
+              - heading "Cold Streaks (Runline)" [level=2] [ref=e272]
+            - paragraph [ref=e273]: No cold streaks right now
+          - generic [ref=e274]:
+            - generic [ref=e275]:
+              - img [ref=e276]
+              - heading "MLB Edge Tips" [level=2] [ref=e278]
+            - list [ref=e279]:
+              - listitem [ref=e280]:
+                - generic [ref=e281]: •
+                - text: Home underdogs cover runline 54% when facing aces (ERA under 3.00)
+              - listitem [ref=e282]:
+                - generic [ref=e283]: •
+                - text: Day games after night games hit unders 58% of the time
+              - listitem [ref=e284]:
+                - generic [ref=e285]: •
+                - text: Teams on 5+ game win streaks cover runline only 46%
+  - contentinfo [ref=e287]:
+    - generic [ref=e288]:
+      - generic [ref=e289]:
+        - generic [ref=e290]:
+          - heading "Sports" [level=4] [ref=e291]
+          - generic [ref=e292]:
+            - link "🏈 NFL" [ref=e293] [cursor=pointer]:
+              - /url: /nfl
+            - link "🏀 NBA" [ref=e294] [cursor=pointer]:
+              - /url: /nba
+            - link "🏒 NHL" [ref=e295] [cursor=pointer]:
+              - /url: /nhl
+            - link "⚾ MLB" [ref=e296] [cursor=pointer]:
+              - /url: /mlb
+        - generic [ref=e297]:
+          - heading "Features" [level=4] [ref=e298]
+          - generic [ref=e299]:
+            - link "📈 Markets" [ref=e300] [cursor=pointer]:
+              - /url: /markets
+            - link "📊 Trends" [ref=e301] [cursor=pointer]:
+              - /url: /trends
+            - link "🧾 Expert Tracker" [ref=e302] [cursor=pointer]:
+              - /url: /leaderboard
+        - generic [ref=e303]:
+          - heading "Company" [level=4] [ref=e304]
+          - generic [ref=e305]:
+            - link "About" [ref=e306] [cursor=pointer]:
+              - /url: "#"
+            - link "Contact" [ref=e307] [cursor=pointer]:
+              - /url: "#"
+            - link "Privacy" [ref=e308] [cursor=pointer]:
+              - /url: "#"
+            - link "Terms" [ref=e309] [cursor=pointer]:
+              - /url: "#"
+        - generic [ref=e310]:
+          - heading "Tools" [level=4] [ref=e311]
+          - generic [ref=e312]:
+            - link "🧮 Calculators" [ref=e313] [cursor=pointer]:
+              - /url: /calculators
+            - link "🔔 Alerts" [ref=e314] [cursor=pointer]:
+              - /url: /alerts
+            - link "📄 Documentation" [ref=e315] [cursor=pointer]:
+              - /url: /admin/docs
+      - generic [ref=e316]:
+        - generic [ref=e317]:
+          - generic [ref=e319]: ⚡
+          - generic [ref=e320]: Matchups
+        - paragraph [ref=e321]: © 2026 Matchups. Sports betting analysis & trends.
+  - button "Open Next.js Dev Tools" [ref=e327] [cursor=pointer]:
+    - img [ref=e328]
+  - alert [ref=e331]
+```
