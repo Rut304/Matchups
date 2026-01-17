@@ -127,7 +127,8 @@ export async function getTeams(sport: SportKey): Promise<ESPNTeam[]> {
 
 export async function getStandings(sport: SportKey): Promise<ESPNStanding[]> {
   const { sport: s, league } = ESPN_SPORTS[sport]
-  const url = `${ESPN_BASE}/${s}/${league}/standings`
+  // Use v2 API for standings as the site API now returns limited data
+  const url = `https://site.api.espn.com/apis/v2/sports/${s}/${league}/standings`
   
   const res = await fetch(url, { next: { revalidate: 1800 } }) // Cache for 30 min
   if (!res.ok) throw new Error(`ESPN API error: ${res.status}`)
@@ -135,7 +136,7 @@ export async function getStandings(sport: SportKey): Promise<ESPNStanding[]> {
   const data = await res.json()
   const standings: ESPNStanding[] = []
   
-  // ESPN returns standings grouped by conference/division
+  // ESPN v2 returns standings grouped by conference/division under 'children'
   data.children?.forEach((group: { standings?: { entries: ESPNStanding[] } }) => {
     group.standings?.entries?.forEach((entry: ESPNStanding) => {
       standings.push(entry)

@@ -14,14 +14,24 @@ import * as espn from '@/lib/api/espn'
 
 export type Sport = 'NFL' | 'NBA' | 'NHL' | 'MLB'
 
-// Types for historical game data
+// Types for historical game data (match supabase/historical_games schema)
 interface HistoricalGame {
   id: string
   sport: string
-  home_team: string
-  away_team: string
-  spread_result: string | null
-  total_result: string | null
+  season: number
+  season_type: string
+  game_date: string
+  home_team_id: string
+  home_team_name: string
+  home_team_abbr: string
+  away_team_id: string
+  away_team_name: string
+  away_team_abbr: string
+  point_spread: number | null
+  total_points: number | null
+  home_score: number | null
+  away_score: number | null
+  [key: string]: any
 }
 
 // Type for Supabase query responses
@@ -73,6 +83,14 @@ interface CapperRecord {
 // TYPES
 // =============================================================================
 
+// Provenance metadata for data source tracking
+export interface ProvenanceMetadata {
+  source: 'supabase' | 'espn' | 'action-network' | 'odds-api'
+  fetchedAt: string
+  season?: number
+  seasonType?: string
+}
+
 export interface RealTeamAnalytics {
   id: string
   sport: Sport
@@ -92,6 +110,7 @@ export interface RealTeamAnalytics {
     asFavorite: { wins: number; losses: number; pushes: number }
     asUnderdog: { wins: number; losses: number; pushes: number }
     last10: { wins: number; losses: number; pushes: number }
+    provenance?: ProvenanceMetadata
   }
   
   ou: {
@@ -99,6 +118,7 @@ export interface RealTeamAnalytics {
     home: { overs: number; unders: number; pushes: number }
     away: { overs: number; unders: number; pushes: number }
     last10: { overs: number; unders: number; pushes: number }
+    provenance?: ProvenanceMetadata
   }
   
   ml: {
@@ -188,23 +208,64 @@ export interface RealCapper {
 // DATA FETCHING FUNCTIONS
 // =============================================================================
 
+export interface GetRealTeamsOptions {
+  sport: Sport
+  season?: number // Override the default season heuristic
+  seasonType?: 'regular' | 'postseason' // Filter by season type
+}
+
 /**
- * Get team standings from ESPN
+ * Get team standings from ESPN with ATS/OU data from Supabase
+ * @param sportOrOptions - Sport string or options object with sport, season, seasonType
  */
-export async function getRealTeams(sport: Sport): Promise<RealTeamAnalytics[]> {
+export async function getRealTeams(sportOrOptions: Sport | GetRealTeamsOptions): Promise<RealTeamAnalytics[]> {
+  // Parse options
+  const options = typeof sportOrOptions === 'string' 
+    ? { sport: sportOrOptions } 
+    : sportOrOptions
+  const { sport, season: seasonOverride, seasonType } = options
+  
+  const fetchedAt = new Date().toISOString()
+  
   try {
     const standings = await espn.getStandings(sport)
     
     // Fetch historical ATS/OU data from Supabase
     const supabase = await createClient()
-    const { data: historicalGames } = await supabase
+
+    // Determine season: use override or heuristic (if now before July, use previous year)
+    const now = new Date()
+    const year = now.getFullYear()
+    const season = seasonOverride ?? (now.getMonth() < 6 ? year - 1 : year)
+
+    let query = supabase
       .from('historical_games')
       .select('*')
-      .eq('sport', sport)
+      .eq('sport', sport.toLowerCase())
+      .eq('season', season)
       .order('game_date', { ascending: false })
-      .limit(1000)
+      .limit(5000)
     
+    // Apply seasonType filter if specified
+    if (seasonType) {
+      query = query.eq('season_type', seasonType)
+    }
+
+    const { data: historicalGames, error: histError } = await query
+    
+    if (histError) {
+      console.error(`Error fetching historical games for ${sport}:`, histError)
+    }
+
     const games = (historicalGames || []) as HistoricalGame[]
+    
+    // Build provenance metadata for ATS data
+    const atsProvenance: ProvenanceMetadata = {
+      source: 'supabase',
+      fetchedAt,
+      season,
+      seasonType: seasonType || 'all',
+    }
     
     // Helper to get stat value from ESPN standing entry
     const getStat = (entry: typeof standings[0], name: string): number => {
@@ -216,14 +277,16 @@ export async function getRealTeams(sport: Sport): Promise<RealTeamAnalytics[]> {
     const teams: RealTeamAnalytics[] = standings.map((entry) => {
       const teamName = entry.team.displayName
       const teamCode = entry.team.abbreviation
-      
-      const teamGames = games.filter((g: HistoricalGame) => 
-        g.home_team === teamName || g.away_team === teamName
+
+      // Match using team abbreviations (more reliable) against historical_games fields
+      const teamGames = games.filter((g: HistoricalGame) =>
+        (g.home_team_abbr && g.home_team_abbr.toUpperCase() === teamCode.toUpperCase()) ||
+        (g.away_team_abbr && g.away_team_abbr.toUpperCase() === teamCode.toUpperCase())
       )
-      
-      // Calculate ATS records
-      const homeGames = teamGames.filter((g: HistoricalGame) => g.home_team === teamName)
-      const awayGames = teamGames.filter((g: HistoricalGame) => g.away_team === teamName)
+
+      // Calculate ATS records using the abbr-based slices
+      const homeGames = teamGames.filter((g: HistoricalGame) => g.home_team_abbr && g.home_team_abbr.toUpperCase() === teamCode.toUpperCase())
+      const awayGames = teamGames.filter((g: HistoricalGame) => g.away_team_abbr && g.away_team_abbr.toUpperCase() === teamCode.toUpperCase())
       
       const homeATS = {
         wins: homeGames.filter((g: HistoricalGame) => g.spread_result === 'home_cover').length,
@@ -262,6 +325,7 @@ export async function getRealTeams(sport: Sport): Promise<RealTeamAnalytics[]> {
           asFavorite: { wins: 0, losses: 0, pushes: 0 },
           asUnderdog: { wins: 0, losses: 0, pushes: 0 },
           last10: { wins: 0, losses: 0, pushes: 0 },
+          provenance: atsProvenance,
         },
         ou: {
           overall: {
@@ -280,6 +344,7 @@ export async function getRealTeams(sport: Sport): Promise<RealTeamAnalytics[]> {
             pushes: awayGames.filter((g: HistoricalGame) => g.total_result === 'push').length,
           },
           last10: { overs: 0, unders: 0, pushes: 0 },
+          provenance: atsProvenance,
         },
         ml: {
           asFavorite: { wins: 0, losses: 0 },

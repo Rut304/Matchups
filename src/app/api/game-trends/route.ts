@@ -210,6 +210,12 @@ export async function GET(request: NextRequest) {
         away: awayTrends,
         all: applicableTrends.slice(0, 10)
       },
+      meta: {
+        source: gameMatch ? 'action-network+supabase' : 'supabase',
+        fetchedAt: new Date().toISOString(),
+        trendsSource: 'supabase',
+        splitsSource: gameMatch ? 'action-network' : null,
+      },
       timestamp: new Date().toISOString()
     })
     
