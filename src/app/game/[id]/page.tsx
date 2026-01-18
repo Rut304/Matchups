@@ -774,7 +774,7 @@ export default function GameDetailPage() {
               {/* Data source attribution */}
               <p className="text-xs text-slate-600 mt-3 flex items-center gap-1">
                 <Database className="w-3 h-3" />
-                Game data from ESPN. ATS/O-U data requires betting integration.
+                Game data from ESPN • Historical ATS/O-U from database
               </p>
             </div>
           )}
