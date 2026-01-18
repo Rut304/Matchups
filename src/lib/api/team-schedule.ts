@@ -151,34 +151,58 @@ export async function getTeamSchedule(
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, limit)
     
-    // Calculate record from completed games
-    const completedGames = sortedGames.filter(g => g.isCompleted)
-    const wins = completedGames.filter(g => g.result === 'W').length
-    const losses = completedGames.filter(g => g.result === 'L').length
-    const ties = completedGames.filter(g => g.result === 'T').length
+    // ALWAYS fetch historical data to enrich ESPN games with spread/total info
+    // Historical data has ATS/OU results that ESPN doesn't provide
+    const historicalData = await getHistoricalTeamGames(
+      sport, 
+      data.team.abbreviation, 
+      limit
+    )
     
-    // If ESPN returned limited data (e.g., playoffs), supplement with historical database
-    let finalGames = sortedGames
-    if (sortedGames.length < limit) {
-      const historicalGames = await getHistoricalTeamGames(
-        sport, 
-        data.team.abbreviation, 
-        limit - sortedGames.length
-      )
+    // Create a map of historical games by date for quick lookup
+    const historicalMap = new Map<string, TeamGameResult>()
+    historicalData.games?.forEach((hg: TeamGameResult) => {
+      const dateKey = new Date(hg.date).toDateString()
+      historicalMap.set(dateKey, hg)
+    })
+    
+    // Enrich ESPN games with historical odds data
+    const enrichedGames = sortedGames.map(g => {
+      const dateKey = new Date(g.date).toDateString()
+      const historical = historicalMap.get(dateKey)
       
-      // Merge and dedupe by game ID
-      const existingIds = new Set(sortedGames.map(g => g.id))
-      const newGames = historicalGames.filter(g => !existingIds.has(g.id))
-      finalGames = [...sortedGames, ...newGames]
+      if (historical) {
+        return {
+          ...g,
+          spread: historical.spread || g.spread,
+          atsResult: historical.atsResult || g.atsResult,
+          total: historical.total || g.total,
+          ouResult: historical.ouResult || g.ouResult,
+        }
+      }
+      return g
+    })
+    
+    // If ESPN returned limited data, add historical games not in ESPN
+    let finalGames = enrichedGames
+    if (enrichedGames.length < limit && historicalData.games?.length) {
+      const existingDates = new Set(enrichedGames.map(g => new Date(g.date).toDateString()))
+      const newGames = (historicalData.games as TeamGameResult[])
+        .filter(hg => !existingDates.has(new Date(hg.date).toDateString()))
+      finalGames = [...enrichedGames, ...newGames]
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, limit)
     }
     
-    // Recalculate record with all games
+    // Calculate record from completed games
     const allCompleted = finalGames.filter(g => g.isCompleted)
     const totalWins = allCompleted.filter(g => g.result === 'W').length
     const totalLosses = allCompleted.filter(g => g.result === 'L').length
     const totalTies = allCompleted.filter(g => g.result === 'T').length
+    
+    // Use ATS/OU records from historical data if available
+    const atsRecord = historicalData.atsRecord || undefined
+    const ouRecord = historicalData.ouRecord || undefined
     
     return {
       team: {
@@ -189,9 +213,8 @@ export async function getTeamSchedule(
       },
       games: finalGames,
       record: totalTies > 0 ? `${totalWins}-${totalLosses}-${totalTies}` : `${totalWins}-${totalLosses}`,
-      // ATS/OU records would need betting data integration
-      atsRecord: undefined,
-      ouRecord: undefined,
+      atsRecord,
+      ouRecord,
     }
   } catch (error) {
     console.error('Error fetching team schedule:', error)
@@ -358,12 +381,13 @@ export function getTeamId(sport: SportKey, abbr: string): string | null {
 /**
  * Fetch historical games for a team from our database
  * This supplements ESPN data when their API returns limited results
+ * Also provides ATS/OU betting records
  */
 async function getHistoricalTeamGames(
   sport: SportKey,
   teamAbbr: string,
   limit: number
-): Promise<TeamGameResult[]> {
+): Promise<{ games: TeamGameResult[]; atsRecord?: string; ouRecord?: string }> {
   try {
     const baseUrl = typeof window !== 'undefined' 
       ? '' 
@@ -376,13 +400,17 @@ async function getHistoricalTeamGames(
     
     if (!res.ok) {
       console.error(`Historical team data error: ${res.status}`)
-      return []
+      return { games: [] }
     }
     
     const data = await res.json()
-    return data.games || []
+    return {
+      games: data.games || [],
+      atsRecord: data.atsRecord,
+      ouRecord: data.ouRecord,
+    }
   } catch (error) {
     console.error('Error fetching historical team games:', error)
-    return []
+    return { games: [] }
   }
 }
