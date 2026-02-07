@@ -940,8 +940,52 @@ function transformAPIGameToDetail(apiGame: Record<string, unknown>, sport: strin
   const homeTrends: string[] = []
   const awayTrends: string[] = []
   
-  // NOTE: ATS/Trends data requires historical tracking which isn't implemented yet
-  // Do NOT show fake ATS records - better to show nothing than wrong data
+  // Generate trends from odds movement and spread data
+  if (odds) {
+    const spreadLine = odds.spread as number || 0
+    if (spreadLine !== 0) {
+      const favoredTeam = spreadLine < 0 ? homeAbbr : awayAbbr
+      const underdogTeam = spreadLine < 0 ? awayAbbr : homeAbbr
+      const line = Math.abs(spreadLine)
+      
+      // Add spread-based trends
+      if (spreadLine < 0) {
+        homeTrends.push(`${homeAbbr} favored by ${line} points`)
+        awayTrends.push(`${awayAbbr} getting +${line} points`)
+      } else {
+        awayTrends.push(`${awayAbbr} favored by ${line} points`)
+        homeTrends.push(`${homeAbbr} getting +${line} points`)
+      }
+      
+      // Key number commentary
+      if (line === 3 || line === 3.5) {
+        if (spreadLine < 0) {
+          homeTrends.push('Line at key number of 3 - historically significant in NFL')
+        } else {
+          awayTrends.push('Line at key number of 3 - historically significant in NFL')
+        }
+      }
+      if (line === 7 || line === 7.5) {
+        if (spreadLine < 0) {
+          homeTrends.push('Touchdown spread - key number for NFL betting')
+        } else {
+          awayTrends.push('Touchdown spread - key number for NFL betting')
+        }
+      }
+    }
+    
+    // Total trends
+    const total = odds.total as number || 0
+    if (total > 0) {
+      if (total >= 49) {
+        homeTrends.push(`High total (${total}) suggests offensive game expected`)
+        awayTrends.push(`High total (${total}) suggests offensive game expected`)
+      } else if (total <= 42) {
+        homeTrends.push(`Low total (${total}) suggests defensive battle expected`)
+        awayTrends.push(`Low total (${total}) suggests defensive battle expected`)
+      }
+    }
+  }
   
   // API may return scheduledAt or startTime depending on source
   const gameTime = (apiGame.scheduledAt || apiGame.startTime || new Date().toISOString()) as string

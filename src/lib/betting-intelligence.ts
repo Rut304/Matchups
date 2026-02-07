@@ -1824,7 +1824,158 @@ Provide a comprehensive betting analysis considering ALL 12 data points. Return 
     console.error('AI analysis generation failed:', error)
   }
   
-  return null
+  // FALLBACK: Generate analysis without Gemini API using the data we have
+  return generateFallbackAnalysis(data)
+}
+
+// Generate analysis without external AI API - uses rule-based templates
+function generateFallbackAnalysis(data: {
+  gameId: string
+  sport: string
+  homeTeam: { name: string; abbr: string }
+  awayTeam: { name: string; abbr: string }
+  clv: CLVData
+  lineMovement: LineMovementData
+  splits: PublicSharpSplits
+  injuries: InjuryImpact
+  consensus: MarketConsensus
+}): AIMatchupAnalysis {
+  const home = data.homeTeam.name
+  const away = data.awayTeam.name
+  const homeAbbr = data.homeTeam.abbr
+  const awayAbbr = data.awayTeam.abbr
+  
+  // Build the summary paragraph based on available data
+  const summaryParts: string[] = []
+  
+  // Opening statement
+  const sharpPick = data.consensus.sharpestPick
+  if (sharpPick && sharpPick.confidence >= 60) {
+    if (sharpPick.betType === 'total') {
+      summaryParts.push(`Sharp money has identified value on the ${sharpPick.pick.toUpperCase()} in ${away} vs ${home}.`)
+    } else {
+      summaryParts.push(`Sharp money is backing ${sharpPick.pick.includes(homeAbbr) ? home : away} in this matchup.`)
+    }
+  } else {
+    summaryParts.push(`A compelling matchup between ${away} and ${home} with multiple angles to consider.`)
+  }
+  
+  // CLV commentary
+  if (data.clv.spreadCLV !== 0 || data.clv.totalCLV !== 0) {
+    const movements: string[] = []
+    if (Math.abs(data.clv.spreadCLV) >= 0.5) {
+      movements.push(`spread ${data.clv.spreadCLV > 0 ? 'moving toward the underdog' : 'steaming toward the favorite'}`)
+    }
+    if (Math.abs(data.clv.totalCLV) >= 0.5) {
+      movements.push(`total ${data.clv.totalCLV > 0 ? 'dropping' : 'rising'} from the opener`)
+    }
+    if (movements.length > 0) {
+      summaryParts.push(`Line movement tells an interesting story with the ${movements.join(' and ')}.`)
+    }
+  }
+  
+  // Sharp vs Public split
+  if (data.splits.total.reverseLineMovement) {
+    summaryParts.push(`There's a notable sharp/public split on the total - ${Math.round(data.splits.total.publicOverPct)}% of tickets are on the OVER but the line has moved DOWN, indicating sharp money on the UNDER.`)
+  } else if (data.splits.spread.reverseLineMovement) {
+    const sharpSide = data.splits.spread.sharpSide === 'home' ? home : away
+    summaryParts.push(`Reverse line movement detected on the spread with sharps positioning on ${sharpSide}.`)
+  }
+  
+  // Injury impact
+  const totalInjuryImpact = data.injuries.homeTeam.totalImpactScore + data.injuries.awayTeam.totalImpactScore
+  if (totalInjuryImpact > 30) {
+    const homeOuts = data.injuries.homeTeam.outPlayers.length
+    const awayOuts = data.injuries.awayTeam.outPlayers.length
+    summaryParts.push(`Injuries could be a factor with ${homeAbbr} missing ${homeOuts} players and ${awayAbbr} missing ${awayOuts}.`)
+  }
+  
+  // Conclusion
+  if (sharpPick && sharpPick.confidence >= 60) {
+    summaryParts.push(`The sharpest play identified is ${sharpPick.pick} at ${sharpPick.confidence}% confidence. ${sharpPick.reasoning}`)
+  }
+  
+  const summary = summaryParts.join(' ')
+  
+  // Calculate win probability based on spread
+  const spread = data.clv.currentSpread || 0
+  const homeWinProb = spread === 0 ? 0.5 : (spread < 0 ? 0.5 + Math.abs(spread) * 0.025 : 0.5 - spread * 0.025)
+  
+  // Projected score based on total and spread
+  const total = data.clv.currentTotal || 45
+  const projectedHome = Math.round((total / 2) - (spread / 2))
+  const projectedAway = Math.round((total / 2) + (spread / 2))
+  
+  // Determine spread pick
+  const spreadPick = spread === 0 ? `${away} ML` : spread < 0 ? `${home} ${spread}` : `${away} +${Math.abs(spread)}`
+  const spreadConfidence = data.splits.spread.reverseLineMovement ? 0.65 : 0.55
+  
+  // Determine total pick
+  const totalPick = data.splits.total.reverseLineMovement 
+    ? (data.splits.total.sharpSide === 'under' ? `Under ${total}` : `Over ${total}`)
+    : `Under ${total}`
+  const totalConfidence = data.splits.total.reverseLineMovement ? 0.70 : 0.50
+  
+  // Key edges
+  const keyEdges: string[] = []
+  if (data.clv.grade === 'excellent') keyEdges.push(`Excellent CLV - ${data.clv.description}`)
+  if (data.splits.total.reverseLineMovement) keyEdges.push('Reverse Line Movement on total indicates sharp money')
+  if (data.splits.spread.reverseLineMovement) keyEdges.push('Sharp money diverging from public on spread')
+  if (totalInjuryImpact > 20 && data.injuries.awayTeam.totalImpactScore > data.injuries.homeTeam.totalImpactScore) {
+    keyEdges.push(`${awayAbbr} hampered by more injuries (${data.injuries.awayTeam.totalImpactScore} impact score)`)
+  }
+  if (keyEdges.length === 0) keyEdges.push('Limited sharp signals - proceed with caution')
+  
+  // Major risks
+  const majorRisks: string[] = []
+  if (!data.splits.spread.reverseLineMovement && !data.splits.total.reverseLineMovement) {
+    majorRisks.push('No clear reverse line movement detected')
+  }
+  if (totalInjuryImpact > 40) majorRisks.push('High injury situation - monitor reports')
+  if (majorRisks.length === 0) majorRisks.push('Public heavy on one side - potential line value')
+  
+  // Bet grades
+  const spreadGrade = data.splits.spread.reverseLineMovement ? 'B' : 'C'
+  const totalGrade = data.splits.total.reverseLineMovement ? 'A' : 'B'
+  const mlGrade = Math.abs(spread) > 7 ? 'D' : 'C'
+  
+  return {
+    summary,
+    winProbability: { home: parseFloat(homeWinProb.toFixed(2)), away: parseFloat((1 - homeWinProb).toFixed(2)) },
+    projectedScore: { home: projectedHome, away: projectedAway },
+    spreadAnalysis: {
+      pick: spreadPick,
+      confidence: spreadConfidence,
+      reasoning: data.splits.spread.reverseLineMovement 
+        ? 'Sharp money has identified value on this side'
+        : 'Standard play based on line value',
+      keyFactors: [`Public is ${data.splits.spread.publicHomePct}% on ${homeAbbr}`, `Money is ${data.splits.spread.moneyHomePct}% on ${homeAbbr}`],
+      risks: ['Line could continue moving', 'Late injury news could shift value']
+    },
+    totalAnalysis: {
+      pick: totalPick,
+      confidence: totalConfidence,
+      reasoning: data.splits.total.reverseLineMovement 
+        ? `${Math.round(data.splits.total.publicOverPct)}% of tickets on OVER but line moved DOWN - classic sharp under signal`
+        : 'Standard pace analysis',
+      keyFactors: [`Total opened ${data.clv.openTotal || 'N/A'}, now ${total}`, `Public ${Math.round(data.splits.total.publicOverPct)}% OVER`],
+      paceProjection: total >= 48 ? 'High-scoring environment expected' : 'Lower-scoring defensive battle likely'
+    },
+    mlAnalysis: {
+      pick: homeWinProb > 0.5 ? home : away,
+      confidence: 0.55,
+      value: 0,
+      reasoning: 'Moneyline offers less value than spread in this spot'
+    },
+    propPicks: [],
+    keyEdges,
+    majorRisks,
+    betGrades: {
+      spread: spreadGrade,
+      total: totalGrade,
+      ml: mlGrade
+    }
+  }
 }
 
 // =============================================================================
