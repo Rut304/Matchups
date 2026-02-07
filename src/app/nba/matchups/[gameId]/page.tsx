@@ -130,160 +130,378 @@ export default function NBAGameMatchupPage({ params }: { params: Promise<{ gameI
     >
       <MatchupLayout.Grid>
         <MatchupLayout.MainContent>
-          {/* NBA: Back-to-Back Alert */}
-          {(homeContext?.isBackToBack || awayContext?.isBackToBack) && (
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle className="w-5 h-5 text-amber-400" />
-                <span className="font-bold text-amber-400">Schedule Alert</span>
-              </div>
-              <div className="flex flex-wrap gap-3 text-sm">
-                {homeContext?.isBackToBack && (
-                  <div className="flex items-center gap-2 bg-amber-500/10 px-3 py-1.5 rounded-lg">
-                    <Moon className="w-4 h-4 text-amber-400" />
-                    <span className="text-gray-300"><span className="font-medium text-white">{game.homeTeam.abbreviation}</span> B2B</span>
+          {/* OVERVIEW TAB - Shows summary of everything */}
+          {activeTab === 'overview' && (
+            <>
+              {/* NBA: Back-to-Back Alert */}
+              {(homeContext?.isBackToBack || awayContext?.isBackToBack) && (
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="w-5 h-5 text-amber-400" />
+                    <span className="font-bold text-amber-400">Schedule Alert</span>
+                  </div>
+                  <div className="flex flex-wrap gap-3 text-sm">
+                    {homeContext?.isBackToBack && (
+                      <div className="flex items-center gap-2 bg-amber-500/10 px-3 py-1.5 rounded-lg">
+                        <Moon className="w-4 h-4 text-amber-400" />
+                        <span className="text-gray-300"><span className="font-medium text-white">{game.homeTeam.abbreviation}</span> B2B</span>
+                      </div>
+                    )}
+                    {awayContext?.isBackToBack && (
+                      <div className="flex items-center gap-2 bg-amber-500/10 px-3 py-1.5 rounded-lg">
+                        <Moon className="w-4 h-4 text-amber-400" />
+                        <span className="text-gray-300"><span className="font-medium text-white">{game.awayTeam.abbreviation}</span> B2B</span>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">NBA teams on back-to-backs cover ~47% ATS historically</p>
+                </div>
+              )}
+
+              {/* Quick Summary Cards */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* Betting Summary */}
+                <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-4">
+                  <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-green-400" />
+                    Betting
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Line Move</span>
+                      <span className={bettingIntelligence?.lineMovement?.startsWith('-') ? 'text-red-400' : 'text-green-400'}>{bettingIntelligence?.lineMovement || '—'}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Sharp %</span>
+                      <span className="text-white">{bettingIntelligence?.sharpPct ? `${bettingIntelligence.sharpPct}%` : '—'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* H2H Summary */}
+                {h2h && h2h.gamesPlayed > 0 && (
+                  <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-4">
+                    <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                      <Users className="w-4 h-4 text-purple-400" />
+                      H2H ({h2h.gamesPlayed}g)
+                    </h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">{game.homeTeam.abbreviation} ATS</span>
+                        <span className="text-orange-400">{h2h.homeATSRecord}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">O/U</span>
+                        <span className="text-green-400">{h2h.overUnderRecord}</span>
+                      </div>
+                    </div>
                   </div>
                 )}
-                {awayContext?.isBackToBack && (
-                  <div className="flex items-center gap-2 bg-amber-500/10 px-3 py-1.5 rounded-lg">
-                    <Moon className="w-4 h-4 text-amber-400" />
-                    <span className="text-gray-300"><span className="font-medium text-white">{game.awayTeam.abbreviation}</span> B2B</span>
-                  </div>
-                )}
               </div>
-              <p className="text-xs text-gray-500 mt-2">NBA teams on back-to-backs cover ~47% ATS historically</p>
-            </div>
-          )}
 
-          {/* Rest & Form Comparison */}
-          {(homeContext || awayContext) && (
-            <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-4">
-              <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-blue-400" />
-                Rest & Recent Form
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="text-xs text-gray-500 mb-2">{game.homeTeam.abbreviation}</div>
-                  <div className="flex gap-2">
-                    <div className="bg-[#16161e] rounded-lg px-3 py-2 text-center flex-1">
-                      <div className="text-xl font-bold text-white">{homeContext?.restDays ?? '—'}</div>
-                      <div className="text-[10px] text-gray-500">REST</div>
-                    </div>
-                    <div className="bg-[#16161e] rounded-lg px-3 py-2 text-center flex-1">
-                      <div className="text-xl font-bold text-green-400">{homeContext?.last5Record || '—'}</div>
-                      <div className="text-[10px] text-gray-500">L5</div>
-                    </div>
+              {/* Top Trends Preview */}
+              {trends && trends.matched > 0 && trends.spreadTrends && (
+                <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-4">
+                  <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-orange-500" />
+                    Top Trends
+                  </h3>
+                  <div className="space-y-2">
+                    {trends.spreadTrends.slice(0, 2).map((trend, i) => (
+                      <div key={i} className="flex items-center justify-between p-2 bg-[#16161e] rounded-lg text-sm">
+                        <span className="text-gray-300 text-xs">{trend.description || trend.text}</span>
+                        <span className={`font-bold text-xs ${trend.confidence >= 70 ? 'text-green-400' : 'text-amber-400'}`}>{trend.confidence}%</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <div>
-                  <div className="text-xs text-gray-500 mb-2">{game.awayTeam.abbreviation}</div>
-                  <div className="flex gap-2">
-                    <div className="bg-[#16161e] rounded-lg px-3 py-2 text-center flex-1">
-                      <div className="text-xl font-bold text-white">{awayContext?.restDays ?? '—'}</div>
-                      <div className="text-[10px] text-gray-500">REST</div>
+              )}
+
+              {/* AI Pick */}
+              {topPick && (
+                <div className="bg-gradient-to-br from-[#0c0c14] to-orange-500/5 rounded-xl border border-orange-500/20 p-4">
+                  <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-orange-400" />
+                    AI Pick
+                  </h3>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-lg font-bold text-orange-400">{topPick.selection}</div>
+                      <div className="text-xs text-gray-400">{topPick.supportingTrends} trends</div>
                     </div>
-                    <div className="bg-[#16161e] rounded-lg px-3 py-2 text-center flex-1">
-                      <div className="text-xl font-bold text-green-400">{awayContext?.last5Record || '—'}</div>
-                      <div className="text-[10px] text-gray-500">L5</div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-white">{topPick.confidence}%</div>
+                      <div className="text-[10px] text-gray-500">confidence</div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              )}
+            </>
           )}
 
-          {/* Betting Action */}
-          <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-4">
-            <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-green-400" />
-              Betting Action
-            </h3>
-            <div className="grid grid-cols-4 gap-2">
-              {bettingMetrics.map((m) => (
-                <div key={m.label} className="bg-[#16161e] rounded-lg p-3 text-center">
-                  <div className="text-[10px] text-gray-500 mb-1">{m.label}</div>
-                  <div className={`text-lg font-bold ${m.color || 'text-white'}`}>{m.value}</div>
-                  {m.sub && <div className="text-[10px] text-gray-500">{m.sub}</div>}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* H2H */}
-          {h2h && h2h.gamesPlayed > 0 && (
-            <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-4">
-              <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                <Users className="w-4 h-4 text-purple-400" />
-                H2H ({h2h.gamesPlayed} games)
-              </h3>
-              <div className="grid grid-cols-4 gap-2">
-                <div className="text-center p-2 bg-[#16161e] rounded-lg">
-                  <div className="text-lg font-bold text-orange-400">{h2h.homeATSRecord}</div>
-                  <div className="text-[10px] text-gray-500">{game.homeTeam.abbreviation} ATS</div>
-                </div>
-                <div className="text-center p-2 bg-[#16161e] rounded-lg">
-                  <div className="text-lg font-bold text-blue-400">{h2h.awayATSRecord}</div>
-                  <div className="text-[10px] text-gray-500">{game.awayTeam.abbreviation} ATS</div>
-                </div>
-                <div className="text-center p-2 bg-[#16161e] rounded-lg">
-                  <div className="text-lg font-bold text-green-400">{h2h.overUnderRecord}</div>
-                  <div className="text-[10px] text-gray-500">O/U</div>
-                </div>
-                <div className="text-center p-2 bg-[#16161e] rounded-lg">
-                  <div className="text-lg font-bold text-white">{h2h.avgTotal?.toFixed(1) || '—'}</div>
-                  <div className="text-[10px] text-gray-500">AVG</div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Trends */}
-          {trends && trends.matched > 0 && trends.spreadTrends && (
-            <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-4">
-              <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-orange-500" />
-                Trends ({trends.matched})
-              </h3>
-              <div className="space-y-2">
-                {trends.spreadTrends.slice(0, 4).map((trend, i) => (
-                  <div key={i} className="flex items-center justify-between p-2 bg-[#16161e] rounded-lg text-sm">
-                    <span className="text-gray-300 text-xs">{trend.description || trend.text}</span>
-                    <span className={`font-bold text-xs ${trend.confidence >= 70 ? 'text-green-400' : 'text-amber-400'}`}>{trend.confidence}%</span>
+          {/* TRENDS TAB - Full trends view */}
+          {activeTab === 'trends' && (
+            <>
+              {trends && trends.matched > 0 && trends.spreadTrends ? (
+                <div className="space-y-4">
+                  <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-4">
+                    <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-orange-500" />
+                      Spread Trends ({trends.spreadTrends.length})
+                    </h3>
+                    <div className="space-y-2">
+                      {trends.spreadTrends.map((trend, i) => (
+                        <div key={i} className="flex items-center justify-between p-3 bg-[#16161e] rounded-lg text-sm">
+                          <span className="text-gray-300">{trend.description || trend.text}</span>
+                          <span className={`font-bold ${trend.confidence >= 70 ? 'text-green-400' : 'text-amber-400'}`}>{trend.confidence}%</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                ))}
-              </div>
-              <Link href={`/trends?sport=nba&team=${game.homeTeam.abbreviation}`} className="text-xs text-orange-400 hover:underline mt-2 inline-block">View all →</Link>
-            </div>
+                  {trends.totalTrends && (
+                    <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-4">
+                      <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                        <Target className="w-4 h-4 text-green-400" />
+                        Over/Under Trends ({trends.totalTrends.length})
+                      </h3>
+                      <div className="space-y-2">
+                        {trends.totalTrends.map((trend, i) => (
+                          <div key={i} className="flex items-center justify-between p-3 bg-[#16161e] rounded-lg text-sm">
+                            <span className="text-gray-300">{trend.description || trend.text}</span>
+                            <span className={`font-bold ${trend.confidence >= 70 ? 'text-green-400' : 'text-amber-400'}`}>{trend.confidence}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <Link href={`/trends?sport=nba&team=${game.homeTeam.abbreviation}`} className="text-sm text-orange-400 hover:underline inline-flex items-center gap-1">
+                    <TrendingUp className="w-4 h-4" /> View all NBA trends →
+                  </Link>
+                </div>
+              ) : (
+                <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-8 text-center">
+                  <TrendingUp className="w-8 h-8 text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-400">No trends data available for this matchup</p>
+                </div>
+              )}
+            </>
           )}
 
-          {/* AI Pick */}
-          {topPick && (
-            <div className="bg-gradient-to-br from-[#0c0c14] to-orange-500/5 rounded-xl border border-orange-500/20 p-4">
-              <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
-                <Zap className="w-4 h-4 text-orange-400" />
-                AI Pick
-              </h3>
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-lg font-bold text-orange-400">{topPick.selection}</div>
-                  <div className="text-xs text-gray-400">{topPick.supportingTrends} trends</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-white">{topPick.confidence}%</div>
-                  <div className="text-[10px] text-gray-500">confidence</div>
-                </div>
-              </div>
-              {topPick.reasoning && topPick.reasoning.length > 0 && activeTab === 'ai' && (
-                <div className="mt-3 pt-3 border-t border-white/10 space-y-1">
-                  {topPick.reasoning.slice(0, 3).map((reason: string, i: number) => (
-                    <div key={i} className="flex items-start gap-2 text-xs text-gray-400">
-                      <Target className="w-3 h-3 text-orange-500 mt-0.5 flex-shrink-0" /><span>{reason}</span>
+          {/* BETTING TAB - Full betting action */}
+          {activeTab === 'betting' && (
+            <>
+              <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-4">
+                <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4 text-green-400" />
+                  Betting Action
+                </h3>
+                <div className="grid grid-cols-4 gap-2">
+                  {bettingMetrics.map((m) => (
+                    <div key={m.label} className="bg-[#16161e] rounded-lg p-3 text-center">
+                      <div className="text-[10px] text-gray-500 mb-1">{m.label}</div>
+                      <div className={`text-lg font-bold ${m.color || 'text-white'}`}>{m.value}</div>
+                      {m.sub && <div className="text-[10px] text-gray-500">{m.sub}</div>}
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {bettingIntelligence && (
+                <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-4">
+                  <h3 className="text-sm font-bold text-white mb-3">Line Movement Analysis</h3>
+                  <div className="space-y-3">
+                    {bettingIntelligence.lineMovement && (
+                      <div className="flex justify-between items-center p-3 bg-[#16161e] rounded-lg">
+                        <span className="text-gray-400">Opening → Current</span>
+                        <span className={`font-bold ${bettingIntelligence.lineMovement.startsWith('-') ? 'text-red-400' : 'text-green-400'}`}>
+                          {bettingIntelligence.lineMovement}
+                        </span>
+                      </div>
+                    )}
+                    {bettingIntelligence.steamMoves && bettingIntelligence.steamMoves.length > 0 && (
+                      <div className="flex justify-between items-center p-3 bg-[#16161e] rounded-lg">
+                        <span className="text-gray-400">Steam Moves</span>
+                        <span className="font-bold text-red-400">{bettingIntelligence.steamMoves.length}</span>
+                      </div>
+                    )}
+                    {bettingIntelligence.reverseLineMovement && (
+                      <div className="flex items-center gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                        <AlertTriangle className="w-4 h-4 text-amber-400" />
+                        <span className="text-amber-400 text-sm">Reverse Line Movement Detected</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
-            </div>
+            </>
+          )}
+
+          {/* MATCHUP TAB - H2H and team comparison */}
+          {activeTab === 'matchup' && (
+            <>
+              {/* Rest & Form Comparison */}
+              {(homeContext || awayContext) && (
+                <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-4">
+                  <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-blue-400" />
+                    Rest & Recent Form
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-xs text-gray-500 mb-2">{game.homeTeam.abbreviation}</div>
+                      <div className="flex gap-2">
+                        <div className="bg-[#16161e] rounded-lg px-3 py-2 text-center flex-1">
+                          <div className="text-xl font-bold text-white">{homeContext?.restDays ?? '—'}</div>
+                          <div className="text-[10px] text-gray-500">REST</div>
+                        </div>
+                        <div className="bg-[#16161e] rounded-lg px-3 py-2 text-center flex-1">
+                          <div className="text-xl font-bold text-green-400">{homeContext?.last5Record || '—'}</div>
+                          <div className="text-[10px] text-gray-500">L5</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500 mb-2">{game.awayTeam.abbreviation}</div>
+                      <div className="flex gap-2">
+                        <div className="bg-[#16161e] rounded-lg px-3 py-2 text-center flex-1">
+                          <div className="text-xl font-bold text-white">{awayContext?.restDays ?? '—'}</div>
+                          <div className="text-[10px] text-gray-500">REST</div>
+                        </div>
+                        <div className="bg-[#16161e] rounded-lg px-3 py-2 text-center flex-1">
+                          <div className="text-xl font-bold text-green-400">{awayContext?.last5Record || '—'}</div>
+                          <div className="text-[10px] text-gray-500">L5</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* NBA: Back-to-Back Alert */}
+              {(homeContext?.isBackToBack || awayContext?.isBackToBack) && (
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="w-5 h-5 text-amber-400" />
+                    <span className="font-bold text-amber-400">Schedule Alert</span>
+                  </div>
+                  <div className="flex flex-wrap gap-3 text-sm">
+                    {homeContext?.isBackToBack && (
+                      <div className="flex items-center gap-2 bg-amber-500/10 px-3 py-1.5 rounded-lg">
+                        <Moon className="w-4 h-4 text-amber-400" />
+                        <span className="text-gray-300"><span className="font-medium text-white">{game.homeTeam.abbreviation}</span> B2B</span>
+                      </div>
+                    )}
+                    {awayContext?.isBackToBack && (
+                      <div className="flex items-center gap-2 bg-amber-500/10 px-3 py-1.5 rounded-lg">
+                        <Moon className="w-4 h-4 text-amber-400" />
+                        <span className="text-gray-300"><span className="font-medium text-white">{game.awayTeam.abbreviation}</span> B2B</span>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">NBA teams on back-to-backs cover ~47% ATS historically</p>
+                </div>
+              )}
+
+              {/* H2H Full View */}
+              {h2h && h2h.gamesPlayed > 0 ? (
+                <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-4">
+                  <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                    <Users className="w-4 h-4 text-purple-400" />
+                    Head-to-Head ({h2h.gamesPlayed} games)
+                  </h3>
+                  <div className="grid grid-cols-4 gap-2 mb-4">
+                    <div className="text-center p-3 bg-[#16161e] rounded-lg">
+                      <div className="text-xl font-bold text-orange-400">{h2h.homeATSRecord}</div>
+                      <div className="text-xs text-gray-500">{game.homeTeam.abbreviation} ATS</div>
+                    </div>
+                    <div className="text-center p-3 bg-[#16161e] rounded-lg">
+                      <div className="text-xl font-bold text-blue-400">{h2h.awayATSRecord}</div>
+                      <div className="text-xs text-gray-500">{game.awayTeam.abbreviation} ATS</div>
+                    </div>
+                    <div className="text-center p-3 bg-[#16161e] rounded-lg">
+                      <div className="text-xl font-bold text-green-400">{h2h.overUnderRecord}</div>
+                      <div className="text-xs text-gray-500">O/U</div>
+                    </div>
+                    <div className="text-center p-3 bg-[#16161e] rounded-lg">
+                      <div className="text-xl font-bold text-white">{h2h.avgTotal?.toFixed(1) || '—'}</div>
+                      <div className="text-xs text-gray-500">Avg Total</div>
+                    </div>
+                  </div>
+                  {h2h.avgMargin !== undefined && (
+                    <div className="text-center p-3 bg-[#16161e] rounded-lg">
+                      <div className="text-lg font-bold text-white">{h2h.avgMargin > 0 ? '+' : ''}{h2h.avgMargin.toFixed(1)}</div>
+                      <div className="text-xs text-gray-500">{game.homeTeam.abbreviation} Avg Margin</div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-8 text-center">
+                  <Users className="w-8 h-8 text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-400">No head-to-head data available</p>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* AI PICKS TAB - Full AI analysis */}
+          {activeTab === 'ai' && (
+            <>
+              {topPick ? (
+                <div className="space-y-4">
+                  <div className="bg-gradient-to-br from-[#0c0c14] to-orange-500/5 rounded-xl border border-orange-500/20 p-6">
+                    <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                      <Zap className="w-5 h-5 text-orange-400" />
+                      AI Pick
+                    </h3>
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <div className="text-2xl font-bold text-orange-400">{topPick.selection}</div>
+                        <div className="text-sm text-gray-400">{topPick.supportingTrends} supporting trends</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-4xl font-bold text-white">{topPick.confidence}%</div>
+                        <div className="text-sm text-gray-500">confidence</div>
+                      </div>
+                    </div>
+                    {topPick.reasoning && topPick.reasoning.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-white/10">
+                        <h4 className="text-sm font-bold text-gray-400 mb-3">Analysis</h4>
+                        <div className="space-y-2">
+                          {topPick.reasoning.map((reason: string, i: number) => (
+                            <div key={i} className="flex items-start gap-2 text-sm text-gray-300">
+                              <Target className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
+                              <span>{reason}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Supporting Data */}
+                  <div className="grid grid-cols-2 gap-3">
+                    {trends && trends.matched > 0 && (
+                      <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-4">
+                        <div className="text-2xl font-bold text-green-400">{trends.matched}</div>
+                        <div className="text-xs text-gray-500">Matching Trends</div>
+                      </div>
+                    )}
+                    {h2h && (
+                      <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-4">
+                        <div className="text-2xl font-bold text-purple-400">{h2h.gamesPlayed}</div>
+                        <div className="text-xs text-gray-500">H2H Games</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-[#0c0c14] rounded-xl border border-white/10 p-8 text-center">
+                  <Zap className="w-8 h-8 text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-400">AI pick not available for this matchup</p>
+                  <p className="text-xs text-gray-500 mt-1">Insufficient data to generate prediction</p>
+                </div>
+              )}
+            </>
           )}
         </MatchupLayout.MainContent>
 
