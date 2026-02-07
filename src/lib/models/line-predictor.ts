@@ -488,120 +488,38 @@ export function getLinePredictor(): LinePredictorModel {
 }
 
 // =============================================================================
-// MOCK PREDICTIONS FOR UI DEVELOPMENT
+// DEPRECATED: Mock data removed - use real ML predictions from database
+// These functions now return empty data to indicate "no predictions available"
 // =============================================================================
 
-export function getMockLinePredictions(sport: string): LinePrediction[] {
-  const now = new Date()
-  
-  if (sport === 'NFL') {
-    return [
-      {
-        id: 'pred-nfl-bal-pit',
-        gameId: 'nfl-bal-pit-week18',
-        sport: 'NFL',
-        homeTeam: 'Steelers',
-        awayTeam: 'Ravens',
-        betType: 'spread',
-        currentLine: 4.5,
-        currentOdds: { home: -110, away: -110 },
-        predictedLine: 3.5,
-        predictedDirection: 'down',
-        predictedMagnitude: 1,
-        confidence: 72,
-        optimalBetTiming: 'wait',
-        timingReason: 'Line predicted to drop from +4.5 to +3.5. If you like PIT, WAIT for the 3.5. If you like BAL, bet NOW at -4.5.',
-        expectedLineAtGameTime: 3.5,
-        factors: [
-          { name: 'Sharp Money Detection', impact: -35, confidence: 78, description: 'Tickets: 49% PIT | Money: 55% PIT - Sharp money on Steelers' },
-          { name: 'Public Betting Split', impact: 15, confidence: 65, description: '51% of bets on Ravens, but line moving toward Steelers' },
-          { name: 'Key Number Resistance', impact: -20, confidence: 80, description: 'Line at 4.5, nearing key number 3 - expect stop at 3.5' },
-          { name: 'Time to Game', impact: 25, confidence: 70, description: '2h out - SHARP ACTION WINDOW' }
-        ],
-        predictionMadeAt: now.toISOString(),
-        gameTime: new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString(),
-        modelVersion: '1.0.0'
-      },
-      {
-        id: 'pred-nfl-sea-sf',
-        gameId: 'nfl-sea-sf-week18',
-        sport: 'NFL',
-        homeTeam: '49ers',
-        awayTeam: 'Seahawks',
-        betType: 'spread',
-        currentLine: -1.5,
-        currentOdds: { home: -115, away: -105 },
-        predictedLine: -2.5,
-        predictedDirection: 'down',
-        predictedMagnitude: 1,
-        confidence: 68,
-        optimalBetTiming: 'now',
-        timingReason: 'Line predicted to move from -1.5 to -2.5. Bet SF NOW before line moves further.',
-        expectedLineAtGameTime: -2.5,
-        factors: [
-          { name: 'Sharp Money Detection', impact: -40, confidence: 75, description: 'Tickets: 62% SF | Money: 48% SF - Sharp money on Seahawks but books adjusting for SF' },
-          { name: 'Line Movement Momentum', impact: -20, confidence: 60, description: 'Line opened at 3, now at 1.5 - momentum continuing down' },
-          { name: 'Public Betting Split', impact: -15, confidence: 58, description: 'Public on 49ers, sharps on Seahawks, but line still moving toward SF' }
-        ],
-        predictionMadeAt: now.toISOString(),
-        gameTime: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString(),
-        modelVersion: '1.0.0'
-      }
-    ]
-  }
-  
-  if (sport === 'NBA') {
-    return [
-      {
-        id: 'pred-nba-okc-phx',
-        gameId: 'nba-okc-phx',
-        sport: 'NBA',
-        homeTeam: 'Suns',
-        awayTeam: 'Thunder',
-        betType: 'spread',
-        currentLine: 4.5,
-        currentOdds: { home: -110, away: -110 },
-        predictedLine: 5.5,
-        predictedDirection: 'up',
-        predictedMagnitude: 1,
-        confidence: 65,
-        optimalBetTiming: 'now',
-        timingReason: 'Line predicted to move from +4.5 to +5.5. If you like PHX, bet NOW. If you like OKC, wait.',
-        expectedLineAtGameTime: 5.5,
-        factors: [
-          { name: 'Public Betting Split', impact: 30, confidence: 62, description: '65% of bets on Thunder, line moving in their favor' },
-          { name: 'Sharp Money Detection', impact: 15, confidence: 55, description: 'No significant sharp/public split detected' }
-        ],
-        predictionMadeAt: now.toISOString(),
-        gameTime: new Date(now.getTime() + 4 * 60 * 60 * 1000).toISOString(),
-        modelVersion: '1.0.0'
-      }
-    ]
-  }
-  
+export function getMockLinePredictions(_sport: string): LinePrediction[] {
+  console.warn('[Line Predictor] getMockLinePredictions is deprecated - use real predictions from database')
+  // Return empty array - no fake predictions, UI should show "no predictions available"
   return []
 }
 
 // =============================================================================
-// MOCK MODEL PERFORMANCE (for UI)
+// DEPRECATED: Mock performance removed - use real model metrics from database
 // =============================================================================
 
 export function getMockModelPerformance(): ModelPerformance {
+  console.warn('[Line Predictor] getMockModelPerformance is deprecated - use real metrics from database')
+  // Return zeroed performance - no fake stats
   return {
-    totalPredictions: 847,
-    directionAccuracy: 64.3,
-    avgMagnitudeError: 0.8,
-    profitableTimingPct: 58.2,
+    totalPredictions: 0,
+    directionAccuracy: 0,
+    avgMagnitudeError: 0,
+    profitableTimingPct: 0,
     byConfidenceLevel: {
-      high: { count: 234, accuracy: 71.8 },
-      medium: { count: 412, accuracy: 63.1 },
-      low: { count: 201, accuracy: 54.7 }
+      high: { count: 0, accuracy: 0 },
+      medium: { count: 0, accuracy: 0 },
+      low: { count: 0, accuracy: 0 }
     },
     bySport: {
-      NFL: { count: 312, accuracy: 67.5 },
-      NBA: { count: 285, accuracy: 61.2 },
-      MLB: { count: 145, accuracy: 63.4 },
-      NHL: { count: 105, accuracy: 65.7 }
+      NFL: { count: 0, accuracy: 0 },
+      NBA: { count: 0, accuracy: 0 },
+      MLB: { count: 0, accuracy: 0 },
+      NHL: { count: 0, accuracy: 0 }
     },
     lastUpdated: new Date().toISOString()
   }

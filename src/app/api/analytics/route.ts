@@ -2,7 +2,7 @@
  * Analytics API - Real Data Endpoints
  * 
  * Serves real analytics data to client-side pages
- * GET /api/analytics?type=trends|matchups|cappers|summary
+ * GET /api/analytics?type=trends|matchups|cappers|teams|summary
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -13,6 +13,7 @@ import {
   getRealAnalyticsSummary,
   getHighEdgeTrends,
   getRealLineMovements,
+  getRealTeams,
   type Sport,
 } from '@/lib/services/real-analytics'
 
@@ -61,6 +62,20 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
           movements: movements.slice(0, limit),
           total: movements.length,
+        })
+      }
+
+      case 'teams': {
+        if (!sport) {
+          return NextResponse.json(
+            { error: 'sport parameter is required for teams endpoint' },
+            { status: 400 }
+          )
+        }
+        const teams = await getRealTeams(sport)
+        return NextResponse.json({
+          teams,
+          total: teams.length,
         })
       }
 

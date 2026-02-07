@@ -497,83 +497,13 @@ export function generateMockEdgeAlerts(sport: string = 'NFL', count: number = 5)
 
 /**
  * Get edge alerts for a specific game
+ * Returns empty array - real alerts should be fetched from database
  */
-export function getGameEdgeAlerts(gameId: string, sport: string): EdgeAlert[] {
-  // In production, this would fetch from database/cache
-  // For now, generate consistent mock data based on gameId
-  const seed = gameId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  const hasRLM = seed % 3 === 0
-  const hasSteam = seed % 5 === 0
-  const hasSharpSplit = seed % 4 === 0
-  
-  const alerts: EdgeAlert[] = []
-  
-  if (hasRLM) {
-    alerts.push({
-      id: `rlm-${gameId}`,
-      type: 'rlm',
-      gameId,
-      sport,
-      severity: 'major',
-      title: 'RLM Detected',
-      description: '72% of bets on favorite, but line moved from -6 to -4.5. Sharp action on underdog.',
-      data: {
-        lineOpenSpread: -6,
-        lineCurrentSpread: -4.5,
-        lineMove: 1.5,
-        publicBetPct: 72,
-        sharpSide: 'away',
-      },
-      timestamp: new Date().toISOString(),
-      confidence: 78,
-      expectedValue: 3.5,
-    })
-  }
-  
-  if (hasSteam) {
-    alerts.push({
-      id: `steam-${gameId}`,
-      type: 'steam',
-      gameId,
-      sport,
-      severity: 'critical',
-      title: '🚨 Steam Move Alert',
-      description: 'Line moved 2 pts in 8 minutes across 5 books. Major sharp action.',
-      data: {
-        steamMagnitude: 2,
-        steamSpeed: 8,
-        booksAffected: 5,
-        lineMove: -2,
-      },
-      timestamp: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 45 * 60 * 1000).toISOString(),
-      confidence: 88,
-      expectedValue: 6,
-    })
-  }
-  
-  if (hasSharpSplit) {
-    alerts.push({
-      id: `sharp-${gameId}`,
-      type: 'sharp-public',
-      gameId,
-      sport,
-      severity: 'minor',
-      title: 'Sharp vs Public Split',
-      description: 'Sharp money and public bets are on opposite sides - monitor for reverse line movement.',
-      data: {
-        publicSide: 'home',
-        sharpSide: 'away',
-        publicPct: 68,
-        sharpPct: 61,
-      },
-      timestamp: new Date().toISOString(),
-      confidence: 65,
-      expectedValue: 2.2,
-    })
-  }
-  
-  return alerts
+export function getGameEdgeAlerts(_gameId: string, _sport: string): EdgeAlert[] {
+  // TODO: Fetch real alerts from database for this game
+  // Mock data has been removed - return empty array
+  console.log('[Edge] getGameEdgeAlerts called - no mock data, use getActiveEdgeAlerts for real data')
+  return []
 }
 
 /**

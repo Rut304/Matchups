@@ -1229,6 +1229,20 @@ export default function GameDetailPage() {
             </div>
           )}
 
+          {/* Coming Soon State - Show when no data available */}
+          {!intelligence.loading && !intelligence.aiAnalysis && intelligence.topDataPoints.length === 0 && !intelligence.sharpMoney?.reverseLineMovement && (
+            <div className="p-6 rounded-xl bg-slate-800/30 border border-slate-700/50 text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Clock className="w-5 h-5 text-slate-500" />
+                <span className="text-sm font-semibold text-slate-400">DATA COMING SOON</span>
+              </div>
+              <p className="text-sm text-slate-500">
+                Real-time betting intelligence data is being collected for this matchup. 
+                Check back closer to game time for sharp money signals, line movement analysis, and betting splits.
+              </p>
+            </div>
+          )}
+
           {/* Sharp Money Indicator */}
           {intelligence.sharpMoney?.reverseLineMovement && (
             <div className="mt-4 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30">

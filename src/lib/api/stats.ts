@@ -138,8 +138,9 @@ export async function getNFLStandings(): Promise<TeamStanding[]> {
     
     return standings.sort((a, b) => b.winPct - a.winPct)
   } catch (error) {
-    console.error('Error fetching NFL standings:', error)
-    return getMockNFLStandings()
+    console.error('[Stats API] Error fetching NFL standings:', error)
+    // Return empty array - no fake data, UI should show "data unavailable"
+    return []
   }
 }
 
@@ -152,8 +153,9 @@ export async function getNFLPlayerStats(category: string = 'passing'): Promise<P
     // Process based on category
     return processSportsStats(response.data?.response || [], category, 'nfl')
   } catch (error) {
-    console.error('Error fetching NFL player stats:', error)
-    return getMockNFLPlayerStats(category)
+    console.error('[Stats API] Error fetching NFL player stats:', error)
+    // Return empty array - no fake data
+    return []
   }
 }
 
@@ -175,8 +177,9 @@ export async function getNFLInjuries(): Promise<Injury[]> {
       impact: calculateInjuryImpact(String((inj.player as Record<string, unknown>)?.position || ''), String(inj.status || '')),
     }))
   } catch (error) {
-    console.error('Error fetching NFL injuries:', error)
-    return getMockInjuries('nfl')
+    console.error('[Stats API] Error fetching NFL injuries:', error)
+    // Return empty array - no fake data
+    return []
   }
 }
 
@@ -241,8 +244,9 @@ export async function getNBAStandings(): Promise<TeamStanding[]> {
         }
       })
     } catch (error) {
-      console.error('Error fetching NBA standings:', error)
-      return getMockNBAStandings()
+      console.error('[Stats API] Error fetching NBA standings:', error)
+      // Return empty array - no fake data
+      return []
     }
   }
 }
@@ -255,8 +259,9 @@ export async function getNBAPlayerStats(category: string = 'points'): Promise<Pl
     
     return processBallDontLieStats(response.data?.data || [], category)
   } catch (error) {
-    console.error('Error fetching NBA player stats:', error)
-    return getMockNBAPlayerStats(category)
+    console.error('[Stats API] Error fetching NBA player stats:', error)
+    // Return empty array - no fake data
+    return []
   }
 }
 
@@ -278,8 +283,9 @@ export async function getNBAInjuries(): Promise<Injury[]> {
       impact: calculateInjuryImpact('', String(inj.status || '')),
     }))
   } catch (error) {
-    console.error('Error fetching NBA injuries:', error)
-    return getMockInjuries('nba')
+    console.error('[Stats API] Error fetching NBA injuries:', error)
+    // Return empty array - no fake data
+    return []
   }
 }
 
@@ -318,8 +324,9 @@ export async function getNHLStandings(): Promise<TeamStanding[]> {
       }
     })
   } catch (error) {
-    console.error('Error fetching NHL standings:', error)
-    return getMockNHLStandings()
+    console.error('[Stats API] Error fetching NHL standings:', error)
+    // Return empty array - no fake data
+    return []
   }
 }
 
@@ -359,8 +366,9 @@ export async function getMLBStandings(): Promise<TeamStanding[]> {
       }
     })
   } catch (error) {
-    console.error('Error fetching MLB standings:', error)
-    return getMockMLBStandings()
+    console.error('[Stats API] Error fetching MLB standings:', error)
+    // Return empty array - no fake data
+    return []
   }
 }
 

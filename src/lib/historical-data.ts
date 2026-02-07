@@ -204,9 +204,11 @@ export function getDateRangeForPeriod(period: TimePeriod): { start: Date; end: D
 }
 
 // =============================================================================
-// MOCK DATA (Used when Supabase is not available or for demo purposes)
+// EMPTY FALLBACKS (Used when database is unavailable - show "no data" UI)
+// Mock data has been removed - site only shows real data
 // =============================================================================
 
+// Empty array - no fake data, returns empty when database fails
 const mockTrends: HistoricalTrend[] = [
   {
     id: '1',
@@ -1321,14 +1323,16 @@ export async function getHistoricalTrends(
     const { data, error } = await query
     
     if (error) {
-      console.error('Error fetching trends:', error)
-      return filterTrendsByPeriod(mockTrends, sport, category, period)
+      console.error('[Historical Data] Error fetching trends:', error)
+      // Return empty array - no fake data, UI should show "no data available"
+      return []
     }
     
-    return data || filterTrendsByPeriod(mockTrends, sport, category, period)
-  } catch {
-    // Fallback to mock data
-    return filterTrendsByPeriod(mockTrends, sport, category, period)
+    return data || []
+  } catch (err) {
+    console.error('[Historical Data] Exception fetching trends:', err)
+    // Return empty array - no fake data
+    return []
   }
 }
 

@@ -273,8 +273,23 @@ export default function WNBAPage() {
   const hotTeams = wnbaTeams.filter(t => t.isHot)
   const coldTeams = wnbaTeams.filter(t => t.isCold)
 
+  // Calculate days until 2026 WNBA Season (typically starts mid-May)
+  const seasonStart = new Date(2026, 4, 15) // May 15, 2026
+  const today = new Date()
+  const daysUntilSeason = Math.max(0, Math.ceil((seasonStart.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)))
+  const isOffSeason = daysUntilSeason > 0
+
   return (
     <div className="min-h-screen" style={{ background: '#050508' }}>
+      {/* Off-Season Banner */}
+      {isOffSeason && (
+        <div className="py-3 px-4 text-center" style={{ background: 'linear-gradient(90deg, rgba(255,107,0,0.2) 0%, rgba(255,51,102,0.2) 100%)' }}>
+          <p className="text-sm font-semibold" style={{ color: '#FF6B00' }}>
+            🏀 WNBA Off-Season • 2026 Season starts in <span className="font-bold">{daysUntilSeason} days</span> • Stats shown are from 2024 season
+          </p>
+        </div>
+      )}
+
       {/* Hero Header */}
       <section className="relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #0a0a12 0%, #050508 100%)' }}>
         <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full opacity-20 blur-3xl pointer-events-none" 
@@ -488,11 +503,24 @@ export default function WNBAPage() {
           <div className="rounded-2xl p-5" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
             <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
               <Activity className="w-5 h-5 text-red-500" />
-              Today&apos;s WNBA Games
+              WNBA Games
             </h3>
-            <p className="text-center py-8" style={{ color: '#808090' }}>
-              Check the <Link href="/scores?sport=wnba" className="text-blue-400 hover:underline">Scores page</Link> for live WNBA games and schedules.
-            </p>
+            {isOffSeason ? (
+              <div className="text-center py-8">
+                <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" style={{ color: '#FF6B00' }} />
+                <p className="text-lg font-semibold mb-2" style={{ color: '#FFF' }}>Off-Season</p>
+                <p style={{ color: '#808090' }}>
+                  The 2026 WNBA season begins in <span className="font-bold text-orange-400">{daysUntilSeason} days</span>
+                </p>
+                <p className="text-sm mt-2" style={{ color: '#606070' }}>
+                  Check back in May 2026 for live games and betting lines
+                </p>
+              </div>
+            ) : (
+              <p className="text-center py-8" style={{ color: '#808090' }}>
+                Check the <Link href="/scores?sport=wnba" className="text-blue-400 hover:underline">Scores page</Link> for live WNBA games and schedules.
+              </p>
+            )}
           </div>
         )}
 

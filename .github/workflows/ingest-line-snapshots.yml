@@ -1,0 +1,24 @@
+name: Ingest Line Snapshots
+
+on:
+  schedule:
+    - cron: '*/5 * * * *' # every 5 minutes
+  workflow_dispatch: {}
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install
+        run: npm ci
+      - name: Run ingestion
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          INGEST_SPORTS: 'NFL'
+        run: npx ts-node scripts/ingest-line-snapshots.ts

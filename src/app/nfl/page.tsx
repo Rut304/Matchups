@@ -25,25 +25,15 @@ import {
   Plane,
   DollarSign,
   Info,
-  Search
+  Search,
+  Loader2
 } from 'lucide-react'
-import { getNFLTeams, getTeamByAbbreviation, type TeamAnalytics } from '@/lib/analytics-data'
+import { useTeamAnalytics, calcWinPct, calcOverPct, type TeamWithStreaks } from '@/hooks/useTeamAnalytics'
 import { GamesSection } from '@/components/game'
 
 type TimeFrame = 'season' | 'last30' | 'last14' | 'last7'
 type BetType = 'ats' | 'ou' | 'ml'
 type Situation = 'all' | 'home' | 'away' | 'favorite' | 'underdog' | 'primetime'
-
-// Helper functions to calculate percentages
-const calcWinPct = (wins: number, losses: number): number => {
-  const total = wins + losses
-  return total > 0 ? (wins / total) * 100 : 0
-}
-
-const calcOverPct = (overs: number, unders: number): number => {
-  const total = overs + unders
-  return total > 0 ? (overs / total) * 100 : 0
-}
 
 // Helper to get team emoji based on abbreviation
 const getTeamEmoji = (abbr: string): string => {
@@ -65,9 +55,10 @@ export default function NFLAnalyticsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState<'winPct' | 'profit' | 'name'>('winPct')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
-  const [selectedTeam, setSelectedTeam] = useState<TeamAnalytics | null>(null)
+  const [selectedTeam, setSelectedTeam] = useState<TeamWithStreaks | null>(null)
   
-  const allTeams = getNFLTeams()
+  // Fetch real team data from ESPN + Supabase
+  const { teams: allTeams, loading, error } = useTeamAnalytics('NFL')
   
   // Filter and sort teams
   const filteredTeams = useMemo(() => {
@@ -90,7 +81,7 @@ export default function NFLAnalyticsPage() {
       
       if (sortBy === 'winPct') {
         if (betType === 'ats') {
-          const getATSPct = (t: TeamAnalytics) => {
+          const getATSPct = (t: TeamWithStreaks) => {
             if (situation === 'home') return calcWinPct(t.ats.home.wins, t.ats.home.losses)
             if (situation === 'away') return calcWinPct(t.ats.away.wins, t.ats.away.losses)
             if (situation === 'favorite') return calcWinPct(t.ats.asFavorite.wins, t.ats.asFavorite.losses)
@@ -100,7 +91,7 @@ export default function NFLAnalyticsPage() {
           aVal = getATSPct(a)
           bVal = getATSPct(b)
         } else if (betType === 'ou') {
-          const getOUPct = (t: TeamAnalytics) => {
+          const getOUPct = (t: TeamWithStreaks) => {
             if (situation === 'home') return calcOverPct(t.ou.home.overs, t.ou.home.unders)
             if (situation === 'away') return calcOverPct(t.ou.away.overs, t.ou.away.unders)
             return calcOverPct(t.ou.overall.overs, t.ou.overall.unders)
@@ -141,6 +132,30 @@ export default function NFLAnalyticsPage() {
   ).slice(0, 6) // Show top 6 in quick view
   const hotTeams = allTeams.filter(t => t.isHot)
   const coldTeams = allTeams.filter(t => t.isCold)
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#050508' }}>
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 mx-auto mb-4 animate-spin" style={{ color: '#FF6B00' }} />
+          <p className="text-lg" style={{ color: '#808090' }}>Loading NFL analytics...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#050508' }}>
+        <div className="text-center p-8 rounded-2xl" style={{ background: '#0c0c14', border: '1px solid rgba(255,68,85,0.2)' }}>
+          <p className="text-lg mb-4" style={{ color: '#FF4455' }}>Failed to load team data</p>
+          <p className="text-sm" style={{ color: '#808090' }}>{error}</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen" style={{ background: '#050508' }}>
@@ -420,7 +435,7 @@ function TeamRow({
   onClick,
   isSelected
 }: { 
-  team: TeamAnalytics
+  team: TeamWithStreaks
   betType: BetType
   situation: Situation
   onClick: () => void
@@ -504,7 +519,7 @@ function TeamRow({
 }
 
 // Team Detail Card Component
-function TeamDetailCard({ team, onClose }: { team: TeamAnalytics; onClose: () => void }) {
+function TeamDetailCard({ team, onClose }: { team: TeamWithStreaks; onClose: () => void }) {
   const mlTotalWins = team.ml.asFavorite.wins + team.ml.asUnderdog.wins
   const mlTotalLosses = team.ml.asFavorite.losses + team.ml.asUnderdog.losses
   

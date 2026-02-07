@@ -32,6 +32,22 @@
     {
       "path": "/api/cron/grade-picks",
       "schedule": "0 8,14,20 * * *"
+    },
+    {
+      "path": "/api/cron/scrape-experts?job=morning",
+      "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/cron/scrape-experts?job=pregame-nfl",
+      "schedule": "0 16 * * 0"
+    },
+    {
+      "path": "/api/cron/scrape-experts?job=pregame-weekday",
+      "schedule": "30 23 * * 1-5"
+    },
+    {
+      "path": "/api/cron/scrape-experts?job=postgame",
+      "schedule": "30 4 * * *"
     }
   ]
 }

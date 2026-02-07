@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { 
@@ -27,9 +27,13 @@ import {
   Calendar,
   UserCheck,
   Award,
-  Info
+  Info,
+  Loader2,
+  Database,
+  AlertTriangle
 } from 'lucide-react'
 import { getLeaderboardEntries, capperStats, getHallOfShame, getHallOfGlory, type LeaderboardEntry, type CapperAppearance } from '@/lib/leaderboard-data'
+import { useLeaderboard } from '@/hooks/useLeaderboard'
 import { predictionCappers, analyticsSummary, MarketType } from '@/lib/prediction-market-data'
 import { BetType, Sport } from '@/types/leaderboard'
 import { getCapperSummary, type CapperAnalyticsSummary } from '@/lib/analytics-data'
@@ -104,20 +108,30 @@ export default function LeaderboardPage() {
   const hallOfShame = useMemo(() => getHallOfShame(), [])
   const hallOfGlory = useMemo(() => getHallOfGlory(), [])
   
-  // Map time period to days for filtering
+  // Map time period to days for filtering - MUST be before useLeaderboard hook
   const filterDays = useMemo(() => {
     const period = timePeriods.find(p => p.id === timePeriod)
     return period?.days ?? null
   }, [timePeriod])
   
+  // Use the real leaderboard hook
+  const { entries: hookEntries, loading: hookLoading, dataSource } = useLeaderboard({
+    capperType: activeTab === 'fade' || activeTab === 'all' ? 'all' : activeTab,
+    sport: sportFilter === 'all' ? undefined : sportFilter,
+    betType: betTypeFilter === 'all' ? undefined : betTypeFilter,
+    sortBy,
+    daysBack: filterDays,
+  })
+  
   const displayEntries = useMemo(() => {
-    let entries = getLeaderboardEntries({ 
+    // Use hook entries if available, otherwise fallback to mock data
+    let entries = hookLoading ? [] : (hookEntries.length > 0 ? hookEntries : getLeaderboardEntries({ 
       capperType: activeTab === 'fade' || activeTab === 'all' ? 'all' : activeTab,
       betType: betTypeFilter === 'all' ? undefined : betTypeFilter,
       sport: sportFilter === 'all' ? undefined : sportFilter,
       sortBy,
-      daysBack: filterDays // Pass days filter instead of year
-    })
+      daysBack: filterDays
+    }))
     
     // Filter by network if set
     if (networkFilter !== 'all') {
@@ -135,10 +149,10 @@ export default function LeaderboardPage() {
     }
     
     return entries
-  }, [activeTab, betTypeFilter, sportFilter, sortBy, filterDays, networkFilter, sortDirection])
+  }, [activeTab, betTypeFilter, sportFilter, sortBy, filterDays, networkFilter, sortDirection, hookEntries, hookLoading])
 
   // Reset page when filters change
-  useMemo(() => {
+  useEffect(() => {
     setCurrentPage(1)
   }, [activeTab, betTypeFilter, sportFilter, sortBy, filterDays, networkFilter])
 
@@ -225,6 +239,26 @@ export default function LeaderboardPage() {
             <p className="text-sm mt-2" style={{ color: '#606070' }}>
               Every pick from ESPN, FOX, TNT & more — tracked and verified
             </p>
+            
+            {/* Data Source Indicator */}
+            <div className="flex items-center justify-center gap-2 mt-3">
+              {hookLoading ? (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <Loader2 className="w-3 h-3 animate-spin" style={{ color: '#A0A0B0' }} />
+                  <span className="text-xs font-medium" style={{ color: '#A0A0B0' }}>Loading real data...</span>
+                </div>
+              ) : dataSource === 'database' ? (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)' }}>
+                  <Database className="w-3 h-3" style={{ color: '#00FF88' }} />
+                  <span className="text-xs font-medium" style={{ color: '#00FF88' }}>Live from Database</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: 'rgba(255,215,0,0.1)', border: '1px solid rgba(255,215,0,0.3)' }}>
+                  <AlertTriangle className="w-3 h-3" style={{ color: '#FFD700' }} />
+                  <span className="text-xs font-medium" style={{ color: '#FFD700' }}>Demo Data (Seed DB for live)</span>
+                </div>
+              )}
+            </div>
           </div>
           
           {/* Hero Stats Grid */}

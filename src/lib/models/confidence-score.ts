@@ -784,114 +784,11 @@ export class ConfidenceModel {
 }
 
 // =============================================================================
-// MOCK DATA FOR TESTING
+// DEPRECATED: Mock data removed - use real confidence scores from database
 // =============================================================================
 
 export function getMockConfidenceScores(): ConfidenceScore[] {
-  return [
-    {
-      gameId: 'nfl-phi-was-1',
-      sport: 'NFL',
-      homeTeam: 'PHI',
-      awayTeam: 'WAS',
-      
-      spreadPick: 'home',
-      spreadConfidence: 74,
-      spreadLine: -6,
-      spreadFactors: [
-        { name: 'Season Series', category: 'matchup', weight: 0.20, impact: 2.5, description: 'Eagles swept Commanders 2-0 this season', confidence: 82 },
-        { name: 'Sharp Money', category: 'sharp', weight: 0.18, impact: 2.0, description: 'Sharp money (72%) on PHI', confidence: 78 },
-        { name: 'Matchup Edge', category: 'matchup', weight: 0.15, impact: 1.5, description: 'PHI rushing offense vs WAS run defense: Eagles dominate', confidence: 72 },
-      ],
-      spreadEdge: 1.8,
-      
-      totalPick: 'under',
-      totalConfidence: 71,
-      totalLine: 48.5,
-      totalFactors: [
-        { name: 'Weather Impact', category: 'weather', weight: 0.12, impact: -2.5, description: '38°F, 12mph wind - slightly favors UNDER', confidence: 75 },
-        { name: 'Defense First', category: 'matchup', weight: 0.15, impact: -1.5, description: 'Both teams rank top-10 in defense this season', confidence: 68 },
-      ],
-      projectedTotal: 45.5,
-      
-      overallConfidence: 72,
-      bestBet: 'spread',
-      reasoning: [
-        '✓ Sharp money heavily on PHI spread',
-        '✓ Eagles 9-2 ATS at home this season',
-        '✓ Saquon Barkley 289 rushing yards vs WAS in 2024',
-        '⚠️ Jayden Daniels playoff experience unknown',
-      ],
-      
-      timestamp: new Date(),
-      modelVersion: '1.0.0',
-    },
-    {
-      gameId: 'nba-lal-bos-1',
-      sport: 'NBA',
-      homeTeam: 'BOS',
-      awayTeam: 'LAL',
-      
-      spreadPick: 'home',
-      spreadConfidence: 68,
-      spreadLine: -7.5,
-      spreadFactors: [
-        { name: 'B2B Fatigue', category: 'location', weight: 0.15, impact: -3.5, description: 'LAL on back-to-back, cross-country travel', confidence: 88 },
-        { name: 'No Key Injuries', category: 'injury', weight: 0.18, impact: 0, description: 'Both teams fully healthy', confidence: 75 },
-      ],
-      spreadEdge: 2.1,
-      
-      totalPick: 'over',
-      totalConfidence: 78,
-      totalLine: 224.5,
-      totalFactors: [
-        { name: 'Pace & Tempo', category: 'pace', weight: 0.18, impact: 4.0, description: 'Both teams play fast (avg pace rank: 6th) - favors OVER', confidence: 82 },
-        { name: 'H2H History', category: 'matchup', weight: 0.12, impact: 2.5, description: 'Last 8 meetings averaged 231.4 total points', confidence: 76 },
-      ],
-      projectedTotal: 229.8,
-      
-      overallConfidence: 73,
-      bestBet: 'total',
-      reasoning: [
-        '✓ Both teams top-10 in pace - high-scoring expected',
-        '✓ H2H history shows consistent overs',
-        '✓ LAL on B2B favors home team',
-      ],
-      
-      timestamp: new Date(),
-      modelVersion: '1.0.0',
-    },
-    {
-      gameId: 'nhl-tor-mtl-1',
-      sport: 'NHL',
-      homeTeam: 'MTL',
-      awayTeam: 'TOR',
-      
-      spreadPick: 'away',
-      spreadConfidence: 62,
-      spreadLine: 1.5,
-      spreadFactors: [
-        { name: 'Goalie Situation', category: 'injury', weight: 0.22, impact: 2.0, description: 'MTL backup goalie starting - Leafs advantage', confidence: 75 },
-      ],
-      spreadEdge: 0.8,
-      
-      totalPick: 'over',
-      totalConfidence: 65,
-      totalLine: 6.5,
-      totalFactors: [
-        { name: 'Rivalry Game', category: 'trend', weight: 0.12, impact: 1.5, description: 'Rivalry games trend over in NHL (62%)', confidence: 65 },
-      ],
-      projectedTotal: 7.1,
-      
-      overallConfidence: 63,
-      bestBet: 'spread',
-      reasoning: [
-        '✓ Backup goalie for Montreal creates edge',
-        '⚠️ NHL high variance - lower confidence',
-      ],
-      
-      timestamp: new Date(),
-      modelVersion: '1.0.0',
-    },
-  ]
+  console.warn('[Confidence Score] getMockConfidenceScores is deprecated - use real scores from database')
+  // Return empty array - no fake confidence scores, UI should show "no data available"
+  return []
 }

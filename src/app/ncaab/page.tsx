@@ -52,6 +52,11 @@ export default async function NCAABPage() {
   
   const liveGames = games.filter(g => g.status === 'in_progress')
   
+  // Calculate days until March Madness (Selection Sunday March 15, 2026)
+  const marchMadnessDate = new Date(2026, 2, 15) // March 15, 2026
+  const today = new Date()
+  const daysToMarch = Math.max(0, Math.ceil((marchMadnessDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)))
+  
   return (
     <div className="min-h-screen" style={{ background: '#050508' }}>
       {/* Hero Section */}
@@ -87,7 +92,7 @@ export default async function NCAABPage() {
               <div className="text-xs uppercase tracking-wider" style={{ color: '#808090' }}>Tournament Teams</div>
             </div>
             <div className="p-4 rounded-xl text-center" style={{ background: 'rgba(255,51,102,0.1)', border: '1px solid rgba(255,51,102,0.2)' }}>
-              <div className="text-2xl font-black" style={{ color: '#FF3366' }}>47</div>
+              <div className="text-2xl font-black" style={{ color: '#FF3366' }}>{daysToMarch}</div>
               <div className="text-xs uppercase tracking-wider" style={{ color: '#808090' }}>Days to March</div>
             </div>
           </div>

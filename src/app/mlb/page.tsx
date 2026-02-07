@@ -18,25 +18,15 @@ import {
   Zap,
   Info,
   Search,
-  User
+  User,
+  Loader2
 } from 'lucide-react'
-import { getMLBTeams, type TeamAnalytics } from '@/lib/analytics-data'
+import { useTeamAnalytics, calcWinPct, calcOverPct, type TeamWithStreaks } from '@/hooks/useTeamAnalytics'
 import { GamesSection } from '@/components/game'
 
 type TimeFrame = 'season' | 'last30' | 'last14' | 'last7'
 type BetType = 'runline' | 'ou' | 'ml'
 type Situation = 'all' | 'home' | 'away' | 'favorite' | 'underdog'
-
-// Helper functions to calculate percentages
-const calcWinPct = (wins: number, losses: number): number => {
-  const total = wins + losses
-  return total > 0 ? (wins / total) * 100 : 0
-}
-
-const calcOverPct = (overs: number, unders: number): number => {
-  const total = overs + unders
-  return total > 0 ? (overs / total) * 100 : 0
-}
 
 // Helper to get team emoji based on abbreviation
 const getTeamEmoji = (abbr: string): string => {
@@ -57,10 +47,11 @@ export default function MLBAnalyticsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState<'winPct' | 'profit' | 'name'>('winPct')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
-  const [selectedTeam, setSelectedTeam] = useState<TeamAnalytics | null>(null)
+  const [selectedTeam, setSelectedTeam] = useState<TeamWithStreaks | null>(null)
   const [activeView, setActiveView] = useState<'teams' | 'games' | 'pitchers'>('teams')
   
-  const allTeams = getMLBTeams()
+  // Fetch real team data from ESPN + Supabase
+  const { teams: allTeams, loading, error } = useTeamAnalytics('MLB')
   
   const filteredTeams = useMemo(() => {
     let teams = [...allTeams]
@@ -113,41 +104,29 @@ export default function MLBAnalyticsPage() {
   const hotTeams = allTeams.filter(t => t.isHot)
   const coldTeams = allTeams.filter(t => t.isCold)
 
-  const todaysGames = [
-    {
-      id: '1',
-      time: '1:05 PM ET',
-      away: { team: 'NYY', name: 'Yankees', emoji: '⚾', runline: '-1.5', ml: '-165', record: '58-38', pitcher: 'G. Cole' },
-      home: { team: 'BOS', name: 'Red Sox', emoji: '🧦', runline: '+1.5', ml: '+145', record: '52-44', pitcher: 'T. Houck' },
-      total: '9.0',
-      publicSpread: 62,
-      aiPick: 'BOS +1.5',
-      aiConfidence: 64,
-      isHot: true,
-    },
-    {
-      id: '2',
-      time: '7:10 PM ET',
-      away: { team: 'LAD', name: 'Dodgers', emoji: '💙', runline: '-1.5', ml: '-180', record: '62-34', pitcher: 'Y. Yamamoto' },
-      home: { team: 'SF', name: 'Giants', emoji: '🧡', runline: '+1.5', ml: '+155', record: '48-48', pitcher: 'L. Webb' },
-      total: '8.5',
-      publicSpread: 68,
-      aiPick: 'UNDER 8.5',
-      aiConfidence: 71,
-      isHot: true,
-    },
-    {
-      id: '3',
-      time: '8:10 PM ET',
-      away: { team: 'ATL', name: 'Braves', emoji: '🪓', runline: '-1.5', ml: '-155', record: '55-40', pitcher: 'M. Fried' },
-      home: { team: 'HOU', name: 'Astros', emoji: '⭐', runline: '+1.5', ml: '+135', record: '51-44', pitcher: 'F. Valdez' },
-      total: '8.0',
-      publicSpread: 55,
-      aiPick: 'HOU +1.5',
-      aiConfidence: 58,
-      isHot: false,
-    },
-  ]
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#050508' }}>
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 mx-auto mb-4 animate-spin" style={{ color: '#00FF88' }} />
+          <p className="text-lg" style={{ color: '#808090' }}>Loading MLB analytics...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#050508' }}>
+        <div className="text-center p-8 rounded-2xl" style={{ background: '#0c0c14', border: '1px solid rgba(255,68,85,0.2)' }}>
+          <p className="text-lg mb-4" style={{ color: '#FF4455' }}>Failed to load team data</p>
+          <p className="text-sm" style={{ color: '#808090' }}>{error}</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen" style={{ background: '#050508' }}>
@@ -359,94 +338,7 @@ export default function MLBAnalyticsPage() {
         
         {/* Games View */}
         {activeView === 'games' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold" style={{ color: '#FFF' }}>Today&apos;s MLB Games</h2>
-              <span className="text-sm" style={{ color: '#808090' }}>{todaysGames.length} Featured Games</span>
-            </div>
-            
-            {todaysGames.map((game) => (
-              <div key={game.id} className="rounded-2xl overflow-hidden" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4" style={{ color: '#808090' }} />
-                      <span className="text-sm font-semibold" style={{ color: '#808090' }}>{game.time}</span>
-                      {game.isHot && (
-                        <span className="px-2 py-0.5 rounded text-xs font-bold flex items-center gap-1" 
-                              style={{ background: 'rgba(255,107,0,0.2)', color: '#FF6B00' }}>
-                          <Flame className="w-3 h-3" /> HOT
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-3 gap-4 items-center">
-                    <div className="text-center">
-                      <span className="text-3xl">{game.away.emoji}</span>
-                      <div className="font-bold mt-1" style={{ color: '#FFF' }}>{game.away.team}</div>
-                      <div className="text-xs" style={{ color: '#808090' }}>{game.away.record}</div>
-                      <div className="text-xs mt-1 px-2 py-1 rounded inline-block" style={{ background: 'rgba(255,255,255,0.05)', color: '#FFD700' }}>
-                        {game.away.pitcher}
-                      </div>
-                      <div className="mt-2 grid grid-cols-2 gap-1">
-                        <div className="p-2 rounded" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                          <div className="text-xs" style={{ color: '#606070' }}>RL</div>
-                          <div className="font-bold text-sm" style={{ color: game.away.runline.startsWith('+') ? '#00FF88' : '#FF4455' }}>{game.away.runline}</div>
-                        </div>
-                        <div className="p-2 rounded" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                          <div className="text-xs" style={{ color: '#606070' }}>ML</div>
-                          <div className="font-bold text-sm" style={{ color: '#FFF' }}>{game.away.ml}</div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="text-center">
-                      <div className="text-2xl font-black" style={{ color: '#606070' }}>VS</div>
-                      <div className="mt-2 p-2 rounded" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                        <div className="text-xs" style={{ color: '#606070' }}>Total</div>
-                        <div className="font-bold" style={{ color: '#FFF' }}>O/U {game.total}</div>
-                      </div>
-                    </div>
-                    
-                    <div className="text-center">
-                      <span className="text-3xl">{game.home.emoji}</span>
-                      <div className="font-bold mt-1" style={{ color: '#FFF' }}>{game.home.team}</div>
-                      <div className="text-xs" style={{ color: '#808090' }}>{game.home.record}</div>
-                      <div className="text-xs mt-1 px-2 py-1 rounded inline-block" style={{ background: 'rgba(255,255,255,0.05)', color: '#FFD700' }}>
-                        {game.home.pitcher}
-                      </div>
-                      <div className="mt-2 grid grid-cols-2 gap-1">
-                        <div className="p-2 rounded" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                          <div className="text-xs" style={{ color: '#606070' }}>RL</div>
-                          <div className="font-bold text-sm" style={{ color: game.home.runline.startsWith('+') ? '#00FF88' : '#FF4455' }}>{game.home.runline}</div>
-                        </div>
-                        <div className="p-2 rounded" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                          <div className="text-xs" style={{ color: '#606070' }}>ML</div>
-                          <div className="font-bold text-sm" style={{ color: '#FFF' }}>{game.home.ml}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4 p-3 rounded-xl flex items-center justify-between"
-                       style={{ background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.2)' }}>
-                    <div className="flex items-center gap-2">
-                      <Zap className="w-5 h-5" style={{ color: '#00FF88' }} />
-                      <span className="font-bold" style={{ color: '#00FF88' }}>AI Pick:</span>
-                      <span className="font-bold" style={{ color: '#FFF' }}>{game.aiPick}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm" style={{ color: '#808090' }}>Confidence:</span>
-                      <span className="font-bold" style={{ color: game.aiConfidence >= 65 ? '#00FF88' : '#FFD700' }}>
-                        {game.aiConfidence}%
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <GamesSection sport="MLB" />
         )}
         
         {/* Pitchers View */}
@@ -478,7 +370,7 @@ function TeamRow({
   onClick,
   isSelected
 }: { 
-  team: TeamAnalytics
+  team: TeamWithStreaks
   betType: BetType
   onClick: () => void
   isSelected: boolean
@@ -547,7 +439,7 @@ function TeamRow({
   )
 }
 
-function TeamDetailCard({ team, onClose }: { team: TeamAnalytics; onClose: () => void }) {
+function TeamDetailCard({ team, onClose }: { team: TeamWithStreaks; onClose: () => void }) {
   const atsOverallPct = calcWinPct(team.ats.overall.wins, team.ats.overall.losses)
   const atsHomePct = calcWinPct(team.ats.home.wins, team.ats.home.losses)
   const atsAwayPct = calcWinPct(team.ats.away.wins, team.ats.away.losses)
@@ -590,10 +482,7 @@ function TeamDetailCard({ team, onClose }: { team: TeamAnalytics; onClose: () =>
           <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: '#FF6B00' }}>Over/Under</div>
           <div className="grid grid-cols-2 gap-2">
             <MiniStat label="Overs" value={`${team.ou.overall.overs}-${team.ou.overall.unders}`} pct={ouOverallPct} />
-            <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(255,255,255,0.03)' }}>
-              <div className="text-xs" style={{ color: '#606070' }}>PPG</div>
-              <div className="font-bold" style={{ color: '#FFF' }}>{team.scoring.ppg.toFixed(1)}</div>
-            </div>
+            <MiniStat label="L10 O/U" value={`${team.ou.last10.overs}-${team.ou.last10.unders}`} pct={calcOverPct(team.ou.last10.overs, team.ou.last10.unders)} />
           </div>
         </div>
         

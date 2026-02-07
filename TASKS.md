@@ -213,6 +213,46 @@ The `/game/[id]` page is fully functional with real ESPN data:
 
 ## 📋 BACKLOG (P2 - Medium Priority)
 
+### 🔴 DATA INTEGRATIONS NEEDED ("Coming Soon" Features)
+
+These are the betting intelligence data points currently showing "Coming Soon" because they require additional API integrations:
+
+- [ ] **CLV Tracking (Closing Line Value)** - Track opening lines over time
+  - Store opening lines when markets first open
+  - Calculate line movement history
+  - Requires: Database schema for line snapshots, cron job to capture lines
+  
+- [ ] **Weather API Integration** - Real weather data for outdoor games
+  - OpenWeather or Weather.gov API
+  - Impact scoring for wind, temp, precipitation
+  - Requires: API key, venue outdoor/dome detection
+  
+- [ ] **ESPN Injuries API Deep Integration** - Full injury impact analysis
+  - Player impact ratings
+  - Positional impact scoring
+  - Line adjustment calculations
+  - Requires: ESPN API expansion, player importance ratings
+  
+- [ ] **Situational Angle Analysis** - Schedule-based edges
+  - Rest days calculation
+  - Back-to-back detection (NBA/NHL)
+  - Travel miles tracking
+  - Revenge game detection
+  - Primetime/divisional flags
+  - Requires: Schedule parsing, team history tracking
+  
+- [ ] **H2H Historical Database** - Head-to-head history
+  - ATS records vs specific opponents
+  - O/U trends in matchups
+  - Recent meeting results
+  - Requires: Historical game results database
+  
+- [ ] **Market Consensus Aggregation** - Expert picks aggregation
+  - Scrape Covers consensus
+  - Action Network public picks
+  - OddsJam consensus
+  - Requires: Web scraping, data normalization
+
 ### Phase 1: Core Value (From Research)
 
 - [x] **Line Shop Widget** - Show best odds across all books ✅ COMPLETED

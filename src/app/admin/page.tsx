@@ -33,12 +33,18 @@ import {
   EyeOff,
   TrendingUp,
   Target,
-  DollarSign
+  DollarSign,
+  Twitter,
+  Calendar,
+  Download,
+  Trash2,
+  Pause
 } from 'lucide-react'
 
 import Link from 'next/link'
+import { ScrapersTabContent } from './scrapers-tab'
 
-type TabType = 'overview' | 'data' | 'diagnostics' | 'users' | 'ads' | 'edge' | 'infra' | 'settings' | 'api-usage'
+type TabType = 'overview' | 'data' | 'diagnostics' | 'users' | 'scrapers' | 'ads' | 'edge' | 'infra' | 'settings' | 'api-usage'
 
 interface Job {
   id: string
@@ -308,6 +314,7 @@ export default function AdminPage() {
     { id: 'data', label: 'Data Jobs', icon: Database },
     { id: 'diagnostics', label: 'Diagnostics', icon: Heart },
     { id: 'users', label: 'Users', icon: Users },
+    { id: 'scrapers', label: 'Expert Scrapers', icon: Search },
     { id: 'ads', label: 'Ads', icon: Megaphone },
     { id: 'edge', label: 'Edge Features', icon: TrendingUp },
     { id: 'infra', label: 'Infrastructure', icon: Server },
@@ -804,6 +811,11 @@ export default function AdminPage() {
               </CardContent>
             </Card>
           </div>
+        )}
+
+        {/* Expert Scrapers Tab */}
+        {activeTab === 'scrapers' && (
+          <ScrapersTabContent />
         )}
 
         {/* Ads Tab */}

@@ -14,10 +14,12 @@ export async function GET(request: Request) {
   try {
     const supabase = await createClient()
 
+    // Order by priority_score (70% recency + 30% engagement) for dynamic rotation
     let query = supabase
       .from('sus_plays')
       .select('*', { count: 'exact' })
       .eq('moderation_status', 'approved')
+      .order('priority_score', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 

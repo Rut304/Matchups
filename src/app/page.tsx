@@ -140,31 +140,37 @@ export default function Home() {
             <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20">
               <div className="flex items-center gap-2 mb-2">
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                <span className="text-sm font-bold text-red-400">Live & Upcoming</span>
+                <span className="text-sm font-bold text-red-400">🏆 SUPER BOWL WEEKEND</span>
               </div>
               <p className="text-xs text-gray-400">
-                NFL Divisional Playoffs, CFP Semifinal, and more action today. Click any game for full matchup analysis.
+                Super Bowl LX is Sunday! Plus NBA, NHL, and college hoops action all weekend. Click any game for full matchup analysis.
               </p>
             </div>
             
-            {/* Playoff Tracker */}
-            <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
+            {/* Super Bowl Countdown */}
+            <div className="p-4 rounded-xl bg-gradient-to-br from-yellow-500/20 to-orange-500/10 border border-yellow-500/30">
               <div className="flex items-center gap-2 mb-3">
                 <Trophy className="w-5 h-5 text-yellow-400" />
-                <span className="text-sm font-bold text-yellow-400">Playoff Watch</span>
+                <span className="text-sm font-bold text-yellow-400">Super Bowl LX</span>
               </div>
               <div className="space-y-2 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">🏈 NFL Divisional</span>
-                  <span className="text-white">Jan 10-12</span>
+                  <span className="text-gray-400">🏈 Super Bowl LX</span>
+                  <span className="text-yellow-400 font-bold">Sun, Feb 8</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">🏈 CFP Semifinal</span>
-                  <span className="text-white">Jan 9-10</span>
+                  <span className="text-gray-400">📍 Allegiant Stadium</span>
+                  <span className="text-white">Las Vegas</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">🏈 CFP Championship</span>
-                  <span className="text-white">Jan 20</span>
+                  <span className="text-gray-400">⏰ Kickoff</span>
+                  <span className="text-white">6:30 PM ET</span>
+                </div>
+                <div className="mt-2 pt-2 border-t border-white/10">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-400">🏀 NBA All-Star</span>
+                    <span className="text-white">Feb 16</span>
+                  </div>
                 </div>
               </div>
             </div>

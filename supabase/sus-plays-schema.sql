@@ -33,6 +33,10 @@ CREATE TABLE IF NOT EXISTS sus_plays (
   tweet_media_url TEXT, -- Video/image from tweet
   tweet_engagement JSONB, -- likes, retweets, views
   source TEXT DEFAULT 'manual', -- 'manual', 'twitter', 'reddit', 'tiktok'
+  -- Dynamic scoring fields
+  priority_score NUMERIC DEFAULT 0, -- Combined score for ranking (computed)
+  engagement_score NUMERIC DEFAULT 0, -- Based on sus_votes + legit_votes + tweet engagement
+  recency_score NUMERIC DEFAULT 0, -- Based on how recent the post is
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
 );
@@ -52,6 +56,16 @@ BEGIN
   END IF;
 END $$;
 
+-- Add priority scoring columns if they don't exist (for upgrades)
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'sus_plays' AND column_name = 'priority_score') THEN
+    ALTER TABLE sus_plays ADD COLUMN priority_score NUMERIC DEFAULT 0;
+    ALTER TABLE sus_plays ADD COLUMN engagement_score NUMERIC DEFAULT 0;
+    ALTER TABLE sus_plays ADD COLUMN recency_score NUMERIC DEFAULT 0;
+  END IF;
+END $$;
+
 -- Create indexes for common queries
 CREATE INDEX IF NOT EXISTS idx_sus_plays_sport ON sus_plays(sport);
 CREATE INDEX IF NOT EXISTS idx_sus_plays_player_name ON sus_plays(player_name);
@@ -60,6 +74,11 @@ CREATE INDEX IF NOT EXISTS idx_sus_plays_created ON sus_plays(created_at DESC);
 
 -- Enable RLS
 ALTER TABLE sus_plays ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist (to avoid errors on re-run)
+DROP POLICY IF EXISTS "Anyone can read sus plays" ON sus_plays;
+DROP POLICY IF EXISTS "Authenticated users can submit sus plays" ON sus_plays;
+DROP POLICY IF EXISTS "Anyone can update vote counts" ON sus_plays;
 
 -- Allow anyone to read sus plays
 CREATE POLICY "Anyone can read sus plays" ON sus_plays
@@ -89,6 +108,10 @@ CREATE TABLE IF NOT EXISTS sus_play_votes (
 
 -- Enable RLS on votes
 ALTER TABLE sus_play_votes ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Anyone can read votes" ON sus_play_votes;
+DROP POLICY IF EXISTS "Anyone can vote" ON sus_play_votes;
 
 -- Allow anyone to read votes
 CREATE POLICY "Anyone can read votes" ON sus_play_votes
@@ -126,7 +149,110 @@ CREATE TRIGGER sus_play_votes_trigger
   FOR EACH ROW
   EXECUTE FUNCTION update_sus_play_votes();
 
--- Insert some sample sus plays for demo
+-- =============================================================================
+-- PRIORITY SCORING SYSTEM
+-- Scores sus plays by: recency (70%) + engagement (30%)
+-- This ensures fresh content rotates to the top while viral posts stay visible
+-- =============================================================================
+
+-- Function to calculate priority score
+CREATE OR REPLACE FUNCTION calculate_sus_play_priority_score(
+  p_created_at TIMESTAMP WITH TIME ZONE,
+  p_sus_votes INTEGER,
+  p_legit_votes INTEGER,
+  p_tweet_engagement JSONB DEFAULT NULL
+) RETURNS NUMERIC AS $$
+DECLARE
+  recency_score NUMERIC;
+  engagement_score NUMERIC;
+  hours_old NUMERIC;
+  total_votes INTEGER;
+  tweet_likes INTEGER;
+  tweet_retweets INTEGER;
+  tweet_views INTEGER;
+BEGIN
+  -- Calculate hours since creation (max out at 720 hours = 30 days)
+  hours_old := LEAST(720, EXTRACT(EPOCH FROM (NOW() - p_created_at)) / 3600);
+  
+  -- Recency score: 100 for brand new, decays over 30 days
+  -- Using exponential decay: score = 100 * e^(-hours/168) (half-life of ~7 days)
+  recency_score := 100 * EXP(-hours_old / 168);
+  
+  -- Engagement score from votes
+  total_votes := COALESCE(p_sus_votes, 0) + COALESCE(p_legit_votes, 0);
+  
+  -- Add tweet engagement if available
+  IF p_tweet_engagement IS NOT NULL THEN
+    tweet_likes := COALESCE((p_tweet_engagement->>'likes')::INTEGER, 0);
+    tweet_retweets := COALESCE((p_tweet_engagement->>'retweets')::INTEGER, 0);
+    tweet_views := COALESCE((p_tweet_engagement->>'views')::INTEGER, 0);
+    -- Normalize: likes worth 1, retweets worth 2, views worth 0.001
+    total_votes := total_votes + tweet_likes + (tweet_retweets * 2) + (tweet_views / 1000)::INTEGER;
+  END IF;
+  
+  -- Engagement score: logarithmic scale (prevents viral posts from dominating forever)
+  -- Score of ~33 at 1000 votes, ~50 at 10000 votes, ~66 at 100000 votes
+  engagement_score := CASE 
+    WHEN total_votes <= 0 THEN 0
+    ELSE 16.6 * LN(total_votes + 1)
+  END;
+  
+  -- Combined: 70% recency, 30% engagement
+  RETURN (recency_score * 0.7) + (engagement_score * 0.3);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to update priority scores for a single sus play
+CREATE OR REPLACE FUNCTION update_sus_play_scores()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.engagement_score := CASE 
+    WHEN (NEW.sus_votes + NEW.legit_votes) <= 0 THEN 0
+    ELSE 16.6 * LN((NEW.sus_votes + NEW.legit_votes) + 1)
+  END;
+  
+  NEW.recency_score := 100 * EXP(-LEAST(720, EXTRACT(EPOCH FROM (NOW() - COALESCE(NEW.created_at, NOW()))) / 3600) / 168);
+  
+  NEW.priority_score := calculate_sus_play_priority_score(
+    COALESCE(NEW.created_at, NOW()),
+    NEW.sus_votes,
+    NEW.legit_votes,
+    NEW.tweet_engagement
+  );
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to auto-update scores on insert/update
+DROP TRIGGER IF EXISTS sus_play_score_trigger ON sus_plays;
+CREATE TRIGGER sus_play_score_trigger
+  BEFORE INSERT OR UPDATE ON sus_plays
+  FOR EACH ROW
+  EXECUTE FUNCTION update_sus_play_scores();
+
+-- Function to refresh all priority scores (run periodically via cron)
+CREATE OR REPLACE FUNCTION refresh_all_sus_play_scores()
+RETURNS void AS $$
+BEGIN
+  UPDATE sus_plays SET 
+    priority_score = calculate_sus_play_priority_score(created_at, sus_votes, legit_votes, tweet_engagement),
+    recency_score = 100 * EXP(-LEAST(720, EXTRACT(EPOCH FROM (NOW() - created_at)) / 3600) / 168),
+    engagement_score = CASE 
+      WHEN (sus_votes + legit_votes) <= 0 THEN 0
+      ELSE 16.6 * LN((sus_votes + legit_votes) + 1)
+    END,
+    updated_at = NOW();
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create index for priority score ordering
+CREATE INDEX IF NOT EXISTS idx_sus_plays_priority ON sus_plays(priority_score DESC);
+
+-- =============================================================================
+-- SAMPLE DATA - Will be replaced by dynamic scraping
+-- These are UPSERTED to avoid duplicates on re-runs
+-- =============================================================================
 INSERT INTO sus_plays (title, description, sport, player_name, team, play_type, game_context, betting_impact, sus_votes, legit_votes, is_featured)
 VALUES 
   (
@@ -182,7 +308,7 @@ VALUES
     false
   );
 
--- Insert X/Twitter sourced sus plays
+-- Insert X/Twitter sourced sus plays (UPSERT pattern - safe for re-runs)
 INSERT INTO sus_plays (
   title, description, sport, player_name, team, play_type, game_context, betting_impact,
   sus_votes, legit_votes, is_featured, is_trending, source, 
@@ -288,7 +414,33 @@ VALUES
     '@thefieldof68',
     true,
     'approved'
-  );
+  ),
+  (
+    'Sus play breakdown by @mattbegreatyt',
+    'Popular sports content creator breaks down a highly questionable play. The community response has been massive.',
+    'nfl',
+    NULL,
+    NULL,
+    'other',
+    'critical moment',
+    'spread',
+    8234,
+    3102,
+    true,
+    true,
+    'twitter',
+    '2013450430139846956',
+    'https://x.com/mattbegreatyt/status/2013450430139846956',
+    '@mattbegreatyt',
+    false,
+    'approved'
+  )
+ON CONFLICT (tweet_id) DO UPDATE SET
+  sus_votes = EXCLUDED.sus_votes,
+  legit_votes = EXCLUDED.legit_votes,
+  is_featured = EXCLUDED.is_featured,
+  is_trending = EXCLUDED.is_trending,
+  updated_at = NOW();
 
 -- Create index for tweet lookups
 CREATE INDEX IF NOT EXISTS idx_sus_plays_tweet_id ON sus_plays(tweet_id) WHERE tweet_id IS NOT NULL;

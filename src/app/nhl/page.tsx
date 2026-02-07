@@ -18,21 +18,11 @@ import {
   Zap,
   Info,
   Search,
-  Shield
+  Shield,
+  Loader2
 } from 'lucide-react'
-import { getNHLTeams, type TeamAnalytics } from '@/lib/analytics-data'
+import { useTeamAnalytics, calcWinPct, calcOverPct, type TeamWithStreaks } from '@/hooks/useTeamAnalytics'
 import { GamesSection } from '@/components/game'
-
-// Helper functions to calculate percentages from win/loss records
-const calcWinPct = (wins: number, losses: number): number => {
-  const total = wins + losses
-  return total > 0 ? (wins / total) * 100 : 0
-}
-
-const calcOverPct = (overs: number, unders: number): number => {
-  const total = overs + unders
-  return total > 0 ? (overs / total) * 100 : 0
-}
 
 // Get team emoji based on abbreviation
 const getTeamEmoji = (abbr: string): string => {
@@ -57,10 +47,11 @@ export default function NHLAnalyticsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState<'winPct' | 'profit' | 'name'>('winPct')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
-  const [selectedTeam, setSelectedTeam] = useState<TeamAnalytics | null>(null)
+  const [selectedTeam, setSelectedTeam] = useState<TeamWithStreaks | null>(null)
   const [activeView, setActiveView] = useState<'teams' | 'games' | 'goalies'>('teams')
   
-  const allTeams = getNHLTeams()
+  // Fetch real team data from ESPN + Supabase
+  const { teams: allTeams, loading, error } = useTeamAnalytics('NHL')
   
   const filteredTeams = useMemo(() => {
     let teams = [...allTeams]
@@ -101,44 +92,32 @@ export default function NHLAnalyticsPage() {
   
   const topPucklineTeams = [...allTeams].sort((a, b) => calcWinPct(b.ats.overall.wins, b.ats.overall.losses) - calcWinPct(a.ats.overall.wins, a.ats.overall.losses)).slice(0, 3)
   const topOverTeams = [...allTeams].sort((a, b) => calcOverPct(b.ou.overall.overs, b.ou.overall.unders) - calcOverPct(a.ou.overall.overs, a.ou.overall.unders)).slice(0, 3)
-  const hotTeams = allTeams.filter(t => (t.streak?.startsWith('W') && parseInt(t.streak.slice(1)) >= 3))
-  const coldTeams = allTeams.filter(t => (t.streak?.startsWith('L') && parseInt(t.streak.slice(1)) >= 3))
+  const hotTeams = allTeams.filter(t => t.isHot)
+  const coldTeams = allTeams.filter(t => t.isCold)
 
-  const todaysGames = [
-    {
-      id: '1',
-      time: '7:00 PM ET',
-      away: { team: 'TOR', name: 'Maple Leafs', emoji: '🍁', puckline: '+1.5', ml: '+120', record: '28-14-4' },
-      home: { team: 'BOS', name: 'Bruins', emoji: '🐻', puckline: '-1.5', ml: '-140', record: '26-17-4' },
-      total: '6.0',
-      publicSpread: 55,
-      aiPick: 'TOR +1.5',
-      aiConfidence: 66,
-      isHot: true,
-    },
-    {
-      id: '2',
-      time: '8:00 PM ET',
-      away: { team: 'COL', name: 'Avalanche', emoji: '⛷️', puckline: '-1.5', ml: '-155', record: '28-18-2' },
-      home: { team: 'MIN', name: 'Wild', emoji: '🌲', puckline: '+1.5', ml: '+135', record: '27-15-5' },
-      total: '6.5',
-      publicSpread: 58,
-      aiPick: 'OVER 6.5',
-      aiConfidence: 72,
-      isHot: true,
-    },
-    {
-      id: '3',
-      time: '10:00 PM ET',
-      away: { team: 'EDM', name: 'Oilers', emoji: '🛢️', puckline: '-1.5', ml: '-145', record: '30-14-3' },
-      home: { team: 'VGK', name: 'Golden Knights', emoji: '⚔️', puckline: '+1.5', ml: '+125', record: '29-13-5' },
-      total: '6.5',
-      publicSpread: 54,
-      aiPick: 'EDM -1.5',
-      aiConfidence: 58,
-      isHot: false,
-    },
-  ]
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#050508' }}>
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 mx-auto mb-4 animate-spin" style={{ color: '#00A8FF' }} />
+          <p className="text-lg" style={{ color: '#808090' }}>Loading NHL analytics...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#050508' }}>
+        <div className="text-center p-8 rounded-2xl" style={{ background: '#0c0c14', border: '1px solid rgba(255,68,85,0.2)' }}>
+          <p className="text-lg mb-4" style={{ color: '#FF4455' }}>Failed to load team data</p>
+          <p className="text-sm" style={{ color: '#808090' }}>{error}</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen" style={{ background: '#050508' }}>
@@ -350,88 +329,7 @@ export default function NHLAnalyticsPage() {
         
         {/* Games View */}
         {activeView === 'games' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold" style={{ color: '#FFF' }}>Today&apos;s NHL Games</h2>
-              <span className="text-sm" style={{ color: '#808090' }}>{todaysGames.length} Games</span>
-            </div>
-            
-            {todaysGames.map((game) => (
-              <div key={game.id} className="rounded-2xl overflow-hidden" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4" style={{ color: '#808090' }} />
-                      <span className="text-sm font-semibold" style={{ color: '#808090' }}>{game.time}</span>
-                      {game.isHot && (
-                        <span className="px-2 py-0.5 rounded text-xs font-bold flex items-center gap-1" 
-                              style={{ background: 'rgba(255,107,0,0.2)', color: '#FF6B00' }}>
-                          <Flame className="w-3 h-3" /> HOT
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-3 gap-4 items-center">
-                    <div className="text-center">
-                      <span className="text-3xl">{game.away.emoji}</span>
-                      <div className="font-bold mt-1" style={{ color: '#FFF' }}>{game.away.team}</div>
-                      <div className="text-xs" style={{ color: '#808090' }}>{game.away.record}</div>
-                      <div className="mt-2 grid grid-cols-2 gap-1">
-                        <div className="p-2 rounded" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                          <div className="text-xs" style={{ color: '#606070' }}>PL</div>
-                          <div className="font-bold text-sm" style={{ color: game.away.puckline.startsWith('+') ? '#00FF88' : '#FF4455' }}>{game.away.puckline}</div>
-                        </div>
-                        <div className="p-2 rounded" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                          <div className="text-xs" style={{ color: '#606070' }}>ML</div>
-                          <div className="font-bold text-sm" style={{ color: '#FFF' }}>{game.away.ml}</div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="text-center">
-                      <div className="text-2xl font-black" style={{ color: '#606070' }}>VS</div>
-                      <div className="mt-2 p-2 rounded" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                        <div className="text-xs" style={{ color: '#606070' }}>Total</div>
-                        <div className="font-bold" style={{ color: '#FFF' }}>O/U {game.total}</div>
-                      </div>
-                    </div>
-                    
-                    <div className="text-center">
-                      <span className="text-3xl">{game.home.emoji}</span>
-                      <div className="font-bold mt-1" style={{ color: '#FFF' }}>{game.home.team}</div>
-                      <div className="text-xs" style={{ color: '#808090' }}>{game.home.record}</div>
-                      <div className="mt-2 grid grid-cols-2 gap-1">
-                        <div className="p-2 rounded" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                          <div className="text-xs" style={{ color: '#606070' }}>PL</div>
-                          <div className="font-bold text-sm" style={{ color: game.home.puckline.startsWith('+') ? '#00FF88' : '#FF4455' }}>{game.home.puckline}</div>
-                        </div>
-                        <div className="p-2 rounded" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                          <div className="text-xs" style={{ color: '#606070' }}>ML</div>
-                          <div className="font-bold text-sm" style={{ color: '#FFF' }}>{game.home.ml}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4 p-3 rounded-xl flex items-center justify-between"
-                       style={{ background: 'rgba(0,168,255,0.1)', border: '1px solid rgba(0,168,255,0.2)' }}>
-                    <div className="flex items-center gap-2">
-                      <Zap className="w-5 h-5" style={{ color: '#00A8FF' }} />
-                      <span className="font-bold" style={{ color: '#00A8FF' }}>AI Pick:</span>
-                      <span className="font-bold" style={{ color: '#FFF' }}>{game.aiPick}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm" style={{ color: '#808090' }}>Confidence:</span>
-                      <span className="font-bold" style={{ color: game.aiConfidence >= 65 ? '#00FF88' : '#FFD700' }}>
-                        {game.aiConfidence}%
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <GamesSection sport="NHL" />
         )}
         
         {/* Goalies View */}
@@ -463,7 +361,7 @@ function TeamRow({
   onClick,
   isSelected
 }: { 
-  team: TeamAnalytics
+  team: TeamWithStreaks
   betType: BetType
   onClick: () => void
   isSelected: boolean
@@ -535,7 +433,7 @@ function TeamRow({
   )
 }
 
-function TeamDetailCard({ team, onClose }: { team: TeamAnalytics; onClose: () => void }) {
+function TeamDetailCard({ team, onClose }: { team: TeamWithStreaks; onClose: () => void }) {
   return (
     <div className="rounded-2xl overflow-hidden" style={{ background: '#0c0c14', border: '1px solid rgba(0,168,255,0.3)' }}>
       <div className="p-4 flex items-center justify-between" style={{ background: 'rgba(0,168,255,0.1)' }}>
