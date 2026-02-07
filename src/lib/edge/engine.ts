@@ -33,14 +33,21 @@ export function calculateComprehensiveEdgeScore(data: {
   else if (data.clv.grade === 'good') clvValue = 10
   else if (data.clv.grade === 'neutral') clvValue = 5
 
-  // Sharp Signal (0-20 points)
+  // Sharp Signal (0-20 points) - Check both spread AND total RLM
   let sharpSignal = 0
+  // Spread RLM
   if (data.splits.spread.reverseLineMovement) {
-    if (data.splits.spread.rlmStrength === 'strong') sharpSignal += 15
-    else if (data.splits.spread.rlmStrength === 'moderate') sharpSignal += 10
-    else sharpSignal += 5
+    if (data.splits.spread.rlmStrength === 'strong') sharpSignal += 10
+    else if (data.splits.spread.rlmStrength === 'moderate') sharpSignal += 7
+    else sharpSignal += 4
+  }
+  // Total RLM - this is often where sharp money shows
+  if (data.splits.total.reverseLineMovement) {
+    sharpSignal += 10 // RLM on totals is a strong sharp indicator
   }
   if (data.splits.consensus.alignment === 'opposed') sharpSignal += 5
+  // Cap at 20
+  sharpSignal = Math.min(sharpSignal, 20)
 
   // Trend Alignment (0-20 points)
   let trendAlignment = 0
@@ -55,9 +62,17 @@ export function calculateComprehensiveEdgeScore(data: {
   situationalEdge = Math.min(angleCount * 4 + avgAngleROI / 2, 15)
 
   // Injury Advantage (0-10 points)
+  // Consider both the differential AND the total injury impact (in case both teams have injuries but one side has value)
   let injuryAdvantage = 0
-  const injuryDiff = (data.injuries?.awayTeam?.totalImpactScore || 0) - (data.injuries?.homeTeam?.totalImpactScore || 0)
-  injuryAdvantage = Math.min(Math.abs(injuryDiff) / 10, 10)
+  const homeInjuryScore = data.injuries?.homeTeam?.totalImpactScore || 0
+  const awayInjuryScore = data.injuries?.awayTeam?.totalImpactScore || 0
+  const injuryDiff = awayInjuryScore - homeInjuryScore
+  // Give points for differential (home team advantage if away has more injuries)
+  const diffScore = Math.min(Math.abs(injuryDiff) / 8, 5)
+  // Also give some points if there are significant injuries overall (creates betting angles)
+  const totalInjuryImpact = homeInjuryScore + awayInjuryScore
+  const impactScore = Math.min(totalInjuryImpact / 30, 5)
+  injuryAdvantage = Math.round(Math.min(diffScore + (impactScore * 0.5), 10))
 
   // Weather Edge (0-10 points)
   let weatherEdge = 0

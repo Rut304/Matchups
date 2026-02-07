@@ -692,20 +692,9 @@ async function getCLVData(gameId: string, sport: string): Promise<CLVData> {
       throw new Error('CLV query failed')
     }
 
+    // If no snapshots in DB, try to get from ESPN API as fallback
     if (!openingRows || openingRows.length === 0 || !latestRows || latestRows.length === 0) {
-      return {
-        openSpread: 0,
-        currentSpread: 0,
-        openTotal: 0,
-        currentTotal: 0,
-        openHomeML: 0,
-        currentHomeML: 0,
-        spreadCLV: 0,
-        totalCLV: 0,
-        mlCLV: 0,
-        grade: 'neutral',
-        description: 'No snapshot data available'
-      }
+      return await fetchCLVFromESPN(gameId, sport)
     }
 
     const open = openingRows[0]
@@ -743,26 +732,238 @@ async function getCLVData(gameId: string, sport: string): Promise<CLVData> {
     }
   } catch (error) {
     console.error('getCLVData error:', error)
+    // Fallback to ESPN API
+    return await fetchCLVFromESPN(gameId, sport)
+  }
+}
+
+// Fetch CLV data from ESPN API as fallback when line_snapshots table is empty
+async function fetchCLVFromESPN(gameId: string, sport: string): Promise<CLVData> {
+  try {
+    const sportMap: Record<string, string> = {
+      'NFL': 'football/nfl',
+      'NBA': 'basketball/nba',
+      'MLB': 'baseball/mlb',
+      'NHL': 'hockey/nhl',
+      'NCAAF': 'football/college-football',
+      'NCAAB': 'basketball/mens-college-basketball'
+    }
+    const sportPath = sportMap[sport.toUpperCase()] || 'football/nfl'
+    const url = `https://site.api.espn.com/apis/site/v2/sports/${sportPath}/summary?event=${gameId}`
+    
+    const response = await fetch(url, {
+      headers: { 'Accept': 'application/json', 'User-Agent': 'Matchups/1.0' },
+      next: { revalidate: 120 }
+    })
+    
+    if (!response.ok) {
+      throw new Error(`ESPN API returned ${response.status}`)
+    }
+    
+    const data = await response.json()
+    
+    // Extract odds from pickcenter
+    if (!data.pickcenter || !Array.isArray(data.pickcenter)) {
+      return {
+        openSpread: 0, currentSpread: 0, openTotal: 0, currentTotal: 0,
+        openHomeML: 0, currentHomeML: 0, spreadCLV: 0, totalCLV: 0, mlCLV: 0,
+        grade: 'neutral', description: 'No odds data in ESPN response'
+      }
+    }
+    
+    // Find DraftKings or first available provider
+    const dkOdds = data.pickcenter.find((p: { provider?: { name?: string } }) => 
+      p.provider?.name?.toLowerCase().includes('draftkings')
+    )
+    const primaryOdds = dkOdds || data.pickcenter[0]
+    
+    if (!primaryOdds) {
+      return {
+        openSpread: 0, currentSpread: 0, openTotal: 0, currentTotal: 0,
+        openHomeML: 0, currentHomeML: 0, spreadCLV: 0, totalCLV: 0, mlCLV: 0,
+        grade: 'neutral', description: 'No primary odds provider found'
+      }
+    }
+    
+    // Extract line movement from pointSpread and total objects
+    const pointSpread = primaryOdds.pointSpread
+    const total = primaryOdds.total
+    
+    let openSpread = 0, currentSpread = 0, openTotal = 0, currentTotal = 0
+    let openHomeML = 0, currentHomeML = 0
+    
+    if (pointSpread?.home) {
+      openSpread = parseFloat(pointSpread.home.open?.line || '0')
+      currentSpread = parseFloat(pointSpread.home.close?.line || pointSpread.home.current?.line || '0')
+    }
+    
+    if (total?.over) {
+      // Total line format may be like "o45.5" or just "45.5"
+      const openLine = (total.over.open?.line || '').toString().replace(/[ou]/gi, '')
+      const closeLine = (total.over.close?.line || total.over.current?.line || '').toString().replace(/[ou]/gi, '')
+      openTotal = parseFloat(openLine) || 0
+      currentTotal = parseFloat(closeLine) || 0
+    }
+    
+    // Try to get moneyline
+    if (primaryOdds.homeTeamOdds?.moneyLine) {
+      currentHomeML = primaryOdds.homeTeamOdds.moneyLine
+    }
+    
+    // Calculate CLV
+    const spreadCLV = currentSpread - openSpread
+    const totalCLV = openTotal - currentTotal // Positive = total went down (under value)
+    const mlCLV = 0 // Would need open ML data
+    
+    // Grade the CLV
+    let grade: CLVData['grade'] = 'neutral'
+    const absSpreadCLV = Math.abs(spreadCLV)
+    const absTotalCLV = Math.abs(totalCLV)
+    const combinedMovement = absSpreadCLV + absTotalCLV
+    
+    if (combinedMovement >= 2) grade = 'excellent'
+    else if (combinedMovement >= 1) grade = 'good'
+    
+    // Build description
+    const movements: string[] = []
+    if (spreadCLV !== 0) {
+      movements.push(`Spread ${spreadCLV > 0 ? 'moved up' : 'moved down'} ${absSpreadCLV.toFixed(1)} points`)
+    }
+    if (totalCLV !== 0) {
+      movements.push(`Total ${totalCLV > 0 ? 'dropped' : 'rose'} ${absTotalCLV.toFixed(1)} points`)
+    }
+    
+    const description = movements.length > 0 
+      ? `${movements.join(', ')} (ESPN data)`
+      : 'No significant line movement detected'
+    
     return {
-      openSpread: 0,
-      currentSpread: 0,
-      openTotal: 0,
-      currentTotal: 0,
-      openHomeML: 0,
-      currentHomeML: 0,
-      spreadCLV: 0,
-      totalCLV: 0,
-      mlCLV: 0,
-      grade: 'neutral',
-      description: 'CLV computation failed'
+      openSpread,
+      currentSpread,
+      openTotal,
+      currentTotal,
+      openHomeML,
+      currentHomeML,
+      spreadCLV,
+      totalCLV,
+      mlCLV,
+      grade,
+      description
+    }
+  } catch (error) {
+    console.error('fetchCLVFromESPN error:', error)
+    return {
+      openSpread: 0, currentSpread: 0, openTotal: 0, currentTotal: 0,
+      openHomeML: 0, currentHomeML: 0, spreadCLV: 0, totalCLV: 0, mlCLV: 0,
+      grade: 'neutral', description: 'Failed to fetch ESPN CLV data'
     }
   }
 }
 
 async function getLineMovementData(gameId: string, sport: string): Promise<LineMovementData> {
-  // COMING SOON: Line movement requires storing historical snapshots
-  // Action Network provides current odds but we need to track over time
-  // For now, return empty state to avoid showing fake movement data
+  // Try to fetch line movement from ESPN API
+  try {
+    const sportMap: Record<string, string> = {
+      'NFL': 'football/nfl',
+      'NBA': 'basketball/nba',
+      'MLB': 'baseball/mlb',
+      'NHL': 'hockey/nhl',
+      'NCAAF': 'football/college-football',
+      'NCAAB': 'basketball/mens-college-basketball'
+    }
+    const sportPath = sportMap[sport.toUpperCase()] || 'football/nfl'
+    const url = `https://site.api.espn.com/apis/site/v2/sports/${sportPath}/summary?event=${gameId}`
+    
+    const response = await fetch(url, {
+      headers: { 'Accept': 'application/json', 'User-Agent': 'Matchups/1.0' },
+      next: { revalidate: 120 }
+    })
+    
+    if (!response.ok) {
+      throw new Error(`ESPN API returned ${response.status}`)
+    }
+    
+    const data = await response.json()
+    
+    // Find DraftKings or first available provider
+    if (data.pickcenter && Array.isArray(data.pickcenter)) {
+      const dkOdds = data.pickcenter.find((p: { provider?: { name?: string } }) => 
+        p.provider?.name?.toLowerCase().includes('draftkings')
+      )
+      const primaryOdds = dkOdds || data.pickcenter[0]
+      
+      if (primaryOdds) {
+        const pointSpread = primaryOdds.pointSpread
+        const total = primaryOdds.total
+
+        let spreadOpen = 0, spreadCurrent = 0
+        let totalOpen = 0, totalCurrent = 0
+        
+        if (pointSpread?.home) {
+          spreadOpen = parseFloat(pointSpread.home.open?.line || '0')
+          spreadCurrent = parseFloat(pointSpread.home.close?.line || pointSpread.home.current?.line || '0')
+        }
+        
+        if (total?.over) {
+          const openLine = (total.over.open?.line || '').toString().replace(/[ou]/gi, '')
+          const closeLine = (total.over.close?.line || total.over.current?.line || '').toString().replace(/[ou]/gi, '')
+          totalOpen = parseFloat(openLine) || 0
+          totalCurrent = parseFloat(closeLine) || 0
+        }
+        
+        // Determine movement direction and magnitude
+        const spreadMove = spreadCurrent - spreadOpen
+        const totalMove = totalCurrent - totalOpen
+        
+        // For spread: negative means line moved toward home (e.g., -3.5 to -4.5) = more points given
+        // Positive means line moved toward away (e.g., -3.5 to -2.5) = fewer points given
+        const spreadDirection: 'toward_home' | 'toward_away' | 'stable' = 
+          spreadMove < -0.5 ? 'toward_home' : spreadMove > 0.5 ? 'toward_away' : 'stable'
+        const totalDirection: 'up' | 'down' | 'stable' = 
+          totalMove > 0.5 ? 'up' : totalMove < -0.5 ? 'down' : 'stable'
+        
+        const spreadMagnitude: 'sharp' | 'moderate' | 'minimal' = 
+          Math.abs(spreadMove) >= 2 ? 'sharp' : Math.abs(spreadMove) >= 1 ? 'moderate' : 'minimal'
+        const totalMagnitude: 'sharp' | 'moderate' | 'minimal' = 
+          Math.abs(totalMove) >= 2 ? 'sharp' : Math.abs(totalMove) >= 1 ? 'moderate' : 'minimal'
+        
+        // Detect steam move (significant movement in short time - can't determine from ESPN easily)
+        const steamMoveDetected = Math.abs(spreadMove) >= 1.5
+        
+        return {
+          spread: {
+            open: spreadOpen,
+            current: spreadCurrent,
+            high: Math.max(spreadOpen, spreadCurrent),
+            low: Math.min(spreadOpen, spreadCurrent),
+            direction: spreadDirection,
+            magnitude: spreadMagnitude,
+            steamMoveDetected
+          },
+          total: {
+            open: totalOpen,
+            current: totalCurrent,
+            high: Math.max(totalOpen, totalCurrent),
+            low: Math.min(totalOpen, totalCurrent),
+            direction: totalDirection,
+            magnitude: totalMagnitude
+          },
+          moneyline: {
+            homeOpen: primaryOdds.homeTeamOdds?.moneyLine || 0,
+            homeCurrent: primaryOdds.homeTeamOdds?.moneyLine || 0,
+            awayOpen: primaryOdds.awayTeamOdds?.moneyLine || 0,
+            awayCurrent: primaryOdds.awayTeamOdds?.moneyLine || 0,
+            impliedProbShift: 0
+          },
+          timeline: [] // Would need time-series data for full timeline
+        }
+      }
+    }
+  } catch (error) {
+    console.error('getLineMovementData error:', error)
+  }
+  
+  // Fallback to empty state
   return {
     spread: {
       open: 0,
@@ -929,25 +1130,159 @@ async function getInjuryImpact(
   homeAbbr: string, 
   awayAbbr: string
 ): Promise<InjuryImpact> {
-  // COMING SOON: Real injury data requires ESPN injuries API integration
-  // For now, return empty state to avoid showing fake data
-  return {
-    homeTeam: {
-      outPlayers: [],
-      questionablePlayers: [],
-      totalImpactScore: 0,
-      positionImpacts: []
-    },
-    awayTeam: {
-      outPlayers: [],
-      questionablePlayers: [],
-      totalImpactScore: 0,
-      positionImpacts: []
-    },
-    lineImpact: {
-      spreadAdjustment: 0,
-      totalAdjustment: 0,
-      narrative: 'Injury impact data coming soon'
+  // Fetch real injury data from ESPN API
+  try {
+    const sportMap: Record<string, string> = {
+      'NFL': 'football/nfl',
+      'NBA': 'basketball/nba',
+      'MLB': 'baseball/mlb',
+      'NHL': 'hockey/nhl',
+      'NCAAF': 'football/college-football',
+      'NCAAB': 'basketball/mens-college-basketball'
+    }
+    const sportPath = sportMap[sport.toUpperCase()] || 'football/nfl'
+    const url = `https://site.api.espn.com/apis/site/v2/sports/${sportPath}/summary?event=${gameId}`
+    
+    const response = await fetch(url, {
+      headers: { 'Accept': 'application/json', 'User-Agent': 'Matchups/1.0' },
+      next: { revalidate: 300 } // Cache for 5 minutes
+    })
+    
+    if (!response.ok) {
+      throw new Error(`ESPN API returned ${response.status}`)
+    }
+    
+    const data = await response.json()
+    
+    // Position impact scores by position (QB and star positions have bigger impact)
+    const positionImpactScores: Record<string, number> = {
+      'QB': 25, 'RB': 12, 'WR': 10, 'TE': 8, 'OL': 7, 'OT': 7, 'OG': 6, 'C': 6, 'G': 6, 'T': 7,
+      'DE': 8, 'DT': 7, 'LB': 8, 'CB': 10, 'S': 8, 'FS': 8, 'SS': 8, 'DB': 8, 'DL': 7,
+      'K': 4, 'P': 3, 'LS': 2, 'FB': 4
+    }
+    
+    const processInjuries = (injuryList: Array<{
+      athlete?: { displayName?: string; position?: { abbreviation?: string } }
+      status?: string
+      type?: { description?: string } | string
+      details?: { type?: string }
+    }>) => {
+      const outPlayers: PlayerInjury[] = []
+      const questionablePlayers: PlayerInjury[] = []
+      let totalImpactScore = 0
+      const positionImpacts: Array<{ position: string; impact: 'high' | 'medium' | 'low' | 'critical' }> = []
+      
+      for (const inj of injuryList) {
+        const name = inj.athlete?.displayName || 'Unknown'
+        const position = inj.athlete?.position?.abbreviation || ''
+        const statusRaw = (inj.status || '').toLowerCase()
+        const injuryType = typeof inj.type === 'string' ? inj.type : (inj.type?.description || inj.details?.type || 'Unknown')
+        const impactScore = positionImpactScores[position] || 5
+        
+        // Map to PlayerInjury status type
+        const mapStatus = (s: string): 'Out' | 'Doubtful' | 'Questionable' | 'Probable' => {
+          if (s === 'out' || s.includes('ir') || s === 'injured reserve') return 'Out'
+          if (s === 'doubtful') return 'Doubtful'
+          if (s === 'probable') return 'Probable'
+          return 'Questionable'
+        }
+        
+        // Determine impact rating (1-5 based on position importance)
+        const impactRating = Math.min(5, Math.ceil(impactScore / 5)) as 1 | 2 | 3 | 4 | 5
+        
+        // Determine if starter/star (high impact positions assumed to be starters)
+        const isStarter = impactScore >= 8
+        const isStar = impactScore >= 15
+        
+        const status = mapStatus(statusRaw)
+        
+        const playerInjury: PlayerInjury = {
+          name,
+          position,
+          status,
+          injuryType,
+          impactRating,
+          isStarter,
+          isStar
+        }
+        
+        if (statusRaw === 'out' || statusRaw === 'injured reserve' || statusRaw.includes('ir')) {
+          outPlayers.push(playerInjury)
+          totalImpactScore += impactScore
+          
+          // Track position impacts
+          const impact: 'high' | 'medium' | 'low' | 'critical' = 
+            impactScore >= 20 ? 'critical' : impactScore >= 12 ? 'high' : impactScore >= 8 ? 'medium' : 'low'
+          if (!positionImpacts.find(p => p.position === position)) {
+            positionImpacts.push({ position, impact })
+          }
+        } else if (statusRaw === 'questionable' || statusRaw === 'doubtful' || statusRaw === 'probable') {
+          questionablePlayers.push(playerInjury)
+          // Add partial impact for questionable players
+          const probability = statusRaw === 'probable' ? 0.9 : statusRaw === 'questionable' ? 0.5 : 0.25
+          totalImpactScore += Math.round(impactScore * (1 - probability))
+        }
+      }
+      
+      return { outPlayers, questionablePlayers, totalImpactScore, positionImpacts }
+    }
+    
+    let homeInjuries: Array<any> = []
+    let awayInjuries: Array<any> = []
+    
+    // Extract injuries from ESPN data
+    if (data.injuries && Array.isArray(data.injuries)) {
+      for (const teamInjuries of data.injuries) {
+        const teamId = teamInjuries.team?.id
+        // Determine if this is home or away based on boxscore teams order
+        const isHome = data.boxscore?.teams?.[1]?.team?.id === teamId
+        const injuryList = teamInjuries.injuries || []
+        
+        if (isHome) {
+          homeInjuries = injuryList
+        } else {
+          awayInjuries = injuryList
+        }
+      }
+    }
+    
+    const homeData = processInjuries(homeInjuries)
+    const awayData = processInjuries(awayInjuries)
+    
+    // Calculate line impact based on injury differential
+    const impactDiff = awayData.totalImpactScore - homeData.totalImpactScore
+    const spreadAdjustment = impactDiff / 20 // Roughly 1 point per 20 impact score difference
+    
+    // Build narrative
+    const narrativeParts: string[] = []
+    if (homeData.outPlayers.length > 0) {
+      const keyOuts = homeData.outPlayers.filter(p => p.impactRating >= 3).map(p => `${p.name} (${p.position})`).slice(0, 2)
+      if (keyOuts.length > 0) {
+        narrativeParts.push(`${homeAbbr} missing ${keyOuts.join(', ')}`)
+      }
+    }
+    if (awayData.outPlayers.length > 0) {
+      const keyOuts = awayData.outPlayers.filter(p => p.impactRating >= 3).map(p => `${p.name} (${p.position})`).slice(0, 2)
+      if (keyOuts.length > 0) {
+        narrativeParts.push(`${awayAbbr} missing ${keyOuts.join(', ')}`)
+      }
+    }
+    
+    return {
+      homeTeam: homeData,
+      awayTeam: awayData,
+      lineImpact: {
+        spreadAdjustment: Math.round(spreadAdjustment * 10) / 10,
+        totalAdjustment: 0, // Injuries typically don't affect totals much unless QB or key offensive players
+        narrative: narrativeParts.length > 0 ? narrativeParts.join('. ') : 'No significant injury impacts'
+      }
+    }
+  } catch (error) {
+    console.error('getInjuryImpact error:', error)
+    return {
+      homeTeam: { outPlayers: [], questionablePlayers: [], totalImpactScore: 0, positionImpacts: [] },
+      awayTeam: { outPlayers: [], questionablePlayers: [], totalImpactScore: 0, positionImpacts: [] },
+      lineImpact: { spreadAdjustment: 0, totalAdjustment: 0, narrative: 'Could not fetch injury data' }
     }
   }
 }
