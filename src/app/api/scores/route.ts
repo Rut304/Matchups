@@ -7,7 +7,8 @@
 import { NextResponse } from 'next/server'
 import { getScoreboard, type SportKey, ESPN_SPORTS, type ESPNGame } from '@/lib/api/espn'
 
-export const revalidate = 60 // Revalidate every 60 seconds
+// Force dynamic since we use request.url
+export const dynamic = 'force-dynamic'
 
 interface GameData {
   id: string

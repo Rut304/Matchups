@@ -15,7 +15,8 @@ import {
   detectSharpMoney 
 } from '@/lib/scrapers/action-network'
 
-export const revalidate = 120 // Cache for 2 minutes
+// Force dynamic rendering since we use request.url
+export const dynamic = 'force-dynamic'
 
 export interface TodayEdge {
   gameId: string
