@@ -552,7 +552,8 @@ export async function getInjuries(sport: Sport): Promise<Injury[]> {
   switch (sport) {
     case 'nfl': return getNFLInjuries()
     case 'nba': return getNBAInjuries()
-    default: return getMockInjuries(sport)
+    // NO MOCK DATA - return empty for unsupported sports
+    default: return []
   }
 }
 

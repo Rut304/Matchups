@@ -6,6 +6,7 @@
 ---
 
 ## Table of Contents
+
 1. [Core Betting Features](#core-betting-features)
 2. [Data Collection / APIs](#data-collection--apis)
 3. [Player/Props Features](#playerprops-features)
@@ -21,6 +22,7 @@
 ## Core Betting Features
 
 ### 1. Scores & Odds Hub
+
 | Item | Description | Status | Notes |
 |------|-------------|--------|-------|
 | `/scores` | Main scores page with live games, odds, betting data | ✅ Active | Central hub for today's games |
@@ -31,6 +33,7 @@
 | `/matchups` | General matchups overview | ✅ Active | Possible duplicate of scores |
 
 ### 2. Line Shopping & Odds
+
 | Item | Description | Status | Notes |
 |------|-------------|--------|-------|
 | `/lineshop` | Multi-book odds comparison with line history | ✅ Active | Uses The Odds API - key feature |
@@ -40,6 +43,7 @@
 | `/api/line-predictor` | Line movement prediction | ⚠️ Experimental | AI-based predictions |
 
 ### 3. THE EDGE (Sharp Money Intelligence)
+
 | Item | Description | Status | Notes |
 |------|-------------|--------|-------|
 | `/edge/[gameId]` | Game-specific edge analysis | ✅ Active | Redirects to /markets/edge |
@@ -52,6 +56,7 @@
 | `/api/edges` | Alternative edge endpoint | ⚠️ Possible duplicate | Check if both needed |
 
 ### 4. Trends & Patterns
+
 | Item | Description | Status | Notes |
 |------|-------------|--------|-------|
 | `/trends` | Betting trends with historical records | ✅ Active | Shows hot/cold trends |
@@ -66,6 +71,7 @@
 | `src/lib/services/pattern-discovery.ts` | Pattern AI service | ✅ Active | Discovers new patterns |
 
 ### 5. Betting Systems
+
 | Item | Description | Status | Notes |
 |------|-------------|--------|-------|
 | `/systems` | Custom betting system builder | ✅ Active | Create & backtest systems |
@@ -75,6 +81,7 @@
 | `src/lib/data/bankroll-management-systems.ts` | Bankroll strategies | ✅ Active | Kelly, martingale, etc. |
 
 ### 6. Expert/Capper Tracker
+
 | Item | Description | Status | Notes |
 |------|-------------|--------|-------|
 | `/leaderboard` | Expert tracker with real records | ✅ Active | **Key feature** - tracks celebrities |
@@ -88,6 +95,7 @@
 | `src/lib/services/leaderboard-service.ts` | Leaderboard service | ✅ Active | Supabase integration |
 
 ### 7. Suspicious Plays Tracker
+
 | Item | Description | Status | Notes |
 |------|-------------|--------|-------|
 | `/sus` | Sus plays tracker (Shohei's Mizuhara reference) | ✅ Active | Unique feature |
@@ -96,12 +104,14 @@
 | `supabase/sus-plays-schema.sql` | Sus plays schema | ✅ Active | DB schema |
 
 ### 8. Calculators
+
 | Item | Description | Status | Notes |
 |------|-------------|--------|-------|
 | `/calculators` | Betting calculators hub | ✅ Active | Parlay, hedge, Kelly, EV, arb |
 | `/api/betting-intelligence` | Advanced calcs API | ✅ Active | |
 
 ### 9. Alerts System
+
 | Item | Description | Status | Notes |
 |------|-------------|--------|-------|
 | `/alerts` | Betting alerts page | ✅ Active | Line moves, sharp action, injury |
@@ -113,6 +123,7 @@
 ## Data Collection / APIs
 
 ### Primary Data Sources
+
 | Item | Description | Status | Notes |
 |------|-------------|--------|-------|
 | `src/lib/api/the-odds-api.ts` | The Odds API client (paid) | ✅ Active | Primary odds source |
@@ -122,6 +133,7 @@
 | `src/lib/api/api-sports.ts` | API Sports client | ⚠️ Unknown | Check usage |
 
 ### Scrapers
+
 | Item | Description | Status | Notes |
 |------|-------------|--------|-------|
 | `src/lib/scrapers/action-network.ts` | Action Network betting splits | ✅ Active | Real betting percentages |
@@ -131,6 +143,7 @@
 | `src/lib/scrapers/espn-picks-scraper.ts` | ESPN picks scraper | ⚠️ Check if working | |
 
 ### API Endpoints (Internal)
+
 | Item | Description | Status | Notes |
 |------|-------------|--------|-------|
 | `/api/games` | Games listing | ✅ Active | Core endpoint |
@@ -149,6 +162,7 @@
 | `/api/team-news` | Team-specific news | ⚠️ Possible duplicate | |
 
 ### Data Layer Libraries
+
 | Item | Description | Status | Notes |
 |------|-------------|--------|-------|
 | `src/lib/data-layer.ts` | Main data layer | ✅ Active | |
@@ -210,6 +224,7 @@
 | `src/lib/supabase/*` | Supabase clients | ✅ Active | |
 
 ### Marketplace (System Sharing)
+
 | Item | Description | Status | Notes |
 |------|-------------|--------|-------|
 | `/marketplace` | Betting system marketplace | ✅ Active | Share/copy systems |
@@ -236,6 +251,7 @@
 | `/api/health` | Health check endpoint | ✅ Active | |
 
 ### Cron Jobs
+
 | Item | Description | Status | Notes |
 |------|-------------|--------|-------|
 | `/api/cron/discover-trends` | Auto-discover trends | ✅ Active | |
@@ -253,6 +269,7 @@
 ## Database Schemas
 
 ### Core Schemas
+
 | File | Description | Status | Notes |
 |------|-------------|--------|-------|
 | `FULL_SCHEMA_RUN_THIS.sql` | Master schema file | ✅ Active | Run this for full setup |
@@ -261,6 +278,7 @@
 | `auth-setup.sql` | Auth configuration | ✅ Active | |
 
 ### Feature Schemas
+
 | File | Description | Status | Notes |
 |------|-------------|--------|-------|
 | `cappers-schema.sql` | Cappers/experts | ✅ Active | |
@@ -272,6 +290,7 @@
 | `add-more-cappers.sql` | More cappers | ✅ Active | Seed data |
 
 ### Historical Data Schemas
+
 | File | Description | Status | Notes |
 |------|-------------|--------|-------|
 | `historical-games-schema.sql` | Historical games v1 | ⚠️ Older | |
@@ -284,6 +303,7 @@
 | `alter-historical-games.sql` | Schema alterations | ✅ Active | Migration |
 
 ### Betting Feature Schemas
+
 | File | Description | Status | Notes |
 |------|-------------|--------|-------|
 | `advanced-betting-schema.sql` | Advanced betting | ⚠️ Check | |
@@ -296,6 +316,7 @@
 | `sus-plays-schema.sql` | Sus plays | ✅ Active | |
 
 ### User Feature Schemas
+
 | File | Description | Status | Notes |
 |------|-------------|--------|-------|
 | `user-dashboard-schema.sql` | User dashboard | ✅ Active | |
@@ -305,6 +326,7 @@
 | `admin-settings-schema.sql` | Admin settings | ✅ Active | |
 
 ### Utility Schemas
+
 | File | Description | Status | Notes |
 |------|-------------|--------|-------|
 | `fix-compute-stats.sql` | Fix stats computation | ✅ Migration | |
@@ -317,6 +339,7 @@
 ## Scripts/Utilities
 
 ### Data Import Scripts
+
 | Script | Description | Status | Notes |
 |--------|-------------|--------|-------|
 | `import-historical-data.ts` | Import 25 years of data | ✅ Active | Comprehensive |
@@ -325,6 +348,7 @@
 | `populate-historical.sh` | Populate historical | ⚠️ Possible duplicate | |
 
 ### Seeding Scripts
+
 | Script | Description | Status | Notes |
 |--------|-------------|--------|-------|
 | `seed-supabase.ts` | Main seed script | ✅ Active | |
@@ -335,11 +359,13 @@
 | `init-data.sh` | Initialize data | ✅ Active | |
 
 ### Scraping Scripts
+
 | Script | Description | Status | Notes |
 |--------|-------------|--------|-------|
 | `scrape-experts.ts` | Expert scraper CLI | ✅ Active | Scheduled scraping |
 
 ### Utility Scripts
+
 | Script | Description | Status | Notes |
 |--------|-------------|--------|-------|
 | `check-schema.ts` | Validate schema | ✅ Active | |
@@ -355,12 +381,14 @@
 ### 🔴 Critical Overlaps (Recommend Consolidation)
 
 #### 1. Dashboard vs Control Panel
+
 - **Files:** `/dashboard` and `/control-panel`
 - **Issue:** Both provide user dashboard functionality with followed games, teams, alerts
 - **Recommendation:** Merge into single `/dashboard` with tabs for different views
 - **Lines affected:** ~1,800 combined
 
 #### 2. Multiple API Endpoints for Same Data
+
 | Duplicate Set | Files | Recommendation |
 |--------------|-------|----------------|
 | Games/Matchups | `/api/games`, `/api/matchups`, `/api/matchup` | Keep `/api/games`, deprecate others |
@@ -369,24 +397,29 @@
 | Team News | `/api/news`, `/api/game-news`, `/api/team-news` | Consolidate with query params |
 
 #### 3. Historical Data Schemas (6+ files)
+
 - **Files:** `historical-games-schema.sql`, `historical-games-schema-v2.sql`, `historical-data-schema.sql`, `all-sports-historical.sql`, `complete-historical-all-sports.sql`, `full-season-historical-data.sql`
 - **Recommendation:** Archive old versions, keep only `FULL_SCHEMA_RUN_THIS.sql` and `historical-data-20years.sql`
 
 #### 4. Data Layer Files
+
 - **Files:** `data-layer.ts`, `unified-data-store.ts`, `api-service.ts`, `data-fetchers.ts`
 - **Recommendation:** Audit usage, consolidate to single `data-layer.ts`
 
 ### 🟡 Moderate Overlaps (Consider Reviewing)
 
 #### 1. Capper/Expert Schemas
+
 - Multiple schema files for cappers (`cappers-schema.sql`, `cappers-schema-safe.sql`, `expert-picks-schema.sql`, `expert-tracking-schema.sql`)
 - Review which are actively used
 
 #### 2. Betting Schemas
+
 - `advanced-betting-schema.sql` vs `comprehensive-betting-schema.sql`
 - May have evolved separately
 
 #### 3. Import Scripts
+
 - `import-historical-data.ts`, `run-historical-data.ts`, `populate-historical.sh`
 - Some may be older versions
 

@@ -68,24 +68,27 @@ async function checkDatabase() {
   
   if (recentGames && recentGames.length > 0) {
     console.log('\nRecent Historical Games by Sport:')
-    // Get counts by sport
-    const { data: sportCounts } = await supabase
-      .rpc('count_by_sport')
-      .catch(() => ({ data: null }))
-    
-    if (!sportCounts) {
-      // Manual query
-      const { data: nflCount } = await supabase
-        .from('historical_games')
-        .select('*', { count: 'exact', head: true })
-        .eq('sport', 'NFL')
-      const { data: nbaCount } = await supabase
-        .from('historical_games')
-        .select('*', { count: 'exact', head: true })
-        .eq('sport', 'NBA')
-      console.log(`  NFL: ${nflCount || 0}`)
-      console.log(`  NBA: ${nbaCount || 0}`)
-    }
+    // Manual count query by sport
+    const { count: nflCount } = await supabase
+      .from('historical_games')
+      .select('*', { count: 'exact', head: true })
+      .eq('sport', 'NFL')
+    const { count: nbaCount } = await supabase
+      .from('historical_games')
+      .select('*', { count: 'exact', head: true })
+      .eq('sport', 'NBA')
+    const { count: nhlCount } = await supabase
+      .from('historical_games')
+      .select('*', { count: 'exact', head: true })
+      .eq('sport', 'NHL')
+    const { count: mlbCount } = await supabase
+      .from('historical_games')
+      .select('*', { count: 'exact', head: true })
+      .eq('sport', 'MLB')
+    console.log(`  NFL: ${nflCount || 0}`)
+    console.log(`  NBA: ${nbaCount || 0}`)
+    console.log(`  NHL: ${nhlCount || 0}`)
+    console.log(`  MLB: ${mlbCount || 0}`)
   } else {
     console.log('\n⚠️  No historical games found - needs import!')
   }

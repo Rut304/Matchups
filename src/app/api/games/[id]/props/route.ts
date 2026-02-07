@@ -1,6 +1,9 @@
 /**
  * Player Props API for a specific game
  * Returns player props with multi-book odds comparison
+ * 
+ * Note: Game-specific props require The Odds API
+ * Free sources (DraftKings, FanDuel) are used for batch collection
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -116,22 +119,33 @@ export async function GET(
   const sport = searchParams.get('sport')?.toUpperCase() || 'NFL'
   
   try {
-    // Get sport key for The Odds API
+    // Game-specific props require The Odds API
+    // Free sources (DraftKings, FanDuel) only support batch collection by sport
+    
     const sportKey = SPORT_KEYS[sport]
-    if (!sportKey || !ODDS_API_KEY) {
-      // Return empty array with message - NO FAKE DATA
+    if (!sportKey) {
       return NextResponse.json({
         success: false,
         gameId,
         sport,
         props: [],
         source: null,
-        message: 'Player props not available. THE_ODDS_API_KEY required for live props data.',
-        apiKeyConfigured: !!ODDS_API_KEY,
+        message: `Sport '${sport}' not supported for player props.`,
       })
     }
-
-    // Fetch player props from The Odds API
+    
+    if (!ODDS_API_KEY) {
+      return NextResponse.json({
+        success: false,
+        gameId,
+        sport,
+        props: [],
+        source: null,
+        message: 'Player props not available. THE_ODDS_API_KEY required for game-specific props.',
+        apiKeyConfigured: false,
+      })
+    }
+    
     const markets = PROP_MARKETS[sport] || ['player_points']
     const marketsParam = markets.slice(0, 5).join(',') // Limit to save API calls
     
@@ -140,7 +154,6 @@ export async function GET(
     const response = await fetch(url, { next: { revalidate: 300 } }) // Cache for 5 min
     
     if (!response.ok) {
-      // Return empty array on API error - NO FAKE DATA
       return NextResponse.json({
         success: false,
         gameId,
@@ -152,8 +165,6 @@ export async function GET(
     }
     
     const data = await response.json()
-    
-    // Parse the odds data into player props
     const props = parseOddsApiProps(data, sport)
     
     if (props.length === 0) {

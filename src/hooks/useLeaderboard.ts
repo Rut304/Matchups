@@ -2,12 +2,12 @@
 
 /**
  * useLeaderboard Hook
- * Fetches leaderboard data from Supabase, with fallback to mock data
+ * Fetches leaderboard data from Supabase
+ * NO MOCK DATA - shows "Data unavailable" when database is empty
  */
 
 import { useState, useEffect, useMemo } from 'react'
 import { fetchLeaderboardEntries, hasRealData, type LeaderboardEntry } from '@/lib/services/leaderboard-service'
-import { getLeaderboardEntries as getMockLeaderboardEntries } from '@/lib/leaderboard-data'
 import type { BetType, Sport, CapperType } from '@/types/leaderboard'
 
 interface UseLeaderboardOptions {
@@ -23,7 +23,7 @@ interface UseLeaderboardReturn {
   entries: LeaderboardEntry[]
   loading: boolean
   error: string | null
-  dataSource: 'database' | 'mock'
+  dataSource: 'database' | 'unavailable'
   refresh: () => void
 }
 
@@ -31,7 +31,7 @@ export function useLeaderboard(options: UseLeaderboardOptions = {}): UseLeaderbo
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [dataSource, setDataSource] = useState<'database' | 'mock'>('mock')
+  const [dataSource, setDataSource] = useState<'database' | 'unavailable'>('unavailable')
   const [refreshKey, setRefreshKey] = useState(0)
 
   const {
@@ -53,60 +53,34 @@ export function useLeaderboard(options: UseLeaderboardOptions = {}): UseLeaderbo
       setError(null)
 
       try {
-        // First try to check if we have real data
-        const hasReal = await hasRealData()
+        // Try to fetch from Supabase
+        const realEntries = await fetchLeaderboardEntries({
+          capperType: capperType === 'all' ? undefined : capperType,
+          sport: sport === 'all' ? undefined : sport,
+          betType: betType === 'all' ? undefined : betType,
+          sortBy,
+          daysBack,
+          limit
+        })
 
-        if (hasReal) {
-          // Fetch from Supabase
-          const realEntries = await fetchLeaderboardEntries({
-            capperType: capperType === 'all' ? undefined : capperType,
-            sport: sport === 'all' ? undefined : sport,
-            betType: betType === 'all' ? undefined : betType,
-            sortBy,
-            daysBack,
-            limit
-          })
-
-          if (!cancelled && realEntries.length > 0) {
+        if (!cancelled) {
+          if (realEntries.length > 0) {
             setEntries(realEntries)
             setDataSource('database')
-            setLoading(false)
-            return
+          } else {
+            // NO MOCK DATA - return empty and mark as unavailable
+            setEntries([])
+            setDataSource('unavailable')
+            setError('Leaderboard data not yet available. Check back soon.')
           }
-        }
-
-        // Fallback to mock data
-        if (!cancelled) {
-          console.log('Using mock leaderboard data - Supabase tables may be empty')
-          const mockEntries = getMockLeaderboardEntries({
-            capperType: capperType === 'all' ? 'all' : capperType,
-            sport: sport === 'all' ? undefined : sport,
-            betType: betType === 'all' ? undefined : betType,
-            sortBy,
-            daysBack
-          })
-          setEntries(mockEntries)
-          setDataSource('mock')
         }
       } catch (err) {
         if (!cancelled) {
           console.error('Leaderboard fetch error:', err)
           setError(err instanceof Error ? err.message : 'Failed to load leaderboard')
-          
-          // Still try mock data on error
-          try {
-            const mockEntries = getMockLeaderboardEntries({
-              capperType: capperType === 'all' ? 'all' : capperType,
-              sport: sport === 'all' ? undefined : sport,
-              betType: betType === 'all' ? undefined : betType,
-              sortBy,
-              daysBack
-            })
-            setEntries(mockEntries)
-            setDataSource('mock')
-          } catch {
-            setEntries([])
-          }
+          // NO MOCK DATA FALLBACK - set empty
+          setEntries([])
+          setDataSource('unavailable')
         }
       } finally {
         if (!cancelled) {
@@ -133,6 +107,7 @@ export function useLeaderboard(options: UseLeaderboardOptions = {}): UseLeaderbo
 
 /**
  * Hook to get hot/cold streaks
+ * NO MOCK DATA - returns empty arrays when data unavailable
  */
 export function useStreaks() {
   const [hotStreaks, setHotStreaks] = useState<LeaderboardEntry[]>([])
@@ -143,14 +118,7 @@ export function useStreaks() {
     const fetchStreaks = async () => {
       setLoading(true)
       try {
-        const hasReal = await hasRealData()
-        
-        let entries: LeaderboardEntry[]
-        if (hasReal) {
-          entries = await fetchLeaderboardEntries({ sortBy: 'streak', limit: 50 })
-        } else {
-          entries = getMockLeaderboardEntries({ sortBy: 'streak' })
-        }
+        const entries = await fetchLeaderboardEntries({ sortBy: 'streak', limit: 50 })
 
         // Separate hot and cold streaks
         const hot = entries.filter(e => e.streak?.startsWith('W') && parseInt(e.streak.slice(1)) >= 3)
@@ -160,12 +128,9 @@ export function useStreaks() {
         setColdStreaks(cold.slice(0, 5))
       } catch (err) {
         console.error('Error fetching streaks:', err)
-        // Fallback
-        const entries = getMockLeaderboardEntries({ sortBy: 'streak' })
-        const hot = entries.filter(e => e.streak?.startsWith('W') && parseInt(e.streak.slice(1)) >= 3)
-        const cold = entries.filter(e => e.streak?.startsWith('L') && parseInt(e.streak.slice(1)) >= 3)
-        setHotStreaks(hot.slice(0, 5))
-        setColdStreaks(cold.slice(0, 5))
+        // NO MOCK DATA - set empty
+        setHotStreaks([])
+        setColdStreaks([])
       } finally {
         setLoading(false)
       }

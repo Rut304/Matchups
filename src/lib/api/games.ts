@@ -856,21 +856,7 @@ function convertToSummary(team: TeamAnalytics): TeamAnalyticsSummary {
 
 // API Functions
 export async function getGameById(id: string, sport?: string): Promise<GameDetail | null> {
-  // First check mock data
-  const mockGame = allGames[id]
-  if (mockGame) {
-    const gameSport = mockGame.sport as Sport
-    const homeTeam = getTeamByAbbr(gameSport, mockGame.home.abbr)
-    const awayTeam = getTeamByAbbr(gameSport, mockGame.away.abbr)
-    
-    return {
-      ...mockGame,
-      homeAnalytics: homeTeam ? convertToSummary(homeTeam) : undefined,
-      awayAnalytics: awayTeam ? convertToSummary(awayTeam) : undefined,
-    }
-  }
-  
-  // Fetch from API if not in mock data
+  // ALWAYS try real API first - never prioritize mock data
   try {
     const baseUrl = typeof window !== 'undefined' 
       ? '' 
@@ -884,19 +870,23 @@ export async function getGameById(id: string, sport?: string): Promise<GameDetai
     
     const res = await fetch(url, { cache: 'no-store' })
     
-    if (!res.ok) {
-      console.error(`[getGameById] API returned ${res.status} for game ${id}`)
-      return null
+    if (res.ok) {
+      const data = await res.json()
+      // Transform API data to GameDetail format
+      return transformAPIGameToDetail(data, sport || data.sport)
     }
     
-    const data = await res.json()
-    
-    // Transform API data to GameDetail format
-    return transformAPIGameToDetail(data, sport || data.sport)
+    // Only log if real error (not 404)
+    if (res.status !== 404) {
+      console.error(`[getGameById] API returned ${res.status} for game ${id}`)
+    }
   } catch (error) {
     console.error('[getGameById] Error fetching game:', error)
-    return null
   }
+  
+  // NO MOCK DATA FALLBACK - return null if API fails
+  // The UI should display "Game data unavailable" instead
+  return null
 }
 
 // Transform ESPN API game data to our GameDetail format
