@@ -28,7 +28,7 @@ async function main() {
     for (const game of odds) {
       for (const book of game.books || []) {
         try {
-          const bookId = String(book.bookmaker_id || book.bookmaker || '')
+          const bookId = String(book.bookId || '')
 
           // fetch latest existing snapshot for this game/book
           const { data: lastRow } = await supabase
@@ -46,14 +46,14 @@ async function main() {
             sport: game.sport,
             provider: 'action_network',
             book_id: bookId,
-            book_name: book.bookmaker || book.book || 'unknown',
+            book_name: book.bookName || 'unknown',
             snapshot_ts: new Date().toISOString(),
-            spread_home: book.spread || null,
-            total_line: book.total || null,
-            total_over_odds: book.overOdds || null,
-            total_under_odds: book.underOdds || null,
-            home_ml: book.homeML || null,
-            away_ml: book.awayML || null,
+            spread_home: book.spread?.home || null,
+            total_line: book.total?.line || null,
+            total_over_odds: book.total?.overOdds || null,
+            total_under_odds: book.total?.underOdds || null,
+            home_ml: book.moneyline?.homeOdds || null,
+            away_ml: book.moneyline?.awayOdds || null,
             raw_payload: book
           }
 

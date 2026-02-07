@@ -1365,7 +1365,10 @@ async function generateAIAnalysis(data: {
     )
     const hasRealOUData = data.ou.trends.length > 0
     const hasRealInjuryData = (
-      data.injuries.outPlayers.length > 0 || data.injuries.questionablePlayers.length > 0
+      data.injuries.homeTeam.outPlayers.length > 0 || 
+      data.injuries.awayTeam.outPlayers.length > 0 ||
+      data.injuries.homeTeam.questionablePlayers.length > 0 ||
+      data.injuries.awayTeam.questionablePlayers.length > 0
     )
     
     const dataPointsAvailable = [
