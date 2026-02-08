@@ -54,7 +54,29 @@ export async function calculateTeamATS(
   seasonYear?: number
 ): Promise<TeamATSData | null> {
   try {
-    const year = seasonYear || new Date().getFullYear()
+    // Calculate proper season year:
+    // - NFL/NCAAF: Season year is the year the season STARTED (Sept-Feb spans 2 calendar years)
+    //   If we're in Jan/Feb, use previous year
+    // - NBA/NHL: Similar - Oct-June season, use previous year for Jan-June
+    // - MLB: Season is within single calendar year (April-October)
+    const now = new Date()
+    const currentYear = now.getFullYear()
+    const currentMonth = now.getMonth() + 1 // 1-12
+    
+    let year = seasonYear
+    if (!year) {
+      const sportUpper = sport.toUpperCase()
+      if (sportUpper === 'NFL' || sportUpper === 'NCAAF') {
+        // NFL season runs Sep-Feb. If in Jan/Feb, use previous year
+        year = currentMonth <= 2 ? currentYear - 1 : currentYear
+      } else if (sportUpper === 'NBA' || sportUpper === 'NHL' || sportUpper === 'NCAAB') {
+        // NBA/NHL run Oct-June. If in Jan-June, use previous year as season year
+        year = currentMonth <= 6 ? currentYear - 1 : currentYear
+      } else {
+        // MLB and others - use current year
+        year = currentYear
+      }
+    }
     
     // Fetch games where this team played (home or away)
     const { data: homeGames, error: homeError } = await supabase
