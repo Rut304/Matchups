@@ -12,6 +12,11 @@ interface TodayEdgesResponse {
 
 async function getTodayEdges(): Promise<TodayEdgesResponse> {
   // NO DEMO DATA - Always fetch real edges only
+  // Skip fetch during build time (API routes not available)
+  if (process.env.NODE_ENV === 'production' && !process.env.VERCEL_URL) {
+    return { edges: [], total: 0, isDemo: false }
+  }
+  
   try {
     // In production, this would be the full URL
     const baseUrl = process.env.VERCEL_URL 
@@ -20,7 +25,7 @@ async function getTodayEdges(): Promise<TodayEdgesResponse> {
     
     const res = await fetch(`${baseUrl}/api/edges/today?limit=12&minScore=50`, {
       next: { revalidate: 60 }, // Revalidate every minute for fresh edges
-      signal: AbortSignal.timeout(15000) // 15 second timeout
+      signal: AbortSignal.timeout(10000) // 10 second timeout
     })
     
     if (!res.ok) {
@@ -28,7 +33,15 @@ async function getTodayEdges(): Promise<TodayEdgesResponse> {
       return { edges: [], total: 0, isDemo: false }
     }
     
-    return res.json()
+    // Check content-type to avoid parsing HTML error pages
+    const contentType = res.headers.get('content-type')
+    if (!contentType?.includes('application/json')) {
+      console.error('API returned non-JSON response:', contentType)
+      return { edges: [], total: 0, isDemo: false }
+    }
+    
+    const data = await res.json()
+    return data
   } catch (error) {
     console.error('Error fetching today edges:', error)
     // Return empty - NO fake data

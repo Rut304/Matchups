@@ -1897,7 +1897,7 @@ function generateFallbackAnalysis(data: {
   
   const summary = summaryParts.join(' ')
   
-  // Calculate win probability based on spread
+  // Calculate win probability based on spread (from home team perspective)
   const spread = data.clv.currentSpread || 0
   const homeWinProb = spread === 0 ? 0.5 : (spread < 0 ? 0.5 + Math.abs(spread) * 0.025 : 0.5 - spread * 0.025)
   
@@ -1906,8 +1906,14 @@ function generateFallbackAnalysis(data: {
   const projectedHome = Math.round((total / 2) - (spread / 2))
   const projectedAway = Math.round((total / 2) + (spread / 2))
   
-  // Determine spread pick
-  const spreadPick = spread === 0 ? `${away} ML` : spread < 0 ? `${home} ${spread}` : `${away} +${Math.abs(spread)}`
+  // Determine spread pick - spread is from home perspective
+  // If spread < 0: home is favored, show "Home -X"
+  // If spread > 0: away is favored, show "Away -X" (not +X!)
+  const spreadPick = spread === 0 
+    ? `${away} ML` 
+    : spread < 0 
+      ? `${home} ${spread}` 
+      : `${away} -${Math.abs(spread)}`
   const spreadConfidence = data.splits.spread.reverseLineMovement ? 0.65 : 0.55
   
   // Determine total pick

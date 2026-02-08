@@ -11,20 +11,36 @@ interface TodayEdgesResponse {
 }
 
 async function getTodayEdges(): Promise<TodayEdgesResponse> {
+  // Skip fetch during build time (API routes not available)
+  if (process.env.NODE_ENV === 'production' && !process.env.VERCEL_URL) {
+    return { edges: [], total: 0, isDemo: false }
+  }
+  
   try {
     // In production, this would be the full URL
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    const baseUrl = process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
     
     const res = await fetch(`${baseUrl}/api/edges/today?limit=6&minScore=60`, {
-      next: { revalidate: 300 } // Revalidate every 5 minutes
+      next: { revalidate: 300 }, // Revalidate every 5 minutes
+      signal: AbortSignal.timeout(10000)
     })
     
     if (!res.ok) {
       console.error('Failed to fetch today edges:', res.status)
-      return { edges: [], total: 0 }
+      return { edges: [], total: 0, isDemo: false }
     }
     
-    return res.json()
+    // Check content-type to avoid parsing HTML error pages
+    const contentType = res.headers.get('content-type')
+    if (!contentType?.includes('application/json')) {
+      console.error('API returned non-JSON response:', contentType)
+      return { edges: [], total: 0, isDemo: false }
+    }
+    
+    const data = await res.json()
+    return data
   } catch (error) {
     console.error('Error fetching today edges:', error)
     // Return empty - NO fake data
