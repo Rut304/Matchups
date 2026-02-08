@@ -118,6 +118,19 @@ export default function CLVDashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] py-8 px-4">
+      {/* DEMO DATA WARNING BANNER */}
+      <div className="max-w-7xl mx-auto mb-6">
+        <div className="bg-yellow-500/20 border border-yellow-500/40 rounded-xl py-3 px-4">
+          <div className="flex items-center justify-center gap-3">
+            <span className="text-2xl">⚠️</span>
+            <p className="text-yellow-400 font-bold text-center">
+              DEMO DATA - CLV tracking will show real data when you start logging picks.
+            </p>
+            <span className="text-2xl">⚠️</span>
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">

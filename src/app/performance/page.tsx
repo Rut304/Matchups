@@ -72,6 +72,18 @@ export default function PerformancePage() {
   
   return (
     <div className="min-h-screen bg-[#050508]">
+      {/* DEMO DATA WARNING BANNER */}
+      <div className="bg-yellow-500/20 border-b border-yellow-500/40 py-3 px-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-center gap-3">
+          <span className="text-2xl">⚠️</span>
+          <p className="text-yellow-400 font-bold text-center">
+            DEMO DATA - This page displays simulated performance data for demonstration purposes only. 
+            Real tracking begins when you start making picks.
+          </p>
+          <span className="text-2xl">⚠️</span>
+        </div>
+      </div>
+
       {/* Hero Header */}
       <section className="relative overflow-hidden bg-gradient-to-b from-[#0a0a12] to-[#050508]">
         <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full opacity-20 blur-3xl pointer-events-none bg-gradient-to-r from-orange-500 to-transparent" />
@@ -79,16 +91,16 @@ export default function PerformancePage() {
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4 bg-green-500/10 border border-green-500/30">
-              <Shield className="w-4 h-4 text-green-400" />
-              <span className="text-green-400 font-bold text-sm">VERIFIED TRACK RECORD</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4 bg-yellow-500/10 border border-yellow-500/30">
+              <Shield className="w-4 h-4 text-yellow-400" />
+              <span className="text-yellow-400 font-bold text-sm">DEMO MODE</span>
             </div>
             <h1 className="text-4xl sm:text-5xl font-black text-white mb-4">
               20-Year Performance
             </h1>
             <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-              Complete transparency. Every pick tracked. No cherry-picking.
-              This is the real, audited performance of The Edge system.
+              This page shows what performance tracking will look like when The Edge has real historical data.
+              Numbers shown are simulated for demonstration purposes.
             </p>
           </div>
           
