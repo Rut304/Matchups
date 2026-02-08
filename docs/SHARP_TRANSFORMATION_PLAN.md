@@ -3,7 +3,7 @@
 **Goal:** Transform Matchups into a high-ROI financial terminal.
 **Timeline:** **1 Week (Aggressive)**
 **Strategy:** Refactor & Purge (Do NOT Rewrite)
-**Last Updated:** 2025-02-10 — AI algorithm fix committed, plan updated
+**Last Updated:** 2025-02-10 — Phase 2.1 complete: 7,171 games imported, schema fixed
 
 ---
 
@@ -40,15 +40,24 @@
 ### 2.1 Historical Data Injection (Day 3)
 
 - [x] **Task:** Run a script to populate `historical_games` with last 3 seasons of NFL data.
-- [ ] **Task:** Actually RUN the backfill to populate the database.
-- [ ] **Result:** We can calculate real ATS records.
-  - *Status:* **PARTIALLY DONE**. Backfill endpoint created at `src/app/api/cron/backfill-history/route.ts` (moved from wrong location by Claude). **Database is still empty** — endpoint needs to be triggered manually with proper auth and error handling.
+- [x] **Task:** Actually RUN the backfill to populate the database.
+- [x] **Task:** Fix ALL schema mismatches (15 consumer files used wrong column names).
+- [x] **Result:** We can calculate real ATS records.
+  - *Status:* **COMPLETED (Claude, 7bf896a)**. 7,171 real games imported from ESPN:
+    - NFL: 1,546 games (2020-2024 seasons)
+    - NBA: 1,461 games (2024 season)
+    - NHL: 1,482 games (2024 season)
+    - MLB: 2,682 games (2024 season)
+  - Fixed critical bug: migration SQL had WRONG column names vs actual production table.
+    Every import endpoint AND every consumer file was using non-existent columns.
+    Fixed 15+ files: ats-calculator, head-to-head, trend-matcher, ou-analysis,
+    unified-data-store, pattern-discovery, matchup analytics, all API routes.
 
 ### 2.2 Trend Calculation (Day 4)
 
 - [ ] **Task:** Update `TrendEngine` to query the DB, not the current line.
 - [ ] **Result:** "KC is 12-5 ATS" instead of "KC favored by 3".
-  - *Status:* **NOT STARTED**. Removed the worst offenders ("favored by X" trends) but real trend calculation requires populated `historical_games` table.
+  - *Status:* **READY TO START**. Database populated with 7,171 games. Consumer files fixed. Real ATS records should now work for any team. Need to verify trend engine is pulling from DB correctly.
 
 ### 2.3 Unified AI Projection Algorithm (Added by Claude)
 
