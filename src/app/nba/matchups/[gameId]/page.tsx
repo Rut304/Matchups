@@ -14,6 +14,7 @@ import {
   GameInfo,
   MatchupPageSkeleton,
 } from '@/components/matchup'
+import { GamePlayerProps } from '@/components/game'
 import ErrorDisplay from '@/components/matchup/ErrorDisplay'
 import type { SportType } from '@/types/sports'
 
@@ -503,6 +504,14 @@ export default function NBAGameMatchupPage({ params }: { params: Promise<{ gameI
               )}
             </>
           )}
+
+          {/* Player Props */}
+          <GamePlayerProps 
+            gameId={gameId} 
+            sport="NBA" 
+            homeTeam={game.homeTeam.name}
+            awayTeam={game.awayTeam.name}
+          />
         </MatchupLayout.MainContent>
 
         <MatchupLayout.Sidebar>

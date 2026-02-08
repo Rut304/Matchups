@@ -4,6 +4,7 @@ import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { TrendingUp, ChevronDown, Zap, Users, BarChart3, Calendar, Trophy } from 'lucide-react'
 import { InjuryReport, MatchupPageSkeleton, EdgeScoreCard, GameInfo, MatchupLayout } from '@/components/matchup'
+import { GamePlayerProps } from '@/components/game'
 import ErrorDisplay from '@/components/matchup/ErrorDisplay'
 import { useMatchupData } from '@/hooks'
 import type { SportType } from '@/types/sports'
@@ -232,6 +233,14 @@ export default function NCAAFGameMatchupPage({ params }: { params: Promise<{ gam
               </div>
             </div>
           )}
+
+          {/* Player Props */}
+          <GamePlayerProps 
+            gameId={gameId} 
+            sport="NCAAF" 
+            homeTeam={game.homeTeam.name}
+            awayTeam={game.awayTeam.name}
+          />
         </MatchupLayout.MainContent>
 
         <MatchupLayout.Sidebar>

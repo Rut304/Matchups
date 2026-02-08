@@ -16,7 +16,8 @@ import {
   MinusCircle,
   User,
   ChevronDown,
-  X
+  X,
+  Loader2
 } from 'lucide-react'
 
 interface Pick {
@@ -52,56 +53,10 @@ const SPORTS = ['all', 'nfl', 'nba', 'nhl', 'mlb', 'ncaaf', 'ncaab']
 const STATUSES = ['all', 'pending', 'won', 'lost', 'push']
 const PICK_TYPES = ['spread', 'moneyline', 'total', 'prop', 'parlay']
 
-// Mock data for demo
-const mockPicks: Pick[] = [
-  {
-    id: '1',
-    capper: { id: '1', username: 'sharp_shooter', displayName: 'Sharp Shooter', avatar: null, isVerified: true, isPro: true },
-    game: { id: '1', homeTeam: 'Philadelphia Eagles', awayTeam: 'Washington Commanders', gameTime: '2025-01-26T18:00:00Z', status: 'scheduled', score: null },
-    sport: 'nfl',
-    pickType: 'spread',
-    selection: 'Eagles -6',
-    odds: -110,
-    units: 2,
-    confidence: 'high',
-    analysis: 'Eagles swept the season series. Saquon Barkley averaged 145 rushing yards vs Washington.',
-    result: 'pending',
-    createdAt: '2025-01-25T15:00:00Z',
-  },
-  {
-    id: '2',
-    capper: { id: '2', username: 'hoops_king', displayName: 'Hoops King', avatar: null, isVerified: true, isPro: false },
-    game: { id: '2', homeTeam: 'Boston Celtics', awayTeam: 'Cleveland Cavaliers', gameTime: '2025-01-25T19:30:00Z', status: 'final', score: '118-102' },
-    sport: 'nba',
-    pickType: 'total',
-    selection: 'Under 224.5',
-    odds: -108,
-    units: 1.5,
-    confidence: 'medium',
-    analysis: 'Top defensive teams, both allow under 106 PPG.',
-    result: 'won',
-    createdAt: '2025-01-25T10:00:00Z',
-  },
-  {
-    id: '3',
-    capper: { id: '1', username: 'sharp_shooter', displayName: 'Sharp Shooter', avatar: null, isVerified: true, isPro: true },
-    game: { id: '3', homeTeam: 'NY Yankees', awayTeam: 'Boston Red Sox', gameTime: '2025-01-03T18:00:00Z', status: 'final', score: '4-6' },
-    sport: 'mlb',
-    pickType: 'moneyline',
-    selection: 'Yankees ML',
-    odds: -145,
-    units: 1,
-    confidence: 'high',
-    analysis: 'Cole on the mound with a 2.89 ERA at home.',
-    result: 'lost',
-    createdAt: '2025-01-03T12:00:00Z',
-  },
-]
-
 export default function PicksPage() {
   const { user } = useAuth()
-  const [picks, setPicks] = useState<Pick[]>(mockPicks)
-  const [loading, setLoading] = useState(false)
+  const [picks, setPicks] = useState<Pick[]>([])
+  const [loading, setLoading] = useState(true)
   const [selectedSport, setSelectedSport] = useState('all')
   const [selectedStatus, setSelectedStatus] = useState('all')
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -117,11 +72,68 @@ export default function PicksPage() {
     confidence: 'medium',
   })
 
-  const filteredPicks = picks.filter(pick => {
-    if (selectedSport !== 'all' && pick.sport !== selectedSport) return false
-    if (selectedStatus !== 'all' && pick.result !== selectedStatus) return false
-    return true
-  })
+  // Fetch picks from API
+  useEffect(() => {
+    const fetchPicks = async () => {
+      setLoading(true)
+      try {
+        const params = new URLSearchParams()
+        if (selectedSport !== 'all') params.set('sport', selectedSport)
+        if (selectedStatus !== 'all') params.set('status', selectedStatus)
+        params.set('limit', '100')
+        
+        const res = await fetch(`/api/picks?${params.toString()}`)
+        if (res.ok) {
+          const data = await res.json()
+          // Transform API response to match component interface
+          const transformedPicks: Pick[] = (data.picks || []).map((p: any) => ({
+            id: p.id,
+            capper: p.capper ? {
+              id: p.capper.id,
+              username: p.capper.slug || p.capper.name?.toLowerCase().replace(/\s+/g, '_') || 'unknown',
+              displayName: p.capper.name || 'Unknown Capper',
+              avatar: p.capper.avatarUrl || p.capper.avatarEmoji || null,
+              isVerified: p.capper.verified || false,
+              isPro: p.capper.capperType === 'pro',
+            } : {
+              id: 'unknown',
+              username: 'unknown',
+              displayName: 'Unknown',
+              avatar: null,
+              isVerified: false,
+              isPro: false,
+            },
+            game: p.game ? {
+              id: p.game.id,
+              homeTeam: p.game.homeTeam || 'TBD',
+              awayTeam: p.game.awayTeam || 'TBD',
+              gameTime: p.game.scheduledAt,
+              status: p.game.status,
+              score: p.game.score,
+            } : null,
+            sport: p.sport,
+            pickType: p.pickType,
+            selection: p.selection,
+            odds: p.odds,
+            units: p.units,
+            confidence: p.confidence,
+            analysis: p.analysis,
+            result: p.result as Pick['result'],
+            createdAt: p.createdAt,
+          }))
+          setPicks(transformedPicks)
+        }
+      } catch (error) {
+        console.error('Failed to fetch picks:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchPicks()
+  }, [selectedSport, selectedStatus])
+
+  const filteredPicks = picks // Already filtered by API
 
   const stats = {
     total: picks.length,
@@ -161,40 +173,74 @@ export default function PicksPage() {
       return
     }
 
-    // In production, this would POST to /api/picks
-    const mockNewPick: Pick = {
-      id: Date.now().toString(),
-      capper: {
-        id: user?.id || 'guest',
-        username: user?.email?.split('@')[0] || 'guest',
-        displayName: user?.email?.split('@')[0] || 'Guest User',
-        avatar: null,
-        isVerified: false,
-        isPro: false,
-      },
-      game: null,
-      sport: newPick.sport,
-      pickType: newPick.pickType,
-      selection: newPick.selection,
-      odds: parseInt(newPick.odds),
-      units: parseFloat(newPick.units),
-      confidence: newPick.confidence,
-      analysis: newPick.analysis || null,
-      result: 'pending',
-      createdAt: new Date().toISOString(),
-    }
+    try {
+      const res = await fetch('/api/picks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sport: newPick.sport,
+          pick_type: newPick.pickType,
+          selection: newPick.selection,
+          odds: newPick.odds,
+          units: newPick.units,
+          analysis: newPick.analysis,
+          confidence: newPick.confidence,
+        }),
+      })
 
-    setPicks([mockNewPick, ...picks])
-    setShowCreateModal(false)
-    setNewPick({
-      sport: 'nfl',
-      pickType: 'spread',
-      selection: '',
-      odds: '-110',
-      units: '1',
-      analysis: '',
-      confidence: 'medium',
-    })
+      if (res.ok) {
+        // Refresh picks list
+        const refreshRes = await fetch(`/api/picks?limit=100`)
+        if (refreshRes.ok) {
+          const data = await refreshRes.json()
+          const transformedPicks: Pick[] = (data.picks || []).map((p: any) => ({
+            id: p.id,
+            capper: p.capper ? {
+              id: p.capper.id,
+              username: p.capper.slug || 'unknown',
+              displayName: p.capper.name || 'Unknown',
+              avatar: p.capper.avatarUrl || null,
+              isVerified: p.capper.verified || false,
+              isPro: p.capper.capperType === 'pro',
+            } : { id: 'unknown', username: 'unknown', displayName: 'Unknown', avatar: null, isVerified: false, isPro: false },
+            game: p.game ? {
+              id: p.game.id,
+              homeTeam: p.game.homeTeam || 'TBD',
+              awayTeam: p.game.awayTeam || 'TBD',
+              gameTime: p.game.scheduledAt,
+              status: p.game.status,
+              score: p.game.score,
+            } : null,
+            sport: p.sport,
+            pickType: p.pickType,
+            selection: p.selection,
+            odds: p.odds,
+            units: p.units,
+            confidence: p.confidence,
+            analysis: p.analysis,
+            result: p.result as Pick['result'],
+            createdAt: p.createdAt,
+          }))
+          setPicks(transformedPicks)
+        }
+        setShowCreateModal(false)
+        setNewPick({
+          sport: 'nfl',
+          pickType: 'spread',
+          selection: '',
+          odds: '-110',
+          units: '1',
+          analysis: '',
+          confidence: 'medium',
+        })
+      } else {
+        const error = await res.json()
+        alert(error.error || 'Failed to create pick. Please sign in and try again.')
+      }
+    } catch (error) {
+      console.error('Failed to create pick:', error)
+      alert('Failed to create pick. Please try again.')
+    }
   }
 
   return (
@@ -284,7 +330,19 @@ export default function PicksPage() {
 
         {/* Picks List */}
         <div className="space-y-4">
-          {filteredPicks.map((pick) => (
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#00A8FF' }} />
+            </div>
+          ) : filteredPicks.length === 0 ? (
+            <div className="text-center py-16 rounded-xl" style={{ background: '#12121A' }}>
+              <Target className="w-12 h-12 mx-auto mb-4" style={{ color: '#808090' }} />
+              <p className="text-white font-semibold mb-2">No picks found</p>
+              <p style={{ color: '#808090' }} className="text-sm">
+                {user ? 'Click "Log Pick" to record your first bet' : 'Sign in to track your betting history'}
+              </p>
+            </div>
+          ) : filteredPicks.map((pick) => (
             <div
               key={pick.id}
               className="rounded-xl p-4"
@@ -363,14 +421,6 @@ export default function PicksPage() {
               )}
             </div>
           ))}
-
-          {filteredPicks.length === 0 && (
-            <div className="text-center py-12">
-              <Target className="w-12 h-12 mx-auto mb-4" style={{ color: '#808090' }} />
-              <p className="text-lg text-white mb-2">No picks found</p>
-              <p style={{ color: '#808090' }}>Try adjusting your filters or log a new pick</p>
-            </div>
-          )}
         </div>
       </div>
 

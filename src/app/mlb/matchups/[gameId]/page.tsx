@@ -4,6 +4,7 @@ import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { TrendingUp, Target, ChevronDown, Zap, Users, BarChart3, Calendar, Cloud, Wind } from 'lucide-react'
 import { InjuryReport, MatchupPageSkeleton, EdgeScoreCard, GameInfo, MatchupLayout } from '@/components/matchup'
+import { GamePlayerProps } from '@/components/game'
 import ErrorDisplay from '@/components/matchup/ErrorDisplay'
 import { useMatchupData } from '@/hooks'
 import type { SportType } from '@/types/sports'
@@ -220,6 +221,14 @@ export default function MLBGameMatchupPage({ params }: { params: Promise<{ gameI
               </div>
             </div>
           )}
+
+          {/* Player Props */}
+          <GamePlayerProps 
+            gameId={gameId} 
+            sport="MLB" 
+            homeTeam={game.homeTeam.name}
+            awayTeam={game.awayTeam.name}
+          />
         </MatchupLayout.MainContent>
 
         <MatchupLayout.Sidebar>

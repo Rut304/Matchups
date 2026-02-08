@@ -353,7 +353,16 @@ export function TopMatchups() {
                 {game.odds && (
                   <div className="text-right shrink-0">
                     <div className="text-sm font-bold text-white">
-                      {game.homeTeam.abbreviation} {formatSpread(game.odds.spread)}
+                      {/* Determine favorite by moneyline (more negative = favorite) */}
+                      {(() => {
+                        const homeML = game.odds.homeML || 0
+                        const awayML = game.odds.awayML || 0
+                        // Favorite has more negative moneyline
+                        const isHomeFavorite = homeML < awayML && homeML !== 0
+                        const favoriteAbbr = isHomeFavorite ? game.homeTeam.abbreviation : game.awayTeam.abbreviation
+                        const spreadValue = Math.abs(game.odds.spread || 0)
+                        return spreadValue > 0 ? `${favoriteAbbr} -${spreadValue}` : 'PK'
+                      })()}
                     </div>
                     <div className="text-[10px] text-gray-400">
                       O/U {game.odds.total}

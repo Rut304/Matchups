@@ -354,8 +354,8 @@ export default function SusPlaysPage() {
             description: p.description as string || p.title as string || '',
             susType: (p.susType as string || 'other') as SusType,
             relatedBet: p.relatedBet as string,
-            videoUrl: p.videoUrl as string,
-            twitterUrl: p.tweetUrl as string || p.twitterUrl as string, // Support both field names
+            videoUrl: p.videoUrl as string || p.twitterUrl as string, // Use either video or twitter URL
+            twitterUrl: p.twitterUrl as string || (p.videoUrl as string && (p.videoUrl as string).includes('twitter.com') ? p.videoUrl as string : undefined), // Use videoUrl if it's a Twitter/X link
             thumbnailUrl: p.thumbnailUrl as string,
             views: p.views as number || 0,
             susScore: p.susScore as number || 50,
@@ -566,11 +566,38 @@ export default function SusPlaysPage() {
                 <div className="relative aspect-video bg-black/50 flex items-center justify-center group">
                   {play.twitterUrl && play.twitterUrl !== '#' ? (
                     <TwitterEmbed tweetUrl={play.twitterUrl} />
-                  ) : (
-                    <>
+                  ) : play.videoUrl && play.videoUrl !== '#' ? (
+                    <a 
+                      href={play.videoUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="absolute inset-0 flex items-center justify-center"
+                    >
+                      {play.thumbnailUrl ? (
+                        <img 
+                          src={play.thumbnailUrl} 
+                          alt={`${play.playerName} sus play`}
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
+                      ) : null}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                      <Play className="w-16 h-16 text-white/80 group-hover:text-white group-hover:scale-110 transition-all cursor-pointer" />
-                    </>
+                      <Play className="w-16 h-16 text-white/80 group-hover:text-white group-hover:scale-110 transition-all z-10" />
+                    </a>
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      {play.thumbnailUrl ? (
+                        <img 
+                          src={play.thumbnailUrl} 
+                          alt={`${play.playerName} sus play`}
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
+                      ) : null}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                      <div className="flex flex-col items-center gap-2 z-10">
+                        <Video className="w-12 h-12 text-gray-400" />
+                        <span className="text-xs text-gray-500">Video unavailable</span>
+                      </div>
+                    </div>
                   )}
                   
                   {/* Trending Badge */}

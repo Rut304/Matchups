@@ -889,13 +889,20 @@ export default function GameDetailPage() {
                 <div className="rounded-lg p-2 bg-gradient-to-r from-orange-500/10 to-orange-600/5 border border-orange-500/20">
                   <p className="text-[10px] text-slate-500 mb-0.5">SPREAD</p>
                   <p className="text-lg font-black font-mono text-orange-400">
-                    {gameSummary.odds ? (
+                    {gameSummary.odds && gameSummary.odds.spread !== undefined ? (
                       <>
-                        {gameSummary.odds.homeTeamOdds?.favorite ? game.home.abbr : game.away.abbr}{' '}
-                        {gameSummary.odds.homeTeamOdds?.favorite ? '-' : '+'}{Math.abs(gameSummary.odds.spread).toFixed(1)}
+                        {/* Determine favorite: if moneyline is more negative/lower for home, home is favorite */}
+                        {(() => {
+                          const homeML = gameSummary.odds.homeTeamOdds?.moneyLine || 0
+                          const awayML = gameSummary.odds.awayTeamOdds?.moneyLine || 0
+                          // Favorite has more negative (lower) moneyline
+                          const isHomeFavorite = homeML < awayML && homeML !== 0
+                          const favoriteAbbr = isHomeFavorite ? game.home.abbr : game.away.abbr
+                          return `${favoriteAbbr} -${Math.abs(gameSummary.odds.spread).toFixed(1)}`
+                        })()}
                       </>
                     ) : game.spread.line !== 0 ? (
-                      <>{game.spread.favorite} {game.spread.line > 0 ? '+' : ''}{game.spread.line}</>
+                      <>{game.spread.favorite} -{Math.abs(game.spread.line).toFixed(1)}</>
                     ) : (
                       'TBD'
                     )}
@@ -963,49 +970,11 @@ export default function GameDetailPage() {
             </div>
           </div>
 
-          {/* AI Prediction Bar - OUR proprietary analysis (powered by Gemini) */}
-          {/* This is THE competitive edge - unique AI insights, not ESPN's predictor */}
-          <div className="mt-6 pt-4 border-t border-slate-800">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Brain className="w-5 h-5 text-orange-500" />
-                <span className="font-semibold text-white">AI Prediction</span>
-                <span className="px-2 py-0.5 text-xs rounded bg-orange-500/20 text-orange-400">Matchups Edge</span>
-                <div className="group relative">
-                  <Info className="w-4 h-4 text-slate-500 cursor-help" />
-                  <div className="invisible group-hover:visible absolute bottom-full left-0 mb-2 w-64 p-3 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-300 z-10 shadow-xl">
-                    <p className="font-semibold text-white mb-1">What is AI Prediction?</p>
-                    <p>Our AI analyzes 12+ data points including trends, injuries, weather, line movement, and sharp money to generate a pick recommendation with confidence level.</p>
-                  </div>
-                </div>
-              </div>
-              <span className="font-bold text-orange-400">
-                {intelligence.aiAnalysis?.spreadAnalysis?.pick || game.aiPick || 'Analyzing...'}
-              </span>
-            </div>
-            {/* Confidence Bar - Shows our AI's confidence in the pick */}
-            <div className="h-4 rounded-full overflow-hidden bg-slate-800">
-              {(() => {
-                const confidence = (intelligence.aiAnalysis?.spreadAnalysis?.confidence || game.aiConfidence / 100 || 0.5) * 100;
-                const barClass = confidence >= 70 ? 'confidence-bar-high' : confidence >= 55 ? 'confidence-bar-medium' : 'confidence-bar-low';
-                return (
-                  <div 
-                    className={`h-full rounded-full transition-all ${barClass}`}
-                    style={{ width: `${confidence}%` }}
-                  />
-                );
-              })()}
-            </div>
-            <div className="flex justify-between text-sm mt-1 text-slate-500">
-              <span>{Math.round((intelligence.aiAnalysis?.spreadAnalysis?.confidence || game.aiConfidence / 100 || 0.5) * 100)}% confidence</span>
-              <span className="text-xs text-slate-600">Powered by AI analysis of trends, injuries, weather & more</span>
-            </div>
-          </div>
         </div>
 
         {/* =========================================== */}
         {/* THE EDGE - AI Intelligence Dashboard */}
-        {/* This is what makes Matchups DIFFERENT */}
+        {/* Consolidated: AI Pick + Edge Score + Analysis */}
         {/* =========================================== */}
         <div className="rounded-2xl p-6 mb-6 bg-gradient-to-br from-orange-950/30 to-slate-900 border border-orange-500/30">
           <div className="flex items-center justify-between mb-4">
@@ -1021,11 +990,11 @@ export default function GameDetailPage() {
                     <Info className="w-4 h-4 text-slate-500 cursor-help" />
                     <div className="invisible group-hover:visible absolute bottom-full left-0 mb-2 w-72 p-3 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-300 z-10 shadow-xl">
                       <p className="font-semibold text-white mb-1">What is THE EDGE?</p>
-                      <p>Matchups proprietary betting intelligence engine. We combine sharp money tracking, reverse line movement detection, public betting splits, injury impact analysis, weather data, and historical trends into a single Edge Score (0-100). Higher scores = stronger betting opportunities.</p>
+                      <p>Matchups proprietary betting intelligence engine. We analyze sharp money, line movement, public splits, injuries, weather, and historical trends to generate an Edge Score (0-100) and AI Pick recommendation. Higher scores = stronger betting opportunities.</p>
                     </div>
                   </div>
                 </h2>
-                <p className="text-sm text-slate-400">Proprietary analysis combining 12 key data points</p>
+                <p className="text-sm text-slate-400">AI Pick + Edge Score from 12 key data points</p>
               </div>
             </div>
             {/* Edge Score */}
@@ -1056,6 +1025,32 @@ export default function GameDetailPage() {
                 </>
               )}
             </div>
+          </div>
+
+          {/* AI Pick with Confidence Bar - The main pick recommendation */}
+          <div className="p-4 rounded-xl bg-slate-800/50 border border-orange-500/30 mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Brain className="w-5 h-5 text-orange-500" />
+                <span className="font-semibold text-white">AI PICK</span>
+              </div>
+              <span className="text-lg font-bold text-orange-400">
+                {intelligence.aiAnalysis?.spreadAnalysis?.pick || game.aiPick || 'Analyzing...'}
+              </span>
+            </div>
+            <div className="h-3 rounded-full overflow-hidden bg-slate-800">
+              {(() => {
+                const confidence = (intelligence.aiAnalysis?.spreadAnalysis?.confidence || game.aiConfidence / 100 || 0.5) * 100;
+                const barClass = confidence >= 70 ? 'confidence-bar-high' : confidence >= 55 ? 'confidence-bar-medium' : 'confidence-bar-low';
+                return (
+                  <div 
+                    className={`h-full rounded-full transition-all ${barClass}`}
+                    style={{ width: `${confidence}%` }}
+                  />
+                );
+              })()}
+            </div>
+            <p className="text-xs text-slate-500 mt-1">{Math.round((intelligence.aiAnalysis?.spreadAnalysis?.confidence || game.aiConfidence / 100 || 0.5) * 100)}% confidence</p>
           </div>
 
           {/* Quick Takes */}
