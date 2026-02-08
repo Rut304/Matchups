@@ -11,9 +11,11 @@ interface TodayEdgesResponse {
 }
 
 async function getTodayEdges(): Promise<TodayEdgesResponse> {
-  // NO DEMO DATA - Always fetch real edges only
-  // Skip fetch during build time (API routes not available)
-  if (process.env.NODE_ENV === 'production' && !process.env.VERCEL_URL) {
+  // Return empty during static generation/build - edges will be loaded client-side
+  // VERCEL_ENV is 'production' during builds AND runtime, so we can't distinguish
+  // Instead, we check if we're in a server component during build by trying to detect SSG
+  const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build'
+  if (isBuildTime) {
     return { edges: [], total: 0, isDemo: false }
   }
   
@@ -25,7 +27,8 @@ async function getTodayEdges(): Promise<TodayEdgesResponse> {
     
     const res = await fetch(`${baseUrl}/api/edges/today?limit=12&minScore=50`, {
       next: { revalidate: 60 }, // Revalidate every minute for fresh edges
-      signal: AbortSignal.timeout(10000) // 10 second timeout
+      signal: AbortSignal.timeout(10000), // 10 second timeout
+      cache: 'no-store' // Don't cache during build to prevent stale data
     })
     
     if (!res.ok) {
@@ -40,8 +43,14 @@ async function getTodayEdges(): Promise<TodayEdgesResponse> {
       return { edges: [], total: 0, isDemo: false }
     }
     
-    const data = await res.json()
-    return data
+    const text = await res.text()
+    // Additional safety: make sure response starts with { or [
+    if (!text.startsWith('{') && !text.startsWith('[')) {
+      console.error('Response is not JSON:', text.substring(0, 100))
+      return { edges: [], total: 0, isDemo: false }
+    }
+    
+    return JSON.parse(text)
   } catch (error) {
     console.error('Error fetching today edges:', error)
     // Return empty - NO fake data

@@ -19,6 +19,10 @@ import { HomeInjuries } from '@/components/home/HomeInjuries'
 import { HomeStandings } from '@/components/home/HomeStandings'
 import { SharpMoneySummary } from '@/components/betting'
 
+// Force dynamic rendering - homepage needs live data from APIs
+export const dynamic = 'force-dynamic'
+export const revalidate = 60 // Revalidate every minute for fresh data
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-[#050508]">
