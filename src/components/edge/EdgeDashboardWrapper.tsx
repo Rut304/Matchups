@@ -27,17 +27,17 @@ async function getTodayEdges(): Promise<TodayEdgesResponse> {
     return res.json()
   } catch (error) {
     console.error('Error fetching today edges:', error)
-    // Return demo data on error
+    // Return empty - NO fake data
     return {
-      edges: getDemoEdges(),
-      total: 6,
-      isDemo: true
+      edges: [],
+      total: 0,
+      isDemo: false
     }
   }
 }
 
-// Demo data fallback
-function getDemoEdges(): EdgeCard[] {
+// DEPRECATED: Demo data removed - was showing fake games
+function getDemoEdges_REMOVED(): EdgeCard[] {
   return [
     {
       gameId: 'demo-1',
