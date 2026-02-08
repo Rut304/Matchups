@@ -320,20 +320,9 @@ function transformAPIGameToDetail(apiGame: Record<string, unknown>, sport: strin
   if (odds) {
     const spreadLine = odds.spread as number || 0
     if (spreadLine !== 0) {
-      const favoredTeam = spreadLine < 0 ? homeAbbr : awayAbbr
-      const underdogTeam = spreadLine < 0 ? awayAbbr : homeAbbr
       const line = Math.abs(spreadLine)
       
-      // Add spread-based trends
-      if (spreadLine < 0) {
-        homeTrends.push(`${homeAbbr} favored by ${line} points`)
-        awayTrends.push(`${awayAbbr} getting +${line} points`)
-      } else {
-        awayTrends.push(`${awayAbbr} favored by ${line} points`)
-        homeTrends.push(`${homeAbbr} getting +${line} points`)
-      }
-      
-      // Key number commentary
+      // Only add meaningful key number commentary (not just repeating the spread)
       if (line === 3 || line === 3.5) {
         if (spreadLine < 0) {
           homeTrends.push('Line at key number of 3 - historically significant in NFL')
@@ -402,10 +391,9 @@ function transformAPIGameToDetail(apiGame: Record<string, unknown>, sport: strin
       home: odds?.homeML as number || 0,
       away: odds?.awayML as number || 0,
     },
-    // AI picks should come from Gemini API - placeholder for now
     aiPick: spreadLine ? `${favorite} ${Math.abs(spreadLine) > 0 ? `-${Math.abs(spreadLine).toFixed(1)}` : 'ML'}` : 'Analysis pending',
     aiConfidence: 0, // 0 = not analyzed yet
-    aiAnalysis: 'AI analysis requires Gemini API integration. Real-time analysis coming soon.',
+    aiAnalysis: '', // Empty until Gemini AI generates real analysis
     aiPicks: [], // Empty until Gemini integration
     signals,
     injuries: [], // Would need injury API integration

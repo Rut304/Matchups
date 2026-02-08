@@ -111,6 +111,7 @@ export interface RealTeamAnalytics {
     asUnderdog: { wins: number; losses: number; pushes: number }
     last10: { wins: number; losses: number; pushes: number }
     provenance?: ProvenanceMetadata
+    hasData: boolean
   }
   
   ou: {
@@ -119,6 +120,7 @@ export interface RealTeamAnalytics {
     away: { overs: number; unders: number; pushes: number }
     last10: { overs: number; unders: number; pushes: number }
     provenance?: ProvenanceMetadata
+    hasData: boolean
   }
   
   ml: {
@@ -288,6 +290,8 @@ export async function getRealTeams(sportOrOptions: Sport | GetRealTeamsOptions):
       const homeGames = teamGames.filter((g: HistoricalGame) => g.home_team_abbr && g.home_team_abbr.toUpperCase() === teamCode.toUpperCase())
       const awayGames = teamGames.filter((g: HistoricalGame) => g.away_team_abbr && g.away_team_abbr.toUpperCase() === teamCode.toUpperCase())
       
+      const hasHistory = teamGames.length > 0
+
       const homeATS = {
         wins: homeGames.filter((g: HistoricalGame) => g.spread_result === 'home_cover').length,
         losses: homeGames.filter((g: HistoricalGame) => g.spread_result === 'away_cover').length,
@@ -326,6 +330,7 @@ export async function getRealTeams(sportOrOptions: Sport | GetRealTeamsOptions):
           asUnderdog: { wins: 0, losses: 0, pushes: 0 },
           last10: { wins: 0, losses: 0, pushes: 0 },
           provenance: atsProvenance,
+          hasData: hasHistory,
         },
         ou: {
           overall: {
@@ -345,6 +350,7 @@ export async function getRealTeams(sportOrOptions: Sport | GetRealTeamsOptions):
           },
           last10: { overs: 0, unders: 0, pushes: 0 },
           provenance: atsProvenance,
+          hasData: hasHistory,
         },
         ml: {
           asFavorite: { wins: 0, losses: 0 },

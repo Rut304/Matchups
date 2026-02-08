@@ -462,7 +462,7 @@ export function GameBettingSplits({
 
   // Full expanded view
   return (
-    <div className={`bg-slate-900/50 rounded-xl ${compact ? 'p-4' : 'p-5'} border border-slate-800 mb-4`}>
+    <div className={`bg-slate-900/50 rounded-xl ${compact ? 'p-3' : 'p-5'} border border-slate-800 mb-4`}>
       {/* Header - More Compact */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">

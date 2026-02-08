@@ -349,6 +349,12 @@ export default function GameDetailPage() {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }))
   }
 
+  // Helper to safely display odds
+  const formatSpread = (spread: number | undefined | null) => {
+    if (spread === undefined || spread === null || isNaN(spread)) return 'TBD'
+    return spread === 0 ? 'PK' : spread > 0 ? `+${spread}` : `${spread}` // Returns string like "-4.5" or "+3.5"
+  }
+
   useEffect(() => {
     const loadGame = async () => {
       const data = await getGameById(gameId, sport)
@@ -855,12 +861,12 @@ export default function GameDetailPage() {
             </div>
           </div>
 
-          {/* Teams Matchup - More Compact */}
+          {/* Teams Matchup - Ultra Compact Grid */}
           <div className="grid grid-cols-7 gap-2 items-center">
-            {/* Away Team - Compact */}
+            {/* Away Team */}
             <div className="col-span-2 text-center">
               {/* Team Logo */}
-              <div className="w-12 h-12 mx-auto mb-1 relative">
+              <div className="w-10 h-10 mx-auto mb-1 relative">
                 <Image
                   src={getTeamLogoUrl(game.sport, game.away.abbr || 'DEFAULT')}
                   alt={game.away.name}
@@ -870,39 +876,44 @@ export default function GameDetailPage() {
                   onError={(e) => { e.currentTarget.src = '/team-placeholder.png' }}
                 />
               </div>
-              <h2 className="text-xs text-slate-400">{game.away.city}</h2>
-              <p className="text-lg font-black text-white">{game.away.name}</p>
-              <p className="text-sm font-semibold text-slate-400">{game.away.record}</p>
-              <div className="flex items-center justify-center gap-2 mt-0.5 text-xs">
-                <span className="text-slate-500">ATS: <span className={`font-semibold ${(gameSummary.atsRecords?.awayTeam?.ats || game.away.ats) ? 'text-green-400' : 'text-slate-600'}`}>{gameSummary.atsRecords?.awayTeam?.ats || game.away.ats || 'N/A'}</span></span>
-                <span className="text-slate-500">O/U: <span className={`font-semibold ${(gameSummary.atsRecords?.awayTeam?.ou || game.away.ou) ? 'text-blue-400' : 'text-slate-600'}`}>{gameSummary.atsRecords?.awayTeam?.ou || game.away.ou || 'N/A'}</span></span>
+              <p className="text-sm font-black text-white leading-tight">{game.away.name}</p>
+              <p className="text-xs font-semibold text-slate-400">{game.away.record}</p>
+              <div className="flex flex-col items-center mt-1 text-[10px]">
+                <span className="text-slate-500">ATS: <span className="text-white">{gameSummary.atsRecords?.awayTeam?.ats || game.away.ats || '-'}</span></span>
               </div>
             </div>
 
-            {/* Betting Lines - Center - Compact */}
-            <div className="col-span-3 text-center space-y-2">
-              <div className="text-lg font-bold text-slate-600">VS</div>
+            {/* Betting Lines - Center */}
+            <div className="col-span-3 text-center space-y-1.5">
+              <div className="text-sm font-bold text-slate-600">VS</div>
               
               {/* Spread & Total Side by Side */}
               <div className="grid grid-cols-2 gap-2">
                 {/* Spread */}
-                <div className="rounded-lg p-2 bg-gradient-to-r from-orange-500/10 to-orange-600/5 border border-orange-500/20">
+                <div className="rounded p-1.5 bg-gradient-to-r from-orange-500/10 to-orange-600/5 border border-orange-500/20">
                   <p className="text-[10px] text-slate-500 mb-0.5">SPREAD</p>
-                  <p className="text-lg font-black font-mono text-orange-400">
+                  <p className="text-sm font-black font-mono text-orange-400">
                     {gameSummary.odds && gameSummary.odds.spread !== undefined ? (
                       <>
                         {/* Determine favorite: if moneyline is more negative/lower for home, home is favorite */}
                         {(() => {
                           const homeML = gameSummary.odds.homeTeamOdds?.moneyLine || 0
                           const awayML = gameSummary.odds.awayTeamOdds?.moneyLine || 0
+                          const spreadVal = gameSummary.odds.spread
                           // Favorite has more negative (lower) moneyline
                           const isHomeFavorite = homeML < awayML && homeML !== 0
                           const favoriteAbbr = isHomeFavorite ? game.home.abbr : game.away.abbr
-                          return `${favoriteAbbr} -${Math.abs(gameSummary.odds.spread).toFixed(1)}`
+                          // Just show the spread value directly if we can't determine favorite easily
+                          // But usually spread is relative to home. 
+                          // Let's just show the spread value formatted.
+                          // If spread is -4.5, it means Home is -4.5. 
+                          // If spread is 4.5, it means Home is +4.5.
+                          // To be safe, let's show the favorite's line.
+                          return `${favoriteAbbr} ${spreadVal < 0 ? spreadVal : `-${spreadVal}`}`
                         })()}
                       </>
-                    ) : game.spread.line !== 0 ? (
-                      <>{game.spread.favorite} -{Math.abs(game.spread.line).toFixed(1)}</>
+                    ) : (game.spread?.line !== undefined && game.spread.line !== 0) ? (
+                      <>{game.spread.favorite} {formatSpread(game.spread.line)}</>
                     ) : (
                       'TBD'
                     )}
@@ -910,9 +921,9 @@ export default function GameDetailPage() {
                 </div>
                 
                 {/* Total */}
-                <div className="rounded-lg p-2 bg-gradient-to-r from-green-500/10 to-green-600/5 border border-green-500/20">
+                <div className="rounded p-1.5 bg-gradient-to-r from-green-500/10 to-green-600/5 border border-green-500/20">
                   <p className="text-[10px] text-slate-500 mb-0.5">TOTAL</p>
-                  <p className="text-lg font-black font-mono text-green-400">
+                  <p className="text-sm font-black font-mono text-green-400">
                     O/U {gameSummary.odds?.overUnder || game.total || 'TBD'}
                   </p>
                 </div>
@@ -920,9 +931,9 @@ export default function GameDetailPage() {
               
               {/* Moneyline */}
               <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-lg p-1.5 bg-slate-800/50 border border-slate-700">
+                <div className="rounded p-1 bg-slate-800/50 border border-slate-700">
                   <p className="text-[10px] text-slate-500">{game.away.abbr || 'AWAY'}</p>
-                  <p className={`text-base font-bold font-mono ${
+                  <p className={`text-xs font-bold font-mono ${
                     (gameSummary.odds?.awayTeamOdds?.moneyLine || game.moneyline.away) > 0 ? 'text-green-400' : 'text-white'
                   }`}>
                     {gameSummary.odds?.awayTeamOdds?.moneyLine ? (
@@ -932,9 +943,9 @@ export default function GameDetailPage() {
                     ) : 'TBD'}
                   </p>
                 </div>
-                <div className="rounded-lg p-1.5 bg-slate-800/50 border border-slate-700">
+                <div className="rounded p-1 bg-slate-800/50 border border-slate-700">
                   <p className="text-[10px] text-slate-500">{game.home.abbr || 'HOME'}</p>
-                  <p className={`text-base font-bold font-mono ${
+                  <p className={`text-xs font-bold font-mono ${
                     (gameSummary.odds?.homeTeamOdds?.moneyLine || game.moneyline.home) > 0 ? 'text-green-400' : 'text-white'
                   }`}>
                     {gameSummary.odds?.homeTeamOdds?.moneyLine ? (
@@ -947,10 +958,10 @@ export default function GameDetailPage() {
               </div>
             </div>
 
-            {/* Home Team - Compact */}
+            {/* Home Team */}
             <div className="col-span-2 text-center">
               {/* Team Logo */}
-              <div className="w-12 h-12 mx-auto mb-1 relative">
+              <div className="w-10 h-10 mx-auto mb-1 relative">
                 <Image
                   src={getTeamLogoUrl(game.sport, game.home.abbr || 'DEFAULT')}
                   alt={game.home.name}
@@ -960,12 +971,10 @@ export default function GameDetailPage() {
                   onError={(e) => { e.currentTarget.src = '/team-placeholder.png' }}
                 />
               </div>
-              <h2 className="text-xs text-slate-400">{game.home.city}</h2>
-              <p className="text-lg font-black text-white">{game.home.name}</p>
-              <p className="text-sm font-semibold text-slate-400">{game.home.record}</p>
-              <div className="flex items-center justify-center gap-2 mt-0.5 text-xs">
-                <span className="text-slate-500">ATS: <span className={`font-semibold ${(gameSummary.atsRecords?.homeTeam?.ats || game.home.ats) ? 'text-green-400' : 'text-slate-600'}`}>{gameSummary.atsRecords?.homeTeam?.ats || game.home.ats || 'N/A'}</span></span>
-                <span className="text-slate-500">O/U: <span className={`font-semibold ${(gameSummary.atsRecords?.homeTeam?.ou || game.home.ou) ? 'text-blue-400' : 'text-slate-600'}`}>{gameSummary.atsRecords?.homeTeam?.ou || game.home.ou || 'N/A'}</span></span>
+              <p className="text-sm font-black text-white leading-tight">{game.home.name}</p>
+              <p className="text-xs font-semibold text-slate-400">{game.home.record}</p>
+              <div className="flex flex-col items-center mt-1 text-[10px]">
+                <span className="text-slate-500">ATS: <span className="text-white">{gameSummary.atsRecords?.homeTeam?.ats || game.home.ats || '-'}</span></span>
               </div>
             </div>
           </div>
@@ -973,10 +982,54 @@ export default function GameDetailPage() {
         </div>
 
         {/* =========================================== */}
-        {/* THE EDGE - AI Intelligence Dashboard */}
-        {/* Consolidated: AI Pick + Edge Score + Analysis */}
+        {/* ZONE 1.5: MARKET PULSE (Splits & Movement)  */}
         {/* =========================================== */}
-        <div className="rounded-2xl p-6 mb-6 bg-gradient-to-br from-orange-950/30 to-slate-900 border border-orange-500/30">
+        <div className="grid md:grid-cols-2 gap-4 mb-6">
+           {/* Betting Splits - Moved UP for visibility */}
+          <GameBettingSplits
+            gameId={gameId}
+            sport={sport}
+            homeTeam={game.home.name}
+            awayTeam={game.away.name}
+            homeAbbr={game.home.abbr}
+            awayAbbr={game.away.abbr}
+            compact={true}
+            showTitle={true}
+          />
+          
+          {/* Line Movement Summary */}
+          <div className="rounded-xl p-4 bg-slate-900/50 border border-slate-800">
+             <h3 className="flex items-center gap-2 text-sm font-bold text-white mb-3">
+                <TrendingUp className="w-4 h-4 text-blue-500" />
+                Line Movement
+             </h3>
+             <div className="flex items-center justify-between">
+                <div className="text-center">
+                   <p className="text-xs text-slate-500">OPEN</p>
+                   <p className="font-mono font-bold text-slate-300">
+                      {game.openingSpread?.line ? formatSpread(game.openingSpread.line) : 'N/A'}
+                   </p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-600" />
+                <div className="text-center">
+                   <p className="text-xs text-slate-500">CURRENT</p>
+                   <p className="font-mono font-bold text-white">
+                      {gameSummary.odds?.spread ? formatSpread(gameSummary.odds.spread) : formatSpread(game.spread?.line)}
+                   </p>
+                </div>
+             </div>
+             {game.metrics?.lineMovement && (
+                <div className="mt-3 text-xs text-slate-400 bg-slate-800/50 p-2 rounded">
+                   {game.metrics.lineMovement}
+                </div>
+             )}
+          </div>
+        </div>
+
+        {/* =========================================== */}
+        {/* ZONE 2: THE EDGE (AI & Analysis)            */}
+        {/* =========================================== */}
+        <div className="rounded-xl p-5 mb-6 bg-gradient-to-br from-orange-950/30 to-slate-900 border border-orange-500/30">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-orange-500/20">
@@ -1267,10 +1320,10 @@ export default function GameDetailPage() {
         </div>
 
         {/* =========================================== */}
-        {/* MULTI-BOOK ODDS COMPARISON */}
+        {/* ZONE 4: EXECUTION (Line Shopping)           */}
         {/* =========================================== */}
         {!multiBookOdds.loading && multiBookOdds.books.length > 0 && (
-          <div className="rounded-2xl p-6 mb-6 bg-slate-900/50 border border-slate-800">
+          <div className="rounded-xl p-5 mb-6 bg-slate-900/50 border border-slate-800">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 rounded-lg bg-green-500/20">
                 <DollarSign className="w-5 h-5 text-green-500" />
@@ -1357,21 +1410,6 @@ export default function GameDetailPage() {
         )}
 
         {/* =========================================== */}
-        {/* PUBLIC BETTING SPLITS - Live Data */}
-        {/* Critical for identifying sharp vs public money */}
-        {/* =========================================== */}
-        <GameBettingSplits
-          gameId={gameId}
-          sport={sport}
-          homeTeam={game.home.name}
-          awayTeam={game.away.name}
-          homeAbbr={game.home.abbr}
-          awayAbbr={game.away.abbr}
-          compact={false}
-          showTitle={true}
-        />
-
-        {/* =========================================== */}
         {/* PLAYER PROPS - Multi-book comparison */}
         {/* What gamblers REALLY want - prop lines from all books */}
         {/* DraftKings doesn't always have the best odds! */}
@@ -1384,7 +1422,7 @@ export default function GameDetailPage() {
         />
 
         {/* =========================================== */}
-        {/* MAIN CONTENT - Two Column Layout */}
+        {/* ZONE 3: CONTEXT (Stats & Trends)            */}
         {/* =========================================== */}
         <div className="grid lg:grid-cols-3 gap-6">
           
@@ -1396,7 +1434,7 @@ export default function GameDetailPage() {
             {/* =========================================== */}
             {(game.metrics.publicPct > 0 || game.metrics.handlePct > 0 || 
               (game.metrics.lineMovement && game.metrics.lineMovement !== 'No movement data' && game.metrics.lineMovement.includes('→'))) && (
-            <div className="rounded-2xl p-6 bg-slate-900/50 border border-slate-800">
+            <div className="rounded-xl p-5 bg-slate-900/50 border border-slate-800">
               <h3 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
                 <DollarSign className="w-5 h-5 text-green-500" />
                 Key Betting Metrics
@@ -1461,7 +1499,7 @@ export default function GameDetailPage() {
             {/* TEAM RANKINGS COMPARISON - Only show if we have data */}
             {/* =========================================== */}
             {(game.matchup.homeOffRank > 0 || game.matchup.awayOffRank > 0) && (
-            <div className="rounded-2xl p-6 bg-slate-900/50 border border-slate-800">
+            <div className="rounded-xl p-5 bg-slate-900/50 border border-slate-800">
               <h3 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
                 <BarChart3 className="w-5 h-5 text-blue-500" />
                 Team Rankings Comparison
@@ -1530,7 +1568,7 @@ export default function GameDetailPage() {
             {/* =========================================== */}
             {/* ESPN TEAM LEADERS - REAL DATA */}
             {/* =========================================== */}
-            <div className="rounded-2xl p-6 bg-slate-900/50 border border-slate-800">
+            <div className="rounded-xl p-5 bg-slate-900/50 border border-slate-800">
               <button 
                 onClick={() => toggleSection('leaders')}
                 className="flex items-center justify-between w-full text-left"
@@ -1651,7 +1689,7 @@ export default function GameDetailPage() {
             {/* =========================================== */}
             {/* ESPN INJURY REPORT - REAL DATA */}
             {/* =========================================== */}
-            <div className="rounded-2xl p-6 bg-slate-900/50 border border-slate-800">
+            <div className="rounded-xl p-5 bg-slate-900/50 border border-slate-800">
               <button 
                 onClick={() => toggleSection('injuries')}
                 className="flex items-center justify-between w-full text-left"
@@ -1774,10 +1812,9 @@ export default function GameDetailPage() {
               )}
             </div>
 
-            {/* =========================================== */}
-            {/* HEAD-TO-HEAD HISTORY */}
-            {/* =========================================== */}
-            <div className="rounded-2xl p-6 bg-slate-900/50 border border-slate-800">
+            {/* HEAD-TO-HEAD HISTORY - Only shown when data exists */}
+            {game.h2h && game.h2h.length > 0 && (
+            <div className="rounded-xl p-5 bg-slate-900/50 border border-slate-800">
               <button 
                 onClick={() => toggleSection('h2h')}
                 className="flex items-center justify-between w-full text-left"
@@ -1791,51 +1828,48 @@ export default function GameDetailPage() {
               
               {expandedSections.h2h && (
                 <div className="mt-4">
-                  {game.h2h && game.h2h.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="border-b border-slate-700">
-                            <th className="text-left py-2 text-slate-500 font-medium">Date</th>
-                            <th className="text-center py-2 text-slate-500 font-medium">Score</th>
-                            <th className="text-center py-2 text-slate-500 font-medium">Winner</th>
-                            <th className="text-center py-2 text-slate-500 font-medium">ATS</th>
-                            <th className="text-center py-2 text-slate-500 font-medium">O/U</th>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-slate-700">
+                          <th className="text-left py-2 text-slate-500 font-medium">Date</th>
+                          <th className="text-center py-2 text-slate-500 font-medium">Score</th>
+                          <th className="text-center py-2 text-slate-500 font-medium">Winner</th>
+                          <th className="text-center py-2 text-slate-500 font-medium">ATS</th>
+                          <th className="text-center py-2 text-slate-500 font-medium">O/U</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {game.h2h.map((match, i) => (
+                          <tr key={i} className="border-b border-slate-800 hover:bg-slate-800/30">
+                            <td className="py-3 text-slate-300">{match.date}</td>
+                            <td className="py-3 text-center text-white font-mono">{match.score}</td>
+                            <td className="py-3 text-center">
+                              <span className={`px-2 py-1 rounded text-xs font-bold ${
+                                match.winner === game.home.abbr ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                              }`}>
+                                {match.winner}
+                              </span>
+                            </td>
+                            <td className="py-3 text-center">
+                              <span className={`font-bold ${match.atsResult === 'W' ? 'text-green-400' : match.atsResult === 'L' ? 'text-red-400' : 'text-slate-400'}`}>
+                                {match.atsResult}
+                              </span>
+                            </td>
+                            <td className="py-3 text-center">
+                              <span className={`font-bold ${match.ouResult === 'O' ? 'text-green-400' : match.ouResult === 'U' ? 'text-blue-400' : 'text-slate-400'}`}>
+                                {match.ouResult}
+                              </span>
+                            </td>
                           </tr>
-                        </thead>
-                        <tbody>
-                          {game.h2h.map((match, i) => (
-                            <tr key={i} className="border-b border-slate-800 hover:bg-slate-800/30">
-                              <td className="py-3 text-slate-300">{match.date}</td>
-                              <td className="py-3 text-center text-white font-mono">{match.score}</td>
-                              <td className="py-3 text-center">
-                                <span className={`px-2 py-1 rounded text-xs font-bold ${
-                                  match.winner === game.home.abbr ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                                }`}>
-                                  {match.winner}
-                                </span>
-                              </td>
-                              <td className="py-3 text-center">
-                                <span className={`font-bold ${match.atsResult === 'W' ? 'text-green-400' : match.atsResult === 'L' ? 'text-red-400' : 'text-slate-400'}`}>
-                                  {match.atsResult}
-                                </span>
-                              </td>
-                              <td className="py-3 text-center">
-                                <span className={`font-bold ${match.ouResult === 'O' ? 'text-green-400' : match.ouResult === 'U' ? 'text-blue-400' : 'text-slate-400'}`}>
-                                  {match.ouResult}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <p className="text-slate-500 text-center py-4">No recent head-to-head matchups found</p>
-                  )}
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
             </div>
+            )}
 
             {/* =========================================== */}
             {/* AWAY TEAM - LAST 10 GAMES */}
@@ -1847,10 +1881,9 @@ export default function GameDetailPage() {
             {/* =========================================== */}
             {renderScheduleTable(homeSchedule, game.home.emoji, game.home.name, 'homeSchedule')}
 
-            {/* =========================================== */}
-            {/* BETTING TRENDS */}
-            {/* =========================================== */}
-            <div className="rounded-2xl p-6 bg-slate-900/50 border border-slate-800">
+            {/* BETTING TRENDS - Only shown when real trend data exists */}
+            {((game.homeTrends && game.homeTrends.length > 0) || (game.awayTrends && game.awayTrends.length > 0)) && (
+            <div className="rounded-xl p-5 bg-slate-900/50 border border-slate-800">
               <button 
                 onClick={() => toggleSection('trends')}
                 className="flex items-center justify-between w-full text-left"
@@ -1865,6 +1898,7 @@ export default function GameDetailPage() {
               {expandedSections.trends && (
                 <div className="mt-4 grid md:grid-cols-2 gap-6">
                   {/* Away Team Trends */}
+                  {game.awayTrends && game.awayTrends.length > 0 && (
                   <div>
                     <h4 className="text-sm font-semibold text-slate-400 mb-3 flex items-center gap-2">
                       <span>{game.away.emoji}</span> {game.away.abbr} TRENDS
@@ -1878,8 +1912,10 @@ export default function GameDetailPage() {
                       ))}
                     </ul>
                   </div>
+                  )}
                   
                   {/* Home Team Trends */}
+                  {game.homeTrends && game.homeTrends.length > 0 && (
                   <div>
                     <h4 className="text-sm font-semibold text-slate-400 mb-3 flex items-center gap-2">
                       <span>{game.home.emoji}</span> {game.home.abbr} TRENDS
@@ -1893,14 +1929,15 @@ export default function GameDetailPage() {
                       ))}
                     </ul>
                   </div>
+                  )}
                 </div>
               )}
             </div>
+            )}
 
-            {/* =========================================== */}
-            {/* AI ANALYSIS */}
-            {/* =========================================== */}
-            <div className="rounded-2xl p-6 bg-gradient-to-br from-orange-500/10 to-slate-900 border border-orange-500/20">
+            {/* AI ANALYSIS - Only shown when real AI analysis exists */}
+            {game.aiAnalysis && !game.aiAnalysis.includes('requires') && !game.aiAnalysis.includes('coming soon') && game.aiAnalysis !== '' && (
+            <div className="rounded-xl p-5 bg-gradient-to-br from-orange-500/10 to-slate-900 border border-orange-500/20">
               <h3 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
                 <Brain className="w-5 h-5 text-orange-500" />
                 AI Analysis
@@ -1930,6 +1967,7 @@ export default function GameDetailPage() {
                 </div>
               )}
             </div>
+            )}
 
           </div>
 
@@ -1940,7 +1978,7 @@ export default function GameDetailPage() {
             
             {/* Quick Signals - Only show if we have signals */}
             {game.signals && game.signals.length > 0 && (
-            <div className="rounded-2xl p-5 bg-slate-900/50 border border-slate-800">
+            <div className="rounded-xl p-4 bg-slate-900/50 border border-slate-800">
               <h3 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
                 <Zap className="w-5 h-5 text-yellow-500" />
                 Quick Signals
@@ -1968,7 +2006,7 @@ export default function GameDetailPage() {
             )}
 
             {/* Injury Report - Real ESPN Data - Sorted by impact */}
-            <div className="rounded-2xl p-5 bg-slate-900/50 border border-slate-800">
+            <div className="rounded-xl p-4 bg-slate-900/50 border border-slate-800">
               <h3 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
                 <AlertTriangle className="w-5 h-5 text-red-500" />
                 Key Injuries (ESPN)
@@ -2019,7 +2057,7 @@ export default function GameDetailPage() {
             </div>
 
             {/* ESPN Odds & Line Movement */}
-            <div className="rounded-2xl p-5 bg-slate-900/50 border border-slate-800">
+            <div className="rounded-xl p-4 bg-slate-900/50 border border-slate-800">
               <h3 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
                 <LineChart className="w-5 h-5 text-blue-500" />
                 ESPN Odds & Lines
@@ -2127,56 +2165,8 @@ export default function GameDetailPage() {
               )}
             </div>
 
-            {/* Opening vs Current Lines - Original */}
-            <div className="rounded-2xl p-5 bg-slate-900/50 border border-slate-800">
-              <h3 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
-                <LineChart className="w-5 h-5 text-blue-500" />
-                Original Line Movement
-              </h3>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-xs text-slate-500 mb-1">
-                    <span>Spread</span>
-                    <span>{game.metrics.lineMovement}</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="flex-1 p-2 rounded bg-slate-800/50 text-center">
-                      <p className="text-xs text-slate-500">Open</p>
-                      <p className="font-bold text-white">{game.openingSpread?.line || 'N/A'}</p>
-                    </div>
-                    <div className="flex items-center">
-                      <ChevronRight className="w-4 h-4 text-slate-600" />
-                    </div>
-                    <div className="flex-1 p-2 rounded bg-slate-800/50 text-center">
-                      <p className="text-xs text-slate-500">Current</p>
-                      <p className="font-bold text-orange-400">{game.spread.line}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <div className="flex justify-between text-xs text-slate-500 mb-1">
-                    <span>Total</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="flex-1 p-2 rounded bg-slate-800/50 text-center">
-                      <p className="text-xs text-slate-500">Open</p>
-                      <p className="font-bold text-white">{game.openingTotal || 'N/A'}</p>
-                    </div>
-                    <div className="flex items-center">
-                      <ChevronRight className="w-4 h-4 text-slate-600" />
-                    </div>
-                    <div className="flex-1 p-2 rounded bg-slate-800/50 text-center">
-                      <p className="text-xs text-slate-500">Current</p>
-                      <p className="font-bold text-green-400">{game.total}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             {/* Game Info */}
-            <div className="rounded-2xl p-5 bg-slate-900/50 border border-slate-800">
+            <div className="rounded-xl p-4 bg-slate-900/50 border border-slate-800">
               <h3 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
                 <Info className="w-5 h-5 text-slate-400" />
                 Game Info

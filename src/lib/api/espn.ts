@@ -222,6 +222,13 @@ export async function getNews(sport: SportKey, limit = 10): Promise<Array<{ head
   })) || []
 }
 
+// Helper to safely parse integers (scores) to avoid NaN
+function safeParseInt(value: any): number | null {
+  if (value === null || value === undefined || value === '') return null
+  const parsed = parseInt(value)
+  return isNaN(parsed) ? null : parsed
+}
+
 // Helper to transform ESPN game to our format
 export function transformESPNGame(game: ESPNGame, sport: SportKey) {
   const competition = game.competitions[0]
@@ -251,7 +258,7 @@ export function transformESPNGame(game: ESPNGame, sport: SportKey) {
       abbreviation: homeTeam?.team.abbreviation,
       logo: homeTeam?.team.logo,
       color: homeTeam?.team.color,
-      score: homeTeam?.score ? parseInt(homeTeam.score) : null,
+      score: homeTeam?.score ? safeParseInt(homeTeam.score) : 0, // Default to 0 if null to avoid NaN
       record: homeTeam?.records?.find(r => r.type === 'total')?.summary,
     },
     away: {
@@ -260,7 +267,7 @@ export function transformESPNGame(game: ESPNGame, sport: SportKey) {
       abbreviation: awayTeam?.team.abbreviation,
       logo: awayTeam?.team.logo,
       color: awayTeam?.team.color,
-      score: awayTeam?.score ? parseInt(awayTeam.score) : null,
+      score: awayTeam?.score ? safeParseInt(awayTeam.score) : 0, // Default to 0 if null
       record: awayTeam?.records?.find(r => r.type === 'total')?.summary,
     },
     odds: odds ? {
