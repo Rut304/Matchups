@@ -11,36 +11,31 @@ interface TodayEdgesResponse {
 }
 
 async function getTodayEdges(): Promise<TodayEdgesResponse> {
-  // During CI/build time (Vercel sets CI=1), return demo data to prevent API failures
-  // At runtime (when CI is not set), fetch real data
-  if (process.env.CI === '1') {
-    return { edges: getDemoEdges(), total: 12, isDemo: true }
-  }
-  
+  // NO DEMO DATA - Always fetch real edges only
   try {
     // In production, this would be the full URL
     const baseUrl = process.env.VERCEL_URL 
       ? `https://${process.env.VERCEL_URL}` 
       : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
     
-    const res = await fetch(`${baseUrl}/api/edges/today?limit=12&minScore=60`, {
-      next: { revalidate: 300 }, // Revalidate every 5 minutes
-      signal: AbortSignal.timeout(10000) // 10 second timeout
+    const res = await fetch(`${baseUrl}/api/edges/today?limit=12&minScore=50`, {
+      next: { revalidate: 60 }, // Revalidate every minute for fresh edges
+      signal: AbortSignal.timeout(15000) // 15 second timeout
     })
     
     if (!res.ok) {
       console.error('Failed to fetch today edges:', res.status)
-      return { edges: getDemoEdges(), total: 0, isDemo: true }
+      return { edges: [], total: 0, isDemo: false }
     }
     
     return res.json()
   } catch (error) {
     console.error('Error fetching today edges:', error)
-    // Return demo data on error
+    // Return empty - NO fake data
     return {
-      edges: getDemoEdges(),
-      total: 12,
-      isDemo: true
+      edges: [],
+      total: 0,
+      isDemo: false
     }
   }
 }
