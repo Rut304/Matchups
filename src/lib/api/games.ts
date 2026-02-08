@@ -391,7 +391,7 @@ function transformAPIGameToDetail(apiGame: Record<string, unknown>, sport: strin
       home: odds?.homeML as number || 0,
       away: odds?.awayML as number || 0,
     },
-    aiPick: spreadLine ? `${favorite} ${Math.abs(spreadLine) > 0 ? `-${Math.abs(spreadLine).toFixed(1)}` : 'ML'}` : 'Analysis pending',
+    aiPick: '', // Empty — real pick comes from betting-intelligence AI analysis
     aiConfidence: 0, // 0 = not analyzed yet
     aiAnalysis: '', // Empty until Gemini AI generates real analysis
     aiPicks: [], // Empty until Gemini integration

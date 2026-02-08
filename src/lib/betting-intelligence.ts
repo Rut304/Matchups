@@ -1897,24 +1897,101 @@ function generateFallbackAnalysis(data: {
   
   const summary = summaryParts.join(' ')
   
-  // Calculate win probability based on spread (from home team perspective)
-  const spread = data.clv.currentSpread || 0
-  const homeWinProb = spread === 0 ? 0.5 : (spread < 0 ? 0.5 + Math.abs(spread) * 0.025 : 0.5 - spread * 0.025)
-  
-  // Projected score based on total and spread
+  // =========================================================================
+  // PROJECTED SCORE — Independent of spread. Based on total + scoring context.
+  // We use the total as combined score, then split using a home-field edge
+  // factor derived from available data (CLV shift, sharp signals, injuries).
+  // This ensures the pick is DERIVED from the projection, not vice versa.
+  // =========================================================================
   const total = data.clv.currentTotal || 45
-  const projectedHome = Math.round((total / 2) - (spread / 2))
-  const projectedAway = Math.round((total / 2) + (spread / 2))
+  const spread = data.clv.currentSpread || 0
   
-  // Determine spread pick - spread is from home perspective
-  // If spread < 0: home is favored, show "Home -X"
-  // If spread > 0: away is favored, show "Away -X" (not +X!)
-  const spreadPick = spread === 0 
-    ? `${away} ML` 
-    : spread < 0 
-      ? `${home} ${spread}` 
-      : `${away} -${Math.abs(spread)}`
-  const spreadConfidence = data.splits.spread.reverseLineMovement ? 0.65 : 0.55
+  // Build a power differential from real signals (not just the spread)
+  let homeEdge = 0 // points of advantage for home team
+  
+  // Home-field advantage baseline: ~2.5 pts in NFL, ~3 in NBA, ~0.3 in NHL
+  const sportUpper = data.sport.toUpperCase()
+  const hfaBase = sportUpper === 'NFL' ? 2.5 : sportUpper === 'NBA' ? 3.0 : sportUpper === 'NHL' ? 0.3 : 1.5
+  homeEdge += hfaBase
+  
+  // Adjust for sharp money signals
+  if (data.splits.spread.reverseLineMovement) {
+    // RLM detected — sharp side gets +1.5 pt adjustment
+    homeEdge += data.splits.spread.sharpSide === 'home' ? 1.5 : -1.5
+  }
+  if (data.consensus.sharpestPick && data.consensus.sharpestPick.betType === 'spread') {
+    const pickStr = data.consensus.sharpestPick.pick || ''
+    if (pickStr.includes(homeAbbr)) homeEdge += 1.0
+    else if (pickStr.includes(awayAbbr)) homeEdge -= 1.0
+  }
+  
+  // Adjust for injury differential
+  const injuryDiff = data.injuries.awayTeam.totalImpactScore - data.injuries.homeTeam.totalImpactScore
+  if (Math.abs(injuryDiff) > 10) {
+    homeEdge += injuryDiff > 0 ? 1.5 : -1.5 // Injured away team helps home
+  }
+  
+  // CLV shift: if line moved toward home, home is stronger than market thought
+  if (data.clv.spreadCLV !== 0) {
+    homeEdge += data.clv.spreadCLV * 0.5 // Half of CLV movement
+  }
+  
+  // Calculate projected score using total and our independent home edge
+  const projectedHome = Math.round((total / 2) + (homeEdge / 2))
+  const projectedAway = Math.round((total / 2) - (homeEdge / 2))
+  const projectedMargin = projectedHome - projectedAway // positive = home wins by X
+  
+  // =========================================================================
+  // AI PICK — Derived FROM the projected score vs the actual spread.
+  // If we project home wins by 4, and spread is home -6.5, pick the underdog.
+  // If we project home wins by 4, and spread is home -2.5, pick the favorite.
+  // =========================================================================
+  
+  // spread < 0 means home is favored (e.g. -4.5)
+  // We need: projectedMargin vs |spread|
+  // If home favored (spread < 0): home covers if projectedMargin > |spread|
+  // If away favored (spread > 0): away covers if projectedMargin < -|spread|
+  
+  let spreadPick: string
+  let spreadConfidence: number
+  let spreadReasoning: string
+  
+  if (spread === 0) {
+    // Pick'em — just pick the projected winner
+    spreadPick = projectedMargin > 0 ? `${home} ML` : `${away} ML`
+    spreadConfidence = 0.52
+    spreadReasoning = 'Pick\'em game — slight edge based on projected score'
+  } else if (spread < 0) {
+    // Home is favored. Does our projection say they cover?
+    const coverMargin = projectedMargin - Math.abs(spread) // positive = covers
+    if (coverMargin > 0) {
+      // We project home covers the spread
+      spreadPick = `${home} ${spread}`
+      spreadConfidence = Math.min(0.75, 0.52 + coverMargin * 0.03)
+      spreadReasoning = `Projecting ${home} wins by ${projectedMargin}, covering the ${Math.abs(spread)}-point spread by ${coverMargin.toFixed(1)}`
+    } else {
+      // We project home does NOT cover — take the underdog
+      spreadPick = `${away} +${Math.abs(spread)}`
+      spreadConfidence = Math.min(0.75, 0.52 + Math.abs(coverMargin) * 0.03)
+      spreadReasoning = `Projecting ${home} wins by only ${Math.max(0, projectedMargin)}, not enough to cover ${Math.abs(spread)}. Value on ${away} getting points.`
+    }
+  } else {
+    // Away is favored (spread > 0 means home is the underdog)
+    const awayProjectedMargin = -projectedMargin // positive = away winning
+    const coverMargin = awayProjectedMargin - spread
+    if (coverMargin > 0) {
+      spreadPick = `${away} -${spread}`
+      spreadConfidence = Math.min(0.75, 0.52 + coverMargin * 0.03)
+      spreadReasoning = `Projecting ${away} wins by ${awayProjectedMargin}, covering the ${spread}-point spread`
+    } else {
+      spreadPick = `${home} +${spread}`
+      spreadConfidence = Math.min(0.75, 0.52 + Math.abs(coverMargin) * 0.03)
+      spreadReasoning = `Projecting ${away} wins by only ${Math.max(0, awayProjectedMargin)}, not enough to cover ${spread}. Value on ${home} at home.`
+    }
+  }
+  
+  // Boost confidence if sharp signals agree with our pick
+  if (data.splits.spread.reverseLineMovement) spreadConfidence = Math.min(0.80, spreadConfidence + 0.08)
   
   // Determine total pick
   const totalPick = data.splits.total.reverseLineMovement 
@@ -1947,14 +2024,15 @@ function generateFallbackAnalysis(data: {
   
   return {
     summary,
-    winProbability: { home: parseFloat(homeWinProb.toFixed(2)), away: parseFloat((1 - homeWinProb).toFixed(2)) },
+    winProbability: { 
+      home: parseFloat(Math.min(0.95, Math.max(0.05, 0.5 + projectedMargin * 0.025)).toFixed(2)), 
+      away: parseFloat(Math.min(0.95, Math.max(0.05, 0.5 - projectedMargin * 0.025)).toFixed(2)) 
+    },
     projectedScore: { home: projectedHome, away: projectedAway },
     spreadAnalysis: {
       pick: spreadPick,
       confidence: spreadConfidence,
-      reasoning: data.splits.spread.reverseLineMovement 
-        ? 'Sharp money has identified value on this side'
-        : 'Standard play based on line value',
+      reasoning: spreadReasoning,
       keyFactors: [`Public is ${data.splits.spread.publicHomePct}% on ${homeAbbr}`, `Money is ${data.splits.spread.moneyHomePct}% on ${homeAbbr}`],
       risks: ['Line could continue moving', 'Late injury news could shift value']
     },
@@ -1968,7 +2046,7 @@ function generateFallbackAnalysis(data: {
       paceProjection: total >= 48 ? 'High-scoring environment expected' : 'Lower-scoring defensive battle likely'
     },
     mlAnalysis: {
-      pick: homeWinProb > 0.5 ? home : away,
+      pick: projectedMargin > 0 ? home : away,
       confidence: 0.55,
       value: 0,
       reasoning: 'Moneyline offers less value than spread in this spot'

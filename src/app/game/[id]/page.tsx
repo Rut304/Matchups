@@ -1080,7 +1080,8 @@ export default function GameDetailPage() {
             </div>
           </div>
 
-          {/* AI Pick with Confidence Bar - The main pick recommendation */}
+          {/* AI Pick with Confidence Bar - Only shown when real analysis exists */}
+          {(intelligence.aiAnalysis?.spreadAnalysis?.pick || (game.aiPick && game.aiPick !== '')) && (
           <div className="p-4 rounded-xl bg-slate-800/50 border border-orange-500/30 mb-4">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
@@ -1088,7 +1089,7 @@ export default function GameDetailPage() {
                 <span className="font-semibold text-white">AI PICK</span>
               </div>
               <span className="text-lg font-bold text-orange-400">
-                {intelligence.aiAnalysis?.spreadAnalysis?.pick || game.aiPick || 'Analyzing...'}
+                {intelligence.aiAnalysis?.spreadAnalysis?.pick || game.aiPick}
               </span>
             </div>
             <div className="h-3 rounded-full overflow-hidden bg-slate-800">
@@ -1105,6 +1106,7 @@ export default function GameDetailPage() {
             </div>
             <p className="text-xs text-slate-500 mt-1">{Math.round((intelligence.aiAnalysis?.spreadAnalysis?.confidence || game.aiConfidence / 100 || 0.5) * 100)}% confidence</p>
           </div>
+          )}
 
           {/* Quick Takes */}
           {intelligence.quickTakes.sharpestPick && (
