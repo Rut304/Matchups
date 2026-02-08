@@ -315,7 +315,7 @@ async function fetchH2HGames(
   const { data, error } = await supabase
     .from('historical_games')
     .select('*')
-    .eq('sport', sport.toUpperCase())
+    .eq('sport', sport.toLowerCase())
     .or(`and(home_team_abbr.eq.${team1},away_team_abbr.eq.${team2}),and(home_team_abbr.eq.${team2},away_team_abbr.eq.${team1})`)
     .order('game_date', { ascending: false })
     .limit(limit)
@@ -328,18 +328,18 @@ async function fetchH2HGames(
   return (data || []).map(game => ({
     id: game.id,
     date: game.game_date,
-    homeTeam: game.home_team_abbr || game.home_team,
-    awayTeam: game.away_team_abbr || game.away_team,
+    homeTeam: game.home_team_abbr || game.home_team_name,
+    awayTeam: game.away_team_abbr || game.away_team_name,
     homeScore: game.home_score,
     awayScore: game.away_score,
     winner: game.home_score > game.away_score 
-      ? (game.home_team_abbr || game.home_team)
+      ? (game.home_team_abbr || game.home_team_name)
       : game.home_score < game.away_score 
-        ? (game.away_team_abbr || game.away_team)
+        ? (game.away_team_abbr || game.away_team_name)
         : 'TIE',
-    spread: game.close_spread,
+    spread: game.point_spread,
     spreadResult: game.spread_result,
-    total: game.close_total,
+    total: game.over_under,
     totalResult: game.total_result,
     venue: game.venue,
     isPlayoff: game.season_type === 'postseason',

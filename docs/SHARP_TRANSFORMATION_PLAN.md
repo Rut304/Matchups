@@ -3,7 +3,7 @@
 **Goal:** Transform Matchups into a high-ROI financial terminal.
 **Timeline:** **1 Week (Aggressive)**
 **Strategy:** Refactor & Purge (Do NOT Rewrite)
-**Last Updated:** 2025-02-09 — Claude CTO audit & honest status reset
+**Last Updated:** 2025-02-10 — AI algorithm fix committed, plan updated
 
 ---
 
@@ -49,6 +49,19 @@
 - [ ] **Task:** Update `TrendEngine` to query the DB, not the current line.
 - [ ] **Result:** "KC is 12-5 ATS" instead of "KC favored by 3".
   - *Status:* **NOT STARTED**. Removed the worst offenders ("favored by X" trends) but real trend calculation requires populated `historical_games` table.
+
+### 2.3 Unified AI Projection Algorithm (Added by Claude)
+
+- [x] **Task:** Fix AI pick/projection contradiction — projected score and pick must be logically consistent.
+- [x] **Problem:** `generateFallbackAnalysis` calculated projected score FROM the spread (tautological), then the pick just restated the spread. Example: SEA projected to win by 4, but pick was SEA -4.5.
+- [x] **Fix:** Rewrote with independent projection algorithm:
+  - Home-field advantage baseline (NFL 2.5, NBA 3.0, NHL 0.3, MLB 1.5)
+  - Sharp money adjustments (RLM ±1.5, consensus ±1.0)
+  - Injury differential (±1.5 if impact > 10)
+  - CLV shift (0.5× line movement)
+  - Pick DERIVED by comparing projected margin vs actual spread
+- [x] **Result:** If AI projects Team A wins by 4 but spread is -4.5, pick correctly takes Team B +4.5.
+  - *Status:* **COMPLETED (Claude, fc1e252)**. `generateFallbackAnalysis` in `betting-intelligence.ts` fully rewritten. `games.ts` `aiPick` no longer restates spread. Game page hides AI pick when no real pick exists.
 
 ---
 

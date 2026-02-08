@@ -653,7 +653,7 @@ export async function GET(
       .eq('id', gameId)
       .single()
 
-    // If not found by ID, try external_id
+    // If not found by ID, try espn_game_id
     let gameData = game
     if (gameError || !game) {
       const { data: gameByExternal } = await supabase
@@ -663,7 +663,7 @@ export async function GET(
           home_team_ref:teams!historical_games_home_team_id_fkey(id, team_name, abbrev),
           away_team_ref:teams!historical_games_away_team_id_fkey(id, team_name, abbrev)
         `)
-        .eq('external_id', gameId)
+        .eq('espn_game_id', gameId)
         .single()
       
       gameData = gameByExternal
@@ -771,8 +771,8 @@ export async function GET(
               avgTotal: liveH2H.avgTotal,
               recentGames: liveH2H.games.slice(0, 5).map(g => ({
                 date: g.game_date,
-                homeTeam: g.home_team_abbrev,
-                awayTeam: g.away_team_abbrev,
+                homeTeam: g.home_team_abbr,
+                awayTeam: g.away_team_abbr,
                 homeScore: g.home_score,
                 awayScore: g.away_score,
                 spreadResult: g.spread_result,
@@ -818,32 +818,30 @@ export async function GET(
     // 2. Build game context for trend matching
     const gameContext: GameContext = {
       sport: gameData.sport,
-      homeTeam: gameData.home_team,
-      awayTeam: gameData.away_team,
-      homeTeamAbbrev: gameData.home_team_abbrev,
-      awayTeamAbbrev: gameData.away_team_abbrev,
+      homeTeam: gameData.home_team_name,
+      awayTeam: gameData.away_team_name,
+      homeTeamAbbrev: gameData.home_team_abbr,
+      awayTeamAbbrev: gameData.away_team_abbr,
       gameDate: new Date(gameData.game_date),
-      spread: gameData.close_spread || gameData.open_spread,
-      total: gameData.close_total || gameData.open_total,
+      spread: gameData.point_spread,
+      total: gameData.over_under,
       isPlayoffs: gameData.season_type === 'postseason',
       isDivisional: gameData.divisional_game,
       isPrimetime: gameData.primetime_game,
-      publicSpreadHomePct: gameData.public_spread_home_pct,
-      publicMoneyHomePct: gameData.public_money_home_pct,
-      lineMovement: gameData.close_spread && gameData.open_spread 
-        ? gameData.open_spread - gameData.close_spread 
-        : undefined
+      publicSpreadHomePct: undefined,
+      publicMoneyHomePct: undefined,
+      lineMovement: undefined
     }
 
     // 3. Find matching trends
     const trendResult = await findMatchingTrends(gameContext)
 
     // 4. Get H2H history
-    const h2hHistory = gameData.home_team_abbrev && gameData.away_team_abbrev
+    const h2hHistory = gameData.home_team_abbr && gameData.away_team_abbr
       ? await getTeamVsTeamHistory(
           gameData.sport, 
-          gameData.home_team_abbrev, 
-          gameData.away_team_abbrev, 
+          gameData.home_team_abbr, 
+          gameData.away_team_abbr, 
           10
         )
       : null
@@ -878,13 +876,13 @@ export async function GET(
       gameId: gameData.id,
       sport: gameData.sport,
       homeTeam: {
-        name: gameData.home_team,
-        abbrev: gameData.home_team_abbrev || '',
+        name: gameData.home_team_name,
+        abbrev: gameData.home_team_abbr || '',
         teamId: gameData.home_team_id
       },
       awayTeam: {
-        name: gameData.away_team,
-        abbrev: gameData.away_team_abbrev || '',
+        name: gameData.away_team_name,
+        abbrev: gameData.away_team_abbr || '',
         teamId: gameData.away_team_id
       },
       gameDate: gameData.game_date,
@@ -934,8 +932,8 @@ export async function GET(
         const intelligence = await getMatchupIntelligence(
           gameId,
           gameData.sport,
-          { name: gameData.home_team, abbr: gameData.home_team_abbrev || '' },
-          { name: gameData.away_team, abbr: gameData.away_team_abbrev || '' },
+          { name: gameData.home_team_name, abbr: gameData.home_team_abbr || '' },
+          { name: gameData.away_team_name, abbr: gameData.away_team_abbr || '' },
           { includeAI, includeLive: false }
         )
         response.bettingIntelligence = intelligence
@@ -948,14 +946,14 @@ export async function GET(
     // 10. Add O/U analysis if requested
     if (includeOU) {
       try {
-        const currentTotal = gameData.close_total || gameData.open_total || 46
-        const openTotal = gameData.open_total || currentTotal
+        const currentTotal = gameData.over_under || 46
+        const openTotal = currentTotal
         
         const ouAnalysis = await getGameOUAnalysis(
           gameId,
           gameData.sport,
-          { name: gameData.home_team, abbr: gameData.home_team_abbrev || '' },
-          { name: gameData.away_team, abbr: gameData.away_team_abbrev || '' },
+          { name: gameData.home_team_name, abbr: gameData.home_team_abbr || '' },
+          { name: gameData.away_team_name, abbr: gameData.away_team_abbr || '' },
           currentTotal,
           openTotal
         )

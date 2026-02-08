@@ -291,7 +291,7 @@ async function fetchHistoricalDataForAnalysis(
   // Fetch summary statistics from historical_games
   const { data: gameSummary, error } = await supabase
     .from('historical_games')
-    .select('sport, result, favorite_covered, home_won, total_points, spread_line', { count: 'exact' })
+    .select('sport, spread_result, total_result, total_points, point_spread', { count: 'exact' })
     .gte('game_date', startDate.toISOString())
     .in('sport', sports.map(s => s.toLowerCase()))
   
@@ -316,13 +316,13 @@ async function fetchHistoricalDataForAnalysis(
   
   sports.forEach(sport => {
     const sportGames = gameSummary.filter((g: any) => g.sport === sport.toLowerCase())
-    const homeWins = sportGames.filter((g: any) => g.home_won).length
-    const favCovers = sportGames.filter((g: any) => g.favorite_covered).length
+    const homeCovers = sportGames.filter((g: any) => g.spread_result === 'home_cover').length
+    const totalOvers = sportGames.filter((g: any) => g.total_result === 'over').length
     
     summary.bySport[sport] = {
       games: sportGames.length,
-      homeWinRate: sportGames.length > 0 ? (homeWins / sportGames.length * 100).toFixed(1) : 0,
-      favoriteCoverRate: sportGames.length > 0 ? (favCovers / sportGames.length * 100).toFixed(1) : 0
+      homeCoverRate: sportGames.length > 0 ? (homeCovers / sportGames.length * 100).toFixed(1) : 0,
+      overRate: sportGames.length > 0 ? (totalOvers / sportGames.length * 100).toFixed(1) : 0
     }
   })
   

@@ -10,27 +10,23 @@ import { createClient } from '@/lib/supabase/client'
 
 export interface HistoricalGame {
   id: string
+  espn_game_id?: string
   sport: string
-  season_year: number
+  season: number
   season_type: string
-  week_number?: number
-  home_team: string
-  away_team: string
-  home_team_abbrev: string
-  away_team_abbrev: string
+  week?: number
+  home_team_name: string
+  away_team_name: string
+  home_team_abbr: string
+  away_team_abbr: string
   game_date: string
   home_score: number
   away_score: number
-  open_spread: number
-  open_total: number
-  close_spread: number
-  close_total: number
+  point_spread: number | null
+  over_under: number | null
+  total_points: number
   spread_result: 'home_cover' | 'away_cover' | 'push'
   total_result: 'over' | 'under' | 'push'
-  public_spread_home_pct: number
-  public_total_over_pct: number
-  primetime_game: boolean
-  divisional_game: boolean
 }
 
 export interface HistoricalTrend {

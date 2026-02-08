@@ -59,17 +59,17 @@ export async function calculateTeamATS(
     // Fetch games where this team played (home or away)
     const { data: homeGames, error: homeError } = await supabase
       .from('historical_games')
-      .select('spread_result, total_result, close_spread, home_score, away_score')
-      .eq('sport', sport.toUpperCase())
-      .eq('season_year', year)
+      .select('spread_result, total_result, point_spread, home_score, away_score')
+      .eq('sport', sport.toLowerCase())
+      .eq('season', year)
       .ilike('home_team_abbr', teamAbbr)
       .not('spread_result', 'is', null)
     
     const { data: awayGames, error: awayError } = await supabase
       .from('historical_games')
-      .select('spread_result, total_result, close_spread, home_score, away_score')
-      .eq('sport', sport.toUpperCase())
-      .eq('season_year', year)
+      .select('spread_result, total_result, point_spread, home_score, away_score')
+      .eq('sport', sport.toLowerCase())
+      .eq('season', year)
       .ilike('away_team_abbr', teamAbbr)
       .not('spread_result', 'is', null)
     

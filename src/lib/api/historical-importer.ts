@@ -21,34 +21,27 @@ const theOddsApiKey = process.env.ODDS_API_KEY || process.env.THE_ODDS_API_KEY |
 // ===========================================
 
 interface HistoricalGame {
-  id: string
-  sport: string
+  espn_game_id: string
+  sport: string // lowercase
   season: number
   season_type: string
   game_date: string
-  home_team: string
-  away_team: string
   home_team_id: string
+  home_team_name: string
+  home_team_abbr: string
   away_team_id: string
+  away_team_name: string
+  away_team_abbr: string
   home_score: number | null
   away_score: number | null
-  status: string
   venue?: string
-  attendance?: number
+  total_points?: number | null
   // Betting data (null for pre-2020)
-  opening_spread?: number | null
-  closing_spread?: number | null
-  opening_total?: number | null
-  closing_total?: number | null
-  opening_home_ml?: number | null
-  closing_home_ml?: number | null
-  opening_away_ml?: number | null
-  closing_away_ml?: number | null
+  point_spread?: number | null
+  over_under?: number | null
   // Results
-  spread_result?: 'home' | 'away' | 'push' | null
+  spread_result?: 'home_cover' | 'away_cover' | 'push' | null
   total_result?: 'over' | 'under' | 'push' | null
-  home_covered?: boolean | null
-  away_covered?: boolean | null
 }
 
 interface ESPNScoreboard {
@@ -197,29 +190,26 @@ function transformESPNGame(
   }
 
   return {
-    id: event.id,
-    sport,
+    espn_game_id: event.id,
+    sport: sport.toLowerCase(),
     season: event.season?.year || new Date(event.date).getFullYear(),
     season_type: seasonTypeMap[event.season?.type || 2] || 'regular',
     game_date: event.date,
-    home_team: homeTeam.team.displayName,
-    away_team: awayTeam.team.displayName,
     home_team_id: homeTeam.team.id,
+    home_team_name: homeTeam.team.displayName,
+    home_team_abbr: homeTeam.team.abbreviation,
     away_team_id: awayTeam.team.id,
+    away_team_name: awayTeam.team.displayName,
+    away_team_abbr: awayTeam.team.abbreviation,
     home_score: homeScore,
     away_score: awayScore,
-    status: competition.status.type.completed ? 'final' : competition.status.type.name,
     venue: competition.venue?.fullName,
-    attendance: competition.attendance,
-    // No betting data from ESPN
-    opening_spread: null,
-    closing_spread: null,
-    opening_total: null,
-    closing_total: null,
+    total_points: homeScore !== null && awayScore !== null ? homeScore + awayScore : null,
+    // No betting data from ESPN basic scoreboard
+    point_spread: null,
+    over_under: null,
     spread_result: null,
     total_result: null,
-    home_covered: null,
-    away_covered: null,
   }
 }
 
@@ -322,32 +312,22 @@ function calculateBettingResults(
   spread: number | null | undefined,
   total: number | null | undefined
 ): {
-  spreadResult: 'home' | 'away' | 'push' | null
+  spreadResult: 'home_cover' | 'away_cover' | 'push' | null
   totalResult: 'over' | 'under' | 'push' | null
-  homeCovered: boolean | null
-  awayCovered: boolean | null
 } {
-  const result: ReturnType<typeof calculateBettingResults> = {
+  const result: { spreadResult: 'home_cover' | 'away_cover' | 'push' | null; totalResult: 'over' | 'under' | 'push' | null } = {
     spreadResult: null,
     totalResult: null,
-    homeCovered: null,
-    awayCovered: null,
   }
 
   if (spread !== null && spread !== undefined) {
     const adjustedHomeScore = homeScore + spread
     if (adjustedHomeScore > awayScore) {
-      result.spreadResult = 'home'
-      result.homeCovered = true
-      result.awayCovered = false
+      result.spreadResult = 'home_cover'
     } else if (adjustedHomeScore < awayScore) {
-      result.spreadResult = 'away'
-      result.homeCovered = false
-      result.awayCovered = true
+      result.spreadResult = 'away_cover'
     } else {
       result.spreadResult = 'push'
-      result.homeCovered = null
-      result.awayCovered = null
     }
   }
 
@@ -435,29 +415,25 @@ export async function importSeason(
       // Match odds to games
       for (const game of dateGames) {
         const matchingOdds = oddsData.find(
-          o => o.home_team.includes(game.home_team.split(' ').pop() || '') ||
-               game.home_team.includes(o.home_team.split(' ').pop() || '')
+          o => o.home_team.includes(game.home_team_name.split(' ').pop() || '') ||
+               game.home_team_name.includes(o.home_team.split(' ').pop() || '')
         )
         
         if (matchingOdds) {
           const odds = extractOdds(matchingOdds.bookmakers, matchingOdds.home_team)
-          game.closing_spread = odds.spread ?? null
-          game.closing_total = odds.total ?? null
-          game.closing_home_ml = odds.homeMl ?? null
-          game.closing_away_ml = odds.awayMl ?? null
+          game.point_spread = odds.spread ?? null
+          game.over_under = odds.total ?? null
           
           // Calculate results if game is final
           if (game.home_score !== null && game.away_score !== null) {
             const results = calculateBettingResults(
               game.home_score,
               game.away_score,
-              game.closing_spread,
-              game.closing_total
+              game.point_spread,
+              game.over_under
             )
             game.spread_result = results.spreadResult
             game.total_result = results.totalResult
-            game.home_covered = results.homeCovered
-            game.away_covered = results.awayCovered
           }
         }
       }
@@ -475,7 +451,7 @@ export async function importSeason(
       
       const { error } = await supabase
         .from('historical_games')
-        .upsert(batch, { onConflict: 'id' })
+        .upsert(batch, { onConflict: 'espn_game_id' })
       
       if (error) {
         console.error(`Batch insert error:`, error)
@@ -569,7 +545,7 @@ export async function importRecentGames(
       if (scoreboard?.events?.length) {
         for (const event of scoreboard.events) {
           const game = transformESPNGame(event, sport)
-          if (game && game.status === 'final') {
+          if (game && game.home_score !== null) {
             // Would insert here
             totalImported++
           }

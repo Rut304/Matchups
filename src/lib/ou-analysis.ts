@@ -285,7 +285,7 @@ export async function getLeagueOUSnapshot(sport: string): Promise<LeagueOUSnapsh
   const games = seasonGames || []
   
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const totals = games.map((g: any) => g.close_total || g.open_total || 0).filter((t: number) => t > 0)
+  const totals = games.map((g: any) => g.over_under || 0).filter((t: number) => t > 0)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const actuals = games.map((g: any) => (g.home_score || 0) + (g.away_score || 0)).filter((a: number) => a > 0)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

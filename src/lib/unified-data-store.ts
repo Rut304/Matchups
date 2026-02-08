@@ -611,7 +611,7 @@ export async function getHistoricalGames(params: {
     if (params.sport) query = query.eq('sport', params.sport)
     if (params.season) query = query.eq('season', params.season)
     if (params.team) {
-      query = query.or(`home_team.ilike.%${params.team}%,away_team.ilike.%${params.team}%`)
+      query = query.or(`home_team_name.ilike.%${params.team}%,away_team_name.ilike.%${params.team}%`)
     }
     if (params.startDate) query = query.gte('game_date', params.startDate)
     if (params.endDate) query = query.lte('game_date', params.endDate)
@@ -628,17 +628,17 @@ export async function getHistoricalGames(params: {
       season: row.season,
       seasonType: row.season_type,
       gameDate: row.game_date,
-      homeTeam: row.home_team,
-      awayTeam: row.away_team,
+      homeTeam: row.home_team_name,
+      awayTeam: row.away_team_name,
       homeTeamId: row.home_team_id,
       awayTeamId: row.away_team_id,
       homeScore: row.home_score,
       awayScore: row.away_score,
-      spread: row.closing_spread,
-      total: row.closing_total,
+      spread: row.point_spread,
+      total: row.over_under,
       spreadResult: row.spread_result,
       totalResult: row.total_result,
-      homeCovered: row.home_covered,
+      homeCovered: row.spread_result === 'home_cover',
       venue: row.venue,
     }))
 

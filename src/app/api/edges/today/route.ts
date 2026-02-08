@@ -146,8 +146,7 @@ export async function GET(request: Request) {
         .select(`
           id, game_id, sport, pick_type, selection, odds, confidence, result, created_at,
           historical_games!inner (
-            id, home_team, away_team, game_date, close_spread,
-            public_spread_home_pct, public_money_home_pct, open_spread
+            id, home_team_name, away_team_name, game_date, point_spread
           )
         `)
         .gte('created_at', startOfDay)
@@ -170,23 +169,18 @@ export async function GET(request: Request) {
           
           const game = pick.historical_games as unknown as {
             id: string
-            home_team: string
-            away_team: string
+            home_team_name: string
+            away_team_name: string
             game_date: string
-            close_spread: number
-            public_spread_home_pct: number
-            public_money_home_pct: number
-            open_spread: number
+            point_spread: number
           }
           
           if (!game) continue
           
-          const ticketPct = game.public_spread_home_pct || 50
-          const moneyPct = game.public_money_home_pct || 50
-          const lineMove = game.open_spread && game.close_spread 
-            ? game.close_spread - game.open_spread 
-            : 0
-          const isRLM = (ticketPct > 60 && moneyPct < 40) || (ticketPct < 40 && moneyPct > 60)
+          const ticketPct = 50
+          const moneyPct = 50
+          const lineMove = 0
+          const isRLM = false
           
           const gameTime = new Date(game.game_date).toLocaleTimeString('en-US', {
             hour: 'numeric',
@@ -198,7 +192,7 @@ export async function GET(request: Request) {
             gameId: game.id,
             sport: pick.sport,
             sportIcon: sportIcons[pick.sport] || '🎯',
-            matchup: `${game.away_team} @ ${game.home_team}`,
+            matchup: `${game.away_team_name} @ ${game.home_team_name}`,
             gameTime,
             pick: pick.selection || pick.pick_type,
             odds: String(pick.odds) || '-110',
@@ -209,7 +203,7 @@ export async function GET(request: Request) {
             publicPct: ticketPct,
             publicSide: ticketPct > 50 ? 'home' : 'away',
             sharpSide: moneyPct > ticketPct ? 'home' : 'away',
-            lineMovement: lineMove !== 0 ? (lineMove > 0 ? `+${lineMove.toFixed(1)}` : lineMove.toFixed(1)) : undefined,
+            lineMovement: undefined,
             isRLM,
             source: 'database',
           })

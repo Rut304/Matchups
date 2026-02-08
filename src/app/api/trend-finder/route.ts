@@ -125,7 +125,7 @@ async function queryHistoricalData(parsedQuery: HistoricalQuery): Promise<{
   }
   
   if (parsedQuery.seasons.length > 0) {
-    dbQuery = dbQuery.in('season_year', parsedQuery.seasons)
+    dbQuery = dbQuery.in('season', parsedQuery.seasons)
   }
   
   const { data: games, error } = await dbQuery.order('game_date', { ascending: false })
@@ -204,9 +204,9 @@ async function queryHistoricalData(parsedQuery: HistoricalQuery): Promise<{
     percentage: `${percentage}%`,
     games: filteredGames.slice(0, 20).map(g => ({
       date: g.game_date,
-      matchup: `${g.away_team_abbrev || g.away_team} @ ${g.home_team_abbrev || g.home_team}`,
+      matchup: `${g.away_team_abbr || g.away_team_name} @ ${g.home_team_abbr || g.home_team_name}`,
       score: `${g.away_score}-${g.home_score}`,
-      season: g.season_year,
+      season: g.season,
     })),
     estimatedTime: `${Math.ceil(totalGames / 100)}s`
   }
@@ -225,7 +225,7 @@ async function ensureDataExists(sport: string, seasons: number[], seasonType: st
     .select('*', { count: 'exact', head: true })
     .ilike('sport', sport)
     .eq('season_type', seasonType)
-    .in('season_year', seasons)
+    .in('season', seasons)
   
   if ((count || 0) < seasons.length * 10) { // Expect at least 10 games per season
     return {

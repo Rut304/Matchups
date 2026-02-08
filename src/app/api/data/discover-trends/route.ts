@@ -18,18 +18,16 @@ type Sport = 'NFL' | 'NBA' | 'NHL' | 'MLB' | 'ALL'
 interface HistoricalGame {
   id: string
   sport: string
-  season_year: number
+  season: number
   game_date: string
-  home_team: string
-  away_team: string
+  home_team_name: string
+  away_team_name: string
   home_score: number
   away_score: number
-  close_spread: number | null
-  close_total: number | null
+  point_spread: number | null
+  over_under: number | null
   spread_result: 'home_cover' | 'away_cover' | 'push' | null
   total_result: 'over' | 'under' | 'push' | null
-  public_spread_home_pct: number | null
-  public_total_over_pct: number | null
   primetime_game: boolean
   divisional_game: boolean
 }
@@ -58,16 +56,16 @@ async function analyzeGames(
   // Group games by team
   const teamGames = new Map<string, HistoricalGame[]>()
   for (const game of games) {
-    if (!teamGames.has(game.home_team)) teamGames.set(game.home_team, [])
-    if (!teamGames.has(game.away_team)) teamGames.set(game.away_team, [])
-    teamGames.get(game.home_team)!.push(game)
-    teamGames.get(game.away_team)!.push(game)
+    if (!teamGames.has(game.home_team_name)) teamGames.set(game.home_team_name, [])
+    if (!teamGames.has(game.away_team_name)) teamGames.set(game.away_team_name, [])
+    teamGames.get(game.home_team_name)!.push(game)
+    teamGames.get(game.away_team_name)!.push(game)
   }
 
   // Analyze each team's ATS performance
   for (const [team, teamGamesList] of teamGames) {
     // Home ATS
-    const homeGames = teamGamesList.filter(g => g.home_team === team && g.spread_result)
+    const homeGames = teamGamesList.filter(g => g.home_team_name === team && g.spread_result)
     if (homeGames.length >= 20) {
       const homeWins = homeGames.filter(g => g.spread_result === 'home_cover').length
       const homeLosses = homeGames.filter(g => g.spread_result === 'away_cover').length
@@ -95,7 +93,7 @@ async function analyzeGames(
     }
 
     // Away ATS
-    const awayGames = teamGamesList.filter(g => g.away_team === team && g.spread_result)
+    const awayGames = teamGamesList.filter(g => g.away_team_name === team && g.spread_result)
     if (awayGames.length >= 20) {
       const awayWins = awayGames.filter(g => g.spread_result === 'away_cover').length
       const awayLosses = awayGames.filter(g => g.spread_result === 'home_cover').length
@@ -214,7 +212,7 @@ async function analyzeGames(
 
   // Public fade trends
   const heavyPublicHome = games.filter(g => 
-    g.public_spread_home_pct && g.public_spread_home_pct >= 70 && g.spread_result
+    false // public_spread_home_pct does not exist in historical_games
   )
   if (heavyPublicHome.length >= 30) {
     const fadeWins = heavyPublicHome.filter(g => g.spread_result === 'away_cover').length

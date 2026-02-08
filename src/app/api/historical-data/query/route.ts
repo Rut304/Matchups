@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
   
   if (sport) dbQuery = dbQuery.ilike('sport', sport)
   if (seasonType) dbQuery = dbQuery.eq('season_type', seasonType)
-  if (season) dbQuery = dbQuery.eq('season_year', parseInt(season))
+  if (season) dbQuery = dbQuery.eq('season', parseInt(season))
   
   const { data: games, error } = await dbQuery.order('game_date', { ascending: false })
   
@@ -97,8 +97,8 @@ export async function GET(request: NextRequest) {
       id: g.id,
       espnGameId: g.espn_game_id,
       date: g.game_date,
-      season: g.season_year,
-      matchup: `${g.away_team_abbrev || g.away_team} @ ${g.home_team_abbrev || g.home_team}`,
+      season: g.season,
+      matchup: `${g.away_team_abbr || g.away_team_name} @ ${g.home_team_abbr || g.home_team_name}`,
       score: `${g.away_score}-${g.home_score}`,
       homeTDs: {
         firstHalf: { rushing: g.home_rushing_td_first_half || 0, passing: g.home_passing_td_first_half || 0 },
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
     
     if (sport) dbQuery = dbQuery.ilike('sport', sport)
     if (seasonType) dbQuery = dbQuery.eq('season_type', seasonType)
-    if (seasons && seasons.length > 0) dbQuery = dbQuery.in('season_year', seasons)
+    if (seasons && seasons.length > 0) dbQuery = dbQuery.in('season', seasons)
     if (minTotalPoints) dbQuery = dbQuery.gte('total_points', minTotalPoints)
     if (maxTotalPoints) dbQuery = dbQuery.lte('total_points', maxTotalPoints)
     
@@ -179,8 +179,8 @@ export async function POST(request: NextRequest) {
       games: filteredGames.slice(0, 50).map(g => ({
         id: g.id,
         date: g.game_date,
-        season: g.season_year,
-        matchup: `${g.away_team_abbrev || g.away_team} @ ${g.home_team_abbrev || g.home_team}`,
+        season: g.season,
+        matchup: `${g.away_team_abbr || g.away_team_name} @ ${g.home_team_abbr || g.home_team_name}`,
         score: `${g.away_score}-${g.home_score}`,
         totalPoints: g.total_points || (g.home_score + g.away_score),
       })),

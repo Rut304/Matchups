@@ -401,7 +401,7 @@ export async function getTeamVsTeamHistory(
     .from('historical_games')
     .select('*')
     .eq('sport', sport)
-    .or(`and(home_team_abbrev.eq.${homeTeamAbbrev},away_team_abbrev.eq.${awayTeamAbbrev}),and(home_team_abbrev.eq.${awayTeamAbbrev},away_team_abbrev.eq.${homeTeamAbbrev})`)
+    .or(`and(home_team_abbr.eq.${homeTeamAbbrev},away_team_abbr.eq.${awayTeamAbbrev}),and(home_team_abbr.eq.${awayTeamAbbrev},away_team_abbr.eq.${homeTeamAbbrev})`)
     .order('game_date', { ascending: false })
     .limit(limit)
 
@@ -423,7 +423,7 @@ export async function getTeamVsTeamHistory(
   let totalMargin = 0, totalPoints = 0
 
   for (const game of games) {
-    const isHome = game.home_team_abbrev === homeTeamAbbrev
+    const isHome = game.home_team_abbr === homeTeamAbbrev
     
     if (game.spread_result === 'home_cover') {
       if (isHome) homeWins++

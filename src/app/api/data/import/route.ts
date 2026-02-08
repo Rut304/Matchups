@@ -26,24 +26,25 @@ interface ImportResult {
 }
 
 interface GameRecord {
-  id: string
-  sport: Sport
+  espn_game_id: string
+  sport: string // lowercase: nfl, nba, nhl, mlb
   season: number
   season_type: string
   game_date: string
-  home_team: string
-  away_team: string
   home_team_id: string
+  home_team_name: string
+  home_team_abbr: string
   away_team_id: string
+  away_team_name: string
+  away_team_abbr: string
   home_score: number
   away_score: number
-  status: string
   venue: string | null
-  closing_spread: number | null
-  closing_total: number | null
+  total_points: number
+  point_spread: number | null
+  over_under: number | null
   spread_result: 'home_cover' | 'away_cover' | 'push' | null
   total_result: 'over' | 'under' | 'push' | null
-  home_covered: boolean | null
 }
 
 // Get season date ranges
@@ -101,24 +102,25 @@ function parseESPNGame(game: espn.ESPNGame, sport: Sport, season: number): GameR
   const total = odds?.overUnder ?? null
 
   return {
-    id: game.id,
-    sport,
+    espn_game_id: game.id,
+    sport: sport.toLowerCase(),
     season,
     season_type: game.status.type.name?.toLowerCase().includes('post') ? 'postseason' : 'regular',
     game_date: game.date,
-    home_team: homeComp.team.displayName,
-    away_team: awayComp.team.displayName,
     home_team_id: homeComp.team.id,
+    home_team_name: homeComp.team.displayName,
+    home_team_abbr: homeComp.team.abbreviation || '',
     away_team_id: awayComp.team.id,
+    away_team_name: awayComp.team.displayName,
+    away_team_abbr: awayComp.team.abbreviation || '',
     home_score: homeScore,
     away_score: awayScore,
-    status: game.status.type.completed ? 'final' : game.status.type.state,
     venue: competition.venue?.fullName ?? null,
-    closing_spread: spread,
-    closing_total: total,
+    total_points: homeScore + awayScore,
+    point_spread: spread,
+    over_under: total,
     spread_result: calculateSpreadResult(homeScore, awayScore, spread),
     total_result: calculateTotalResult(homeScore, awayScore, total),
-    home_covered: didHomeCover(homeScore, awayScore, spread),
   }
 }
 
@@ -148,17 +150,6 @@ function calculateTotalResult(
   if (actualTotal > total) return 'over'
   if (actualTotal < total) return 'under'
   return 'push'
-}
-
-function didHomeCover(
-  homeScore: number,
-  awayScore: number,
-  spread: number | null
-): boolean | null {
-  if (spread === null) return null
-  
-  const homeAdjusted = homeScore + spread
-  return homeAdjusted > awayScore
 }
 
 // Import games for a date range by fetching each day
@@ -214,7 +205,7 @@ async function importDateRange(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await (supabase as any)
       .from('historical_games')
-      .upsert(batch, { onConflict: 'id' })
+      .upsert(batch, { onConflict: 'espn_game_id' })
     
     if (error) {
       console.error(`Insert error for ${sport} ${season}:`, error)

@@ -58,7 +58,7 @@ export async function GET(request: Request) {
           }
 
           return {
-            id: game.id,
+            espn_game_id: game.id,
             sport: sport.toLowerCase(),
             season: season,
             season_type: 'regular',
@@ -71,8 +71,9 @@ export async function GET(request: Request) {
             away_team_abbr: awayComp.team.abbreviation,
             home_score: homeScore,
             away_score: awayScore,
+            total_points: homeScore + awayScore,
             point_spread: spread,
-            total_points: total,
+            over_under: total,
             total_result: totalResult,
           }
         }).filter(Boolean)
@@ -80,7 +81,7 @@ export async function GET(request: Request) {
         if (gamesToInsert.length > 0) {
           const { error } = await supabase
             .from('historical_games')
-            .upsert(gamesToInsert, { onConflict: 'id' })
+            .upsert(gamesToInsert, { onConflict: 'espn_game_id' })
           
           if (error) {
             console.error(`Error inserting games for ${team.abbreviation}:`, error)
