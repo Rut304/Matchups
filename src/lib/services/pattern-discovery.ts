@@ -258,7 +258,7 @@ export async function validatePattern(
   const supabase = await createClient()
   
   // This would run actual SQL queries to validate the pattern
-  // For now, return mock validation
+  // Returns actual pattern data from database
   const { data: games, error } = await supabase
     .from('historical_games')
     .select('*')
@@ -296,17 +296,14 @@ async function fetchHistoricalDataForAnalysis(
     .in('sport', sports.map(s => s.toLowerCase()))
   
   if (error || !gameSummary) {
-    // Return mock data for AI to work with
+    // No mock data - return zeros, AI needs real data to provide valid analysis
+    console.error('[Pattern Discovery] No historical data available for analysis')
     return {
-      totalGames: 50000,
+      totalGames: 0,
       years,
       summary: {
-        bySpport: sports.reduce((acc, s) => ({ ...acc, [s]: { games: 10000, homeWinRate: 54, avgTotal: 210 } }), {}),
-        trends: [
-          'Home teams cover 52.3% in primetime',
-          'Underdogs cover 51.8% after bye weeks',
-          'Overs hit 53.1% in season openers'
-        ]
+        bySport: sports.reduce((acc, s) => ({ ...acc, [s]: { games: 0, homeCoverRate: 0, overRate: 0 } }), {}),
+        trends: []
       }
     }
   }

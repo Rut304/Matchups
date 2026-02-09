@@ -457,47 +457,141 @@ INSERT INTO public.historical_prediction_markets (
  '[{"date": "2023-04-01", "price": 0.05}, {"date": "2023-09-01", "price": 0.15}, {"date": "2023-11-01", "price": 1.00}]');
 
 -- ===========================================
--- SAMPLE HISTORICAL GAMES (Representative Years)
--- Delete existing sample games and insert fresh 20-year data
+-- ADD SAMPLE HISTORICAL GAMES (Select Iconic Games)
+-- First, ensure the table has all required columns (handles both schema versions)
 -- ===========================================
 
--- Clean up existing sample historical games from key years
-DELETE FROM public.historical_games 
-WHERE (season_year IN (2006, 2010, 2015, 2016, 2020, 2023) AND season_type = 'postseason')
-   OR (season_year = 2006 AND season_type = 'regular' AND week_number = 10);
+-- Add missing columns if they don't exist (for historical-games-schema.sql compatibility)
+DO $$ 
+BEGIN
+  -- Add betting-focused columns that may not exist in scoring-focused schema
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'historical_games' AND column_name = 'season_year') THEN
+    ALTER TABLE public.historical_games ADD COLUMN season_year INTEGER;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'historical_games' AND column_name = 'week_number') THEN
+    ALTER TABLE public.historical_games ADD COLUMN week_number INTEGER;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'historical_games' AND column_name = 'home_team') THEN
+    ALTER TABLE public.historical_games ADD COLUMN home_team TEXT;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'historical_games' AND column_name = 'away_team') THEN
+    ALTER TABLE public.historical_games ADD COLUMN away_team TEXT;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'historical_games' AND column_name = 'home_team_abbrev') THEN
+    ALTER TABLE public.historical_games ADD COLUMN home_team_abbrev TEXT;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'historical_games' AND column_name = 'away_team_abbrev') THEN
+    ALTER TABLE public.historical_games ADD COLUMN away_team_abbrev TEXT;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'historical_games' AND column_name = 'is_neutral_site') THEN
+    ALTER TABLE public.historical_games ADD COLUMN is_neutral_site BOOLEAN DEFAULT FALSE;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'historical_games' AND column_name = 'open_spread') THEN
+    ALTER TABLE public.historical_games ADD COLUMN open_spread DECIMAL(5,1);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'historical_games' AND column_name = 'open_total') THEN
+    ALTER TABLE public.historical_games ADD COLUMN open_total DECIMAL(5,1);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'historical_games' AND column_name = 'close_spread') THEN
+    ALTER TABLE public.historical_games ADD COLUMN close_spread DECIMAL(5,1);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'historical_games' AND column_name = 'close_total') THEN
+    ALTER TABLE public.historical_games ADD COLUMN close_total DECIMAL(5,1);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'historical_games' AND column_name = 'spread_result') THEN
+    ALTER TABLE public.historical_games ADD COLUMN spread_result TEXT;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'historical_games' AND column_name = 'total_result') THEN
+    ALTER TABLE public.historical_games ADD COLUMN total_result TEXT;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'historical_games' AND column_name = 'primetime_game') THEN
+    ALTER TABLE public.historical_games ADD COLUMN primetime_game BOOLEAN DEFAULT FALSE;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'historical_games' AND column_name = 'divisional_game') THEN
+    ALTER TABLE public.historical_games ADD COLUMN divisional_game BOOLEAN DEFAULT FALSE;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'historical_games' AND column_name = 'external_id') THEN
+    ALTER TABLE public.historical_games ADD COLUMN external_id TEXT;
+  END IF;
+END $$;
 
--- Add representative games from key years
+-- Sync data between old and new column names (for existing records)
+UPDATE public.historical_games SET season_year = season WHERE season_year IS NULL AND season IS NOT NULL;
+UPDATE public.historical_games SET week_number = week WHERE week_number IS NULL AND week IS NOT NULL;
+UPDATE public.historical_games SET home_team = home_team_name WHERE home_team IS NULL AND home_team_name IS NOT NULL;
+UPDATE public.historical_games SET away_team = away_team_name WHERE away_team IS NULL AND away_team_name IS NOT NULL;
+UPDATE public.historical_games SET home_team_abbrev = home_team_abbr WHERE home_team_abbrev IS NULL AND home_team_abbr IS NOT NULL;
+UPDATE public.historical_games SET away_team_abbrev = away_team_abbr WHERE away_team_abbrev IS NULL AND away_team_abbr IS NOT NULL;
+
+-- Now insert iconic games using columns that exist in both schemas
+-- espn_game_id is required (NOT NULL) in the scoring-focused schema
 INSERT INTO public.historical_games (
-  sport, season_year, season_type, week_number, home_team, away_team, 
-  home_team_abbrev, away_team_abbrev, game_date, home_score, away_score,
-  open_spread, open_total, close_spread, close_total,
-  spread_result, total_result, home_ml_result,
-  public_spread_home_pct, public_money_home_pct, primetime_game, divisional_game
+  espn_game_id, sport, season, season_type, week, 
+  home_team_id, home_team_name, home_team_abbr,
+  away_team_id, away_team_name, away_team_abbr,
+  game_date, venue, home_score, away_score
 ) VALUES 
--- 2006 NFL Season Highlights
-('NFL', 2006, 'postseason', NULL, 'Indianapolis Colts', 'Chicago Bears', 'IND', 'CHI', '2007-02-04 18:00:00', 29, 17, -7, 47, -7, 47, 'home_cover', 'under', 'win', 72, 78, TRUE, FALSE),
-('NFL', 2006, 'regular', 10, 'New England Patriots', 'Indianapolis Colts', 'NE', 'IND', '2006-11-05 20:15:00', 20, 27, -3, 48, -3.5, 47, 'away_cover', 'under', 'loss', 65, 70, TRUE, FALSE),
+-- Super Bowl XLII (2007 Season) - Giants upset Patriots
+('400000042', 'NFL', 2007, 'postseason', 22, 
+ '22', 'Arizona Cardinals', 'ARI', '19', 'New York Giants', 'NYG', 
+ '2008-02-03', 'University of Phoenix Stadium', 17, 14),
 
--- 2010 NFL Season Highlights
-('NFL', 2010, 'postseason', NULL, 'Green Bay Packers', 'Pittsburgh Steelers', 'GB', 'PIT', '2011-02-06 18:00:00', 31, 25, -2.5, 45, -3, 45.5, 'home_cover', 'over', 'win', 55, 52, TRUE, FALSE),
+-- Super Bowl XLIV (2009 Season) - Saints first championship  
+('400000044', 'NFL', 2009, 'postseason', 22,
+ '15', 'Miami Dolphins', 'MIA', '18', 'New Orleans Saints', 'NO',
+ '2010-02-07', 'Sun Life Stadium', 17, 31),
 
--- 2015 NBA Finals
-('NBA', 2015, 'postseason', NULL, 'Cleveland Cavaliers', 'Golden State Warriors', 'CLE', 'GSW', '2015-06-16 21:00:00', 97, 105, 2.5, 198, 2, 197.5, 'away_cover', 'over', 'loss', 62, 58, TRUE, FALSE),
+-- Super Bowl XLV (2010 Season) - Packers championship
+('400000045', 'NFL', 2010, 'postseason', 22,
+ '6', 'Dallas Cowboys', 'DAL', '9', 'Green Bay Packers', 'GB',
+ '2011-02-06', 'Cowboys Stadium', 25, 31),
 
--- 2016 NBA Finals Game 7
-('NBA', 2016, 'postseason', NULL, 'Golden State Warriors', 'Cleveland Cavaliers', 'GSW', 'CLE', '2016-06-19 20:00:00', 89, 93, -6, 209, -5.5, 208, 'away_cover', 'under', 'loss', 75, 82, TRUE, FALSE),
+-- Super Bowl XLVIII (2013 Season) - Seahawks dominant win
+('400000048', 'NFL', 2013, 'postseason', 22,
+ '7', 'Denver Broncos', 'DEN', '26', 'Seattle Seahawks', 'SEA',
+ '2014-02-02', 'MetLife Stadium', 8, 43),
 
--- 2016 MLB World Series Game 7
-('MLB', 2016, 'postseason', NULL, 'Cleveland Indians', 'Chicago Cubs', 'CLE', 'CHC', '2016-11-02 20:00:00', 7, 8, -1.5, 7.5, -1.5, 7, 'away_cover', 'over', 'loss', 48, 45, TRUE, FALSE),
+-- Super Bowl LI (2016 Season) - Greatest comeback
+('400000051', 'NFL', 2016, 'postseason', 22,
+ '34', 'Houston Texans', 'HOU', '17', 'New England Patriots', 'NE',
+ '2017-02-05', 'NRG Stadium', 28, 34),
 
--- 2017 Super Bowl LI
-('NFL', 2016, 'postseason', NULL, 'Houston Texans', 'New England Patriots', 'HOU', 'NE', '2017-02-05 18:30:00', 28, 34, 3, 57, 3, 58.5, 'away_cover', 'over', 'loss', 42, 38, TRUE, FALSE),
+-- Super Bowl LII (2017 Season) - Eagles first
+('400000052', 'NFL', 2017, 'postseason', 22,
+ '16', 'Minnesota Vikings', 'MIN', '21', 'Philadelphia Eagles', 'PHI',
+ '2018-02-04', 'U.S. Bank Stadium', 33, 41),
 
--- 2021 Super Bowl LV
-('NFL', 2020, 'postseason', NULL, 'Tampa Bay Buccaneers', 'Kansas City Chiefs', 'TB', 'KC', '2021-02-07 18:30:00', 31, 9, 3, 56.5, 3, 55, 'home_cover', 'under', 'win', 48, 45, TRUE, FALSE),
+-- Super Bowl LV (2020 Season) - Brady with Tampa
+('400000055', 'NFL', 2020, 'postseason', 22,
+ '27', 'Tampa Bay Buccaneers', 'TB', '12', 'Kansas City Chiefs', 'KC',
+ '2021-02-07', 'Raymond James Stadium', 31, 9),
 
--- 2023 NBA Finals
-('NBA', 2023, 'postseason', NULL, 'Denver Nuggets', 'Miami Heat', 'DEN', 'MIA', '2023-06-12 20:30:00', 94, 89, -8.5, 212, -9, 211.5, 'away_cover', 'under', 'win', 78, 82, TRUE, FALSE);
+-- Super Bowl LVI (2021 Season) - Rams home field
+('400000056', 'NFL', 2021, 'postseason', 22,
+ '14', 'Los Angeles Rams', 'LAR', '4', 'Cincinnati Bengals', 'CIN',
+ '2022-02-13', 'SoFi Stadium', 23, 20),
+
+-- 2016 NBA Finals Game 7 - LeBron brings it home
+('400000716', 'NBA', 2015, 'postseason', NULL,
+ '9', 'Golden State Warriors', 'GSW', '5', 'Cleveland Cavaliers', 'CLE',
+ '2016-06-19', 'Oracle Arena', 89, 93),
+
+-- 2023 NBA Finals Game 5 - Nuggets first championship
+('400002312', 'NBA', 2022, 'postseason', NULL,
+ '7', 'Denver Nuggets', 'DEN', '14', 'Miami Heat', 'MIA',
+ '2023-06-12', 'Ball Arena', 94, 89),
+
+-- 2016 World Series Game 7 - Cubs end 108-year curse
+('400001102', 'MLB', 2016, 'postseason', NULL,
+ '5', 'Cleveland Indians', 'CLE', '16', 'Chicago Cubs', 'CHC',
+ '2016-11-02', 'Progressive Field', 7, 8),
+
+-- 2023 World Series Game 5 - Rangers first championship
+('400002311', 'MLB', 2023, 'postseason', NULL,
+ '29', 'Arizona Diamondbacks', 'ARI', '13', 'Texas Rangers', 'TEX',
+ '2023-11-01', 'Chase Field', 0, 5)
+
+ON CONFLICT (espn_game_id) DO NOTHING;
 
 -- ===========================================
 -- ADD HISTORICAL EDGE PICKS (20 Years)

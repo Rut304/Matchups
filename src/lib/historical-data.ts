@@ -200,12 +200,13 @@ export function getDateRangeForPeriod(period: TimePeriod): { start: Date; end: D
 }
 
 // =============================================================================
-// EMPTY FALLBACKS (Used when database is unavailable - show "no data" UI)
-// Mock data has been removed - site only shows real data
+// EMPTY FALLBACKS - REMOVED
+// Site NEVER falls back to mock data. If database fails, show "no data" UI.
 // =============================================================================
 
-// Empty array - no fake data, returns empty when database fails
-const mockTrends: HistoricalTrend[] = [
+// DEPRECATED: This mock data array is no longer used. Database is the only source of truth.
+// Keeping for reference but all functions now return [] on failure.
+const DEPRECATED_mockTrends: HistoricalTrend[] = [
   {
     id: '1',
     trend_id: 'nfl-home-dog-ats',
@@ -1136,7 +1137,9 @@ const mockTrends: HistoricalTrend[] = [
   }
 ]
 
-const mockSystemPerformance: SystemPerformance[] = [
+// DEPRECATED: This mock data array is no longer used. Database is the only source of truth.
+// All functions now return [] on database failure. Keeping as reference only.
+const DEPRECATED_mockSystemPerformance: SystemPerformance[] = [
   {
     sport: 'ALL',
     period_type: 'all_time',
@@ -1371,16 +1374,14 @@ export async function getSystemPerformance(
     
     if (error) {
       console.error('Error fetching performance:', error)
-      return mockSystemPerformance.filter(p => 
-        (!sport || sport === 'ALL' || p.sport === sport) && p.period_type === periodType
-      )
+      // No mock data - return empty array, UI should show "no data available"
+      return []
     }
     
-    return data || mockSystemPerformance
+    return data || []
   } catch {
-    return mockSystemPerformance.filter(p => 
-      (!sport || sport === 'ALL' || p.sport === sport)
-    )
+    // No mock data - return empty array
+    return []
   }
 }
 

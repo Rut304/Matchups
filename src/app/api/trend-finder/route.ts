@@ -3,10 +3,13 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 import { createClient } from '@/lib/supabase/server'
 import { ESPN_APIS } from '@/lib/api/free-sports-apis'
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
+
+// Use stable model with fallback
+const modelName = process.env.GEMINI_MODEL || 'gemini-1.5-flash'
 
 const trendFinderModel = genAI.getGenerativeModel({ 
-  model: 'gemini-2.0-flash-exp',
+  model: modelName,
   generationConfig: {
     temperature: 0.2,
     topP: 0.9,
@@ -367,13 +370,46 @@ Please provide your best estimate and note that it is an estimate.`
 
     messages.push({ role: 'user', parts: [{ text: enhancedQuery }] })
 
-    // Get AI response
-    const chat = trendFinderModel.startChat({
-      history: messages.slice(0, -1) as any,
-    })
+    // Try to get AI response, with fallback if AI unavailable
+    let response: string
+    
+    try {
+      const chat = trendFinderModel.startChat({
+        history: messages.slice(0, -1) as any,
+      })
 
-    const result = await chat.sendMessage(enhancedQuery)
-    const response = result.response.text()
+      const result = await chat.sendMessage(enhancedQuery)
+      response = result.response.text()
+    } catch (aiError) {
+      // AI failed - provide a helpful fallback response
+      console.warn('AI unavailable, providing fallback response:', aiError)
+      
+      if (historicalResults?.found) {
+        response = `**Database Results for your query:**
+
+Based on our database of **${historicalResults.totalGames}** games:
+- **${historicalResults.matchingGames}** games matched your criteria
+- That's **${historicalResults.percentage}** of games
+
+**Sample Games:**
+${historicalResults.games.slice(0, 5).map((g: { date: string; matchup: string; score: string; season: number }) => 
+  `• ${g.date}: ${g.matchup} (${g.score}) - Season ${g.season}`
+).join('\n')}
+
+*Note: AI analysis is temporarily unavailable. Showing raw database results.*`
+      } else {
+        response = `I can help you find betting trends! 
+
+Our database contains historical game data for NFL, NBA, NHL, and MLB.
+
+**Try asking questions like:**
+• "How often do home underdogs cover in NFL playoffs?"
+• "What's the over/under hit rate when total is above 50?"
+• "Show me blowout games from this season"
+
+*Note: AI analysis is temporarily unavailable. Database queries are working.*`
+      }
+    }
 
     return NextResponse.json({
       success: true,
@@ -390,9 +426,39 @@ Please provide your best estimate and note that it is an estimate.`
     })
 
   } catch (error) {
-    console.error('Trend finder error:', error)
+    // Log detailed error info
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorStack = error instanceof Error ? error.stack : ''
+    console.error('Trend finder error:', {
+      message: errorMessage,
+      stack: errorStack,
+      error
+    })
+    
+    // Check for specific Gemini errors
+    if (errorMessage.includes('API_KEY') || errorMessage.includes('401')) {
+      return NextResponse.json(
+        { error: 'AI service authentication failed. Please check API configuration.' },
+        { status: 500 }
+      )
+    }
+    
+    if (errorMessage.includes('SAFETY') || errorMessage.includes('blocked')) {
+      return NextResponse.json(
+        { error: 'Query was blocked by safety filters. Please rephrase your question.' },
+        { status: 400 }
+      )
+    }
+    
+    if (errorMessage.includes('quota') || errorMessage.includes('rate')) {
+      return NextResponse.json(
+        { error: 'AI service rate limit reached. Please try again in a moment.' },
+        { status: 429 }
+      )
+    }
+    
     return NextResponse.json(
-      { error: 'Failed to process query. Please try again.' },
+      { error: `Failed to process query: ${errorMessage}` },
       { status: 500 }
     )
   }

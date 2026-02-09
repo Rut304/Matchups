@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
 // Historical pattern types
 interface HistoricalPattern {
@@ -32,8 +33,9 @@ interface MatchingGame {
   edge: number
 }
 
-// Sample historical patterns
-const HISTORICAL_PATTERNS: Record<string, HistoricalPattern[]> = {
+// DEPRECATED: Static patterns - now fetched from historical_trends table in Supabase
+// Keeping ARCHIVED_PATTERNS for reference only - NOT EXPORTED
+const ARCHIVED_HISTORICAL_PATTERNS: Record<string, HistoricalPattern[]> = {
   NFL: [
     {
       id: 'nfl-home-dog-div',
@@ -257,28 +259,81 @@ export async function GET(request: Request) {
   const withMatches = searchParams.get('withMatches') === 'true'
   
   try {
-    let patterns: HistoricalPattern[] = []
+    const supabase = await createClient()
     
-    if (sport === 'all') {
-      patterns = Object.values(HISTORICAL_PATTERNS).flat()
-    } else {
-      patterns = HISTORICAL_PATTERNS[sport.toUpperCase()] || []
+    // Fetch patterns from historical_trends table (REAL DATA from database)
+    let query = supabase
+      .from('historical_trends')
+      .select('*')
+    
+    if (sport !== 'all') {
+      query = query.eq('sport', sport.toUpperCase())
     }
     
-    // Apply category filter
     if (category !== 'all') {
-      patterns = patterns.filter(p => p.category === category)
+      query = query.eq('category', category)
     }
     
-    // Apply confidence filter
-    patterns = patterns.filter(p => p.confidenceScore >= minConfidence)
+    if (minConfidence > 0) {
+      query = query.gte('confidence_score', minConfidence)
+    }
+
+    const { data: trends, error } = await query.order('confidence_score', { ascending: false })
     
-    // Add empty matches field (real game-matching to be implemented)
-    patterns = addEmptyMatchesField(patterns)
+    if (error) {
+      console.error('Error fetching patterns from DB:', error)
+      return NextResponse.json({ 
+        patterns: [], 
+        meta: { totalPatterns: 0, totalMatches: 0, avgWinRate: 0, avgRoi: 0, categories: [] },
+        error: 'Database error - no patterns available' 
+      })
+    }
+    
+    if (!trends || trends.length === 0) {
+      return NextResponse.json({ 
+        patterns: [], 
+        meta: { totalPatterns: 0, totalMatches: 0, avgWinRate: 0, avgRoi: 0, categories: [] },
+        message: 'No patterns found in database - run trend discovery cron to populate' 
+      })
+    }
+    
+    // Transform DB rows to HistoricalPattern format
+    const patterns: HistoricalPattern[] = trends.map(t => {
+      // Parse record string like "1782-1423" to get wins/losses
+      const recordParts = (t.all_time_record || '0-0').split('-').map(Number)
+      const wins = recordParts[0] || 0
+      const losses = recordParts[1] || 0
+      const pushes = recordParts[2] || 0
+      
+      return {
+        id: t.trend_id,
+        name: t.trend_name,
+        description: t.trend_description || '',
+        sport: t.sport,
+        category: t.category as HistoricalPattern['category'],
+        conditions: t.conditions || [],
+        historicalRecord: {
+          wins,
+          losses,
+          pushes,
+          winRate: wins + losses > 0 ? (wins / (wins + losses)) * 100 : 0,
+          roi: t.all_time_roi || 0
+        },
+        sampleSize: t.all_time_sample_size || wins + losses + pushes,
+        lastHit: t.last_hit_date || '',
+        currentMatches: [], // Real game matching TBD
+        confidenceScore: t.confidence_score || 50
+      }
+    })
     
     // Filter to only patterns with matches if requested
     if (withMatches) {
-      patterns = patterns.filter(p => p.currentMatches.length > 0)
+      // No patterns have matches yet (game matching not implemented)
+      return NextResponse.json({ 
+        patterns: [], 
+        meta: { totalPatterns: 0, totalMatches: 0, avgWinRate: 0, avgRoi: 0 },
+        message: 'No matched games for today' 
+      })
     }
     
     // Sort by confidence score

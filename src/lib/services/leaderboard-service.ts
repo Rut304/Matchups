@@ -1,6 +1,6 @@
 /**
  * Leaderboard Service - Fetches real capper data from Supabase
- * Falls back to mock data only when Supabase is unavailable
+ * NO MOCK DATA - returns empty array if database unavailable
  */
 
 import { createClient } from '@/lib/supabase/client'
@@ -68,9 +68,9 @@ export async function fetchLeaderboardEntries(filters: LeaderboardFilters = {}):
     limit = 100
   } = filters
 
-  // If Supabase not configured, return empty (will use mock fallback)
+  // If Supabase not configured, return empty array (no mock data)
   if (!isSupabaseConfigured()) {
-    console.warn('Supabase not configured - using mock data fallback')
+    console.warn('Supabase not configured - returning empty array (no mock data)')
     return []
   }
 

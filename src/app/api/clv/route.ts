@@ -14,51 +14,23 @@ export async function GET(request: Request) {
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
-      // Return sample data for non-authenticated users
+      // NO MOCK DATA - return empty data for non-authenticated users
       return NextResponse.json({
         summary: {
-          totalPicks: 47,
-          avgClv: 2.3,
-          clvPositive: 32,
-          clvNegative: 15,
-          clvPositiveRate: 68.1,
-          totalClvCents: 108,
-          estimatedEdge: 4.2,
+          totalPicks: 0,
+          avgClv: 0,
+          clvPositive: 0,
+          clvNegative: 0,
+          clvPositiveRate: 0,
+          totalClvCents: 0,
+          estimatedEdge: 0,
         },
-        distribution: [
-          { range: '-5+ cents', count: 3, percentage: 6.4 },
-          { range: '-2 to -5 cents', count: 5, percentage: 10.6 },
-          { range: '-0.5 to -2 cents', count: 7, percentage: 14.9 },
-          { range: '-0.5 to +0.5 cents', count: 8, percentage: 17.0 },
-          { range: '+0.5 to +2 cents', count: 12, percentage: 25.5 },
-          { range: '+2 to +5 cents', count: 8, percentage: 17.0 },
-          { range: '+5+ cents', count: 4, percentage: 8.5 },
-        ],
-        recentPicks: [
-          { id: '1', sport: 'NFL', pickTeam: 'Chiefs -3.5', openLine: -3.5, closeLine: -4.5, clv: 1.0, result: 'win', date: new Date().toISOString() },
-          { id: '2', sport: 'NBA', pickTeam: 'Lakers +5', openLine: 5, closeLine: 3.5, clv: 1.5, result: 'loss', date: new Date(Date.now() - 86400000).toISOString() },
-          { id: '3', sport: 'NFL', pickTeam: 'Bills -7', openLine: -7, closeLine: -9, clv: 2.0, result: 'win', date: new Date(Date.now() - 172800000).toISOString() },
-          { id: '4', sport: 'NHL', pickTeam: 'Rangers ML', openLine: -140, closeLine: -155, clv: 0.8, result: 'win', date: new Date(Date.now() - 259200000).toISOString() },
-          { id: '5', sport: 'NBA', pickTeam: 'Celtics -6', openLine: -6, closeLine: -5, clv: -1.0, result: 'loss', date: new Date(Date.now() - 345600000).toISOString() },
-        ],
-        trendData: [
-          { date: '2024-01-01', avgClv: 1.2, cumulative: 1.2 },
-          { date: '2024-01-08', avgClv: 2.1, cumulative: 3.3 },
-          { date: '2024-01-15', avgClv: 1.8, cumulative: 5.1 },
-          { date: '2024-01-22', avgClv: 3.2, cumulative: 8.3 },
-          { date: '2024-01-29', avgClv: 2.5, cumulative: 10.8 },
-        ],
-        sportBreakdown: [
-          { sport: 'NFL', picks: 18, avgClv: 2.8, positiveRate: 72 },
-          { sport: 'NBA', picks: 15, avgClv: 1.9, positiveRate: 60 },
-          { sport: 'NHL', picks: 8, avgClv: 2.1, positiveRate: 75 },
-          { sport: 'MLB', picks: 6, avgClv: 1.5, positiveRate: 50 },
-        ],
-        betTypeBreakdown: [
-          { type: 'spread', picks: 25, avgClv: 2.5, positiveRate: 72 },
-          { type: 'moneyline', picks: 12, avgClv: 1.8, positiveRate: 58 },
-          { type: 'total', picks: 10, avgClv: 2.1, positiveRate: 70 },
-        ],
+        distribution: [],
+        recentPicks: [],
+        trendData: [],
+        sportBreakdown: [],
+        betTypeBreakdown: [],
+        message: 'Please sign in to track your CLV data'
       })
     }
     

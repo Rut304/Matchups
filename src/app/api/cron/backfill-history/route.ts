@@ -8,8 +8,9 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization')
-  // In production, you should check for CRON_SECRET. 
-  // For this manual trigger, we'll skip strict auth or check a query param if you prefer.
+  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
   
   const supabase = await createClient()
   const sport = 'NFL'

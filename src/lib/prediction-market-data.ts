@@ -1,5 +1,11 @@
 // Prediction Market Analytics Data Store
-// This module contains comprehensive analytics that provide REAL VALUE to bettors
+// This module contains TYPE DEFINITIONS for prediction market analytics.
+// 
+// IMPORTANT: All static data arrays in this file are DEPRECATED.
+// They were placeholder data and will return empty arrays.
+// Real data should be fetched from database or API endpoints.
+// NO MOCK DATA POLICY - Real data only!
+//
 // Focus: Edge-finding trends, CLV tracking, contrarian signals, market inefficiencies
 
 import { Sport, BetType } from '@/types/leaderboard'
@@ -104,9 +110,16 @@ export interface CLVAnalysis {
 
 // =============================================================================
 // PREDICTION MARKET CAPPERS (Polymarket/Kalshi style)
+// DEPRECATED: Static data removed - real data only policy
+// Data should be fetched from database or API
 // =============================================================================
 
 export const predictionCappers: PredictionMarketCapper[] = [
+  // NO STATIC DATA - fetch from /api or Supabase
+];
+
+// DEPRECATED: Original static data moved to archive
+const ARCHIVED_predictionCappers: PredictionMarketCapper[] = [
   {
     id: 'pm-whale-alert',
     name: 'WhaleAlert',
@@ -218,11 +231,17 @@ export const predictionCappers: PredictionMarketCapper[] = [
 ]
 
 // =============================================================================
-// EDGE-FINDING TRENDS - THE REAL VALUE
-// These are based on actual betting market research and patterns
+// EDGE-FINDING TRENDS
+// DEPRECATED: Static data removed - real data only policy  
+// Trends should be fetched from historical_trends table in Supabase
 // =============================================================================
 
 export const trendInsights: TrendInsight[] = [
+  // NO STATIC DATA - fetch from /api/trends or Supabase historical_trends table
+];
+
+// DEPRECATED: Original static data moved to archive
+const ARCHIVED_trendInsights: TrendInsight[] = [
   // CLV-BASED TRENDS
   {
     id: 'trend-clv-early-week',
@@ -490,10 +509,17 @@ export const trendInsights: TrendInsight[] = [
 ]
 
 // =============================================================================
-// SAMPLE LINE MOVEMENTS (Real-time tracking simulation)
+// LINE MOVEMENTS
+// DEPRECATED: Static data removed - real data only policy
+// Line movements should be fetched from Odds API or Supabase
 // =============================================================================
 
 export const lineMovements: LineMovement[] = [
+  // NO STATIC DATA - fetch from /api/odds or live API
+];
+
+// DEPRECATED: Original static data moved to archive
+const ARCHIVED_lineMovements: LineMovement[] = [
   {
     id: 'lm-1',
     gameId: 'nfl-week18-1',
@@ -565,6 +591,11 @@ export interface PublicSharpSplit {
 }
 
 export const publicSharpSplits: PublicSharpSplit[] = [
+  // NO STATIC DATA - fetch from /api/betting-splits or live API
+];
+
+// DEPRECATED: Original static data moved to archive
+const ARCHIVED_publicSharpSplits: PublicSharpSplit[] = [
   {
     gameId: 'nfl-week18-1',
     sport: 'NFL',
@@ -658,17 +689,18 @@ export function calculateCLV(pickedOdds: number, closingOdds: number): number {
 
 // =============================================================================
 // PREDICTION MARKET ANALYTICS SUMMARY
+// Returns computed values from real data (will be 0s when no data loaded)
 // =============================================================================
 
 export const analyticsSummary = {
   totalTrendsTracked: trendInsights.length,
   activeTrends: trendInsights.filter(t => t.isActive).length,
-  avgROI: trendInsights.reduce((sum, t) => sum + t.roi, 0) / trendInsights.length,
-  avgWinRate: trendInsights.reduce((sum, t) => sum + t.winRate, 0) / trendInsights.length,
+  avgROI: trendInsights.length > 0 ? trendInsights.reduce((sum, t) => sum + t.roi, 0) / trendInsights.length : 0,
+  avgWinRate: trendInsights.length > 0 ? trendInsights.reduce((sum, t) => sum + t.winRate, 0) / trendInsights.length : 0,
   totalSampleSize: trendInsights.reduce((sum, t) => sum + t.sampleSize, 0),
   topEdgeCategory: 'contrarian' as const,
   topEdgeSport: 'NFL' as Sport,
-  lastUpdated: '2026-01-03'
+  lastUpdated: new Date().toISOString().split('T')[0]  // Dynamic date
 }
 
 // =============================================================================

@@ -297,36 +297,17 @@ export interface EdgeOpportunity {
 }
 
 export function findEdges(sport: string): EdgeOpportunity[] {
-  // Would analyze:
+  // NO MOCK DATA - Real edges would come from:
   // 1. CLV (Closing Line Value) - is line moving in favor of a pick?
   // 2. RLM (Reverse Line Movement) - line moving opposite to public betting
   // 3. Steam moves - sharp money hitting a line
   // 4. Public fade opportunities - heavy public on one side
   // 5. Situational edges - rest, travel, motivation
   
-  // Mock edges for now
-  return [
-    {
-      id: 'edge_1',
-      type: 'rlm',
-      sport,
-      game: 'DET vs MIN',
-      description: 'Line moved from DET -3 to DET -2.5 despite 70% public on DET. Sharp money on MIN.',
-      confidence: 72,
-      expectedValue: 3.2,
-      timestamp: new Date().toISOString(),
-    },
-    {
-      id: 'edge_2',
-      type: 'situational',
-      sport,
-      game: 'KC vs DEN',
-      description: 'KC on short rest after primetime game. UNDER has hit 8 of last 10 in this spot.',
-      confidence: 65,
-      expectedValue: 2.8,
-      timestamp: new Date().toISOString(),
-    },
-  ]
+  // Return empty array - edges are fetched via /api/edge and /api/props/edges
+  // Real data only - no mock data policy
+  console.log(`[findEdges] Called for ${sport} - returning empty array (use /api routes for real data)`)
+  return []
 }
 
 // =============================================================================

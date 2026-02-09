@@ -50,6 +50,7 @@ interface SusPlay {
   sport: Sport
   playerName: string
   team: string
+  title?: string // Title for display when playerName is Unknown
   opponent: string
   gameDate: string
   description: string
@@ -328,6 +329,7 @@ export default function SusPlaysPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [susPlays, setSusPlays] = useState<SusPlay[]>([])
   const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({ total: 0, totalViews: 0, verified: 0, trending: 0 })
 
   // Fetch sus plays from API
   useEffect(() => {
@@ -349,6 +351,7 @@ export default function SusPlaysPage() {
             sport: (p.sport as string || 'nfl') as Sport,
             playerName: p.playerName as string || 'Unknown',
             team: p.team as string || 'N/A',
+            title: p.title as string || undefined, // Include title for Unknown players
             opponent: 'N/A',
             gameDate: new Date().toISOString(),
             description: p.description as string || p.title as string || '',
@@ -367,6 +370,13 @@ export default function SusPlaysPage() {
             source: p.tweetAuthor as string || '@SusPlays',
           }))
           setSusPlays(plays)
+          // Calculate real stats
+          setStats({
+            total: plays.length,
+            totalViews: plays.reduce((sum: number, p: SusPlay) => sum + (p.views || 0), 0),
+            verified: plays.filter((p: SusPlay) => p.verified).length,
+            trending: plays.filter((p: SusPlay) => p.trending).length
+          })
         }
       } catch (error) {
         console.error('Failed to fetch sus plays:', error)
@@ -471,10 +481,10 @@ export default function SusPlaysPage() {
         {/* Stats Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {[
-            { label: 'Plays Tracked', value: '1,247', icon: Video, colorClass: 'text-cyan' },
-            { label: 'Total Views', value: '42.3M', icon: Eye, colorClass: 'text-orange' },
-            { label: 'Verified Sus', value: '89', icon: AlertTriangle, colorClass: 'text-hot' },
-            { label: 'Trending Now', value: '12', icon: Flame, colorClass: 'text-gold' },
+            { label: 'Plays Tracked', value: stats.total.toLocaleString(), icon: Video, colorClass: 'text-cyan' },
+            { label: 'Total Views', value: formatViews(stats.totalViews), icon: Eye, colorClass: 'text-orange' },
+            { label: 'Verified Sus', value: stats.verified.toLocaleString(), icon: AlertTriangle, colorClass: 'text-hot' },
+            { label: 'Trending Now', value: stats.trending.toLocaleString(), icon: Flame, colorClass: 'text-gold' },
           ].map((stat) => (
             <div key={stat.label} className="p-4 rounded-xl stat-card-dark">
               <div className="flex items-center gap-2 mb-1">
@@ -630,9 +640,12 @@ export default function SusPlaysPage() {
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div>
                       <h3 className="text-lg font-bold text-white">
-                        {play.playerName} ({play.team} vs {play.opponent})
+                        {play.playerName === 'Unknown' 
+                          ? play.title || 'Suspicious Play'
+                          : `${play.playerName} (${play.team})`
+                        }
                       </h3>
-                      <p className="text-xs text-muted">{play.gameDate} • {play.postedAt}</p>
+                      <p className="text-xs text-muted">{play.postedAt}</p>
                     </div>
                     {play.verified && (
                       <div className="px-2 py-1 rounded text-xs font-bold badge-verified">

@@ -119,11 +119,13 @@ class PredictionMarketsClient {
   }
 
   async getTrendingMarkets(timeframe: '1h' | '24h' | '7d' = '24h'): Promise<MarketTrend[]> {
-    // Get markets and calculate trends
+    // Get markets and calculate trends from real API data
     const markets = await this.getAllSportsMarkets()
     
-    // TODO: Implement historical price tracking for trend calculation
-    // For now, return mock trends based on available data
+    // If no markets, return empty array (no mock data)
+    if (!markets.length) return []
+    
+    // Transform real market data into trend format
     return markets.slice(0, 20).map(market => ({
       marketId: market.id,
       question: market.question,

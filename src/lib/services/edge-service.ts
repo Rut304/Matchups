@@ -129,16 +129,16 @@ export async function fetchEdgeSignals(limit: number = 20): Promise<EdgeSignal[]
     const response = await fetch('/api/markets?category=sports&limit=100')
     
     if (!response.ok) {
-      console.log('Markets API returned non-OK status - using fallback data')
-      return getFallbackSignals()
+      console.log('Markets API returned non-OK status - no data available')
+      return []  // No fallback to mock data - real data only
     }
     
     const data = await response.json()
     const markets = data.markets || []
     
     if (!markets || markets.length === 0) {
-      console.log('No markets returned from API - using fallback data')
-      return getFallbackSignals()
+      console.log('No markets returned from API')
+      return []  // No fallback to mock data - real data only
     }
     
     // Calculate edge signals from fetched markets
@@ -166,116 +166,32 @@ export async function fetchEdgeSignals(limit: number = 20): Promise<EdgeSignal[]
     // Sort by confidence
     signals.sort((a, b) => b.confidence - a.confidence)
     
-    return signals.length > 0 ? signals.slice(0, limit) : getFallbackSignals()
+    return signals.slice(0, limit)  // No fallback to mock data - real data only
   } catch (error) {
     console.error('Error fetching edge signals:', error)
-    return getFallbackSignals()
+    return []  // No fallback to mock data - real data only
   }
 }
 
 /**
- * Fetch real news events (placeholder - would integrate with news API)
+ * Fetch real news events from news API
+ * Returns empty array when no data available - NO mock data
  */
 export async function fetchNewsEvents(): Promise<NewsEvent[]> {
-  // TODO: Integrate with news API (e.g., NewsAPI, Alpha Vantage News)
-  // For now, return placeholder events
-  return [
-    {
-      id: '1',
-      headline: 'Fed signals data-dependent approach ahead of next FOMC meeting',
-      source: 'Reuters',
-      timestamp: new Date().toISOString(),
-      impactedMarkets: ['Fed Rate Decision', 'Economic Outlook'],
-      sentiment: 'neutral',
-      expectedImpact: 'Moderate - Markets may reprice rate expectations'
-    },
-    {
-      id: '2',
-      headline: 'NFL Playoffs: Key matchup analysis for divisional round',
-      source: 'ESPN',
-      timestamp: new Date().toISOString(),
-      impactedMarkets: ['Super Bowl markets'],
-      sentiment: 'neutral',
-      expectedImpact: 'Low - Routine coverage'
-    }
-  ]
+  // TODO: Integrate with real news API (e.g., NewsAPI, Alpha Vantage News)
+  // Return empty array until real news integration is implemented
+  // NO PLACEHOLDER/MOCK DATA - real data only
+  return []
 }
 
 /**
- * Fallback signals when API is unavailable
- * These are also used by the detail page for consistent IDs
+ * DEPRECATED: Fallback signals removed - no mock data policy
+ * This function now returns empty array. Real data only.
  */
 export function getFallbackSignals(): EdgeSignal[] {
-  return [
-    {
-      id: 'fallback-1',
-      type: 'bias',
-      market: 'Super Bowl Champion 2026',
-      platform: 'polymarket',
-      currentPrice: 22,
-      fairValue: 18,
-      edge: 4,
-      confidence: 72,
-      signal: 'sell',
-      reason: 'Favorite-Longshot Bias',
-      evidence: 'Playoff favorites historically overpriced by 3-5% in prediction markets.',
-      lastUpdated: new Date().toISOString(),
-      category: 'Sports',
-      volume24h: 4500000,
-      expiresAt: 'Feb 2026'
-    },
-    {
-      id: 'fallback-2',
-      type: 'time',
-      market: 'Fed Rate Decision Q2 2026',
-      platform: 'kalshi',
-      currentPrice: 45,
-      fairValue: 50,
-      edge: -5,
-      confidence: 65,
-      signal: 'buy',
-      reason: 'Time Preference Bias',
-      evidence: 'Long-dated economic markets tend to regress toward base rates. Current pricing appears to underprice uncertainty.',
-      lastUpdated: new Date().toISOString(),
-      category: 'Economics',
-      volume24h: 890000,
-      expiresAt: 'Jun 2026'
-    },
-    {
-      id: 'fallback-3',
-      type: 'volume',
-      market: 'Bitcoin Above $100K by March 2026',
-      platform: 'polymarket',
-      currentPrice: 62,
-      fairValue: 55,
-      edge: 7,
-      confidence: 68,
-      signal: 'sell',
-      reason: 'Volume Spike Analysis',
-      evidence: 'Unusual retail volume pattern suggests overpricing. Smart money indicators neutral.',
-      lastUpdated: new Date().toISOString(),
-      category: 'Crypto',
-      volume24h: 2100000,
-      expiresAt: 'Mar 2026'
-    },
-    {
-      id: 'fallback-4',
-      type: 'news',
-      market: 'Ukraine Peace Deal by Summer 2026',
-      platform: 'kalshi',
-      currentPrice: 28,
-      fairValue: 35,
-      edge: -7,
-      confidence: 61,
-      signal: 'buy',
-      reason: 'News Lag Detection',
-      evidence: 'Recent diplomatic developments not yet priced in. Market slow to react to positive signals.',
-      lastUpdated: new Date().toISOString(),
-      category: 'World Events',
-      volume24h: 1500000,
-      expiresAt: 'Aug 2026'
-    }
-  ]
+  // NO MOCK/FALLBACK DATA - return empty array
+  // All data must come from real API sources
+  return []
 }
 
 /**
@@ -308,18 +224,12 @@ export interface EdgeDetailData extends EdgeSignal {
 }
 
 export async function fetchEdgeSignalById(id: string): Promise<EdgeDetailData | null> {
-  // First check if this is a fallback signal
-  const fallbackDetails = getFallbackSignalDetails()
-  if (fallbackDetails[id]) {
-    return fallbackDetails[id]
-  }
-  
-  // Try to fetch from API for live signals
+  // Only fetch from real API - no fallback to mock data
   try {
     const signals = await fetchEdgeSignals(100)
     const signal = signals.find(s => s.id === id)
     if (signal) {
-      // Generate detail data from the signal
+      // Generate detail data from the real signal
       return generateDetailFromSignal(signal)
     }
   } catch (error) {
@@ -393,31 +303,13 @@ function getResearchForType(type: EdgeSignal['type']): { paper: string; authors:
   return research[type] || []
 }
 
+/**
+ * DEPRECATED: Fallback signal details removed - no mock data policy
+ * This function now returns empty object. Real data only.
+ */
 function getFallbackSignalDetails(): Record<string, EdgeDetailData> {
-  const fallbackSignals = getFallbackSignals()
-  const details: Record<string, EdgeDetailData> = {}
-  
-  fallbackSignals.forEach(signal => {
-    details[signal.id] = {
-      ...signal,
-      methodology: getMethodologyForType(signal.type),
-      historicalAccuracy: signal.type === 'bias' ? 58.4 : signal.type === 'volume' ? 54.2 : signal.type === 'news' ? 61.8 : 55.1,
-      sampleSize: signal.type === 'bias' ? 847 : signal.type === 'volume' ? 234 : signal.type === 'news' ? 156 : 412,
-      lastBacktest: 'January 2026',
-      priceHistory: generatePriceHistory(signal.currentPrice, signal.id),
-      relatedNews: [
-        { headline: 'Market analysis update for ' + signal.market, source: 'Reuters', timestamp: '2 hours ago', impact: 'Low - Routine analysis' }
-      ],
-      crossPlatformPrices: [
-        { platform: signal.platform, price: signal.currentPrice, volume: signal.volume24h },
-        // Use deterministic cross-platform price difference - NO RANDOM DATA
-        { platform: signal.platform === 'polymarket' ? 'Kalshi' : 'Polymarket', price: signal.currentPrice + 1.5, volume: Math.floor(signal.volume24h * 0.6) }
-      ],
-      researchBasis: getResearchForType(signal.type)
-    }
-  })
-  
-  return details
+  // NO MOCK/FALLBACK DATA - return empty object
+  return {}
 }
 
 function getMethodologyForType(type: EdgeSignal['type']): string {

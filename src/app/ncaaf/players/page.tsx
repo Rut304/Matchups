@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   ArrowLeft,
   Search,
@@ -12,61 +12,63 @@ import {
   ChevronDown,
   Flame,
   Shield,
-  Zap
+  Zap,
+  AlertCircle,
+  Loader2
 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 type StatCategory = 'passing' | 'rushing' | 'receiving' | 'defense'
 
-// Mock NCAAF player data
-const playerStats = {
-  passing: [
-    { rank: 1, name: 'Cam Ward', team: 'Miami', pos: 'QB', conf: 'ACC', gp: 13, cmp: 346, att: 493, pct: 70.2, yds: 4313, td: 39, int: 7, rtg: 172.8, ypa: 8.7, trend: 'up' },
-    { rank: 2, name: 'Shedeur Sanders', team: 'Colorado', pos: 'QB', conf: 'Big 12', gp: 12, cmp: 348, att: 477, pct: 73.0, yds: 4134, td: 37, int: 10, rtg: 168.4, ypa: 8.7, trend: 'up' },
-    { rank: 3, name: 'Dillon Gabriel', team: 'Oregon', pos: 'QB', conf: 'Big Ten', gp: 14, cmp: 321, att: 437, pct: 73.5, yds: 3988, td: 33, int: 5, rtg: 175.1, ypa: 9.1, trend: 'up' },
-    { rank: 4, name: 'Carson Beck', team: 'Georgia', pos: 'QB', conf: 'SEC', gp: 12, cmp: 298, att: 434, pct: 68.7, yds: 3941, td: 28, int: 12, rtg: 151.2, ypa: 9.1, trend: 'down' },
-    { rank: 5, name: 'Drew Allar', team: 'Penn State', pos: 'QB', conf: 'Big Ten', gp: 13, cmp: 217, att: 318, pct: 68.2, yds: 2894, td: 24, int: 7, rtg: 162.5, ypa: 9.1, trend: 'neutral' },
-    { rank: 6, name: 'Jalen Milroe', team: 'Alabama', pos: 'QB', conf: 'SEC', gp: 12, cmp: 186, att: 296, pct: 62.8, yds: 2652, td: 16, int: 9, rtg: 144.7, ypa: 9.0, trend: 'down' },
-    { rank: 7, name: 'Quinn Ewers', team: 'Texas', pos: 'QB', conf: 'SEC', gp: 10, cmp: 192, att: 286, pct: 67.1, yds: 2601, td: 26, int: 9, rtg: 157.4, ypa: 9.1, trend: 'neutral' },
-    { rank: 8, name: 'Will Howard', team: 'Ohio State', pos: 'QB', conf: 'Big Ten', gp: 13, cmp: 214, att: 299, pct: 71.6, yds: 2860, td: 26, int: 10, rtg: 159.8, ypa: 9.6, trend: 'up' },
-    { rank: 9, name: 'Kyle McCord', team: 'Syracuse', pos: 'QB', conf: 'ACC', gp: 12, cmp: 346, att: 515, pct: 67.2, yds: 4326, td: 29, int: 12, rtg: 147.3, ypa: 8.4, trend: 'neutral' },
-    { rank: 10, name: 'Jalon Daniels', team: 'Kansas', pos: 'QB', conf: 'Big 12', gp: 8, cmp: 132, att: 210, pct: 62.9, yds: 1787, td: 13, int: 7, rtg: 144.1, ypa: 8.5, trend: 'down' },
-  ],
-  rushing: [
-    { rank: 1, name: 'Ashton Jeanty', team: 'Boise State', pos: 'RB', conf: 'MWC', gp: 14, att: 344, yds: 2601, avg: 7.6, td: 29, lng: 75, ypc: 185.8, fumbles: 2, trend: 'up' },
-    { rank: 2, name: 'Kaleb Johnson', team: 'Iowa', pos: 'RB', conf: 'Big Ten', gp: 12, att: 225, yds: 1537, avg: 6.8, td: 21, lng: 86, ypc: 128.1, fumbles: 1, trend: 'up' },
-    { rank: 3, name: 'Omarion Hampton', team: 'North Carolina', pos: 'RB', conf: 'ACC', gp: 12, att: 255, yds: 1660, avg: 6.5, td: 15, lng: 69, ypc: 138.3, fumbles: 3, trend: 'neutral' },
-    { rank: 4, name: 'TreVeyon Henderson', team: 'Ohio State', pos: 'RB', conf: 'Big Ten', gp: 13, att: 172, yds: 1135, avg: 6.6, td: 14, lng: 75, ypc: 87.3, fumbles: 1, trend: 'up' },
-    { rank: 5, name: 'Cam Skattebo', team: 'Arizona State', pos: 'RB', conf: 'Big 12', gp: 13, att: 274, yds: 1568, avg: 5.7, td: 19, lng: 52, ypc: 120.6, fumbles: 2, trend: 'up' },
-    { rank: 6, name: 'Bhayshul Tuten', team: 'Virginia Tech', pos: 'RB', conf: 'ACC', gp: 12, att: 194, yds: 1286, avg: 6.6, td: 16, lng: 62, ypc: 107.2, fumbles: 0, trend: 'neutral' },
-    { rank: 7, name: 'RJ Harvey', team: 'UCF', pos: 'RB', conf: 'Big 12', gp: 11, att: 189, yds: 1189, avg: 6.3, td: 15, lng: 58, ypc: 108.1, fumbles: 2, trend: 'down' },
-    { rank: 8, name: 'Dylan Sampson', team: 'Tennessee', pos: 'RB', conf: 'SEC', gp: 13, att: 238, yds: 1485, avg: 6.2, td: 22, lng: 48, ypc: 114.2, fumbles: 1, trend: 'up' },
-    { rank: 9, name: 'Trevor Etienne', team: 'Georgia', pos: 'RB', conf: 'SEC', gp: 12, att: 179, yds: 1148, avg: 6.4, td: 14, lng: 64, ypc: 95.7, fumbles: 2, trend: 'neutral' },
-    { rank: 10, name: 'Devin Neal', team: 'Kansas', pos: 'RB', conf: 'Big 12', gp: 9, att: 164, yds: 921, avg: 5.6, td: 10, lng: 47, ypc: 102.3, fumbles: 1, trend: 'down' },
-  ],
-  receiving: [
-    { rank: 1, name: 'Tetairoa McMillan', team: 'Arizona', pos: 'WR', conf: 'Big 12', gp: 12, rec: 84, tgt: 124, yds: 1319, avg: 15.7, td: 8, lng: 81, ypr: 109.9, ctchPct: 67.7, trend: 'up' },
-    { rank: 2, name: 'Travis Hunter', team: 'Colorado', pos: 'WR', conf: 'Big 12', gp: 12, rec: 92, tgt: 123, yds: 1152, avg: 12.5, td: 14, lng: 61, ypr: 96.0, ctchPct: 74.8, trend: 'up' },
-    { rank: 3, name: 'Luther Burden III', team: 'Missouri', pos: 'WR', conf: 'SEC', gp: 12, rec: 61, tgt: 96, yds: 676, avg: 11.1, td: 6, lng: 52, ypr: 56.3, ctchPct: 63.5, trend: 'down' },
-    { rank: 4, name: 'Jayden Higgins', team: 'Iowa State', pos: 'WR', conf: 'Big 12', gp: 13, rec: 81, tgt: 108, yds: 968, avg: 12.0, td: 6, lng: 59, ypr: 74.5, ctchPct: 75.0, trend: 'neutral' },
-    { rank: 5, name: 'Tre Harris', team: 'Ole Miss', pos: 'WR', conf: 'SEC', gp: 8, rec: 59, tgt: 78, yds: 987, avg: 16.7, td: 7, lng: 73, ypr: 123.4, ctchPct: 75.6, trend: 'up' },
-    { rank: 6, name: 'Tez Johnson', team: 'Oregon', pos: 'WR', conf: 'Big Ten', gp: 14, rec: 81, tgt: 102, yds: 847, avg: 10.5, td: 7, lng: 47, ypr: 60.5, ctchPct: 79.4, trend: 'neutral' },
-    { rank: 7, name: 'Evan Stewart', team: 'Oregon', pos: 'WR', conf: 'Big Ten', gp: 14, rec: 65, tgt: 90, yds: 834, avg: 12.8, td: 8, lng: 62, ypr: 59.6, ctchPct: 72.2, trend: 'up' },
-    { rank: 8, name: 'Ja\'Corey Brooks', team: 'Louisville', pos: 'WR', conf: 'ACC', gp: 13, rec: 76, tgt: 105, yds: 996, avg: 13.1, td: 7, lng: 58, ypr: 76.6, ctchPct: 72.4, trend: 'neutral' },
-    { rank: 9, name: 'Xavier Restrepo', team: 'Miami', pos: 'WR', conf: 'ACC', gp: 11, rec: 67, tgt: 91, yds: 1130, avg: 16.9, td: 11, lng: 67, ypr: 102.7, ctchPct: 73.6, trend: 'up' },
-    { rank: 10, name: 'Jermaine Burton', team: 'Alabama', pos: 'WR', conf: 'SEC', gp: 12, rec: 51, tgt: 84, yds: 761, avg: 14.9, td: 6, lng: 72, ypr: 63.4, ctchPct: 60.7, trend: 'down' },
-  ],
-  defense: [
-    { rank: 1, name: 'Nic Scourton', team: 'Texas A&M', pos: 'EDGE', conf: 'SEC', gp: 12, tackles: 52, tfl: 17.5, sacks: 9.5, int: 0, ff: 4, pd: 2, solo: 38, trend: 'up' },
-    { rank: 2, name: 'Abdul Carter', team: 'Penn State', pos: 'LB', conf: 'Big Ten', gp: 13, tackles: 64, tfl: 15.0, sacks: 11.0, int: 0, ff: 2, pd: 3, solo: 47, trend: 'up' },
-    { rank: 3, name: 'James Pearce Jr.', team: 'Tennessee', pos: 'EDGE', conf: 'SEC', gp: 13, tackles: 48, tfl: 12.0, sacks: 8.0, int: 0, ff: 3, pd: 1, solo: 34, trend: 'neutral' },
-    { rank: 4, name: 'Mason Graham', team: 'Michigan', pos: 'DT', conf: 'Big Ten', gp: 12, tackles: 43, tfl: 9.0, sacks: 3.5, int: 0, ff: 0, pd: 3, solo: 26, trend: 'neutral' },
-    { rank: 5, name: 'Jalon Walker', team: 'Georgia', pos: 'LB', conf: 'SEC', gp: 12, tackles: 72, tfl: 12.5, sacks: 7.0, int: 1, ff: 1, pd: 4, solo: 50, trend: 'up' },
-    { rank: 6, name: 'Will Johnson', team: 'Michigan', pos: 'CB', conf: 'Big Ten', gp: 12, tackles: 24, tfl: 0.5, sacks: 0, int: 3, ff: 1, pd: 9, solo: 20, trend: 'up' },
-    { rank: 7, name: 'Malaki Starks', team: 'Georgia', pos: 'S', conf: 'SEC', gp: 12, tackles: 62, tfl: 3.5, sacks: 0, int: 2, ff: 2, pd: 8, solo: 45, trend: 'neutral' },
-    { rank: 8, name: 'Kyle Kennard', team: 'South Carolina', pos: 'EDGE', conf: 'SEC', gp: 12, tackles: 48, tfl: 18.0, sacks: 12.5, int: 1, ff: 2, pd: 2, solo: 32, trend: 'up' },
-    { rank: 9, name: 'Laiatu Latu', team: 'UCLA', pos: 'EDGE', conf: 'Big Ten', gp: 12, tackles: 43, tfl: 13.5, sacks: 8.5, int: 0, ff: 3, pd: 2, solo: 29, trend: 'down' },
-    { rank: 10, name: 'Denzel Burke', team: 'Ohio State', pos: 'CB', conf: 'Big Ten', gp: 13, tackles: 33, tfl: 1.0, sacks: 0, int: 4, ff: 0, pd: 12, solo: 26, trend: 'up' },
-  ],
+interface PlayerStatRow {
+  rank: number
+  name: string
+  team: string
+  pos: string
+  conf: string
+  gp: number
+  trend: 'up' | 'down' | 'neutral'
+  // Passing stats
+  cmp?: number
+  att?: number
+  pct?: number
+  yds?: number
+  td?: number
+  int?: number
+  rtg?: number
+  ypa?: number
+  // Rushing stats
+  avg?: number
+  lng?: number
+  ypc?: number
+  fumbles?: number
+  // Receiving stats
+  rec?: number
+  tgt?: number
+  ypr?: number
+  ctchPct?: number
+  // Defense stats
+  tackles?: number
+  tfl?: number
+  sacks?: number
+  ff?: number
+  pd?: number
+  solo?: number
+}
+
+interface PlayerStats {
+  passing: PlayerStatRow[]
+  rushing: PlayerStatRow[]
+  receiving: PlayerStatRow[]
+  defense: PlayerStatRow[]
+}
+
+// Empty default - data comes from database only
+const emptyPlayerStats: PlayerStats = {
+  passing: [],
+  rushing: [],
+  receiving: [],
+  defense: [],
 }
 
 const conferences = ['All', 'SEC', 'Big Ten', 'Big 12', 'ACC', 'Pac-12', 'MWC', 'AAC', 'Sun Belt', 'C-USA', 'MAC', 'Ind']
@@ -76,6 +78,132 @@ export default function NCAAFPlayersPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedConf, setSelectedConf] = useState('All')
   const [sortBy, setSortBy] = useState('rank')
+  const [playerStats, setPlayerStats] = useState<PlayerStats>(emptyPlayerStats)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch player stats from database
+  useEffect(() => {
+    async function fetchPlayerStats() {
+      setLoading(true)
+      setError(null)
+      
+      try {
+        const supabase = createClient()
+        
+        // Fetch NCAAF player stats from player_stats_cache table
+        const { data, error: fetchError } = await supabase
+          .from('player_stats_cache')
+          .select('*')
+          .eq('sport', 'NCAAF')
+          .order('updated_at', { ascending: false })
+        
+        if (fetchError) {
+          console.error('Error fetching NCAAF player stats:', fetchError)
+          setError('Failed to load player stats')
+          setPlayerStats(emptyPlayerStats)
+          return
+        }
+
+        if (!data || data.length === 0) {
+          // No data available - show empty state
+          setPlayerStats(emptyPlayerStats)
+          return
+        }
+
+        // Transform database data into display format
+        // Group by position category
+        const passing: PlayerStatRow[] = []
+        const rushing: PlayerStatRow[] = []
+        const receiving: PlayerStatRow[] = []
+        const defense: PlayerStatRow[] = []
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        data.forEach((player: any, idx: number) => {
+          const stats = player.stats as Record<string, number> || {}
+          const baseRow: PlayerStatRow = {
+            rank: idx + 1,
+            name: player.player_name || 'Unknown',
+            team: player.team || 'Unknown',
+            pos: player.position || 'Unknown',
+            conf: stats.conference?.toString() || 'Unknown',
+            gp: stats.games_played || 0,
+            trend: 'neutral' as const,
+          }
+
+          // Categorize by position
+          const pos = (player.position || '').toUpperCase()
+          if (pos === 'QB') {
+            passing.push({
+              ...baseRow,
+              cmp: stats.completions || 0,
+              att: stats.pass_attempts || 0,
+              pct: stats.completion_pct || 0,
+              yds: stats.pass_yards || 0,
+              td: stats.pass_td || 0,
+              int: stats.interceptions || 0,
+              rtg: stats.passer_rating || 0,
+              ypa: stats.yards_per_attempt || 0,
+            })
+          } else if (pos === 'RB' || pos === 'FB') {
+            rushing.push({
+              ...baseRow,
+              att: stats.rush_attempts || 0,
+              yds: stats.rush_yards || 0,
+              avg: stats.yards_per_carry || 0,
+              td: stats.rush_td || 0,
+              lng: stats.longest_rush || 0,
+              ypc: stats.rush_yards_per_game || 0,
+              fumbles: stats.fumbles || 0,
+            })
+          } else if (pos === 'WR' || pos === 'TE') {
+            receiving.push({
+              ...baseRow,
+              rec: stats.receptions || 0,
+              tgt: stats.targets || 0,
+              yds: stats.rec_yards || 0,
+              avg: stats.yards_per_reception || 0,
+              td: stats.rec_td || 0,
+              lng: stats.longest_reception || 0,
+              ypr: stats.rec_yards_per_game || 0,
+              ctchPct: stats.catch_pct || 0,
+            })
+          } else if (['LB', 'DT', 'DE', 'CB', 'S', 'EDGE', 'DL', 'DB'].includes(pos)) {
+            defense.push({
+              ...baseRow,
+              tackles: stats.tackles || 0,
+              tfl: stats.tackles_for_loss || 0,
+              sacks: stats.sacks || 0,
+              int: stats.interceptions || 0,
+              ff: stats.forced_fumbles || 0,
+              pd: stats.passes_defended || 0,
+              solo: stats.solo_tackles || 0,
+            })
+          }
+        })
+
+        // Sort and rank each category
+        const sortAndRank = (arr: PlayerStatRow[]) => {
+          return arr.map((p, i) => ({ ...p, rank: i + 1 }))
+        }
+
+        setPlayerStats({
+          passing: sortAndRank(passing),
+          rushing: sortAndRank(rushing),
+          receiving: sortAndRank(receiving),
+          defense: sortAndRank(defense),
+        })
+      } catch (err) {
+        console.error('Error loading player stats:', err)
+        setError('Failed to load player stats')
+        setPlayerStats(emptyPlayerStats)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchPlayerStats()
+  }, [])
 
   const currentStats = playerStats[category]
   const filteredStats = currentStats.filter(player => {
@@ -108,10 +236,27 @@ export default function NCAAFPlayersPage() {
             </div>
             
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/20">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span className="text-green-400 text-sm font-medium">Live Data</span>
-              </div>
+              {loading ? (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                  <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
+                  <span className="text-blue-400 text-sm font-medium">Loading...</span>
+                </div>
+              ) : error ? (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20">
+                  <AlertCircle className="w-4 h-4 text-red-400" />
+                  <span className="text-red-400 text-sm font-medium">Error</span>
+                </div>
+              ) : currentStats.length > 0 ? (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/20">
+                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                  <span className="text-green-400 text-sm font-medium">Data Loaded</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                  <AlertCircle className="w-4 h-4 text-amber-400" />
+                  <span className="text-amber-400 text-sm font-medium">No Data</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -169,6 +314,25 @@ export default function NCAAFPlayersPage() {
         </div>
 
         {/* Stats Table */}
+        {loading ? (
+          <div className="rounded-2xl border border-white/10 p-12 text-center" style={{ background: '#0c0c14' }}>
+            <Loader2 className="w-12 h-12 text-amber-400 animate-spin mx-auto mb-4" />
+            <p className="text-gray-400">Loading player statistics...</p>
+          </div>
+        ) : error ? (
+          <div className="rounded-2xl border border-red-500/30 p-12 text-center" style={{ background: '#0c0c14' }}>
+            <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+            <p className="text-red-400 font-semibold mb-2">Failed to load data</p>
+            <p className="text-gray-500 text-sm">{error}</p>
+          </div>
+        ) : filteredStats.length === 0 ? (
+          <div className="rounded-2xl border border-white/10 p-12 text-center" style={{ background: '#0c0c14' }}>
+            <AlertCircle className="w-12 h-12 text-amber-400/50 mx-auto mb-4" />
+            <p className="text-white font-semibold mb-2">No Player Data Available</p>
+            <p className="text-gray-500 text-sm mb-4">NCAAF player statistics have not been populated yet.</p>
+            <p className="text-gray-600 text-xs">Data will be available once the database is populated with real player stats.</p>
+          </div>
+        ) : (
         <div className="rounded-2xl border border-white/10 overflow-hidden" style={{ background: '#0c0c14' }}>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -326,28 +490,17 @@ export default function NCAAFPlayersPage() {
             </table>
           </div>
         </div>
+        )}
 
-        {/* Heisman Watch Widget */}
+        {/* Heisman Watch Widget - Data comes from database when available */}
         <div className="mt-8 rounded-2xl border border-amber-500/30 p-6" style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(217,119,6,0.05) 100%)' }}>
           <div className="flex items-center gap-3 mb-4">
             <Award className="w-6 h-6 text-amber-400" />
             <h3 className="text-xl font-bold text-white">Heisman Trophy Watch</h3>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {[
-              { name: 'Travis Hunter', team: 'Colorado', pos: 'WR/CB', odds: '-350' },
-              { name: 'Ashton Jeanty', team: 'Boise State', pos: 'RB', odds: '+350' },
-              { name: 'Cam Ward', team: 'Miami', pos: 'QB', odds: '+1200' },
-              { name: 'Dillon Gabriel', team: 'Oregon', pos: 'QB', odds: '+2000' },
-              { name: 'Shedeur Sanders', team: 'Colorado', pos: 'QB', odds: '+2500' },
-            ].map((player, idx) => (
-              <div key={player.name} className="p-4 rounded-xl bg-black/30 border border-white/10">
-                <div className="text-2xl font-black text-amber-400 mb-1">#{idx + 1}</div>
-                <div className="font-semibold text-white text-sm">{player.name}</div>
-                <div className="text-xs text-gray-500">{player.team} • {player.pos}</div>
-                <div className="mt-2 text-xs font-bold text-green-400">{player.odds}</div>
-              </div>
-            ))}
+          <div className="text-center py-8">
+            <p className="text-gray-400 mb-2">Heisman odds data not available</p>
+            <p className="text-gray-600 text-xs">Data will be displayed once populated from the database.</p>
           </div>
         </div>
       </div>

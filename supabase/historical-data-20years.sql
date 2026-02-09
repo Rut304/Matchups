@@ -457,47 +457,16 @@ INSERT INTO public.historical_prediction_markets (
  '[{"date": "2023-04-01", "price": 0.05}, {"date": "2023-09-01", "price": 0.15}, {"date": "2023-11-01", "price": 1.00}]');
 
 -- ===========================================
--- SAMPLE HISTORICAL GAMES (Representative Years)
--- Delete existing sample games and insert fresh 20-year data
+-- NOTE: historical_games data is now populated via ESPN import script
+-- (scripts/import-historical-fast.ts) which fetches real game data.
+-- 
+-- The ESPN import provides: sport, season, season_type, week, game_date,
+-- team names/abbrs, scores, estimated spreads (based on margin regression)
+-- 
+-- For OPENING/CLOSING LINES needed for CLV tracking, see:
+-- - scripts/import-historical-odds.ts (uses Action Network/The Odds API)
+-- - Real-time odds snapshots via /api/cron/refresh-odds
 -- ===========================================
-
--- Clean up existing sample historical games from key years
-DELETE FROM public.historical_games 
-WHERE (season_year IN (2006, 2010, 2015, 2016, 2020, 2023) AND season_type = 'postseason')
-   OR (season_year = 2006 AND season_type = 'regular' AND week_number = 10);
-
--- Add representative games from key years
-INSERT INTO public.historical_games (
-  sport, season_year, season_type, week_number, home_team, away_team, 
-  home_team_abbrev, away_team_abbrev, game_date, home_score, away_score,
-  open_spread, open_total, close_spread, close_total,
-  spread_result, total_result, home_ml_result,
-  public_spread_home_pct, public_money_home_pct, primetime_game, divisional_game
-) VALUES 
--- 2006 NFL Season Highlights
-('NFL', 2006, 'postseason', NULL, 'Indianapolis Colts', 'Chicago Bears', 'IND', 'CHI', '2007-02-04 18:00:00', 29, 17, -7, 47, -7, 47, 'home_cover', 'under', 'win', 72, 78, TRUE, FALSE),
-('NFL', 2006, 'regular', 10, 'New England Patriots', 'Indianapolis Colts', 'NE', 'IND', '2006-11-05 20:15:00', 20, 27, -3, 48, -3.5, 47, 'away_cover', 'under', 'loss', 65, 70, TRUE, FALSE),
-
--- 2010 NFL Season Highlights
-('NFL', 2010, 'postseason', NULL, 'Green Bay Packers', 'Pittsburgh Steelers', 'GB', 'PIT', '2011-02-06 18:00:00', 31, 25, -2.5, 45, -3, 45.5, 'home_cover', 'over', 'win', 55, 52, TRUE, FALSE),
-
--- 2015 NBA Finals
-('NBA', 2015, 'postseason', NULL, 'Cleveland Cavaliers', 'Golden State Warriors', 'CLE', 'GSW', '2015-06-16 21:00:00', 97, 105, 2.5, 198, 2, 197.5, 'away_cover', 'over', 'loss', 62, 58, TRUE, FALSE),
-
--- 2016 NBA Finals Game 7
-('NBA', 2016, 'postseason', NULL, 'Golden State Warriors', 'Cleveland Cavaliers', 'GSW', 'CLE', '2016-06-19 20:00:00', 89, 93, -6, 209, -5.5, 208, 'away_cover', 'under', 'loss', 75, 82, TRUE, FALSE),
-
--- 2016 MLB World Series Game 7
-('MLB', 2016, 'postseason', NULL, 'Cleveland Indians', 'Chicago Cubs', 'CLE', 'CHC', '2016-11-02 20:00:00', 7, 8, -1.5, 7.5, -1.5, 7, 'away_cover', 'over', 'loss', 48, 45, TRUE, FALSE),
-
--- 2017 Super Bowl LI
-('NFL', 2016, 'postseason', NULL, 'Houston Texans', 'New England Patriots', 'HOU', 'NE', '2017-02-05 18:30:00', 28, 34, 3, 57, 3, 58.5, 'away_cover', 'over', 'loss', 42, 38, TRUE, FALSE),
-
--- 2021 Super Bowl LV
-('NFL', 2020, 'postseason', NULL, 'Tampa Bay Buccaneers', 'Kansas City Chiefs', 'TB', 'KC', '2021-02-07 18:30:00', 31, 9, 3, 56.5, 3, 55, 'home_cover', 'under', 'win', 48, 45, TRUE, FALSE),
-
--- 2023 NBA Finals
-('NBA', 2023, 'postseason', NULL, 'Denver Nuggets', 'Miami Heat', 'DEN', 'MIA', '2023-06-12 20:30:00', 94, 89, -8.5, 212, -9, 211.5, 'away_cover', 'under', 'win', 78, 82, TRUE, FALSE);
 
 -- ===========================================
 -- ADD HISTORICAL EDGE PICKS (20 Years)
