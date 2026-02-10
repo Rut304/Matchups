@@ -50,6 +50,10 @@
       "schedule": "30 4 * * *"
     },
     {
+      "path": "/api/cron/daily-expert-scraper",
+      "schedule": "0 8 * * *"
+    },
+    {
       "path": "/api/cron/odds-snapshot",
       "schedule": "*/30 10-23,0-6 * * *"
     },

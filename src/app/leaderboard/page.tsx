@@ -32,12 +32,13 @@ import {
   Database,
   AlertTriangle
 } from 'lucide-react'
-import { getLeaderboardEntries, capperStats, getHallOfShame, getHallOfGlory, type LeaderboardEntry, type CapperAppearance } from '@/lib/leaderboard-data'
+import { type LeaderboardEntry } from '@/lib/services/leaderboard-service'
 import { useLeaderboard } from '@/hooks/useLeaderboard'
 import { predictionCappers, analyticsSummary, MarketType } from '@/lib/prediction-market-data'
 import { BetType, Sport } from '@/types/leaderboard'
 import { getCapperSummary, type CapperAnalyticsSummary } from '@/lib/analytics-data'
 import { QuickShareButton } from '@/components/share/ShareExpertButton'
+import { ESPNExpertsPanel } from '@/components/experts/ESPNExpertsPanel'
 
 // Top-level mode: Sports betting vs Prediction Markets
 type EdgeMode = 'sports' | 'markets'
@@ -104,9 +105,9 @@ export default function LeaderboardPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const ITEMS_PER_PAGE = 25
   
-  // Get Hall of Shame/Glory data
-  const hallOfShame = useMemo(() => getHallOfShame(), [])
-  const hallOfGlory = useMemo(() => getHallOfGlory(), [])
+  // Get Hall of Shame/Glory data - TODO: fetch from database
+  const hallOfShame: any[] = useMemo(() => [], [])
+  const hallOfGlory: any[] = useMemo(() => [], [])
   
   // Map time period to days for filtering - MUST be before useLeaderboard hook
   const filterDays = useMemo(() => {
@@ -124,14 +125,8 @@ export default function LeaderboardPage() {
   })
   
   const displayEntries = useMemo(() => {
-    // Use hook entries if available, otherwise fallback to mock data
-    let entries = hookLoading ? [] : (hookEntries.length > 0 ? hookEntries : getLeaderboardEntries({ 
-      capperType: activeTab === 'fade' || activeTab === 'all' ? 'all' : activeTab,
-      betType: betTypeFilter === 'all' ? undefined : betTypeFilter,
-      sport: sportFilter === 'all' ? undefined : sportFilter,
-      sortBy,
-      daysBack: filterDays
-    }))
+    // NO MOCK DATA - use real data only from Supabase
+    let entries = hookLoading ? [] : hookEntries
     
     // Filter by network if set
     if (networkFilter !== 'all') {
@@ -163,22 +158,22 @@ export default function LeaderboardPage() {
     currentPage * ITEMS_PER_PAGE
   )
 
-  // Computed stats - SHOW ALL DATA
-  const allEntries = getLeaderboardEntries({ capperType: 'all' })
+  // Computed stats from real data only
+  const allEntries = hookEntries || []
   const hotStreaks = allEntries
-    .filter(c => c.streak.startsWith('W') && parseInt(c.streak.slice(1)) >= 3)
-    .sort((a, b) => parseInt(b.streak.slice(1)) - parseInt(a.streak.slice(1))) // No slice - show all
+    .filter(c => c.streak?.startsWith('W') && parseInt(c.streak.slice(1)) >= 3)
+    .sort((a, b) => parseInt(b.streak?.slice(1) || '0') - parseInt(a.streak?.slice(1) || '0'))
   
   const coldStreaks = allEntries
-    .filter(c => c.streak.startsWith('L') && parseInt(c.streak.slice(1)) >= 3)
-    .sort((a, b) => parseInt(b.streak.slice(1)) - parseInt(a.streak.slice(1))) // No slice - show all
+    .filter(c => c.streak?.startsWith('L') && parseInt(c.streak.slice(1)) >= 3)
+    .sort((a, b) => parseInt(b.streak?.slice(1) || '0') - parseInt(a.streak?.slice(1) || '0'))
   
-  const topByUnits = [...allEntries].sort((a, b) => b.units - a.units) // No slice - show all
-  const worstByUnits = [...allEntries].sort((a, b) => a.units - b.units) // No slice - show all
+  const topByUnits = [...allEntries].sort((a, b) => b.units - a.units)
+  const worstByUnits = [...allEntries].sort((a, b) => a.units - b.units)
 
   // Calculate overall stats
   const totalCappers = allEntries.length
-  const totalPicks = Object.values(capperStats).reduce((acc, s) => acc + s.totalPicks, 0)
+  const totalPicks = allEntries.reduce((acc, e) => acc + (e.totalPicks || 0), 0)
   const avgCelebrityWinPct = allEntries
     .filter(e => e.capperType === 'celebrity')
     .reduce((acc, e) => acc + e.winPct, 0) / allEntries.filter(e => e.capperType === 'celebrity').length || 0
@@ -322,6 +317,17 @@ export default function LeaderboardPage() {
 
       {/* MAIN CONTENT */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        
+        {/* FEATURED: Real ESPN Expert Data */}
+        <div className="mb-8">
+          <div className="text-center mb-4">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold" 
+                  style={{ background: 'rgba(255,0,0,0.1)', border: '1px solid rgba(255,0,0,0.3)', color: '#FF4444' }}>
+              🔴 LIVE FROM ESPN
+            </span>
+          </div>
+          <ESPNExpertsPanel sport="nfl" />
+        </div>
         
         {/* TOP-LEVEL MODE SWITCHER: Sports vs Markets */}
         <div className="flex items-center justify-center mb-6">

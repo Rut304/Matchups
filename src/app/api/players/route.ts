@@ -77,6 +77,17 @@ export async function GET(request: Request) {
     })
 
     if (!res.ok) {
+      // Don't throw on 404 - some sports endpoints don't exist or are seasonal
+      if (res.status === 404) {
+        console.warn(`[Players API] ESPN returned 404 for ${sport} - endpoint may not exist`)
+        return NextResponse.json({
+          sport,
+          players: [],
+          count: 0,
+          message: `Player data not available for ${sport}`,
+          source: 'espn-404'
+        })
+      }
       throw new Error(`ESPN API returned ${res.status}`)
     }
 

@@ -509,35 +509,35 @@ export async function getRealLineMovements(sport?: Sport): Promise<RealLineMovem
   try {
     const supabase = await createClient()
     
-    let query = supabase
-      .from('odds')
-      .select('*')
-      .order('updated_at', { ascending: false })
+    // Query odds_history for actual line movements instead of odds table
+    // The odds table doesn't have the columns we need (sport, teams, updated_at)
+    const { data, error } = await supabase
+      .from('odds_history')
+      .select('id, game_id, line_type, old_value, new_value, recorded_at')
+      .order('recorded_at', { ascending: false })
       .limit(50)
     
-    if (sport) {
-      query = query.eq('sport', sport)
+    if (error) {
+      // Gracefully handle if table doesn't exist or has different schema
+      console.warn('[LineMovements] odds_history query failed, returning empty:', error.message)
+      return []
     }
     
-    const { data, error } = await query
-    
-    if (error) throw error
-    
-    const oddsRecords = (data || []) as OddsRecord[]
-    
-    return oddsRecords.map((o: OddsRecord) => ({
-      id: o.id,
-      gameId: o.event_id,
-      sport: o.sport as Sport,
-      teams: `${o.away_team} @ ${o.home_team}`,
-      openLine: o.open_spread || o.spread || 0,
-      currentLine: o.spread || 0,
-      movement: (o.spread || 0) - (o.open_spread || o.spread || 0),
+    // Transform odds_history records to RealLineMovement format
+    return (data || []).map((record: { id: string; game_id: string; line_type: string; old_value: number | null; new_value: number | null; recorded_at: string }) => ({
+      id: record.id,
+      gameId: record.game_id || '',
+      sport: (sport || 'NFL') as Sport,
+      teams: 'TBD vs TBD', // Would need to join with games table for team names
+      openLine: record.old_value || 0,
+      currentLine: record.new_value || 0,
+      movement: (record.new_value || 0) - (record.old_value || 0),
       type: 'public' as const,
-      timestamp: o.updated_at,
+      timestamp: record.recorded_at,
     }))
   } catch (error) {
-    console.error('Failed to get line movements:', error)
+    // Silently return empty array - this is a non-critical feature
+    console.warn('[LineMovements] Error fetching line movements')
     return []
   }
 }

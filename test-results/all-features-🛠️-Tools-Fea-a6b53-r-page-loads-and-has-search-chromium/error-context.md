@@ -1,0 +1,211 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - link "Matchups 100% FREE" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img [ref=e7]
+        - generic [ref=e9]:
+          - generic [ref=e10]: Matchups
+          - generic [ref=e11]: 100% FREE
+      - generic [ref=e12]:
+        - button "Sports" [ref=e14]:
+          - text: Sports
+          - img [ref=e15]
+        - button "Markets" [ref=e18]:
+          - img [ref=e19]
+          - text: Markets
+          - img [ref=e21]
+        - button "Tools" [ref=e24]:
+          - text: Tools
+          - img [ref=e25]
+        - link "Scores" [ref=e27] [cursor=pointer]:
+          - /url: /scores
+          - img [ref=e28]
+          - text: Scores
+        - link "Check the \"Experts\"" [ref=e30] [cursor=pointer]:
+          - /url: /leaderboard
+          - img [ref=e31]
+          - generic [ref=e37]: Check the
+          - generic [ref=e38]: "\"Experts\""
+      - generic [ref=e39]:
+        - button "Search... K" [ref=e40]:
+          - img [ref=e41]
+          - generic [ref=e44]: Search...
+          - generic [ref=e45]:
+            - img [ref=e46]
+            - text: K
+        - link "The Edge" [ref=e48] [cursor=pointer]:
+          - /url: /markets/edge
+          - img [ref=e49]
+          - generic [ref=e53]: The Edge
+        - link "Sus Plays" [ref=e54] [cursor=pointer]:
+          - /url: /sus
+          - img [ref=e55]
+          - generic [ref=e57]: Sus Plays
+        - link "Sign In" [ref=e58] [cursor=pointer]:
+          - /url: /auth
+          - img [ref=e59]
+          - generic [ref=e62]: Sign In
+  - main [ref=e64]:
+    - generic [ref=e65]:
+      - generic [ref=e69]:
+        - link "Go back" [ref=e70] [cursor=pointer]:
+          - /url: /
+          - img [ref=e71]
+        - generic [ref=e73]:
+          - img [ref=e75]
+          - generic [ref=e78]:
+            - heading "Trend Finder" [level=1] [ref=e79]
+            - paragraph [ref=e80]: AI-Powered Sports Analytics
+      - generic [ref=e82]:
+        - generic [ref=e83]:
+          - generic [ref=e84]:
+            - img [ref=e85]
+            - textbox "Ask any sports trend question... (e.g., 'What's the ATS record for NFL underdogs in playoff games?')" [ref=e88]
+          - button "Search" [disabled] [ref=e89]:
+            - img [ref=e90]
+            - text: Search
+        - generic [ref=e93]:
+          - generic [ref=e94]:
+            - generic [ref=e95]: Enter
+            - text: to send
+          - generic [ref=e96]:
+            - img [ref=e97]
+            - text: Powered by Gemini AI
+      - generic [ref=e101]:
+        - generic [ref=e102]:
+          - img [ref=e104]
+          - heading "Ask Any Sports Trend Question" [level=2] [ref=e108]
+          - paragraph [ref=e109]: Query historical sports data with natural language. Find betting edges, analyze patterns, and discover trends across NFL, NBA, MLB, NHL, and college sports.
+        - generic [ref=e110]:
+          - generic [ref=e111]:
+            - img [ref=e112]
+            - generic [ref=e115]: Historical Trends
+            - generic [ref=e116]: ATS records, O/U patterns, situational analysis
+          - generic [ref=e117]:
+            - img [ref=e118]
+            - generic [ref=e122]: System Building
+            - generic [ref=e123]: Find profitable betting angles and edges
+          - generic [ref=e124]:
+            - img [ref=e125]
+            - generic [ref=e127]: Statistical Analysis
+            - generic [ref=e128]: Deep dive into team and player performance
+        - generic [ref=e129]:
+          - generic [ref=e130]:
+            - img [ref=e131]
+            - generic [ref=e133]: "Try asking something like:"
+          - generic [ref=e134]:
+            - generic [ref=e135]: NFL Playoffs
+            - generic [ref=e136]:
+              - button "How many games in the NFL playoffs since 2000 have both teams scored 1 rushing TD and 1 passing TD in both halves?" [ref=e137]:
+                - generic [ref=e138]:
+                  - generic [ref=e139]: How many games in the NFL playoffs since 2000 have both teams scored 1 rushing TD and 1 passing TD in both halves?
+                  - img [ref=e140]
+              - button "What's the ATS record of underdogs by 7+ points in NFL playoff games since 2010?" [ref=e142]:
+                - generic [ref=e143]:
+                  - generic [ref=e144]: What's the ATS record of underdogs by 7+ points in NFL playoff games since 2010?
+                  - img [ref=e145]
+              - button "How often do NFL playoff games go over the total when played in cold weather stadiums?" [ref=e147]:
+                - generic [ref=e148]:
+                  - generic [ref=e149]: How often do NFL playoff games go over the total when played in cold weather stadiums?
+                  - img [ref=e150]
+          - generic [ref=e152]:
+            - generic [ref=e153]: NBA Trends
+            - generic [ref=e154]:
+              - button "What's the over/under record for Game 7s in NBA playoff series since 2000?" [ref=e155]:
+                - generic [ref=e156]:
+                  - generic [ref=e157]: What's the over/under record for Game 7s in NBA playoff series since 2000?
+                  - img [ref=e158]
+              - button "How do teams perform ATS after a loss by 20+ points in the playoffs?" [ref=e160]:
+                - generic [ref=e161]:
+                  - generic [ref=e162]: How do teams perform ATS after a loss by 20+ points in the playoffs?
+                  - img [ref=e163]
+              - button "What's the home team's winning percentage in NBA Finals games since 2010?" [ref=e165]:
+                - generic [ref=e166]:
+                  - generic [ref=e167]: What's the home team's winning percentage in NBA Finals games since 2010?
+                  - img [ref=e168]
+          - generic [ref=e170]:
+            - generic [ref=e171]: College Sports
+            - generic [ref=e172]:
+              - button "How do ranked teams perform ATS as road favorites in college football?" [ref=e173]:
+                - generic [ref=e174]:
+                  - generic [ref=e175]: How do ranked teams perform ATS as road favorites in college football?
+                  - img [ref=e176]
+              - button "What's the upset rate in March Madness first round games (12 vs 5 seeds)?" [ref=e178]:
+                - generic [ref=e179]:
+                  - generic [ref=e180]: What's the upset rate in March Madness first round games (12 vs 5 seeds)?
+                  - img [ref=e181]
+              - button "How often does the team that scores first win in college football bowl games?" [ref=e183]:
+                - generic [ref=e184]:
+                  - generic [ref=e185]: How often does the team that scores first win in college football bowl games?
+                  - img [ref=e186]
+          - generic [ref=e188]:
+            - generic [ref=e189]: System Queries
+            - generic [ref=e190]:
+              - button "Find games where the favorite was -3 to -7, the total was under 45, and both teams had losing records" [ref=e191]:
+                - generic [ref=e192]:
+                  - generic [ref=e193]: Find games where the favorite was -3 to -7, the total was under 45, and both teams had losing records
+                  - img [ref=e194]
+              - button "What's the ATS record for teams on 3+ game losing streaks facing teams on 3+ game winning streaks?" [ref=e196]:
+                - generic [ref=e197]:
+                  - generic [ref=e198]: What's the ATS record for teams on 3+ game losing streaks facing teams on 3+ game winning streaks?
+                  - img [ref=e199]
+              - button "How do primetime NFL games (SNF/MNF) compare to early Sunday games for overs?" [ref=e201]:
+                - generic [ref=e202]:
+                  - generic [ref=e203]: How do primetime NFL games (SNF/MNF) compare to early Sunday games for overs?
+                  - img [ref=e204]
+  - contentinfo [ref=e207]:
+    - generic [ref=e208]:
+      - generic [ref=e209]:
+        - generic [ref=e210]:
+          - heading "Sports" [level=4] [ref=e211]
+          - generic [ref=e212]:
+            - link "🏈 NFL" [ref=e213] [cursor=pointer]:
+              - /url: /nfl
+            - link "🏀 NBA" [ref=e214] [cursor=pointer]:
+              - /url: /nba
+            - link "🏒 NHL" [ref=e215] [cursor=pointer]:
+              - /url: /nhl
+            - link "⚾ MLB" [ref=e216] [cursor=pointer]:
+              - /url: /mlb
+        - generic [ref=e217]:
+          - heading "Features" [level=4] [ref=e218]
+          - generic [ref=e219]:
+            - link "📈 Markets" [ref=e220] [cursor=pointer]:
+              - /url: /markets
+            - link "📊 Trends" [ref=e221] [cursor=pointer]:
+              - /url: /trends
+            - link "🧾 Expert Tracker" [ref=e222] [cursor=pointer]:
+              - /url: /leaderboard
+        - generic [ref=e223]:
+          - heading "Company" [level=4] [ref=e224]
+          - generic [ref=e225]:
+            - link "About" [ref=e226] [cursor=pointer]:
+              - /url: "#"
+            - link "Contact" [ref=e227] [cursor=pointer]:
+              - /url: "#"
+            - link "Privacy" [ref=e228] [cursor=pointer]:
+              - /url: "#"
+            - link "Terms" [ref=e229] [cursor=pointer]:
+              - /url: "#"
+        - generic [ref=e230]:
+          - heading "Tools" [level=4] [ref=e231]
+          - generic [ref=e232]:
+            - link "🧮 Calculators" [ref=e233] [cursor=pointer]:
+              - /url: /calculators
+            - link "🔔 Alerts" [ref=e234] [cursor=pointer]:
+              - /url: /alerts
+            - link "📄 Documentation" [ref=e235] [cursor=pointer]:
+              - /url: /admin/docs
+      - generic [ref=e236]:
+        - generic [ref=e237]:
+          - generic [ref=e239]: ⚡
+          - generic [ref=e240]: Matchups
+        - paragraph [ref=e241]: © 2026 Matchups. Sports betting analysis & trends.
+  - button "Open Next.js Dev Tools" [ref=e247] [cursor=pointer]:
+    - img [ref=e248]
+  - alert [ref=e251]
+```

@@ -126,7 +126,10 @@ export async function GET(request: Request) {
       
       // Get markets from first available book (book 71 is often DraftKings, 75 is FanDuel)
       const markets = game.markets || {}
-      const bookMarkets = markets['71']?.event || markets['75']?.event || Object.values(markets)[0]?.event || {}
+      const marketEntry = (markets as Record<string, { event?: Record<string, MarketData[]> }>)['71'] || 
+                          (markets as Record<string, { event?: Record<string, MarketData[]> }>)['75'] || 
+                          Object.values(markets)[0] as { event?: Record<string, MarketData[]> } | undefined
+      const bookMarkets = marketEntry?.event || {} as Record<string, MarketData[]>
       
       const consensusGame: ConsensusGame = {
         gameId: String(game.id),

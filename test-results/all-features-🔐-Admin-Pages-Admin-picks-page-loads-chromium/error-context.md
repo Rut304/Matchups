@@ -1,0 +1,114 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - link "Matchups 100% FREE" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img [ref=e7]
+        - generic [ref=e9]:
+          - generic [ref=e10]: Matchups
+          - generic [ref=e11]: 100% FREE
+      - generic [ref=e12]:
+        - button "Sports" [ref=e14]:
+          - text: Sports
+          - img [ref=e15]
+        - button "Markets" [ref=e18]:
+          - img [ref=e19]
+          - text: Markets
+          - img [ref=e21]
+        - button "Tools" [ref=e24]:
+          - text: Tools
+          - img [ref=e25]
+        - link "Scores" [ref=e27] [cursor=pointer]:
+          - /url: /scores
+          - img [ref=e28]
+          - text: Scores
+        - link "Check the \"Experts\"" [ref=e30] [cursor=pointer]:
+          - /url: /leaderboard
+          - img [ref=e31]
+          - generic [ref=e37]: Check the
+          - generic [ref=e38]: "\"Experts\""
+      - generic [ref=e39]:
+        - button "Search... K" [ref=e40]:
+          - img [ref=e41]
+          - generic [ref=e44]: Search...
+          - generic [ref=e45]:
+            - img [ref=e46]
+            - text: K
+        - link "The Edge" [ref=e48] [cursor=pointer]:
+          - /url: /markets/edge
+          - img [ref=e49]
+          - generic [ref=e53]: The Edge
+        - link "Sus Plays" [ref=e54] [cursor=pointer]:
+          - /url: /sus
+          - img [ref=e55]
+          - generic [ref=e57]: Sus Plays
+        - link "Sign In" [ref=e58] [cursor=pointer]:
+          - /url: /auth
+          - img [ref=e59]
+          - generic [ref=e62]: Sign In
+  - main [ref=e64]:
+    - generic [ref=e66]:
+      - img [ref=e68]
+      - heading "Authentication Required" [level=2] [ref=e71]
+      - paragraph [ref=e72]: Please sign in to access the admin area.
+      - link "Sign In" [ref=e73] [cursor=pointer]:
+        - /url: /auth
+      - link "Back to Home" [ref=e74] [cursor=pointer]:
+        - /url: /
+        - img [ref=e75]
+        - text: Back to Home
+  - contentinfo [ref=e78]:
+    - generic [ref=e79]:
+      - generic [ref=e80]:
+        - generic [ref=e81]:
+          - heading "Sports" [level=4] [ref=e82]
+          - generic [ref=e83]:
+            - link "🏈 NFL" [ref=e84] [cursor=pointer]:
+              - /url: /nfl
+            - link "🏀 NBA" [ref=e85] [cursor=pointer]:
+              - /url: /nba
+            - link "🏒 NHL" [ref=e86] [cursor=pointer]:
+              - /url: /nhl
+            - link "⚾ MLB" [ref=e87] [cursor=pointer]:
+              - /url: /mlb
+        - generic [ref=e88]:
+          - heading "Features" [level=4] [ref=e89]
+          - generic [ref=e90]:
+            - link "📈 Markets" [ref=e91] [cursor=pointer]:
+              - /url: /markets
+            - link "📊 Trends" [ref=e92] [cursor=pointer]:
+              - /url: /trends
+            - link "🧾 Expert Tracker" [ref=e93] [cursor=pointer]:
+              - /url: /leaderboard
+        - generic [ref=e94]:
+          - heading "Company" [level=4] [ref=e95]
+          - generic [ref=e96]:
+            - link "About" [ref=e97] [cursor=pointer]:
+              - /url: "#"
+            - link "Contact" [ref=e98] [cursor=pointer]:
+              - /url: "#"
+            - link "Privacy" [ref=e99] [cursor=pointer]:
+              - /url: "#"
+            - link "Terms" [ref=e100] [cursor=pointer]:
+              - /url: "#"
+        - generic [ref=e101]:
+          - heading "Tools" [level=4] [ref=e102]
+          - generic [ref=e103]:
+            - link "🧮 Calculators" [ref=e104] [cursor=pointer]:
+              - /url: /calculators
+            - link "🔔 Alerts" [ref=e105] [cursor=pointer]:
+              - /url: /alerts
+            - link "📄 Documentation" [ref=e106] [cursor=pointer]:
+              - /url: /admin/docs
+      - generic [ref=e107]:
+        - generic [ref=e108]:
+          - generic [ref=e110]: ⚡
+          - generic [ref=e111]: Matchups
+        - paragraph [ref=e112]: © 2026 Matchups. Sports betting analysis & trends.
+  - button "Open Next.js Dev Tools" [ref=e118] [cursor=pointer]:
+    - img [ref=e119]
+  - alert [ref=e122]
+```

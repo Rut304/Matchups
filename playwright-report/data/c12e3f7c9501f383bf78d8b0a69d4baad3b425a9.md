@@ -1,0 +1,150 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - link "Matchups 100% FREE" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img [ref=e7]
+        - generic [ref=e9]:
+          - generic [ref=e10]: Matchups
+          - generic [ref=e11]: 100% FREE
+      - generic [ref=e12]:
+        - button "Sports" [ref=e14]:
+          - text: Sports
+          - img [ref=e15]
+        - button "Markets" [ref=e18]:
+          - img [ref=e19]
+          - text: Markets
+          - img [ref=e21]
+        - button "Tools" [ref=e24]:
+          - text: Tools
+          - img [ref=e25]
+        - link "Scores" [ref=e27] [cursor=pointer]:
+          - /url: /scores
+          - img [ref=e28]
+          - text: Scores
+        - link "Check the \"Experts\"" [ref=e30] [cursor=pointer]:
+          - /url: /leaderboard
+          - img [ref=e31]
+          - generic [ref=e37]: Check the
+          - generic [ref=e38]: "\"Experts\""
+      - generic [ref=e39]:
+        - button "Search... K" [ref=e40]:
+          - img [ref=e41]
+          - generic [ref=e44]: Search...
+          - generic [ref=e45]:
+            - img [ref=e46]
+            - text: K
+        - link "The Edge" [ref=e48] [cursor=pointer]:
+          - /url: /markets/edge
+          - img [ref=e49]
+          - generic [ref=e53]: The Edge
+        - link "Sus Plays" [ref=e54] [cursor=pointer]:
+          - /url: /sus
+          - img [ref=e55]
+          - generic [ref=e57]: Sus Plays
+        - link "Sign In" [ref=e58] [cursor=pointer]:
+          - /url: /auth
+          - img [ref=e59]
+          - generic [ref=e62]: Sign In
+  - main [ref=e64]:
+    - main [ref=e65]:
+      - generic [ref=e66]:
+        - generic [ref=e67]:
+          - generic [ref=e68]:
+            - img [ref=e69]
+            - heading "Player Props & Analytics" [level=1] [ref=e74]
+          - paragraph [ref=e75]: Player prop analysis across NFL, NBA, NHL & MLB
+        - generic [ref=e77]:
+          - generic [ref=e78]:
+            - button "🌐 All" [ref=e79]:
+              - generic [ref=e80]: 🌐
+              - text: All
+            - button "🏈 NFL" [ref=e81]:
+              - generic [ref=e82]: 🏈
+              - text: NFL
+            - button "🏀 NBA" [ref=e83]:
+              - generic [ref=e84]: 🏀
+              - text: NBA
+            - button "🏒 NHL" [ref=e85]:
+              - generic [ref=e86]: 🏒
+              - text: NHL
+            - button "⚾ MLB" [ref=e87]:
+              - generic [ref=e88]: ⚾
+              - text: MLB
+          - generic [ref=e89]:
+            - img [ref=e90]
+            - textbox "Search players..." [ref=e93]
+          - button "Hot" [ref=e94]:
+            - img [ref=e95]
+            - text: Hot
+        - generic [ref=e97]:
+          - generic [ref=e99]:
+            - img [ref=e100]
+            - paragraph [ref=e105]: No players found
+            - paragraph [ref=e106]: Try a different sport or search term
+          - generic [ref=e107]:
+            - generic [ref=e108]:
+              - heading "Hot Players" [level=3] [ref=e109]:
+                - img [ref=e110]
+                - text: Hot Players
+              - paragraph [ref=e113]: Loading hot players...
+            - generic [ref=e114]:
+              - heading "Fade Alert" [level=3] [ref=e115]:
+                - img [ref=e116]
+                - text: Fade Alert
+              - paragraph [ref=e130]: No cold players
+  - contentinfo [ref=e132]:
+    - generic [ref=e133]:
+      - generic [ref=e134]:
+        - generic [ref=e135]:
+          - heading "Sports" [level=4] [ref=e136]
+          - generic [ref=e137]:
+            - link "🏈 NFL" [ref=e138] [cursor=pointer]:
+              - /url: /nfl
+            - link "🏀 NBA" [ref=e139] [cursor=pointer]:
+              - /url: /nba
+            - link "🏒 NHL" [ref=e140] [cursor=pointer]:
+              - /url: /nhl
+            - link "⚾ MLB" [ref=e141] [cursor=pointer]:
+              - /url: /mlb
+        - generic [ref=e142]:
+          - heading "Features" [level=4] [ref=e143]
+          - generic [ref=e144]:
+            - link "📈 Markets" [ref=e145] [cursor=pointer]:
+              - /url: /markets
+            - link "📊 Trends" [ref=e146] [cursor=pointer]:
+              - /url: /trends
+            - link "🧾 Expert Tracker" [ref=e147] [cursor=pointer]:
+              - /url: /leaderboard
+        - generic [ref=e148]:
+          - heading "Company" [level=4] [ref=e149]
+          - generic [ref=e150]:
+            - link "About" [ref=e151] [cursor=pointer]:
+              - /url: "#"
+            - link "Contact" [ref=e152] [cursor=pointer]:
+              - /url: "#"
+            - link "Privacy" [ref=e153] [cursor=pointer]:
+              - /url: "#"
+            - link "Terms" [ref=e154] [cursor=pointer]:
+              - /url: "#"
+        - generic [ref=e155]:
+          - heading "Tools" [level=4] [ref=e156]
+          - generic [ref=e157]:
+            - link "🧮 Calculators" [ref=e158] [cursor=pointer]:
+              - /url: /calculators
+            - link "🔔 Alerts" [ref=e159] [cursor=pointer]:
+              - /url: /alerts
+            - link "📄 Documentation" [ref=e160] [cursor=pointer]:
+              - /url: /admin/docs
+      - generic [ref=e161]:
+        - generic [ref=e162]:
+          - generic [ref=e164]: ⚡
+          - generic [ref=e165]: Matchups
+        - paragraph [ref=e166]: © 2026 Matchups. Sports betting analysis & trends.
+  - button "Open Next.js Dev Tools" [ref=e172] [cursor=pointer]:
+    - img [ref=e173]
+  - alert [ref=e176]
+```

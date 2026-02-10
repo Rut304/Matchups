@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { 
@@ -24,25 +24,20 @@ import {
   Info,
   Clock,
   Tv,
-  Shield
+  Shield,
+  Loader2
 } from 'lucide-react'
-import { 
-  getCapperBySlug, 
-  getCapperPicks, 
-  getCapperStatsBySport,
-  getCapperStatsByBetType,
-  capperStats,
-} from '@/lib/leaderboard-data'
-import { BetType, Sport, PickResult } from '@/types/leaderboard'
+import { fetchCapperBySlug, fetchExpertStats, fetchExpertPicks } from '@/lib/services/leaderboard-service'
+import { BetType, Sport, PickResult, Capper } from '@/types/leaderboard'
 
 export default function CapperProfilePage() {
   const params = useParams()
   const slug = params.slug as string
   
-  const capper = getCapperBySlug(slug)
-  const stats = capper ? capperStats[capper.id] : null
-  const statsBySport = capper ? getCapperStatsBySport(capper.id) : []
-  const statsByBetType = capper ? getCapperStatsByBetType(capper.id) : []
+  const [capper, setCapper] = useState<Capper | null>(null)
+  const [stats, setStats] = useState<any | null>(null)
+  const [picks, setPicks] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
   
   // Filters for picks
   const [sportFilter, setSportFilter] = useState<Sport | 'all'>('all')
@@ -51,21 +46,59 @@ export default function CapperProfilePage() {
   const [showAllPicks, setShowAllPicks] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'picks'>('overview')
   
-  const picks = useMemo(() => {
-    if (!capper) return []
-    return getCapperPicks(capper.id, {
-      sport: sportFilter === 'all' ? undefined : sportFilter,
-      betType: betTypeFilter === 'all' ? undefined : betTypeFilter,
-      result: resultFilter === 'all' ? undefined : resultFilter,
-      limit: showAllPicks ? undefined : 20
-    })
-  }, [capper, sportFilter, betTypeFilter, resultFilter, showAllPicks])
+  // Fetch data from Supabase
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true)
+      try {
+        const [capperData, statsData, picksData] = await Promise.all([
+          fetchCapperBySlug(slug),
+          fetchExpertStats(slug),
+          fetchExpertPicks(slug, 50)
+        ])
+        setCapper(capperData)
+        setStats(statsData)
+        setPicks(picksData || [])
+      } catch (error) {
+        console.error('Error loading expert data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadData()
+  }, [slug])
   
-  if (!capper || !stats) {
+  // Stats by sport/bet type - will be computed from picks
+  const statsBySport: any[] = []
+  const statsByBetType: any[] = []
+  
+  // Filter picks
+  const filteredPicks = useMemo(() => {
+    return picks.filter(pick => {
+      if (sportFilter !== 'all' && pick.sport !== sportFilter) return false
+      if (betTypeFilter !== 'all' && pick.bet_type !== betTypeFilter) return false
+      if (resultFilter !== 'all' && pick.status !== resultFilter) return false
+      return true
+    }).slice(0, showAllPicks ? undefined : 20)
+  }, [picks, sportFilter, betTypeFilter, resultFilter, showAllPicks])
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#050508' }}>
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" style={{ color: '#00A8FF' }} />
+          <p style={{ color: '#808090' }}>Loading expert data...</p>
+        </div>
+      </div>
+    )
+  }
+  
+  if (!capper) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: '#050508' }}>
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4" style={{ color: '#FFF' }}>Expert Not Found</h1>
+          <p className="mb-4" style={{ color: '#808090' }}>No data available for this expert yet.</p>
           <Link href="/leaderboard" className="text-sm" style={{ color: '#00A8FF' }}>
             ← Back to Experts
           </Link>
@@ -74,10 +107,28 @@ export default function CapperProfilePage() {
     )
   }
   
-  const isHot = stats.currentStreak.startsWith('W') && parseInt(stats.currentStreak.slice(1)) >= 3
-  const isCold = stats.currentStreak.startsWith('L') && parseInt(stats.currentStreak.slice(1)) >= 3
-  const isProfitable = stats.netUnits > 0
-  const isFadeCandidate = stats.winPercentage < 45
+  // Default stats if not loaded - use consistent property names with any type
+  const expertStats: any = stats || {
+    wins: 0,
+    losses: 0,
+    pushes: 0,
+    units: 0,
+    winPct: 0,
+    roi: 0,
+    currentStreak: 0,
+    longestWinStreak: 0,
+    longestLoseStreak: 0,
+  }
+  
+  // Computed values for display
+  const streakStr = typeof expertStats.currentStreak === 'number' 
+    ? (expertStats.currentStreak > 0 ? `W${expertStats.currentStreak}` : expertStats.currentStreak < 0 ? `L${Math.abs(expertStats.currentStreak)}` : 'N/A')
+    : String(expertStats.currentStreak || 'N/A')
+  
+  const isHot = streakStr.startsWith('W') && parseInt(streakStr.slice(1)) >= 3
+  const isCold = streakStr.startsWith('L') && parseInt(streakStr.slice(1)) >= 3
+  const isProfitable = (expertStats.units || 0) > 0
+  const isFadeCandidate = (expertStats.winPct || 0) < 45
 
   return (
     <div className="min-h-screen" style={{ background: '#050508' }}>
@@ -225,35 +276,33 @@ export default function CapperProfilePage() {
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 mb-8">
               <StatCard 
                 label="Record" 
-                value={`${stats.totalWins}-${stats.totalLosses}`}
-                subValue={stats.totalPushes > 0 ? `${stats.totalPushes} push` : undefined}
+                value={`${expertStats.wins || 0}-${expertStats.losses || 0}`}
+                subValue={(expertStats.pushes || 0) > 0 ? `${expertStats.pushes} push` : undefined}
                 color="#FFF"
               />
               <StatCard 
                 label="Win %" 
-                value={`${stats.winPercentage.toFixed(1)}%`}
-                color={stats.winPercentage >= 55 ? '#00FF88' : stats.winPercentage >= 50 ? '#FFD700' : '#FF4455'}
+                value={`${(expertStats.winPct || 0).toFixed(1)}%`}
+                color={(expertStats.winPct || 0) >= 55 ? '#00FF88' : (expertStats.winPct || 0) >= 50 ? '#FFD700' : '#FF4455'}
               />
               <StatCard 
                 label="Units" 
-                value={`${stats.netUnits > 0 ? '+' : ''}${stats.netUnits.toFixed(1)}`}
-                color={stats.netUnits > 0 ? '#00FF88' : '#FF4455'}
+                value={`${(expertStats.units || 0) > 0 ? '+' : ''}${(expertStats.units || 0).toFixed(1)}`}
+                color={(expertStats.units || 0) > 0 ? '#00FF88' : '#FF4455'}
               />
               <StatCard 
                 label="ROI" 
-                value={`${stats.roiPercentage > 0 ? '+' : ''}${stats.roiPercentage.toFixed(1)}%`}
-                color={stats.roiPercentage > 0 ? '#00FF88' : '#FF4455'}
+                value={`${(expertStats.roi || 0) > 0 ? '+' : ''}${(expertStats.roi || 0).toFixed(1)}%`}
+                color={(expertStats.roi || 0) > 0 ? '#00FF88' : '#FF4455'}
               />
               <StatCard 
                 label="Streak" 
-                value={stats.currentStreak}
-                color={stats.currentStreak.startsWith('W') ? '#00FF88' : '#FF4455'}
+                value={streakStr}
+                color={streakStr.startsWith('W') ? '#00FF88' : '#FF4455'}
               />
               <StatCard 
-                label="Rank" 
-                value={`#${stats.overallRank}`}
-                subValue={stats.rankChange !== 0 ? `${stats.rankChange > 0 ? '↑' : '↓'}${Math.abs(stats.rankChange)}` : undefined}
-                subColor={stats.rankChange > 0 ? '#00FF88' : stats.rankChange < 0 ? '#FF4455' : undefined}
+                label="Picks" 
+                value={`${picks.length}`}
                 color="#FFD700"
               />
             </div>

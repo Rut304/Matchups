@@ -117,6 +117,13 @@ export async function getOdds(
   
   if (!res.ok) {
     const error = await res.text()
+    
+    // Handle quota exhaustion gracefully - don't throw, just return empty
+    if (res.status === 401 && error.includes('OUT_OF_USAGE_CREDITS')) {
+      console.warn('[Odds API] Quota exhausted - returning empty results. Renews monthly.')
+      return []
+    }
+    
     throw new Error(`Odds API error: ${res.status} - ${error}`)
   }
   

@@ -1,0 +1,144 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - link "Matchups 100% FREE" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img [ref=e7]
+        - generic [ref=e9]:
+          - generic [ref=e10]: Matchups
+          - generic [ref=e11]: 100% FREE
+      - generic [ref=e12]:
+        - button "Sports" [ref=e14]:
+          - text: Sports
+          - img [ref=e15]
+        - button "Markets" [ref=e18]:
+          - img [ref=e19]
+          - text: Markets
+          - img [ref=e21]
+        - button "Tools" [ref=e24]:
+          - text: Tools
+          - img [ref=e25]
+        - link "Scores" [ref=e27] [cursor=pointer]:
+          - /url: /scores
+          - img [ref=e28]
+          - text: Scores
+        - link "Check the \"Experts\"" [ref=e30] [cursor=pointer]:
+          - /url: /leaderboard
+          - img [ref=e31]
+          - generic [ref=e37]: Check the
+          - generic [ref=e38]: "\"Experts\""
+      - generic [ref=e39]:
+        - button "Search... K" [ref=e40]:
+          - img [ref=e41]
+          - generic [ref=e44]: Search...
+          - generic [ref=e45]:
+            - img [ref=e46]
+            - text: K
+        - link "The Edge" [ref=e48] [cursor=pointer]:
+          - /url: /markets/edge
+          - img [ref=e49]
+          - generic [ref=e53]: The Edge
+        - link "Sus Plays" [ref=e54] [cursor=pointer]:
+          - /url: /sus
+          - img [ref=e55]
+          - generic [ref=e57]: Sus Plays
+        - link "Sign In" [ref=e58] [cursor=pointer]:
+          - /url: /auth
+          - img [ref=e59]
+          - generic [ref=e62]: Sign In
+  - main [ref=e64]:
+    - main [ref=e65]:
+      - generic [ref=e66]:
+        - generic [ref=e67]:
+          - generic [ref=e68]:
+            - img [ref=e69]
+            - heading "Line Shop" [level=1] [ref=e72]
+            - generic [ref=e73]: Real-Time
+          - paragraph [ref=e74]: Compare odds across sportsbooks to find the best value • Data from The Odds API
+        - generic [ref=e75]:
+          - generic [ref=e76]:
+            - button "NFL" [ref=e77]
+            - button "NBA" [ref=e78]
+            - button "NHL" [ref=e79]
+            - button "MLB" [ref=e80]
+          - generic [ref=e81]:
+            - button "spread" [ref=e82]
+            - button "total" [ref=e83]
+            - button "moneyline" [ref=e84]
+          - button "Refresh odds" [ref=e85]:
+            - img [ref=e86]
+        - generic [ref=e91]:
+          - img [ref=e92]
+          - paragraph [ref=e94]: Failed to fetch odds
+          - paragraph [ref=e95]: Make sure ODDS_API_KEY is configured in environment variables
+        - paragraph [ref=e97]:
+          - strong [ref=e98]: "Data Source:"
+          - text: The Odds API •
+          - strong [ref=e99]: "Refresh Rate:"
+          - text: Every 5 minutes •
+          - strong [ref=e100]: "Books:"
+          - text: FanDuel, DraftKings, BetMGM, Caesars, and more
+  - contentinfo [ref=e102]:
+    - generic [ref=e103]:
+      - generic [ref=e104]:
+        - generic [ref=e105]:
+          - heading "Sports" [level=4] [ref=e106]
+          - generic [ref=e107]:
+            - link "🏈 NFL" [ref=e108] [cursor=pointer]:
+              - /url: /nfl
+            - link "🏀 NBA" [ref=e109] [cursor=pointer]:
+              - /url: /nba
+            - link "🏒 NHL" [ref=e110] [cursor=pointer]:
+              - /url: /nhl
+            - link "⚾ MLB" [ref=e111] [cursor=pointer]:
+              - /url: /mlb
+        - generic [ref=e112]:
+          - heading "Features" [level=4] [ref=e113]
+          - generic [ref=e114]:
+            - link "📈 Markets" [ref=e115] [cursor=pointer]:
+              - /url: /markets
+            - link "📊 Trends" [ref=e116] [cursor=pointer]:
+              - /url: /trends
+            - link "🧾 Expert Tracker" [ref=e117] [cursor=pointer]:
+              - /url: /leaderboard
+        - generic [ref=e118]:
+          - heading "Company" [level=4] [ref=e119]
+          - generic [ref=e120]:
+            - link "About" [ref=e121] [cursor=pointer]:
+              - /url: "#"
+            - link "Contact" [ref=e122] [cursor=pointer]:
+              - /url: "#"
+            - link "Privacy" [ref=e123] [cursor=pointer]:
+              - /url: "#"
+            - link "Terms" [ref=e124] [cursor=pointer]:
+              - /url: "#"
+        - generic [ref=e125]:
+          - heading "Tools" [level=4] [ref=e126]
+          - generic [ref=e127]:
+            - link "🧮 Calculators" [ref=e128] [cursor=pointer]:
+              - /url: /calculators
+            - link "🔔 Alerts" [ref=e129] [cursor=pointer]:
+              - /url: /alerts
+            - link "📄 Documentation" [ref=e130] [cursor=pointer]:
+              - /url: /admin/docs
+      - generic [ref=e131]:
+        - generic [ref=e132]:
+          - generic [ref=e134]: ⚡
+          - generic [ref=e135]: Matchups
+        - paragraph [ref=e136]: © 2026 Matchups. Sports betting analysis & trends.
+  - generic [ref=e141] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e142]:
+      - img [ref=e143]
+    - generic [ref=e146]:
+      - button "Open issues overlay" [ref=e147]:
+        - generic [ref=e148]:
+          - generic [ref=e149]: "0"
+          - generic [ref=e150]: "1"
+        - generic [ref=e151]: Issue
+      - button "Collapse issues badge" [ref=e152]:
+        - img [ref=e153]
+  - alert [ref=e155]
+```

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { 
   ArrowLeft,
@@ -17,9 +17,10 @@ import {
   Users,
   Target,
   Calendar,
-  Settings
+  Settings,
+  Loader2
 } from 'lucide-react'
-import { cappers, picks, capperStats } from '@/lib/leaderboard-data'
+import { createClient } from '@/lib/supabase/client'
 import { BetType, Sport, PickResult, Pick, Capper } from '@/types/leaderboard'
 
 type AdminMode = 'picks' | 'cappers' | 'modify-record'
@@ -41,6 +42,29 @@ interface EditingPick {
   result: PickResult
 }
 
+interface TrackedExpert {
+  id: string
+  slug: string
+  name: string
+  network: string
+}
+
+interface TrackedPick {
+  id: string
+  expert_slug: string
+  sport: string
+  bet_type: string
+  home_team: string
+  away_team: string
+  picked_team: string
+  line_at_pick: number
+  odds_at_pick: number
+  units: number
+  status: string
+  pick_date: string
+  raw_text: string
+}
+
 export default function AdminPicksPage() {
   const [mode, setMode] = useState<AdminMode>('picks')
   const [searchQuery, setSearchQuery] = useState('')
@@ -48,6 +72,29 @@ export default function AdminPicksPage() {
   const [isAddingPick, setIsAddingPick] = useState(false)
   const [editingPick, setEditingPick] = useState<EditingPick | null>(null)
   const [modifyRecordCapper, setModifyRecordCapper] = useState<string>('')
+  const [loading, setLoading] = useState(true)
+  
+  // Real data from Supabase
+  const [cappers, setCappers] = useState<TrackedExpert[]>([])
+  const [picks, setPicks] = useState<TrackedPick[]>([])
+  
+  // Fetch data from Supabase
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true)
+      const supabase = createClient()
+      
+      const [cappersRes, picksRes] = await Promise.all([
+        supabase.from('tracked_experts').select('id, slug, name, network').eq('is_active', true),
+        supabase.from('tracked_picks').select('*').order('pick_date', { ascending: false }).limit(100)
+      ])
+      
+      setCappers(cappersRes.data || [])
+      setPicks(picksRes.data || [])
+      setLoading(false)
+    }
+    fetchData()
+  }, [])
   
   // New pick form state
   const [newPick, setNewPick] = useState<EditingPick>({
@@ -69,50 +116,96 @@ export default function AdminPicksPage() {
   
   // Filtered picks
   const filteredPicks = picks.filter(p => {
-    if (selectedCapper !== 'all' && p.capperId !== selectedCapper) return false
-    if (searchQuery && !p.pickDescription.toLowerCase().includes(searchQuery.toLowerCase())) return false
+    if (selectedCapper !== 'all' && p.expert_slug !== selectedCapper) return false
+    if (searchQuery && !(p.raw_text || '').toLowerCase().includes(searchQuery.toLowerCase())) return false
     return true
-  }).sort((a, b) => new Date(b.pickedAt).getTime() - new Date(a.pickedAt).getTime())
+  })
   
-  const handleSaveNewPick = () => {
-    // In a real app, this would save to Supabase
-    console.log('Saving new pick:', newPick)
-    alert('Pick saved! (In production, this would save to database)')
-    setIsAddingPick(false)
-    setNewPick({
-      capperId: '',
-      sport: 'NFL',
-      betType: 'spread',
-      pickDescription: '',
-      units: 1,
-      oddsAtPick: -110,
-      result: 'pending'
+  const handleSaveNewPick = async () => {
+    const supabase = createClient()
+    const expert = cappers.find(c => c.id === newPick.capperId)
+    if (!expert) {
+      alert('Please select an expert')
+      return
+    }
+    
+    const { error } = await supabase.from('tracked_picks').insert({
+      expert_slug: expert.slug,
+      sport: newPick.sport,
+      bet_type: newPick.betType,
+      pick_date: new Date().toISOString().split('T')[0],
+      game_date: newPick.gameDate || new Date().toISOString().split('T')[0],
+      home_team: 'TBD',
+      away_team: 'TBD',
+      line_at_pick: newPick.spreadLine || 0,
+      odds_at_pick: newPick.oddsAtPick,
+      units: newPick.units,
+      status: newPick.result,
+      source: 'admin',
+      raw_text: newPick.pickDescription
     })
-  }
-  
-  const handleUpdatePick = () => {
-    if (!editingPick) return
-    console.log('Updating pick:', editingPick)
-    alert('Pick updated! (In production, this would update database)')
-    setEditingPick(null)
-  }
-  
-  const handleDeletePick = (pickId: string) => {
-    if (confirm('Are you sure you want to delete this pick?')) {
-      console.log('Deleting pick:', pickId)
-      alert('Pick deleted! (In production, this would delete from database)')
+    
+    if (error) {
+      alert('Error saving pick: ' + error.message)
+    } else {
+      alert('Pick saved!')
+      setIsAddingPick(false)
+      // Refresh picks
+      const { data } = await supabase.from('tracked_picks').select('*').order('pick_date', { ascending: false }).limit(100)
+      setPicks(data || [])
     }
   }
   
-  const handleModifyRecord = () => {
+  const handleUpdatePick = async () => {
+    if (!editingPick?.id) return
+    const supabase = createClient()
+    
+    const { error } = await supabase.from('tracked_picks').update({
+      status: editingPick.result,
+      raw_text: editingPick.pickDescription
+    }).eq('id', editingPick.id)
+    
+    if (error) {
+      alert('Error updating pick: ' + error.message)
+    } else {
+      alert('Pick updated!')
+      setEditingPick(null)
+      const { data } = await supabase.from('tracked_picks').select('*').order('pick_date', { ascending: false }).limit(100)
+      setPicks(data || [])
+    }
+  }
+  
+  const handleDeletePick = async (pickId: string) => {
+    if (!confirm('Are you sure you want to delete this pick?')) return
+    
+    const supabase = createClient()
+    const { error } = await supabase.from('tracked_picks').delete().eq('id', pickId)
+    
+    if (error) {
+      alert('Error deleting pick: ' + error.message)
+    } else {
+      alert('Pick deleted!')
+      setPicks(picks.filter(p => p.id !== pickId))
+    }
+  }
+  
+  const handleModifyRecord = async () => {
     if (!modifyRecordCapper || !recordMod.reason) {
       alert('Please select a capper and provide a reason')
       return
     }
-    console.log('Modifying record for:', modifyRecordCapper, recordMod)
-    alert(`Record modified for ${cappers.find(c => c.id === modifyRecordCapper)?.name}! (In production, this would update database and create audit log)`)
+    const capper = cappers.find(c => c.slug === modifyRecordCapper)
+    alert(`Record modification for ${capper?.name} logged. Implement stats recalculation.`)
     setRecordMod({ wins: 0, losses: 0, reason: '' })
     setModifyRecordCapper('')
+  }
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#050508' }}>
+        <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#00A8FF' }} />
+      </div>
+    )
   }
 
   return (
@@ -416,18 +509,18 @@ export default function AdminPicksPage() {
                   </thead>
                   <tbody>
                     {filteredPicks.slice(0, 50).map((pick) => {
-                      const capper = cappers.find(c => c.id === pick.capperId)
+                      const capper = cappers.find(c => c.slug === pick.expert_slug)
                       return (
                         <tr key={pick.id} className="transition-all hover:bg-white/[0.02]"
                             style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2">
-                              <span className="text-lg">{capper?.avatarEmoji}</span>
-                              <span className="text-xs font-semibold" style={{ color: '#FFF' }}>{capper?.name}</span>
+                              <span className="text-lg">🎯</span>
+                              <span className="text-xs font-semibold" style={{ color: '#FFF' }}>{capper?.name || pick.expert_slug}</span>
                             </div>
                           </td>
                           <td className="py-3 px-4">
-                            <span className="font-semibold text-xs" style={{ color: '#FFF' }}>{pick.pickDescription}</span>
+                            <span className="font-semibold text-xs" style={{ color: '#FFF' }}>{pick.raw_text || `${pick.picked_team} ${pick.line_at_pick}`}</span>
                           </td>
                           <td className="py-3 px-4 text-center">
                             <span className="text-xs" style={{ color: '#808090' }}>{pick.sport}</span>
@@ -435,35 +528,40 @@ export default function AdminPicksPage() {
                           <td className="py-3 px-4 text-center">
                             <span className="text-xs capitalize px-2 py-0.5 rounded"
                                   style={{ background: 'rgba(255,255,255,0.05)', color: '#808090' }}>
-                              {pick.betType.replace('_', '/')}
+                              {pick.bet_type?.replace('_', '/')}
                             </span>
                           </td>
                           <td className="py-3 px-4 text-center">
                             <span className="text-xs font-mono" style={{ color: '#808090' }}>
-                              {(pick.oddsAtPick ?? 0) > 0 ? '+' : ''}{pick.oddsAtPick}
+                              {(pick.odds_at_pick ?? 0) > 0 ? '+' : ''}{pick.odds_at_pick}
                             </span>
                           </td>
                           <td className="py-3 px-4 text-center">
                             <span className="text-xs font-bold" style={{ color: '#FFF' }}>{pick.units}u</span>
                           </td>
                           <td className="py-3 px-4 text-center">
-                            {pick.result === 'win' && <CheckCircle className="w-4 h-4 mx-auto" style={{ color: '#00FF88' }} />}
-                            {pick.result === 'loss' && <XCircle className="w-4 h-4 mx-auto" style={{ color: '#FF4455' }} />}
-                            {pick.result === 'push' && <AlertCircle className="w-4 h-4 mx-auto" style={{ color: '#FFD700' }} />}
-                            {pick.result === 'pending' && <div className="w-2 h-2 mx-auto rounded-full animate-pulse" style={{ background: '#00A8FF' }} />}
+                            {pick.status === 'won' && <CheckCircle className="w-4 h-4 mx-auto" style={{ color: '#00FF88' }} />}
+                            {pick.status === 'lost' && <XCircle className="w-4 h-4 mx-auto" style={{ color: '#FF4455' }} />}
+                            {pick.status === 'push' && <AlertCircle className="w-4 h-4 mx-auto" style={{ color: '#FFD700' }} />}
+                            {pick.status === 'pending' && <div className="w-2 h-2 mx-auto rounded-full animate-pulse" style={{ background: '#00A8FF' }} />}
                           </td>
                           <td className="py-3 px-4 text-center">
                             <span className="text-[10px]" style={{ color: '#606070' }}>
-                              {pick.gameDate ? new Date(pick.gameDate).toLocaleDateString() : '-'}
+                              {pick.pick_date ? new Date(pick.pick_date).toLocaleDateString() : '-'}
                             </span>
                           </td>
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-1">
                               <button 
                                 onClick={() => setEditingPick({
-                                  ...pick, 
-                                  oddsAtPick: pick.oddsAtPick ?? -110,
-                                  result: pick.result ?? 'pending'
+                                  id: pick.id,
+                                  capperId: pick.expert_slug,
+                                  sport: pick.sport as Sport,
+                                  betType: pick.bet_type as BetType,
+                                  pickDescription: pick.raw_text || '',
+                                  units: pick.units,
+                                  oddsAtPick: pick.odds_at_pick ?? -110,
+                                  result: (pick.status === 'won' ? 'win' : pick.status === 'lost' ? 'loss' : pick.status) as PickResult
                                 })}
                                 className="p-1.5 rounded-lg transition-all hover:bg-white/10"
                                 style={{ color: '#00A8FF' }}>
@@ -491,75 +589,38 @@ export default function AdminPicksPage() {
         {mode === 'cappers' && (
           <div className="rounded-2xl overflow-hidden" style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
             <div className="p-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-              <h3 className="font-bold" style={{ color: '#FFF' }}>All Cappers ({cappers.length})</h3>
+              <h3 className="font-bold" style={{ color: '#FFF' }}>All Experts ({cappers.length})</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
-                    <th className="text-left py-3 px-4 text-[10px] font-bold uppercase" style={{ color: '#606070' }}>Capper</th>
-                    <th className="text-center py-3 px-4 text-[10px] font-bold uppercase" style={{ color: '#606070' }}>Type</th>
+                    <th className="text-left py-3 px-4 text-[10px] font-bold uppercase" style={{ color: '#606070' }}>Expert</th>
                     <th className="text-center py-3 px-4 text-[10px] font-bold uppercase" style={{ color: '#606070' }}>Network</th>
-                    <th className="text-center py-3 px-4 text-[10px] font-bold uppercase" style={{ color: '#606070' }}>Picks</th>
-                    <th className="text-center py-3 px-4 text-[10px] font-bold uppercase" style={{ color: '#606070' }}>Record</th>
-                    <th className="text-center py-3 px-4 text-[10px] font-bold uppercase" style={{ color: '#606070' }}>Win %</th>
-                    <th className="text-center py-3 px-4 text-[10px] font-bold uppercase" style={{ color: '#606070' }}>Units</th>
+                    <th className="text-center py-3 px-4 text-[10px] font-bold uppercase" style={{ color: '#606070' }}>Slug</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {cappers.map((capper) => {
-                    const stats = capperStats[capper.id]
-                    return (
-                      <tr key={capper.id} className="transition-all hover:bg-white/[0.02]"
-                          style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg">{capper.avatarEmoji}</span>
-                            <div>
-                              <span className="font-semibold text-xs" style={{ color: '#FFF' }}>{capper.name}</span>
-                              {capper.verified && (
-                                <span className="ml-1 text-[8px] px-1 rounded" style={{ background: 'rgba(0,168,255,0.2)', color: '#00A8FF' }}>✓</span>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <span className="text-xs capitalize px-2 py-0.5 rounded"
-                                style={{ 
-                                  background: capper.capperType === 'celebrity' ? 'rgba(255,215,0,0.2)' : 
-                                             capper.capperType === 'pro' ? 'rgba(0,255,136,0.2)' : 'rgba(0,168,255,0.2)',
-                                  color: capper.capperType === 'celebrity' ? '#FFD700' : 
-                                         capper.capperType === 'pro' ? '#00FF88' : '#00A8FF'
-                                }}>
-                            {capper.capperType}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <span className="text-xs" style={{ color: '#808090' }}>{capper.network || '-'}</span>
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <span className="text-xs font-bold" style={{ color: '#FFF' }}>{stats?.totalPicks || 0}</span>
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <span className="text-xs font-mono" style={{ color: '#808090' }}>
-                            {stats ? `${stats.totalWins}-${stats.totalLosses}` : '0-0'}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <span className="text-xs font-bold" style={{ 
-                            color: (stats?.winPercentage || 0) >= 55 ? '#00FF88' : (stats?.winPercentage || 0) >= 50 ? '#FFD700' : '#FF4455' 
-                          }}>
-                            {stats?.winPercentage.toFixed(1) || '0.0'}%
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <span className="text-xs font-bold" style={{ color: (stats?.netUnits || 0) > 0 ? '#00FF88' : '#FF4455' }}>
-                            {(stats?.netUnits || 0) > 0 ? '+' : ''}{stats?.netUnits.toFixed(1) || '0.0'}
-                          </span>
-                        </td>
-                      </tr>
-                    )
-                  })}
+                  {cappers.map((capper) => (
+                    <tr key={capper.id} className="transition-all hover:bg-white/[0.02]"
+                        style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">🎯</span>
+                          <span className="font-semibold text-xs" style={{ color: '#FFF' }}>{capper.name}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <span className="text-xs px-2 py-0.5 rounded" 
+                              style={{ background: 'rgba(255,107,0,0.2)', color: '#FF6B00' }}>
+                          {capper.network || 'Unknown'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <span className="text-xs font-mono" style={{ color: '#808090' }}>{capper.slug}</span>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -582,31 +643,19 @@ export default function AdminPicksPage() {
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold mb-2" style={{ color: '#808090' }}>Select Capper *</label>
+                  <label className="block text-xs font-semibold mb-2" style={{ color: '#808090' }}>Select Expert *</label>
                   <select
                     value={modifyRecordCapper}
                     onChange={(e) => setModifyRecordCapper(e.target.value)}
                     className="w-full px-4 py-3 rounded-lg text-sm"
                     style={{ background: 'rgba(255,255,255,0.05)', color: '#FFF', border: '1px solid rgba(255,255,255,0.1)' }}
                   >
-                    <option value="">Choose a capper...</option>
+                    <option value="">Choose an expert...</option>
                     {cappers.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
+                      <option key={c.id} value={c.slug}>{c.name}</option>
                     ))}
                   </select>
                 </div>
-                
-                {modifyRecordCapper && capperStats[modifyRecordCapper] && (
-                  <div className="p-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                    <div className="text-xs mb-2" style={{ color: '#606070' }}>Current Record:</div>
-                    <div className="font-bold text-lg" style={{ color: '#FFF' }}>
-                      {capperStats[modifyRecordCapper].totalWins}-{capperStats[modifyRecordCapper].totalLosses}
-                      <span className="text-sm ml-2" style={{ color: '#808090' }}>
-                        ({capperStats[modifyRecordCapper].winPercentage.toFixed(1)}%)
-                      </span>
-                    </div>
-                  </div>
-                )}
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -646,15 +695,6 @@ export default function AdminPicksPage() {
                     style={{ background: 'rgba(255,255,255,0.05)', color: '#FFF', border: '1px solid rgba(255,255,255,0.1)' }}
                   />
                 </div>
-                
-                {modifyRecordCapper && capperStats[modifyRecordCapper] && (recordMod.wins !== 0 || recordMod.losses !== 0) && (
-                  <div className="p-4 rounded-xl" style={{ background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.2)' }}>
-                    <div className="text-xs mb-2" style={{ color: '#00FF88' }}>New Record Will Be:</div>
-                    <div className="font-bold text-lg" style={{ color: '#FFF' }}>
-                      {capperStats[modifyRecordCapper].totalWins + recordMod.wins}-{capperStats[modifyRecordCapper].totalLosses + recordMod.losses}
-                    </div>
-                  </div>
-                )}
                 
                 <button
                   onClick={handleModifyRecord}

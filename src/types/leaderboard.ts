@@ -151,6 +151,7 @@ export interface LeaderboardEntry {
   network?: Network
   role?: string
   followersCount?: string
+  xHandle?: string
   
   // Stats
   record: string // "134-89"

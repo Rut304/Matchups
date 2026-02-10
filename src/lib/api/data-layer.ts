@@ -123,7 +123,11 @@ export async function syncGames(sport: SportKey): Promise<UnifiedGame[]> {
       const oddsData = await getOdds(sport as OddsSportKey)
       oddsGames = oddsData.map(g => transformOddsGame(g, sport as OddsSportKey))
     } catch (error) {
-      console.error(`[DataLayer] The Odds API also failed for ${sport}:`, error)
+      // Only log non-quota errors (quota errors are handled silently in the-odds-api.ts)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      if (!errorMessage.includes('OUT_OF_USAGE_CREDITS')) {
+        console.warn(`[DataLayer] The Odds API failed for ${sport}:`, errorMessage)
+      }
     }
   }
   

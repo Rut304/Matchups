@@ -100,7 +100,9 @@ export function WeatherWidget({ compact = false }: { compact?: boolean }) {
             precipitation: (g.weather as Record<string, unknown>)?.precipitation as number || 0,
             visibility: (g.weather as Record<string, unknown>)?.visibility as number || 10
           },
-          bettingImpact: g.bettingImpact as string || 'No significant weather impact'
+          bettingImpact: typeof g.bettingImpact === 'object' && g.bettingImpact !== null
+            ? (g.bettingImpact as { description?: string }).description || 'No significant weather impact'
+            : (g.bettingImpact as string) || 'No significant weather impact'
         }))
         setGames(transformed)
       } catch (error) {
@@ -140,7 +142,9 @@ export function WeatherWidget({ compact = false }: { compact?: boolean }) {
           precipitation: (g.weather as Record<string, unknown>)?.precipitation as number || 0,
           visibility: (g.weather as Record<string, unknown>)?.visibility as number || 10
         },
-        bettingImpact: g.bettingImpact as string || 'No significant weather impact'
+        bettingImpact: typeof g.bettingImpact === 'object' && g.bettingImpact !== null
+          ? (g.bettingImpact as { description?: string }).description || 'No significant weather impact'
+          : (g.bettingImpact as string) || 'No significant weather impact'
       }))
       setGames(transformed)
     } catch (error) {

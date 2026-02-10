@@ -7,9 +7,13 @@
 
 import { ImageResponse } from 'next/og'
 import { NextRequest } from 'next/server'
-import { cappers, getCapperStatsByDays } from '@/lib/leaderboard-data'
+import { createClient } from '@supabase/supabase-js'
 
 export const runtime = 'edge'
+
+// Create Supabase client for edge
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 export async function GET(
   request: NextRequest,
@@ -32,10 +36,16 @@ export async function GET(
   
   const daysBack = daysMap[timeframe] ?? 120
   
-  // Find the capper
-  const capper = cappers.find(c => c.slug === slug)
+  // Fetch expert from Supabase
+  const supabase = createClient(supabaseUrl, supabaseKey)
   
-  if (!capper) {
+  const { data: capper, error } = await supabase
+    .from('tracked_experts')
+    .select('*')
+    .eq('slug', slug)
+    .single()
+  
+  if (error || !capper) {
     return new ImageResponse(
       (
         <div
@@ -58,9 +68,17 @@ export async function GET(
     )
   }
   
-  // Get stats
-  const stats = getCapperStatsByDays(capper.id, daysBack)
-  const winPct = stats.winPercentage
+  // Get stats from tracked_expert_stats
+  const { data: statsData } = await supabase
+    .from('tracked_expert_stats')
+    .select('*')
+    .eq('expert_slug', slug)
+    .eq('period_type', 'all_time')
+    .is('sport', null)
+    .single()
+  
+  const stats = statsData || { wins: 0, losses: 0, win_pct: 0, units_won: 0, roi: 0 }
+  const winPct = stats.win_pct || 0
   
   // Determine embarrassment level
   const getEmbarrassmentLevel = (pct: number) => {

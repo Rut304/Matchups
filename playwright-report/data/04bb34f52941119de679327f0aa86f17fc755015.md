@@ -1,0 +1,174 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - link "Matchups 100% FREE" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img [ref=e7]
+        - generic [ref=e9]:
+          - generic [ref=e10]: Matchups
+          - generic [ref=e11]: 100% FREE
+      - generic [ref=e12]:
+        - button "Sports" [ref=e14]:
+          - text: Sports
+          - img [ref=e15]
+        - button "Markets" [ref=e18]:
+          - img [ref=e19]
+          - text: Markets
+          - img [ref=e21]
+        - button "Tools" [ref=e24]:
+          - text: Tools
+          - img [ref=e25]
+        - link "Scores" [ref=e27] [cursor=pointer]:
+          - /url: /scores
+          - img [ref=e28]
+          - text: Scores
+        - link "Check the \"Experts\"" [ref=e30] [cursor=pointer]:
+          - /url: /leaderboard
+          - img [ref=e31]
+          - generic [ref=e37]: Check the
+          - generic [ref=e38]: "\"Experts\""
+      - generic [ref=e39]:
+        - button "Search... K" [ref=e40]:
+          - img [ref=e41]
+          - generic [ref=e44]: Search...
+          - generic [ref=e45]:
+            - img [ref=e46]
+            - text: K
+        - link "The Edge" [ref=e48] [cursor=pointer]:
+          - /url: /markets/edge
+          - img [ref=e49]
+          - generic [ref=e53]: The Edge
+        - link "Sus Plays" [ref=e54] [cursor=pointer]:
+          - /url: /sus
+          - img [ref=e55]
+          - generic [ref=e57]: Sus Plays
+        - link "Sign In" [ref=e58] [cursor=pointer]:
+          - /url: /auth
+          - img [ref=e59]
+          - generic [ref=e62]: Sign In
+  - main [ref=e64]:
+    - generic [ref=e65]:
+      - generic [ref=e68]:
+        - generic [ref=e69]:
+          - link "Go back" [ref=e70] [cursor=pointer]:
+            - /url: /
+            - img [ref=e71]
+          - generic [ref=e73]:
+            - img [ref=e75]
+            - generic [ref=e78]:
+              - heading "Trend Finder" [level=1] [ref=e79]
+              - paragraph [ref=e80]: AI-Powered Sports Analytics
+        - button "New Chat" [ref=e81]:
+          - img [ref=e82]
+          - text: New Chat
+      - generic [ref=e88]:
+        - generic [ref=e89]:
+          - generic [ref=e90]:
+            - img [ref=e91]
+            - textbox "Ask any sports trend question... (e.g., 'What's the ATS record for NFL underdogs in playoff games?')" [disabled] [ref=e94]
+          - button [disabled] [ref=e95]:
+            - img [ref=e96]
+        - generic [ref=e98]:
+          - generic [ref=e99]:
+            - generic [ref=e100]: Enter
+            - text: to send
+          - generic [ref=e101]:
+            - img [ref=e102]
+            - text: Powered by Gemini AI
+      - generic [ref=e104]:
+        - generic [ref=e106]:
+          - generic [ref=e108]:
+            - generic [ref=e109]: NFL playoff underdogs cover rate?
+            - generic [ref=e110]:
+              - generic [ref=e111]: 10:43:30 PM
+              - generic [ref=e112]:
+                - button "Save" [ref=e113]:
+                  - img [ref=e114]
+                  - generic [ref=e116]: Save
+                - button "Copy to clipboard" [ref=e117]:
+                  - img [ref=e118]
+          - generic [ref=e122]:
+            - generic [ref=e123]: NFL playoff underdogs cover rate?
+            - generic [ref=e124]:
+              - generic [ref=e125]: 10:43:30 PM
+              - generic [ref=e126]:
+                - button "Save" [ref=e127]:
+                  - img [ref=e128]
+                  - generic [ref=e130]: Save
+                - button "Copy to clipboard" [ref=e131]:
+                  - img [ref=e132]
+          - generic [ref=e137]:
+            - img [ref=e138]
+            - generic [ref=e140]: Analyzing trends...
+        - generic [ref=e143]:
+          - generic [ref=e144]:
+            - textbox "Follow-up question..." [disabled] [ref=e145]
+            - img [ref=e147]
+          - button [disabled] [ref=e150]:
+            - img [ref=e151]
+  - contentinfo [ref=e154]:
+    - generic [ref=e155]:
+      - generic [ref=e156]:
+        - generic [ref=e157]:
+          - heading "Sports" [level=4] [ref=e158]
+          - generic [ref=e159]:
+            - link "🏈 NFL" [ref=e160] [cursor=pointer]:
+              - /url: /nfl
+            - link "🏀 NBA" [ref=e161] [cursor=pointer]:
+              - /url: /nba
+            - link "🏒 NHL" [ref=e162] [cursor=pointer]:
+              - /url: /nhl
+            - link "⚾ MLB" [ref=e163] [cursor=pointer]:
+              - /url: /mlb
+        - generic [ref=e164]:
+          - heading "Features" [level=4] [ref=e165]
+          - generic [ref=e166]:
+            - link "📈 Markets" [ref=e167] [cursor=pointer]:
+              - /url: /markets
+            - link "📊 Trends" [ref=e168] [cursor=pointer]:
+              - /url: /trends
+            - link "🧾 Expert Tracker" [ref=e169] [cursor=pointer]:
+              - /url: /leaderboard
+        - generic [ref=e170]:
+          - heading "Company" [level=4] [ref=e171]
+          - generic [ref=e172]:
+            - link "About" [ref=e173] [cursor=pointer]:
+              - /url: "#"
+            - link "Contact" [ref=e174] [cursor=pointer]:
+              - /url: "#"
+            - link "Privacy" [ref=e175] [cursor=pointer]:
+              - /url: "#"
+            - link "Terms" [ref=e176] [cursor=pointer]:
+              - /url: "#"
+        - generic [ref=e177]:
+          - heading "Tools" [level=4] [ref=e178]
+          - generic [ref=e179]:
+            - link "🧮 Calculators" [ref=e180] [cursor=pointer]:
+              - /url: /calculators
+            - link "🔔 Alerts" [ref=e181] [cursor=pointer]:
+              - /url: /alerts
+            - link "📄 Documentation" [ref=e182] [cursor=pointer]:
+              - /url: /admin/docs
+      - generic [ref=e183]:
+        - generic [ref=e184]:
+          - generic [ref=e186]: ⚡
+          - generic [ref=e187]: Matchups
+        - paragraph [ref=e188]: © 2026 Matchups. Sports betting analysis & trends.
+  - generic [ref=e193] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e194]:
+      - img [ref=e195]
+    - generic [ref=e198]:
+      - button "Open issues overlay" [ref=e199]:
+        - generic [ref=e200]:
+          - generic [ref=e201]: "1"
+          - generic [ref=e202]: "2"
+        - generic [ref=e203]:
+          - text: Issue
+          - generic [ref=e204]: s
+      - button "Collapse issues badge" [ref=e205]:
+        - img [ref=e206]
+  - alert [ref=e208]
+```

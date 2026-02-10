@@ -135,8 +135,8 @@ export default async function NCAAFPage() {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {top25.map((team) => (
-                    <div key={team.rank} className="flex items-center justify-between p-3 rounded-lg transition-colors hover:bg-white/[0.02]"
+                  {top25.map((team, idx) => (
+                    <div key={`${team.team}-${team.rank}-${idx}`} className="flex items-center justify-between p-3 rounded-lg transition-colors hover:bg-white/[0.02]"
                          style={{ background: 'rgba(255,255,255,0.02)' }}>
                       <div className="flex items-center gap-3">
                         <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${

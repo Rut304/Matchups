@@ -33,12 +33,13 @@ export function HomeStandings() {
         // Transform and sort by wins
         const transformStandings = (data: { standings?: ESPNStanding[] }) => {
           return (data.standings || [])
+            .filter((s: ESPNStanding) => s?.team?.displayName) // Filter out entries without team data
             .map((s: ESPNStanding) => {
               const winsLosses = s.stats?.find(stat => stat.name === 'wins' || stat.name === 'overall')?.displayValue || '0-0'
               const [wins, losses] = winsLosses.split('-').map(Number)
               return {
-                name: s.team.displayName,
-                abbrev: s.team.abbreviation,
+                name: s.team?.displayName || 'Unknown',
+                abbrev: s.team?.abbreviation || 'UNK',
                 record: winsLosses,
                 wins: wins || 0,
                 losses: losses || 0,
