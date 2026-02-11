@@ -35,7 +35,8 @@ async function runScrape(job: string) {
         if (hasXAPI) {
           try {
             const xScraper = new XScraper()
-            results.twitter = await xScraper.scrapeAllExperts()
+            // Use batching: 3 experts per run with 2s delay to avoid rate limits
+            results.twitter = await xScraper.scrapeAllExperts({ batchSize: 3, delayMs: 2000 })
           } catch (xError) {
             results.twitter = { error: xError instanceof Error ? xError.message : 'X scrape failed' }
           }
@@ -63,7 +64,8 @@ async function runScrape(job: string) {
         if (hasXAPI) {
           try {
             const xScraper = new XScraper()
-            results.twitter = await xScraper.scrapeAllExperts()
+            // Use batching: 3 experts per run with 2s delay to avoid rate limits
+            results.twitter = await xScraper.scrapeAllExperts({ batchSize: 3, delayMs: 2000 })
           } catch (xError) {
             results.twitter = { error: xError instanceof Error ? xError.message : 'X scrape failed' }
           }
@@ -101,7 +103,8 @@ async function runScrape(job: string) {
         if (hasXAPI) {
           try {
             const xScraper = new XScraper()
-            results.twitter = await xScraper.scrapeAllExperts()
+            // Use batching: 3 experts per run with 2s delay to avoid rate limits
+            results.twitter = await xScraper.scrapeAllExperts({ batchSize: 3, delayMs: 2000 })
           } catch (xError) {
             results.twitter = { error: xError instanceof Error ? xError.message : 'X scrape failed' }
           }

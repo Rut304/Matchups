@@ -166,16 +166,27 @@ export async function POST(request: Request) {
           const xScraper = new XScraper()
           
           if (body.handle) {
-            // Scrape specific user
-            const { tweets, picks } = await xScraper.scrapeExpert(body.handle)
-            results.twitter = { 
-              handle: body.handle, 
-              tweets, 
-              picks 
+            // Scrape specific user - need to find their slug first
+            const { data: expert } = await supabase
+              .from('tracked_experts')
+              .select('slug, x_user_id')
+              .eq('x_handle', body.handle.replace('@', ''))
+              .single()
+            
+            if (expert) {
+              const { tweets, picks } = await xScraper.scrapeExpertTracked(
+                body.handle.replace('@', ''),
+                expert.slug,
+                expert.x_user_id || undefined
+              )
+              results.twitter = { handle: body.handle, tweets, picks }
+            } else {
+              results.twitter = { error: `Expert @${body.handle} not found in tracked_experts` }
             }
           } else {
-            // Scrape all tracked experts
-            const xResults = await xScraper.scrapeAllExperts()
+            // Scrape all tracked experts with batching
+            const batchSize = body.batchSize || 3
+            const xResults = await xScraper.scrapeAllExperts({ batchSize, delayMs: 2000 })
             results.twitter = xResults
           }
         } catch (xError) {

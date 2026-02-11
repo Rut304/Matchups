@@ -344,54 +344,183 @@ export class XScraper {
 
   /**
    * Scrape tweets from all tracked experts
+   * Uses batching and cached user IDs to work within X API free tier limits
+   * 
+   * @param batchSize - Number of experts to process per run (default: 3 for free tier)
+   * @param delayMs - Delay between requests in ms (default: 2000ms)
    */
-  async scrapeAllExperts(): Promise<{
+  async scrapeAllExperts(options: {
+    batchSize?: number;
+    delayMs?: number;
+  } = {}): Promise<{
     processed: number;
     picks: number;
     errors: string[];
+    remaining: number;
   }> {
+    const { batchSize = 3, delayMs = 2000 } = options;
+    
     const results = {
       processed: 0,
       picks: 0,
       errors: [] as string[],
+      remaining: 0,
     };
 
-    // Get all experts with Twitter handles
+    // Get experts from tracked_experts table, prioritized by:
+    // 1. Has cached x_user_id (no lookup required)
+    // 2. Least recently scraped
     const { data: experts, error } = await this.supabase
-      .from('expert_records')
-      .select('*')
-      .not('twitter_handle', 'is', null);
+      .from('tracked_experts')
+      .select('slug, name, x_handle, x_user_id, last_scraped_at')
+      .not('x_handle', 'is', null)
+      .eq('is_active', true)
+      .order('x_user_id', { ascending: false, nullsFirst: false }) // Cached IDs first
+      .order('last_scraped_at', { ascending: true, nullsFirst: true }); // Oldest first
 
     if (error || !experts) {
       results.errors.push(`Failed to fetch experts: ${error?.message}`);
       return results;
     }
 
-    // Dedupe by twitter handle (some experts track multiple sports)
-    const uniqueHandles = new Map<string, typeof experts[0]>();
+    // Filter to unique handles
+    const uniqueExperts = new Map<string, typeof experts[0]>();
     for (const expert of experts) {
-      if (expert.twitter_handle && !uniqueHandles.has(expert.twitter_handle)) {
-        uniqueHandles.set(expert.twitter_handle, expert);
+      if (expert.x_handle && !uniqueExperts.has(expert.x_handle)) {
+        uniqueExperts.set(expert.x_handle, expert);
       }
     }
 
-    console.log(`Scraping ${uniqueHandles.size} unique Twitter handles...`);
+    const allExperts = Array.from(uniqueExperts.values());
+    const batch = allExperts.slice(0, batchSize);
+    results.remaining = allExperts.length - batch.length;
 
-    for (const [handle, expert] of uniqueHandles) {
+    console.log(`Processing batch of ${batch.length}/${allExperts.length} experts (${results.remaining} remaining)`);
+    console.log(`Experts with cached IDs: ${batch.filter(e => e.x_user_id).length}/${batch.length}`);
+
+    for (const expert of batch) {
       try {
-        await this.scrapeExpert(handle, expert.twitter_last_tweet_id);
+        const result = await this.scrapeExpertTracked(
+          expert.x_handle!,
+          expert.slug,
+          expert.x_user_id || undefined
+        );
         results.processed++;
+        results.picks += result.picks;
         
         // Rate limit: wait between requests
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        if (batch.indexOf(expert) < batch.length - 1) {
+          console.log(`  Waiting ${delayMs}ms before next request...`);
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
       } catch (error) {
-        const msg = `Error scraping @${handle}: ${error instanceof Error ? error.message : error}`;
+        const msg = `Error scraping @${expert.x_handle}: ${error instanceof Error ? error.message : error}`;
         console.error(msg);
         results.errors.push(msg);
+        
+        // If rate limited, stop processing this batch
+        if (error instanceof Error && error.message.includes('429')) {
+          console.log('Rate limited - stopping batch');
+          results.remaining += batch.length - batch.indexOf(expert) - 1;
+          break;
+        }
       }
     }
 
     return results;
+  }
+
+  /**
+   * Scrape a tracked expert using cached user ID when available
+   */
+  async scrapeExpertTracked(handle: string, slug: string, cachedUserId?: string): Promise<{
+    tweets: number;
+    picks: number;
+  }> {
+    console.log(`Scraping @${handle} (slug: ${slug})...`);
+
+    let userId: string | undefined = cachedUserId;
+    
+    // If no cached ID, look it up and cache it
+    if (!userId) {
+      console.log(`  No cached ID, looking up @${handle}...`);
+      const lookedUpId = await this.getUserId(handle);
+      
+      if (!lookedUpId) {
+        throw new Error(`Could not find user ID for @${handle}`);
+      }
+      
+      userId = lookedUpId;
+      
+      // Cache the user ID
+      await this.supabase
+        .from('tracked_experts')
+        .update({ x_user_id: userId })
+        .eq('slug', slug);
+      console.log(`  Cached user ID: ${userId}`);
+    } else {
+      console.log(`  Using cached user ID: ${userId}`);
+    }
+
+    // Fetch tweets
+    const response = await this.getUserTweets(userId, {
+      maxResults: 20, // Reduced to conserve rate limits
+    });
+
+    // Update last scraped timestamp
+    await this.supabase
+      .from('tracked_experts')
+      .update({ last_scraped_at: new Date().toISOString() })
+      .eq('slug', slug);
+
+    if (!response.data || response.data.length === 0) {
+      console.log(`  No tweets found for @${handle}`);
+      return { tweets: 0, picks: 0 };
+    }
+
+    let picksFound = 0;
+
+    // Process each tweet
+    for (const tweet of response.data) {
+      // Check if we already have this tweet
+      const { data: existing } = await this.supabase
+        .from('expert_tweets')
+        .select('id')
+        .eq('tweet_id', tweet.id)
+        .single();
+
+      if (existing) {
+        continue;
+      }
+
+      // Parse for picks
+      const parsedPick = this.parseTweetForPick(tweet.text);
+
+      // Store the tweet
+      await this.supabase.from('expert_tweets').insert({
+        tweet_id: tweet.id,
+        twitter_handle: handle,
+        twitter_user_id: userId,
+        tweet_text: tweet.text,
+        tweet_url: `https://x.com/${handle}/status/${tweet.id}`,
+        created_at_twitter: tweet.created_at,
+        like_count: tweet.public_metrics?.like_count || 0,
+        retweet_count: tweet.public_metrics?.retweet_count || 0,
+        reply_count: tweet.public_metrics?.reply_count || 0,
+        parsed_pick: parsedPick ? JSON.stringify(parsedPick) : null,
+        is_pick: !!parsedPick,
+        pick_confidence: parsedPick ? 0.7 : null,
+        processed: false,
+      });
+
+      if (parsedPick) {
+        picksFound++;
+        console.log(`  Found pick: ${parsedPick.team} (${parsedPick.pickType})`);
+      }
+    }
+
+    console.log(`  Processed ${response.data.length} tweets, found ${picksFound} picks`);
+    return { tweets: response.data.length, picks: picksFound };
   }
 
   /**
