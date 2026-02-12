@@ -49,6 +49,8 @@ import {
 import { getGameById, type GameDetail } from '@/lib/api/games'
 import { BoxScore, LiveGameDashboard, GamePlayerProps } from '@/components/game'
 import { GameBettingSplits } from '@/components/betting/GameBettingSplits'
+import { KeyNumberBadges } from '@/components/betting/KeyNumberBadges'
+import { LineMovementChart } from '@/components/charts/LineMovementChart'
 import { getTeamSchedule, getTeamId, type TeamGameResult } from '@/lib/api/team-schedule'
 import { type SportKey } from '@/lib/api/espn'
 
@@ -997,32 +999,53 @@ export default function GameDetailPage() {
             showTitle={true}
           />
           
-          {/* Line Movement Summary */}
+          {/* Line Movement Chart */}
           <div className="rounded-xl p-4 bg-slate-900/50 border border-slate-800">
              <h3 className="flex items-center gap-2 text-sm font-bold text-white mb-3">
                 <TrendingUp className="w-4 h-4 text-blue-500" />
                 Line Movement
              </h3>
-             <div className="flex items-center justify-between">
+             
+             {/* Spread Chart */}
+             <div className="mb-3">
+               <LineMovementChart gameId={gameId} betType="spread" height={60} showLabels={true} />
+             </div>
+             
+             {/* Total Chart */}
+             <div className="mb-3">
+               <LineMovementChart gameId={gameId} betType="total" height={60} showLabels={true} />
+             </div>
+             
+             {/* Fallback: static open → current if no snapshots */}
+             <div className="flex items-center justify-between text-xs">
                 <div className="text-center">
-                   <p className="text-xs text-slate-500">OPEN</p>
+                   <p className="text-[10px] text-slate-500">OPEN</p>
                    <p className="font-mono font-bold text-slate-300">
                       {game.openingSpread?.line ? formatSpread(game.openingSpread.line) : 'N/A'}
                    </p>
                 </div>
                 <ChevronRight className="w-4 h-4 text-slate-600" />
                 <div className="text-center">
-                   <p className="text-xs text-slate-500">CURRENT</p>
+                   <p className="text-[10px] text-slate-500">CURRENT</p>
                    <p className="font-mono font-bold text-white">
                       {gameSummary.odds?.spread ? formatSpread(gameSummary.odds.spread) : formatSpread(game.spread?.line)}
                    </p>
                 </div>
              </div>
              {game.metrics?.lineMovement && (
-                <div className="mt-3 text-xs text-slate-400 bg-slate-800/50 p-2 rounded">
+                <div className="mt-2 text-xs text-slate-400 bg-slate-800/50 p-2 rounded">
                    {game.metrics.lineMovement}
                 </div>
              )}
+             
+             {/* Key Number Alerts */}
+             <div className="mt-3">
+               <KeyNumberBadges
+                 spread={gameSummary.odds?.spread ? parseFloat(String(gameSummary.odds.spread)) : game.spread?.line}
+                 total={gameSummary.odds?.overUnder ? parseFloat(String(gameSummary.odds.overUnder)) : game.total}
+                 sport={sport}
+               />
+             </div>
           </div>
         </div>
 

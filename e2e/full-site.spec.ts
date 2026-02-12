@@ -25,16 +25,9 @@ const allRoutes = [
   { path: '/wncaab', name: 'WNCAAB', mustContain: 'WNCAAB' },
   
   // Sports Sub-pages
-  { path: '/nfl/players', name: 'NFL Players', mustContain: 'Player' },
-  { path: '/nfl/rankings', name: 'NFL Rankings', mustContain: 'Rank' },
   { path: '/nfl/matchups', name: 'NFL Matchups', mustContain: 'Matchup' },
   { path: '/nba/players', name: 'NBA Players', mustContain: 'Player' },
   { path: '/nba/rankings', name: 'NBA Rankings', mustContain: 'Rank' },
-  { path: '/nhl/skaters', name: 'NHL Skaters', mustContain: 'Skater' },
-  { path: '/nhl/goalies', name: 'NHL Goalies', mustContain: 'Goalie' },
-  { path: '/nhl/rankings', name: 'NHL Rankings', mustContain: 'Rank' },
-  { path: '/mlb/players', name: 'MLB Players', mustContain: 'Player' },
-  { path: '/mlb/rankings', name: 'MLB Rankings', mustContain: 'Rank' },
   { path: '/ncaaf/players', name: 'NCAAF Players', mustContain: 'Player' },
   { path: '/ncaaf/rankings', name: 'NCAAF Rankings', mustContain: 'Rank' },
   { path: '/ncaab/players', name: 'NCAAB Players', mustContain: 'Player' },

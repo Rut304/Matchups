@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getScoreboard, transformESPNGame, type SportKey } from '@/lib/api/espn'
+import { getWeatherForVenue, analyzeWeatherImpact, DOME_VENUES as DOME_VENUES_SET } from '@/lib/weather'
 
 // Outdoor venue database - list of NFL/MLB stadiums that are outdoors
 const OUTDOOR_VENUES: Record<string, boolean> = {
@@ -93,7 +94,7 @@ interface GameWeather {
 
 function isOutdoorVenue(venueName: string): boolean {
   const normalized = venueName.toLowerCase()
-  if (DOME_VENUES[normalized]) return false
+  if (DOME_VENUES[normalized] || DOME_VENUES_SET.has(normalized)) return false
   return OUTDOOR_VENUES[normalized] ?? true // Default to outdoor if unknown
 }
 
@@ -152,7 +153,7 @@ export async function GET(request: Request) {
     : sport === 'MLB' ? ['MLB'] 
     : ['NFL', 'MLB']
 
-  // Fetch games from ESPN
+  // Fetch games from ESPN, then enrich with OpenWeatherMap
   await Promise.all(
     sportsToFetch.map(async (s) => {
       try {
@@ -163,21 +164,47 @@ export async function GET(request: Request) {
           const venue = game.venue || 'Unknown Venue'
           const isOutdoor = isOutdoorVenue(venue)
           
-          // ESPN provides weather in game data for outdoor games
+          // ESPN provides basic weather (temp + condition text only)
           const espnWeather = event.competitions[0]?.weather
           
-          const weather: GameWeather['weather'] = {
-            temperature: espnWeather?.temperature ?? game.weather?.temp ?? null,
-            conditions: espnWeather?.displayValue || game.weather?.condition || (isOutdoor ? 'Clear' : 'Indoor (Dome)'),
-            windSpeed: null, // ESPN doesn't always provide wind
-            windDirection: 'N/A',
-            precipitation: 0,
-            humidity: 50,
+          // Try OpenWeatherMap for detailed weather (wind, humidity, precipitation)
+          const owmForecast = isOutdoor 
+            ? await getWeatherForVenue(venue, game.scheduledAt)
+            : null
+          
+          let weather: GameWeather['weather']
+          let bettingImpact: GameWeather['bettingImpact']
+          
+          if (owmForecast) {
+            // Real weather from OpenWeatherMap
+            weather = {
+              temperature: owmForecast.temperature,
+              conditions: owmForecast.conditions,
+              windSpeed: owmForecast.windSpeed,
+              windDirection: owmForecast.windDirection,
+              precipitation: owmForecast.precipitation,
+              humidity: owmForecast.humidity,
+            }
+            const analysis = analyzeWeatherImpact(owmForecast, s as 'NFL' | 'MLB', venue)
+            bettingImpact = {
+              level: analysis.level,
+              description: analysis.insights.join(' '),
+              affectedBets: analysis.affectedBets,
+            }
+          } else {
+            // Fallback to ESPN data
+            weather = {
+              temperature: espnWeather?.temperature ?? game.weather?.temp ?? null,
+              conditions: espnWeather?.displayValue || game.weather?.condition || (isOutdoor ? 'Clear' : 'Indoor (Dome)'),
+              windSpeed: null,
+              windDirection: 'N/A',
+              precipitation: 0,
+              humidity: 50,
+            }
+            bettingImpact = isOutdoor 
+              ? calculateBettingImpact(weather, s)
+              : { level: 'none' as const, description: 'Indoor stadium - weather not a factor.', affectedBets: [] }
           }
-
-          const bettingImpact = isOutdoor 
-            ? calculateBettingImpact(weather, s)
-            : { level: 'none' as const, description: 'Indoor stadium - weather not a factor.', affectedBets: [] }
 
           gameWeathers.push({
             id: game.id,
@@ -221,6 +248,6 @@ export async function GET(request: Request) {
     games: filteredData,
     count: filteredData.length,
     lastUpdated: new Date().toISOString(),
-    source: 'espn'
+    source: process.env.OPENWEATHER_API_KEY ? 'openweathermap+espn' : 'espn'
   })
 }

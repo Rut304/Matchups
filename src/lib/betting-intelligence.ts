@@ -1288,12 +1288,58 @@ async function getInjuryImpact(
 }
 
 async function getWeatherImpact(gameId: string, sport: string): Promise<WeatherImpact> {
-  // COMING SOON: Real weather data requires weather API integration (OpenWeather, etc.)
-  // For now, return empty/unavailable state
+  try {
+    // Fetch weather data from our weather API (which now uses OpenWeatherMap + ESPN)
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'
+    const res = await fetch(`${baseUrl}/api/weather?sport=${sport}`, { 
+      next: { revalidate: 1800 } // Cache 30 min
+    })
+    
+    if (!res.ok) throw new Error('Weather API failed')
+    const data = await res.json()
+    
+    // Find this game in weather results
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const gameWeather = data.games?.find((g: any) => g.id === gameId || g.id === gameId.replace(/^(espn_|an_)/, ''))
+    
+    if (gameWeather) {
+      return {
+        venue: gameWeather.venue || '',
+        isOutdoor: gameWeather.isOutdoor,
+        isDome: !gameWeather.isOutdoor,
+        conditions: {
+          temperature: gameWeather.weather.temperature || 0,
+          feelsLike: gameWeather.weather.temperature || 0, // OWM provides proper feelsLike
+          windSpeed: gameWeather.weather.windSpeed || 0,
+          windDirection: gameWeather.weather.windDirection || '',
+          precipitation: gameWeather.weather.precipitation || 0,
+          humidity: gameWeather.weather.humidity || 0,
+          conditions: gameWeather.weather.conditions || 'Clear',
+        },
+        bettingImpact: {
+          level: gameWeather.bettingImpact.level || 'none',
+          spreadImpact: 0,
+          totalImpact: gameWeather.bettingImpact.level === 'high' ? -2 : gameWeather.bettingImpact.level === 'medium' ? -1 : 0,
+          affectedBets: gameWeather.bettingImpact.affectedBets || [],
+          narrative: gameWeather.bettingImpact.description || 'No significant weather impact',
+        },
+        historicalInWeather: {
+          homeTeamRecord: '',
+          awayTeamRecord: '',
+          avgTotalInConditions: 0,
+        },
+      }
+    }
+  } catch (err) {
+    console.warn('[WeatherImpact] Could not fetch weather:', err)
+  }
+  
+  // Fallback: no weather data available
   return {
     venue: '',
     isOutdoor: false,
-    isDome: true, // Default to dome to avoid showing fake weather impact
+    isDome: true,
     conditions: {
       temperature: 0,
       feelsLike: 0,
