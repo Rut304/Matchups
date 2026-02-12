@@ -12,7 +12,14 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "test:flows": "playwright test user-flows.spec.ts",
+    "test:links": "playwright test link-validation.spec.ts",
+    "test:freshness": "playwright test content-freshness.spec.ts",
+    "test:visual": "playwright test visual-regression.spec.ts",
+    "test:critical": "playwright test user-flows.spec.ts link-validation.spec.ts content-freshness.spec.ts",
+    "test:update-snapshots": "playwright test visual-regression.spec.ts --update-snapshots",
+    "test:production": "TEST_URL=https://matchups-eta.vercel.app playwright test user-flows.spec.ts link-validation.spec.ts content-freshness.spec.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
