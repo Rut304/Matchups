@@ -100,33 +100,37 @@ test.describe('🔗 Internal Link Validation', () => {
     await page.goto('/markets/edge');
     await page.waitForLoadState('networkidle');
     
+    // Collect hrefs first before navigating (elements become stale after navigation)
     const gameLinks = await page.locator('a[href^="/game/"]').all();
-    console.log(`Found ${gameLinks.length} game links on edge dashboard`);
+    const hrefs: string[] = [];
+    for (const link of gameLinks) {
+      const href = await link.getAttribute('href');
+      if (href) hrefs.push(href);
+    }
+    
+    console.log(`Found ${hrefs.length} game links on edge dashboard`);
     
     const brokenLinks: string[] = [];
-    const linksToTest = gameLinks.slice(0, 10);
+    const linksToTest = hrefs.slice(0, 10);
     
-    for (const link of linksToTest) {
-      const href = await link.getAttribute('href');
-      if (href) {
-        const result = await checkLink(page, href);
+    for (const href of linksToTest) {
+      const result = await checkLink(page, href);
+      
+      // Should not be 404 or 500
+      if (result.status >= 400) {
+        brokenLinks.push(`${href} (status: ${result.status})`);
+      }
+      
+      // Also verify page content is not error
+      if (result.status === 200) {
+        const content = await page.locator('body').innerText();
+        const isErrorPage = 
+          content.toLowerCase().includes('not found') ||
+          content.toLowerCase().includes('404') ||
+          content.toLowerCase().includes('error loading');
         
-        // Should not be 404 or 500
-        if (result.status >= 400) {
-          brokenLinks.push(`${href} (status: ${result.status})`);
-        }
-        
-        // Also verify page content is not error
-        if (result.status === 200) {
-          const content = await page.locator('body').innerText();
-          const isErrorPage = 
-            content.toLowerCase().includes('not found') ||
-            content.toLowerCase().includes('404') ||
-            content.toLowerCase().includes('error loading');
-          
-          if (isErrorPage) {
-            brokenLinks.push(`${href} (soft 404 - shows error content)`);
-          }
+        if (isErrorPage) {
+          brokenLinks.push(`${href} (soft 404 - shows error content)`);
         }
       }
     }
