@@ -159,17 +159,35 @@ export async function getTeamSchedule(
       limit
     )
     
-    // Create a map of historical games by date for quick lookup
-    const historicalMap = new Map<string, TeamGameResult>()
-    historicalData.games?.forEach((hg: TeamGameResult) => {
-      const dateKey = new Date(hg.date).toDateString()
-      historicalMap.set(dateKey, hg)
-    })
+    // Create multiple lookup maps for better matching
+    // Historical games can be matched by date OR by opponent+week
+    const historicalByDate = new Map<string, TeamGameResult>()
+    const historicalByOpponent = new Map<string, TeamGameResult>()
+    
+    if (historicalData.games && historicalData.games.length > 0) {
+      console.log(`[Team Schedule] Found ${historicalData.games.length} historical games for ${data.team.abbreviation}`)
+      historicalData.games.forEach((hg: TeamGameResult) => {
+        // Map by date (use YYYY-MM-DD format for consistency)
+        const dateStr = new Date(hg.date).toISOString().split('T')[0]
+        historicalByDate.set(dateStr, hg)
+        
+        // Also map by opponent abbreviation + week for fuzzy matching
+        const oppKey = `${hg.opponent.replace('@', '')}-${hg.week}`
+        historicalByOpponent.set(oppKey, hg)
+      })
+    }
     
     // Enrich ESPN games with historical odds data
     const enrichedGames = sortedGames.map(g => {
-      const dateKey = new Date(g.date).toDateString()
-      const historical = historicalMap.get(dateKey)
+      // Try exact date match first
+      const dateStr = new Date(g.date).toISOString().split('T')[0]
+      let historical = historicalByDate.get(dateStr)
+      
+      // If no date match, try opponent + week matching
+      if (!historical) {
+        const oppKey = `${g.opponent.replace('@', '')}-${g.week}`
+        historical = historicalByOpponent.get(oppKey)
+      }
       
       if (historical) {
         return {
@@ -186,9 +204,9 @@ export async function getTeamSchedule(
     // If ESPN returned limited data, add historical games not in ESPN
     let finalGames = enrichedGames
     if (enrichedGames.length < limit && historicalData.games?.length) {
-      const existingDates = new Set(enrichedGames.map(g => new Date(g.date).toDateString()))
+      const existingDates = new Set(enrichedGames.map(g => new Date(g.date).toISOString().split('T')[0]))
       const newGames = (historicalData.games as TeamGameResult[])
-        .filter(hg => !existingDates.has(new Date(hg.date).toDateString()))
+        .filter(hg => !existingDates.has(new Date(hg.date).toISOString().split('T')[0]))
       finalGames = [...enrichedGames, ...newGames]
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, limit)

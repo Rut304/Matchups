@@ -198,6 +198,84 @@ const allGames = { ...mockGames, ...additionalGames }
 // Import team analytics
 import { getTeamByAbbr, type TeamAnalytics } from '@/lib/analytics-data'
 import type { Sport } from '@/types/leaderboard'
+import { calculateTeamATS } from '@/lib/api/ats-calculator'
+
+/**
+ * Generate meaningful betting trends from ATS/O-U historical data
+ * These are REAL trends based on performance, not just restating the spread
+ */
+async function generateMeaningfulTrends(
+  teamAbbr: string,
+  sport: string,
+  isHome: boolean
+): Promise<string[]> {
+  const trends: string[] = []
+  
+  try {
+    // Get real ATS data from our calculator
+    const atsData = await calculateTeamATS(teamAbbr, sport)
+    
+    if (atsData) {
+      // Only add trends that have meaningful sample size (at least 3 games)
+      const totalGames = atsData.ats.wins + atsData.ats.losses
+      
+      if (totalGames >= 3) {
+        // Overall ATS record trend
+        if (atsData.ats.percentage >= 60) {
+          trends.push(`${teamAbbr} is ${atsData.ats.record} ATS this season (${atsData.ats.percentage}%)`)
+        } else if (atsData.ats.percentage <= 40) {
+          trends.push(`${teamAbbr} struggling ATS at ${atsData.ats.record} (${atsData.ats.percentage}%)`)
+        }
+        
+        // Home/Away specific ATS trend
+        if (isHome) {
+          const homeGames = atsData.homeATS.wins + atsData.homeATS.losses
+          if (homeGames >= 2) {
+            if (atsData.homeATS.percentage >= 65) {
+              trends.push(`${teamAbbr} covers ${atsData.homeATS.record} at home (${atsData.homeATS.percentage}% ATS)`)
+            } else if (atsData.homeATS.percentage <= 35) {
+              trends.push(`${teamAbbr} only ${atsData.homeATS.record} ATS at home this year`)
+            }
+          }
+        } else {
+          const awayGames = atsData.awayATS.wins + atsData.awayATS.losses
+          if (awayGames >= 2) {
+            if (atsData.awayATS.percentage >= 65) {
+              trends.push(`${teamAbbr} covers ${atsData.awayATS.record} on the road (${atsData.awayATS.percentage}% ATS)`)
+            } else if (atsData.awayATS.percentage <= 35) {
+              trends.push(`${teamAbbr} struggles on road at ${atsData.awayATS.record} ATS`)
+            }
+          }
+        }
+        
+        // Last 10 ATS trend
+        const last10Games = atsData.last10ATS.wins + atsData.last10ATS.losses
+        if (last10Games >= 5) {
+          if (atsData.last10ATS.percentage >= 70) {
+            trends.push(`HOT: ${teamAbbr} is ${atsData.last10ATS.record} ATS in last 10 games`)
+          } else if (atsData.last10ATS.percentage <= 30) {
+            trends.push(`COLD: ${teamAbbr} is ${atsData.last10ATS.record} ATS in last 10 games`)
+          }
+        }
+        
+        // O/U trends
+        const ouGames = atsData.ou.wins + atsData.ou.losses
+        if (ouGames >= 3) {
+          const overPct = Math.round((atsData.ou.wins / ouGames) * 100)
+          if (overPct >= 65) {
+            trends.push(`${teamAbbr} games going OVER ${atsData.ou.record} (${overPct}%)`)
+          } else if (overPct <= 35) {
+            trends.push(`${teamAbbr} games going UNDER ${atsData.ou.record} (${100 - overPct}% under rate)`)
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error(`Error generating trends for ${teamAbbr}:`, error)
+  }
+  
+  return trends
+}
 
 // Convert TeamAnalytics to TeamAnalyticsSummary
 function convertToSummary(team: TeamAnalytics): TeamAnalyticsSummary {
@@ -259,7 +337,30 @@ export async function getGameById(id: string, sport?: string): Promise<GameDetai
     if (res.ok) {
       const data = await res.json()
       // Transform API data to GameDetail format
-      return transformAPIGameToDetail(data, sport || data.sport)
+      const gameDetail = transformAPIGameToDetail(data, sport || data.sport)
+      
+      // Enrich with meaningful ATS/O-U trends from historical data
+      // This runs async to not block the main transformation
+      try {
+        const sportStr = sport || data.sport || 'NFL'
+        const [homeTrendsReal, awayTrendsReal] = await Promise.all([
+          generateMeaningfulTrends(gameDetail.home.abbr, sportStr, true),
+          generateMeaningfulTrends(gameDetail.away.abbr, sportStr, false)
+        ])
+        
+        // Merge real ATS trends with any key number commentary (prioritize real trends)
+        if (homeTrendsReal.length > 0) {
+          gameDetail.homeTrends = [...homeTrendsReal, ...gameDetail.homeTrends.slice(0, 2)]
+        }
+        if (awayTrendsReal.length > 0) {
+          gameDetail.awayTrends = [...awayTrendsReal, ...gameDetail.awayTrends.slice(0, 2)]
+        }
+      } catch (trendsError) {
+        console.error('[getGameById] Error enriching trends:', trendsError)
+        // Keep the basic trends if enrichment fails
+      }
+      
+      return gameDetail
     }
     
     // Only log if real error (not 404)
