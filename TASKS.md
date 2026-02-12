@@ -1,36 +1,28 @@
 # Matchups - Project Task Tracker
 
-> **Last Updated:** February 8, 2026  
-> **Production URL:** <https://matchups-eta.vercel.app>
+> **Last Updated:** February 12, 2026  
+> **Production URL:** <https://matchups.vercel.app>
 > **Supabase Project:** Matchups (cdfdmkntdsfylososgwo)
 
 ---
 
-## 🔴 CRITICAL: Super Bowl LX Page Issues (Feb 8, 2026)
+## ✅ COMPLETED: Super Bowl LX Page Issues (Fixed Feb 12, 2026)
 
-**URL:** <https://matchups-eta.vercel.app/game/401772988?sport=nfl>
+**URL:** <https://matchups.vercel.app/game/401772988?sport=nfl>
 
-### Issues Found
+### Issues Fixed
 
-- [ ] **No Head to Head data** - SEA vs NE played Super Bowl XLIX in 2015, but H2H section is empty
-- [ ] **Betting Trends are useless** - Just restates "SEA favored by 4.5 points" instead of real ATS/O-U trends
-- [ ] **AI Analysis shows placeholder** - "AI analysis requires Gemini API integration" on game day
-- [ ] **Last 10 games missing betting data** - Spread/ATS/O-U columns show "-" for all games
+- [x] **H2H History** - Now pulls from head-to-head.ts module using historical_games
+- [x] **Betting Trends** - Now shows real ATS/O-U performance from calculateTeamATS
+- [x] **AI Analysis** - Fallback analysis always returns meaningful content (no placeholders)
+- [x] **Last 10 games** - Team schedule API enriches with historical betting data
 
-### Root Causes
+### Infrastructure Improvements
 
-1. No historical betting database populated
-2. AI Analysis requires 2+ real data points (ATS, O/U, injuries, splits) to generate
-3. Betting Trends generated from current line only, not historical performance
-4. Team schedule API doesn't include historical odds data
-
-### Priority Fixes
-
-- [ ] **P0:** Create fallback AI analysis when data is sparse (template-based)
-- [ ] **P0:** Import historical betting data for NFL teams (at minimum 2025 season)
-- [ ] **P1:** Replace useless trends with real historical ATS performance  
-- [ ] **P1:** Fix Last 10 games to pull betting data from external source
-- [ ] **P2:** Import historical SEA vs NE matchup data from 2015 Super Bowl
+- [x] **Situational Angles** - Wired to rest-schedule.ts (back-to-back, rest advantage, travel)
+- [x] **CLV Tracking** - Cron job running every 30 minutes capturing odds snapshots
+- [x] **Weather API** - OpenWeatherMap integration ready (needs API key in env)
+- [x] **Gemini 2.5 Flash** - Updated to latest model
 
 ### See Full Audit
 
@@ -38,7 +30,7 @@
 
 ---
 
-## ✅ Game Matchup Page - WORKING (Partial)
+## ✅ Game Matchup Page - FULLY WORKING
 
 The `/game/[id]` page is fully functional with real ESPN data:
 
@@ -243,42 +235,40 @@ The `/game/[id]` page is fully functional with real ESPN data:
 
 ---
 
-## 📋 BACKLOG (P2 - Medium Priority)
+## ✅ DATA INTEGRATIONS COMPLETED (Feb 12, 2026)
 
-### 🔴 DATA INTEGRATIONS NEEDED ("Coming Soon" Features)
+These betting intelligence data points are now WIRED UP with real data:
 
-These are the betting intelligence data points currently showing "Coming Soon" because they require additional API integrations:
-
-- [ ] **CLV Tracking (Closing Line Value)** - Track opening lines over time
-  - Store opening lines when markets first open
-  - Calculate line movement history
-  - Requires: Database schema for line snapshots, cron job to capture lines
+- [x] **CLV Tracking (Closing Line Value)** ✅ COMPLETED
+  - Cron job running every 30 minutes via `/api/cron/odds-snapshot`
+  - Line snapshots stored in `line_snapshots` table
+  - DraftKings + FanDuel odds captured
   
-- [ ] **Weather API Integration** - Real weather data for outdoor games
-  - OpenWeather or Weather.gov API
+- [x] **Weather API Integration** ✅ READY
+  - OpenWeatherMap integration in `src/lib/weather.ts`
+  - Stadium coordinates for all NFL/MLB outdoor venues
   - Impact scoring for wind, temp, precipitation
-  - Requires: API key, venue outdoor/dome detection
+  - Note: Needs OPENWEATHER_API_KEY in env to activate
   
-- [ ] **ESPN Injuries API Deep Integration** - Full injury impact analysis
-  - Player impact ratings
-  - Positional impact scoring
-  - Line adjustment calculations
-  - Requires: ESPN API expansion, player importance ratings
+- [x] **Injury Impact Analysis** ✅ COMPLETED
+  - ESPN injuries fetched via summary API
+  - Impact scoring in edge engine
+  - Player importance ratings
   
-- [ ] **Situational Angle Analysis** - Schedule-based edges
-  - Rest days calculation
+- [x] **Situational Angle Analysis** ✅ COMPLETED
+  - Rest days calculation via `rest-schedule.ts`
   - Back-to-back detection (NBA/NHL)
   - Travel miles tracking
-  - Revenge game detection
-  - Primetime/divisional flags
-  - Requires: Schedule parsing, team history tracking
+  - Letdown/revenge/trap game detection
   
-- [ ] **H2H Historical Database** - Head-to-head history
+- [x] **H2H Historical Database** ✅ COMPLETED
+  - Head-to-head data from `head-to-head.ts`
   - ATS records vs specific opponents
   - O/U trends in matchups
   - Recent meeting results
-  - Requires: Historical game results database
-  
+
+### Still In Backlog
+
 - [ ] **Market Consensus Aggregation** - Expert picks aggregation
   - Scrape Covers consensus
   - Action Network public picks
