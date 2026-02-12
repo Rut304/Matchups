@@ -5,8 +5,8 @@ import { ESPN_APIS } from '@/lib/api/free-sports-apis'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 
-// Use stable model with fallback
-const modelName = process.env.GEMINI_MODEL || 'gemini-1.5-flash'
+// Use stable model with fallback - gemini-2.0-flash is current as of Feb 2026
+const modelName = process.env.GEMINI_MODEL || 'gemini-2.0-flash'
 
 const trendFinderModel = genAI.getGenerativeModel({ 
   model: modelName,
