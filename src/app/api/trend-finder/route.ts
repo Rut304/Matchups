@@ -121,6 +121,8 @@ async function queryHistoricalData(parsedQuery: HistoricalQuery): Promise<{
   percentage: string
   games: any[]
   estimatedTime: string
+  requiresPlayByPlay?: boolean
+  missingDataConditions?: string[]
 }> {
   const supabase = await createClient()
   
