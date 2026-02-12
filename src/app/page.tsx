@@ -18,6 +18,7 @@ import { HomeLeaderboard } from '@/components/home/HomeLeaderboard'
 import { HomeTrends } from '@/components/home/HomeTrends'
 import { HomeInjuries } from '@/components/home/HomeInjuries'
 import { HomeStandings } from '@/components/home/HomeStandings'
+import { DataSourceLabel } from '@/components/ui/DataSourceLabel'
 import { SharpMoneySummary } from '@/components/betting'
 import { getSteamMoveAlerts } from '@/lib/services/real-analytics'
 
@@ -74,6 +75,7 @@ export default async function Home() {
         <div className="flex items-center gap-2 mb-4">
           <Target className="w-5 h-5 text-green-400" />
           <h2 className="text-lg font-bold text-white">Market Edges</h2>
+          <DataSourceLabel source="Action Network" />
         </div>
         <EdgeDashboardWithFiltersWrapper />
       </section>
@@ -87,7 +89,7 @@ export default async function Home() {
             </div>
             <div>
               <h2 className="text-xl font-bold text-white">Major Markets</h2>
-              <p className="text-xs text-gray-500">High liquidity events • Live games</p>
+              <p className="text-xs text-gray-500">High liquidity events <DataSourceLabel source="ESPN" /></p>
             </div>
           </div>
           <Link href="/scores" className="flex items-center gap-1 text-sm font-semibold text-orange-400 hover:text-orange-300">

@@ -182,30 +182,8 @@ export default function EdgePage() {
               <p className="text-gray-400">Real-time sharp money signals & betting analytics</p>
             </div>
             
-            {/* Mode Toggle */}
+            {/* Refresh Timer */}
             <div className="ml-auto flex items-center gap-4">
-              <div className="flex items-center gap-2 p-1 rounded-xl bg-white/5 border border-white/10">
-                <button
-                  onClick={() => setMode('sports')}
-                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                    mode === 'sports' 
-                      ? 'bg-orange-500 text-white' 
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  Sports Betting
-                </button>
-                <button
-                  onClick={() => setMode('markets')}
-                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                    mode === 'markets' 
-                      ? 'bg-purple-500 text-white' 
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  Prediction Markets
-                </button>
-              </div>
               
               <div className="flex items-center gap-2">
                 <span className="text-xs text-gray-500">
@@ -223,9 +201,7 @@ export default function EdgePage() {
           </div>
         </div>
 
-        {mode === 'sports' ? (
-          <>
-            {/* Sports Betting Mode */}
+        {/* Sports Betting Mode */}
             
             {/* Quick Stats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
@@ -427,26 +403,6 @@ export default function EdgePage() {
                 </div>
               </div>
             </div>
-          </>
-        ) : (
-          /* Prediction Markets Mode */
-          <div className="text-center py-20">
-            <div className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 inline-block mb-6">
-              <BarChart3 className="w-12 h-12 text-purple-400" />
-            </div>
-            <h2 className="text-2xl font-bold text-white mb-4">Prediction Markets Coming Soon</h2>
-            <p className="text-gray-400 max-w-lg mx-auto mb-6">
-              We&apos;re integrating real-time data from Polymarket and Kalshi to bring you 
-              edge signals on political, economic, and world events.
-            </p>
-            <Link
-              href="/markets"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-purple-500 text-white font-bold hover:bg-purple-600 transition-all"
-            >
-              Browse Current Markets <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
-        )}
 
         {/* Disclaimer */}
         <div className="mt-8 p-4 rounded-xl bg-red-500/10 border border-red-500/20">

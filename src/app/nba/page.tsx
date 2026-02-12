@@ -56,7 +56,7 @@ export default function NBAAnalyticsPage() {
   const [sortBy, setSortBy] = useState<'winPct' | 'profit' | 'name'>('winPct')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [selectedTeam, setSelectedTeam] = useState<TeamWithStreaks | null>(null)
-  const [activeView, setActiveView] = useState<'teams' | 'games' | 'props'>('teams')
+  const [activeView, setActiveView] = useState<'teams' | 'games'>('teams')
   
   // Fetch real team data from ESPN + Supabase
   const { teams: allTeams, loading, error } = useTeamAnalytics('NBA')
@@ -168,7 +168,7 @@ export default function NBAAnalyticsPage() {
           
           {/* View Toggle */}
           <div className="flex gap-2 mt-6 mb-4">
-            {(['teams', 'games', 'props'] as const).map((view) => (
+            {(['teams', 'games'] as const).map((view) => (
               <button
                 key={view}
                 onClick={() => setActiveView(view)}
@@ -181,7 +181,7 @@ export default function NBAAnalyticsPage() {
               >
                 {view === 'teams' && '📊 Team Analytics'}
                 {view === 'games' && '🎯 Today\'s Games'}
-                {view === 'props' && '👤 Player Props'}
+
               </button>
             ))}
           </div>
@@ -378,14 +378,7 @@ export default function NBAAnalyticsPage() {
           </div>
         )}
         
-        {/* Props View */}
-        {activeView === 'props' && (
-          <div className="text-center py-16">
-            <Users className="w-16 h-16 mx-auto mb-4" style={{ color: '#606070' }} />
-            <h2 className="text-xl font-bold mb-2" style={{ color: '#FFF' }}>Player Props Coming Soon</h2>
-            <p style={{ color: '#808090' }}>Advanced player prop analysis with hit rates and trends is in development.</p>
-          </div>
-        )}
+
       </section>
     </div>
   )

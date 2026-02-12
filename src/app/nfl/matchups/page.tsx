@@ -323,10 +323,10 @@ export default function NFLMatchupsPage() {
 
         {/* Quick Links */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-          <Link href="/nfl/players" className="p-4 rounded-xl bg-[#0c0c14] border border-white/10 hover:border-white/20 transition-all">
+          <Link href="/injuries?sport=nfl" className="p-4 rounded-xl bg-[#0c0c14] border border-white/10 hover:border-white/20 transition-all">
             <Activity className="w-6 h-6 text-green-500 mb-2" />
-            <div className="font-semibold text-white">Player Stats</div>
-            <div className="text-xs text-gray-500">Full stats & props</div>
+            <div className="font-semibold text-white">Injuries</div>
+            <div className="text-xs text-gray-500">Impact analysis</div>
           </Link>
           <Link href="/trends?sport=nfl" className="p-4 rounded-xl bg-[#0c0c14] border border-white/10 hover:border-white/20 transition-all">
             <TrendingUp className="w-6 h-6 text-orange-500 mb-2" />

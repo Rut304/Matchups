@@ -48,7 +48,7 @@ export default function NHLAnalyticsPage() {
   const [sortBy, setSortBy] = useState<'winPct' | 'profit' | 'name'>('winPct')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [selectedTeam, setSelectedTeam] = useState<TeamWithStreaks | null>(null)
-  const [activeView, setActiveView] = useState<'teams' | 'games' | 'goalies'>('teams')
+  const [activeView, setActiveView] = useState<'teams' | 'games'>('teams')
   
   // Fetch real team data from ESPN + Supabase
   const { teams: allTeams, loading, error } = useTeamAnalytics('NHL')
@@ -139,7 +139,7 @@ export default function NHLAnalyticsPage() {
           
           {/* View Toggle */}
           <div className="flex gap-2 mt-6 mb-4">
-            {(['teams', 'games', 'goalies'] as const).map((view) => (
+            {(['teams', 'games'] as const).map((view) => (
               <button
                 key={view}
                 onClick={() => setActiveView(view)}
@@ -152,7 +152,7 @@ export default function NHLAnalyticsPage() {
               >
                 {view === 'teams' && '📊 Team Analytics'}
                 {view === 'games' && '🎯 Today\'s Games'}
-                {view === 'goalies' && '🥅 Goalie Stats'}
+
               </button>
             ))}
           </div>
@@ -332,14 +332,7 @@ export default function NHLAnalyticsPage() {
           <GamesSection sport="NHL" />
         )}
         
-        {/* Goalies View */}
-        {activeView === 'goalies' && (
-          <div className="text-center py-16">
-            <Shield className="w-16 h-16 mx-auto mb-4" style={{ color: '#606070' }} />
-            <h2 className="text-xl font-bold mb-2" style={{ color: '#FFF' }}>Goalie Stats Coming Soon</h2>
-            <p style={{ color: '#808090' }}>Detailed goalie matchup analysis with SV%, GAA, and trends is in development.</p>
-          </div>
-        )}
+
       </section>
     </div>
   )

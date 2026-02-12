@@ -14,7 +14,6 @@ import {
   trendInsights, lineMovements, publicSharpSplits, predictionCappers,
   getHighEdgeTrends, getTopCLVCappers, getReverseLineMovements, getSteamMoves, analyticsSummary
 } from '@/lib/prediction-market-data'
-import { getMockLinePredictions, getMockModelPerformance } from '@/lib/models/line-predictor'
 import { fetchBettingSplits, type BettingSplit } from '@/lib/scrapers/betting-splits'
 import {
   latestNews, injuryReports, weatherImpacts, sentimentData,
@@ -26,7 +25,7 @@ import {
   getSharpMoneyGames, sportsSummary
 } from '@/lib/sports-data'
 
-type Tab = 'edge' | 'news' | 'matchups' | 'ai' | 'linepredictor'
+type Tab = 'edge' | 'news' | 'matchups' | 'ai'
 
 // Date utilities - All dates in Eastern Time
 function getEasternDate(offsetDays = 0): Date {
@@ -94,16 +93,9 @@ export default function AnalyticsPage() {
   const criticalInjuries = getCriticalInjuries()
   const edgeMatchups = getMatchupsWithEdge()
   const actionableTrends = getActionableTrends()
-  
-  // Line Predictor data
-  const nflPredictions = getMockLinePredictions('NFL')
-  const nbaPredictions = getMockLinePredictions('NBA')
-  const allPredictions = [...nflPredictions, ...nbaPredictions]
-  const modelPerformance = getMockModelPerformance()
 
   const tabs = [
     { id: 'edge' as Tab, label: '🎯 Edge Finder', count: highEdgeTrends.length },
-    { id: 'linepredictor' as Tab, label: '📈 Line Predictor', count: allPredictions.length },
     { id: 'news' as Tab, label: '📰 Live Intel', count: newsSummary.highImpact },
     { id: 'matchups' as Tab, label: '🏟️ Matchups', count: sportsSummary.totalMatchups },
     { id: 'ai' as Tab, label: '🤖 AI Discovery', count: newsSummary.newTrends }
@@ -422,260 +414,6 @@ export default function AnalyticsPage() {
           </div>
         )}
 
-        {/* LINE PREDICTOR TAB */}
-        {activeTab === 'linepredictor' && (
-          <div className="space-y-6">
-            {/* Model Performance Header */}
-            <div className="grid sm:grid-cols-4 gap-4">
-              <div className="p-4 rounded-xl" style={{ background: '#0c0c14', border: '1px solid rgba(0,255,136,0.2)' }}>
-                <div className="text-2xl font-black" style={{ color: '#00FF88' }}>{modelPerformance.directionAccuracy.toFixed(1)}%</div>
-                <div className="text-xs" style={{ color: '#808090' }}>Direction Accuracy</div>
-                <div className="text-[10px] mt-1" style={{ color: '#606070' }}>{modelPerformance.totalPredictions} predictions</div>
-              </div>
-              <div className="p-4 rounded-xl" style={{ background: '#0c0c14', border: '1px solid rgba(255,215,0,0.2)' }}>
-                <div className="text-2xl font-black" style={{ color: '#FFD700' }}>{modelPerformance.avgMagnitudeError.toFixed(1)} pts</div>
-                <div className="text-xs" style={{ color: '#808090' }}>Avg Error</div>
-                <div className="text-[10px] mt-1" style={{ color: '#606070' }}>from closing line</div>
-              </div>
-              <div className="p-4 rounded-xl" style={{ background: '#0c0c14', border: '1px solid rgba(0,168,255,0.2)' }}>
-                <div className="text-2xl font-black" style={{ color: '#00A8FF' }}>{modelPerformance.byConfidenceLevel.high.accuracy.toFixed(0)}%</div>
-                <div className="text-xs" style={{ color: '#808090' }}>High Conf Accuracy</div>
-                <div className="text-[10px] mt-1" style={{ color: '#606070' }}>{modelPerformance.byConfidenceLevel.high.count} high conf picks</div>
-              </div>
-              <div className="p-4 rounded-xl" style={{ background: '#0c0c14', border: '1px solid rgba(155,89,182,0.2)' }}>
-                <div className="text-2xl font-black" style={{ color: '#9B59B6' }}>v1.0</div>
-                <div className="text-xs" style={{ color: '#808090' }}>Model Version</div>
-                <div className="text-[10px] mt-1" style={{ color: '#606070' }}>Recursive learning active</div>
-              </div>
-            </div>
-
-            {/* Predictions Grid */}
-            <div className="grid lg:grid-cols-2 gap-6">
-              {/* Active Predictions */}
-              <div>
-                <h2 className="text-lg font-bold flex items-center gap-2 mb-4" style={{ color: '#FFF' }}>
-                  <LineChart className="w-5 h-5" style={{ color: '#00A8FF' }} />
-                  Live Line Predictions
-                </h2>
-                <div className="space-y-3">
-                  {allPredictions.map((pred) => (
-                    <div key={pred.id} className="p-4 rounded-xl" 
-                         style={{ 
-                           background: '#0c0c14', 
-                           border: pred.optimalBetTiming === 'now' 
-                             ? '1px solid rgba(0,255,136,0.3)' 
-                             : pred.optimalBetTiming === 'wait'
-                             ? '1px solid rgba(255,215,0,0.3)'
-                             : '1px solid rgba(255,255,255,0.06)'
-                         }}>
-                      {/* Header */}
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" 
-                                style={{ background: 'rgba(0,168,255,0.2)', color: '#00A8FF' }}>
-                            {pred.sport}
-                          </span>
-                          <span className="font-bold text-sm" style={{ color: '#FFF' }}>
-                            {pred.awayTeam} @ {pred.homeTeam}
-                          </span>
-                        </div>
-                        <div className={`text-[10px] font-bold px-2 py-1 rounded ${
-                          pred.optimalBetTiming === 'now' ? 'bg-green-500/20 text-green-400' :
-                          pred.optimalBetTiming === 'wait' ? 'bg-yellow-500/20 text-yellow-400' :
-                          'bg-red-500/20 text-red-400'
-                        }`}>
-                          {pred.optimalBetTiming === 'now' && '🚀 BET NOW'}
-                          {pred.optimalBetTiming === 'wait' && '⏳ WAIT'}
-                          {pred.optimalBetTiming === 'avoid' && '⚠️ AVOID'}
-                        </div>
-                      </div>
-
-                      {/* Line Visualization */}
-                      <div className="flex items-center gap-4 mb-3">
-                        <div className="text-center">
-                          <div className="text-xs" style={{ color: '#606070' }}>Current</div>
-                          <div className="text-xl font-black" style={{ color: '#FFF' }}>
-                            {pred.currentLine > 0 ? '+' : ''}{pred.currentLine}
-                          </div>
-                        </div>
-                        <div className="flex-1 h-2 rounded-full relative" style={{ background: 'rgba(255,255,255,0.1)' }}>
-                          {/* Movement arrow */}
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            {pred.predictedDirection === 'down' && (
-                              <TrendingDown className="w-5 h-5" style={{ color: '#00FF88' }} />
-                            )}
-                            {pred.predictedDirection === 'up' && (
-                              <TrendingUp className="w-5 h-5" style={{ color: '#FF6B00' }} />
-                            )}
-                            {pred.predictedDirection === 'stable' && (
-                              <Activity className="w-5 h-5" style={{ color: '#808090' }} />
-                            )}
-                          </div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-xs" style={{ color: '#606070' }}>Predicted</div>
-                          <div className="text-xl font-black" style={{ 
-                            color: pred.predictedDirection === 'stable' ? '#808090' : 
-                                   pred.predictedDirection === 'down' ? '#00FF88' : '#FF6B00' 
-                          }}>
-                            {pred.predictedLine > 0 ? '+' : ''}{pred.predictedLine}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Confidence & Timing */}
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="flex-1 h-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.1)' }}>
-                          <div 
-                            className="h-full rounded-full transition-all" 
-                            style={{ 
-                              width: `${pred.confidence}%`,
-                              background: pred.confidence >= 70 ? '#00FF88' : pred.confidence >= 50 ? '#FFD700' : '#FF6B00'
-                            }} 
-                          />
-                        </div>
-                        <span className="text-xs font-bold" style={{ color: '#FFF' }}>{pred.confidence}%</span>
-                      </div>
-
-                      {/* Timing Reason */}
-                      <p className="text-xs leading-relaxed" style={{ color: '#B0B0C0' }}>
-                        {pred.timingReason}
-                      </p>
-
-                      {/* Factors */}
-                      <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                        <div className="text-[10px] font-bold mb-2" style={{ color: '#606070' }}>KEY FACTORS</div>
-                        <div className="flex flex-wrap gap-1">
-                          {pred.factors.slice(0, 3).map((factor, idx) => (
-                            <span key={idx} className="text-[10px] px-2 py-1 rounded"
-                                  style={{ 
-                                    background: factor.impact > 0 ? 'rgba(255,107,0,0.2)' : 'rgba(0,255,136,0.2)',
-                                    color: factor.impact > 0 ? '#FF6B00' : '#00FF88'
-                                  }}>
-                              {factor.name}: {factor.impact > 0 ? '+' : ''}{factor.impact.toFixed(0)}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Betting Splits Sidebar */}
-              <div className="space-y-4">
-                <h2 className="text-lg font-bold flex items-center gap-2" style={{ color: '#FFF' }}>
-                  <Users className="w-5 h-5" style={{ color: '#FF6B00' }} />
-                  Real-Time Betting Splits
-                </h2>
-                
-                {bettingSplits.map((split) => (
-                  <div key={split.gameId} className="p-4 rounded-xl" 
-                       style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="font-bold text-sm" style={{ color: '#FFF' }}>
-                        {split.awayTeam} @ {split.homeTeam}
-                      </div>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded" 
-                            style={{ background: 'rgba(255,107,0,0.2)', color: '#FF6B00' }}>
-                        {split.sport}
-                      </span>
-                    </div>
-
-                    {/* Spread Split */}
-                    <div className="mb-3">
-                      <div className="flex justify-between text-[10px] mb-1" style={{ color: '#606070' }}>
-                        <span>SPREAD ({split.spread.line > 0 ? '+' : ''}{split.spread.line})</span>
-                        <span>Bets / Money</span>
-                      </div>
-                      <div className="flex gap-2">
-                        <div className="flex-1">
-                          <div className="flex justify-between text-xs mb-1">
-                            <span style={{ color: '#FFF' }}>{split.awayTeam}</span>
-                            <span style={{ color: '#808090' }}>{split.spread.awayBetPct}% / {split.spread.awayMoneyPct}%</span>
-                          </div>
-                          <div className="h-2 rounded-full" style={{ background: 'rgba(255,255,255,0.1)' }}>
-                            <div className="h-full rounded-full" style={{ width: `${split.spread.awayBetPct}%`, background: '#FF6B00' }} />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex gap-2 mt-1">
-                        <div className="flex-1">
-                          <div className="flex justify-between text-xs mb-1">
-                            <span style={{ color: '#FFF' }}>{split.homeTeam}</span>
-                            <span style={{ color: '#808090' }}>{split.spread.homeBetPct}% / {split.spread.homeMoneyPct}%</span>
-                          </div>
-                          <div className="h-2 rounded-full" style={{ background: 'rgba(255,255,255,0.1)' }}>
-                            <div className="h-full rounded-full" style={{ width: `${split.spread.homeBetPct}%`, background: '#00A8FF' }} />
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Sharp Indicator */}
-                      {Math.abs(split.spread.homeBetPct - split.spread.homeMoneyPct) > 10 && (
-                        <div className="mt-2 p-2 rounded-lg" style={{ background: 'rgba(0,255,136,0.1)' }}>
-                          <div className="flex items-center gap-1">
-                            <Zap className="w-3 h-3" style={{ color: '#00FF88' }} />
-                            <span className="text-[10px] font-bold" style={{ color: '#00FF88' }}>
-                              SHARP SIGNAL: Money % differs from Bet % by {Math.abs(split.spread.homeBetPct - split.spread.homeMoneyPct)}%
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Total Split */}
-                    <div>
-                      <div className="flex justify-between text-[10px] mb-1" style={{ color: '#606070' }}>
-                        <span>TOTAL ({split.total.line})</span>
-                        <span>Bets / Money</span>
-                      </div>
-                      <div className="flex gap-2 items-center">
-                        <div className="flex-1">
-                          <div className="flex justify-between text-xs mb-1">
-                            <span style={{ color: '#FFF' }}>Over</span>
-                            <span style={{ color: '#808090' }}>{split.total.overBetPct}% / {split.total.overMoneyPct}%</span>
-                          </div>
-                          <div className="h-2 rounded-full" style={{ background: 'rgba(255,255,255,0.1)' }}>
-                            <div className="h-full rounded-full" style={{ width: `${split.total.overBetPct}%`, background: '#FFD700' }} />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                {/* Model Learning Info */}
-                <div className="p-4 rounded-xl" style={{ background: 'linear-gradient(135deg, rgba(155,89,182,0.1) 0%, rgba(0,168,255,0.1) 100%)', border: '1px solid rgba(155,89,182,0.2)' }}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Brain className="w-4 h-4" style={{ color: '#9B59B6' }} />
-                    <span className="font-bold text-xs" style={{ color: '#9B59B6' }}>RECURSIVE LEARNING</span>
-                  </div>
-                  <p className="text-xs leading-relaxed" style={{ color: '#B0B0C0' }}>
-                    This model improves over time. After each game, we compare predictions to actual closing lines 
-                    and automatically adjust factor weights. High-confidence predictions have shown 
-                    <strong style={{ color: '#00FF88' }}> 71.8% accuracy</strong>.
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <span className="text-[10px] px-2 py-1 rounded" style={{ background: 'rgba(0,255,136,0.2)', color: '#00FF88' }}>
-                      ✓ 847 predictions tracked
-                    </span>
-                    <span className="text-[10px] px-2 py-1 rounded" style={{ background: 'rgba(255,215,0,0.2)', color: '#FFD700' }}>
-                      ✓ 64.3% overall accuracy
-                    </span>
-                  </div>
-                </div>
-
-                {/* Source Attribution */}
-                <div className="p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                  <div className="text-[10px]" style={{ color: '#606070' }}>
-                    📊 Data aggregated from <strong style={{ color: '#808090' }}>SportsBettingDime</strong> + line movement via <strong style={{ color: '#808090' }}>The Odds API</strong>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* NEWS TAB */}
         {activeTab === 'news' && (

@@ -50,7 +50,7 @@ interface PlayerStats {
 }
 
 type Sport = 'nfl' | 'nba' | 'nhl' | 'mlb'
-type StatsView = 'standings' | 'leaders' | 'teams' | 'players'
+type StatsView = 'standings' | 'leaders'
 
 // =============================================================================
 // EMPTY DATA - Real data should be fetched from API
@@ -220,8 +220,6 @@ function StatsPageContent() {
             {[
               { key: 'standings', label: 'Standings', icon: Trophy },
               { key: 'leaders', label: 'Leaders', icon: TrendingUp },
-              { key: 'teams', label: 'Teams', icon: Users },
-              { key: 'players', label: 'Players', icon: Activity },
             ].map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
@@ -430,25 +428,7 @@ function StatsPageContent() {
           </div>
         )}
 
-        {/* Teams & Players placeholder */}
-        {(activeView === 'teams' || activeView === 'players') && (
-          <div 
-            className="rounded-xl p-12 text-center" 
-            style={{ background: '#0c0c14', border: '1px solid rgba(255,255,255,0.06)' }}
-          >
-            <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: `${sportColors[activeSport]}20` }}>
-              {activeView === 'teams' ? <Users size={32} style={{ color: sportColors[activeSport] }} /> : <Activity size={32} style={{ color: sportColors[activeSport] }} />}
-            </div>
-            <h3 className="text-xl font-bold mb-2" style={{ color: '#FFF' }}>
-              {activeView === 'teams' ? 'Team Stats' : 'Player Database'}
-            </h3>
-            <p style={{ color: '#606070' }}>
-              Detailed {activeView === 'teams' ? 'team analytics and comparisons' : 'player statistics and profiles'} coming soon.
-              <br />
-              Search above to find specific {activeView}.
-            </p>
-          </div>
-        )}
+
       </div>
     </div>
   )

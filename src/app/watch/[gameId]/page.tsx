@@ -774,7 +774,7 @@ export default function ESPNStyleLivePage() {
                   <BarChart3 className="w-5 h-5 text-blue-400" />
                   Box Score
                 </h3>
-                <p className="text-slate-400 text-sm">Detailed box score coming soon...</p>
+                <p className="text-slate-400 text-sm">Box score will be available once the game begins.</p>
               </div>
             )}
 
@@ -785,7 +785,7 @@ export default function ESPNStyleLivePage() {
                   <Users className="w-5 h-5 text-purple-400" />
                   Team & Player Stats
                 </h3>
-                <p className="text-slate-400 text-sm">Detailed statistics coming soon...</p>
+                <p className="text-slate-400 text-sm">Live stats will populate during gameplay.</p>
               </div>
             )}
           </div>

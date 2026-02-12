@@ -128,7 +128,8 @@ interface SystemResult {
   dataNote?: string // Note about data availability
 }
 
-// Pre-built popular systems
+// Pre-built system TEMPLATES - criteria only, no backtest data
+// Real backtesting requires historical betting database connection
 const popularSystems: SystemResult[] = [
   {
     id: 'sys-1',
@@ -136,71 +137,10 @@ const popularSystems: SystemResult[] = [
     criteria: ['Home underdog', 'Coming off a loss', 'Spread +3 to +7'],
     sport: 'nfl',
     betType: 'ats',
-    stats: {
-      record: '156-98-8',
-      winPct: 61.4,
-      roi: 12.8,
-      units: 38.7,
-      avgOdds: -108,
-      clv: 2.4,
-      maxDrawdown: -12.3,
-      sharpeRatio: 1.42,
-      kellyPct: 8.2,
-    },
-    backtest: {
-      sampleSize: 262,
-      confidence: 'Very High',
-      startDate: '2019-09-08',
-      endDate: '2024-12-29',
-      monthlyBreakdown: [
-        { month: 'Sep 2024', record: '8-4-1', wins: 8, losses: 4, pushes: 1, units: 3.8, roi: 29.2 },
-        { month: 'Oct 2024', record: '11-6-0', wins: 11, losses: 6, pushes: 0, units: 4.4, roi: 25.9 },
-        { month: 'Nov 2024', record: '9-7-1', wins: 9, losses: 7, pushes: 1, units: 1.3, roi: 7.6 },
-        { month: 'Dec 2024', record: '7-3-0', wins: 7, losses: 3, pushes: 0, units: 3.7, roi: 37.0 },
-        { month: 'Sep 2023', record: '10-5-0', wins: 10, losses: 5, pushes: 0, units: 4.5, roi: 30.0 },
-        { month: 'Oct 2023', record: '12-8-1', wins: 12, losses: 8, pushes: 1, units: 3.2, roi: 15.2 },
-        { month: 'Nov 2023', record: '8-6-0', wins: 8, losses: 6, pushes: 0, units: 1.4, roi: 10.0 },
-        { month: 'Dec 2023', record: '6-4-1', wins: 6, losses: 4, pushes: 1, units: 1.6, roi: 14.5 },
-      ],
-      seasonalBreakdown: [
-        { season: '2024', record: '35-20-2', wins: 35, losses: 20, units: 13.2, roi: 23.2, winPct: 63.6 },
-        { season: '2023', record: '36-23-2', wins: 36, losses: 23, units: 10.7, roi: 17.5, winPct: 61.0 },
-        { season: '2022', record: '32-21-1', wins: 32, losses: 21, units: 9.4, roi: 17.4, winPct: 60.4 },
-        { season: '2021', record: '28-18-2', wins: 28, losses: 18, units: 8.2, roi: 17.1, winPct: 60.9 },
-        { season: '2020', record: '25-16-1', wins: 25, losses: 16, units: -2.8, roi: -6.7, winPct: 61.0 },
-      ],
-      streaks: {
-        currentStreak: 3,
-        currentStreakType: 'W',
-        longestWin: 9,
-        longestLoss: 4,
-      },
-      byDay: [
-        { day: 'Sunday', winPct: 62.4, record: '98-59' },
-        { day: 'Monday', winPct: 58.3, record: '28-20' },
-        { day: 'Thursday', winPct: 64.1, record: '25-14' },
-        { day: 'Saturday', winPct: 50.0, record: '5-5' },
-      ],
-      drawdownAnalysis: {
-        current: -2.1,
-        max: -12.3,
-        avgRecovery: 4.2,
-      },
-      profitCurve: [
-        { date: '2024-09', cumulative: 31.2 },
-        { date: '2024-10', cumulative: 35.6 },
-        { date: '2024-11', cumulative: 36.9 },
-        { date: '2024-12', cumulative: 38.7 },
-      ],
-    },
-    recentPicks: [
-      { date: 'Dec 29', matchup: 'TEN +6 vs HOU', pick: 'TEN +6', result: 'W', profit: 1.0 },
-      { date: 'Dec 22', matchup: 'CAR +7 vs ARI', pick: 'CAR +7', result: 'L', profit: -1.1 },
-      { date: 'Dec 15', matchup: 'JAX +4 vs NYJ', pick: 'JAX +4', result: 'W', profit: 1.0 },
-    ],
-    upcomingPicks: [
-      { matchup: 'TEN vs HOU', pick: 'TEN +5.5', confidence: 72, time: 'Sun 1:00 PM' },
-    ],
+    stats: { record: 'N/A', winPct: 0, roi: 0, units: 0, avgOdds: -110, clv: 0, maxDrawdown: 0, sharpeRatio: 0, kellyPct: 0 },
+    recentPicks: [],
+    upcomingPicks: [],
+    dataNote: 'Connect historical database to backtest this system.',
   },
   {
     id: 'sys-2',
@@ -208,65 +148,10 @@ const popularSystems: SystemResult[] = [
     criteria: ['Road favorite', 'Spread -3 to -6', 'Team top-10 Net Rating'],
     sport: 'nba',
     betType: 'ats',
-    stats: {
-      record: '89-67-4',
-      winPct: 57.1,
-      roi: 8.4,
-      units: 24.2,
-      avgOdds: -110,
-      clv: 1.8,
-      maxDrawdown: -8.5,
-      sharpeRatio: 1.18,
-      kellyPct: 6.1,
-    },
-    backtest: {
-      sampleSize: 160,
-      confidence: 'High',
-      startDate: '2021-10-19',
-      endDate: '2025-01-02',
-      monthlyBreakdown: [
-        { month: 'Jan 2025', record: '3-0-0', wins: 3, losses: 0, pushes: 0, units: 3.0, roi: 100.0 },
-        { month: 'Dec 2024', record: '8-5-1', wins: 8, losses: 5, pushes: 1, units: 2.5, roi: 17.9 },
-        { month: 'Nov 2024', record: '10-7-0', wins: 10, losses: 7, pushes: 0, units: 2.3, roi: 13.5 },
-        { month: 'Oct 2024', record: '5-3-1', wins: 5, losses: 3, pushes: 1, units: 1.7, roi: 18.9 },
-      ],
-      seasonalBreakdown: [
-        { season: '2024-25', record: '26-15-2', wins: 26, losses: 15, units: 9.5, roi: 22.1, winPct: 63.4 },
-        { season: '2023-24', record: '31-26-1', wins: 31, losses: 26, units: 3.9, roi: 6.7, winPct: 54.4 },
-        { season: '2022-23', record: '32-26-1', wins: 32, losses: 26, units: 10.8, roi: 8.3, winPct: 55.2 },
-      ],
-      streaks: {
-        currentStreak: 3,
-        currentStreakType: 'W',
-        longestWin: 7,
-        longestLoss: 5,
-      },
-      byDay: [
-        { day: 'Friday', winPct: 61.2, record: '30-19' },
-        { day: 'Saturday', winPct: 55.3, record: '26-21' },
-        { day: 'Sunday', winPct: 58.8, record: '20-14' },
-        { day: 'Wednesday', winPct: 53.8, record: '14-12' },
-      ],
-      drawdownAnalysis: {
-        current: 0,
-        max: -8.5,
-        avgRecovery: 3.1,
-      },
-      profitCurve: [
-        { date: '2024-10', cumulative: 21.7 },
-        { date: '2024-11', cumulative: 24.0 },
-        { date: '2024-12', cumulative: 24.2 },
-      ],
-    },
-    recentPicks: [
-      { date: 'Jan 2', matchup: 'BOS -4 @ MIA', pick: 'BOS -4', result: 'W', profit: 1.0 },
-      { date: 'Jan 1', matchup: 'OKC -5 @ UTA', pick: 'OKC -5', result: 'W', profit: 1.0 },
-      { date: 'Dec 30', matchup: 'CLE -3.5 @ TOR', pick: 'CLE -3.5', result: 'W', profit: 1.0 },
-    ],
-    upcomingPicks: [
-      { matchup: 'BOS @ LAL', pick: 'BOS -4.5', confidence: 68, time: 'Sat 8:30 PM' },
-      { matchup: 'OKC @ GSW', pick: 'OKC -5.5', confidence: 71, time: 'Sat 10:00 PM' },
-    ],
+    stats: { record: 'N/A', winPct: 0, roi: 0, units: 0, avgOdds: -110, clv: 0, maxDrawdown: 0, sharpeRatio: 0, kellyPct: 0 },
+    recentPicks: [],
+    upcomingPicks: [],
+    dataNote: 'Connect historical database to backtest this system.',
   },
   {
     id: 'sys-3',
@@ -274,24 +159,10 @@ const popularSystems: SystemResult[] = [
     criteria: ['Road team on B2B', 'Total 6+', 'Against top-10 defense'],
     sport: 'nhl',
     betType: 'ou',
-    stats: {
-      record: '67-48-5',
-      winPct: 58.3,
-      roi: 9.7,
-      units: 18.4,
-      avgOdds: -112,
-      clv: 1.5,
-      maxDrawdown: -6.2,
-      sharpeRatio: 1.24,
-      kellyPct: 5.8,
-    },
-    recentPicks: [
-      { date: 'Jan 3', matchup: 'PIT @ BOS u6', pick: 'UNDER 6', result: 'W', profit: 1.0 },
-      { date: 'Jan 1', matchup: 'CGY @ DAL u5.5', pick: 'UNDER 5.5', result: 'L', profit: -1.1 },
-    ],
-    upcomingPicks: [
-      { matchup: 'NYR @ BOS', pick: 'UNDER 5.5', confidence: 66, time: 'Sat 7:00 PM' },
-    ],
+    stats: { record: 'N/A', winPct: 0, roi: 0, units: 0, avgOdds: -112, clv: 0, maxDrawdown: 0, sharpeRatio: 0, kellyPct: 0 },
+    recentPicks: [],
+    upcomingPicks: [],
+    dataNote: 'Connect historical database to backtest this system.',
   },
   {
     id: 'sys-4',
@@ -299,22 +170,10 @@ const popularSystems: SystemResult[] = [
     criteria: ['Home favorite', 'F5 line', 'SP ERA under 3.50', 'vs SP ERA over 4.00'],
     sport: 'mlb',
     betType: 'ml',
-    stats: {
-      record: '124-94-12',
-      winPct: 56.9,
-      roi: 6.2,
-      units: 15.8,
-      avgOdds: -135,
-      clv: 0.9,
-      maxDrawdown: -10.4,
-      sharpeRatio: 1.08,
-      kellyPct: 4.2,
-    },
-    recentPicks: [
-      { date: 'Oct 5', matchup: 'LAD F5 vs SD', pick: 'LAD F5', result: 'W', profit: 0.74 },
-      { date: 'Oct 4', matchup: 'NYY F5 vs BOS', pick: 'NYY F5', result: 'W', profit: 0.77 },
-    ],
+    stats: { record: 'N/A', winPct: 0, roi: 0, units: 0, avgOdds: -135, clv: 0, maxDrawdown: 0, sharpeRatio: 0, kellyPct: 0 },
+    recentPicks: [],
     upcomingPicks: [],
+    dataNote: 'Connect historical database to backtest this system.',
   },
   {
     id: 'sys-5',
@@ -322,25 +181,10 @@ const popularSystems: SystemResult[] = [
     criteria: ['Public betting >65%', 'Sharp money opposite', 'Line moving against public'],
     sport: 'all',
     betType: 'ats',
-    stats: {
-      record: '201-156-12',
-      winPct: 56.3,
-      roi: 7.8,
-      units: 32.6,
-      avgOdds: -108,
-      clv: 2.1,
-      maxDrawdown: -14.2,
-      sharpeRatio: 1.12,
-      kellyPct: 5.4,
-    },
-    recentPicks: [
-      { date: 'Jan 3', matchup: 'MIN +3.5 @ DET', pick: 'MIN +3.5', result: 'P', profit: 0 },
-      { date: 'Jan 2', matchup: 'MIA +6 vs BUF', pick: 'MIA +6', result: 'L', profit: -1.1 },
-      { date: 'Jan 1', matchup: 'CHI +10 @ GB', pick: 'CHI +10', result: 'W', profit: 1.0 },
-    ],
-    upcomingPicks: [
-      { matchup: 'WAS +6 @ PHI', pick: 'WAS +6', confidence: 62, time: 'Sun 3:00 PM' },
-    ],
+    stats: { record: 'N/A', winPct: 0, roi: 0, units: 0, avgOdds: -108, clv: 0, maxDrawdown: 0, sharpeRatio: 0, kellyPct: 0 },
+    recentPicks: [],
+    upcomingPicks: [],
+    dataNote: 'Connect historical database to backtest this system.',
   },
 ]
 

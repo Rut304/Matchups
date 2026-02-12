@@ -1308,7 +1308,7 @@ async function getWeatherImpact(gameId: string, sport: string): Promise<WeatherI
       spreadImpact: 0,
       totalImpact: 0,
       affectedBets: [],
-      narrative: 'Weather data coming soon'
+      narrative: 'Weather data unavailable'
     },
     historicalInWeather: {
       homeTeamRecord: '',
@@ -1531,7 +1531,7 @@ async function getKeyNumbers(gameId: string, sport: string): Promise<KeyNumbers>
     },
     sport,
     keyNumbersForSport: keyNums,
-    analysis: `Key numbers for ${sport}: ${keyNums.join(', ')}. Line analysis coming soon.`
+    analysis: `Key numbers for ${sport}: ${keyNums.join(', ')}.`
   }
 }
 
@@ -1560,7 +1560,7 @@ async function getH2HHistory(
       overStreak: 0,
       underStreak: 0
     },
-    insights: ['H2H history coming soon']
+    insights: ['H2H history unavailable']
   }
 }
 

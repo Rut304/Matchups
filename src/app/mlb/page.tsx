@@ -48,7 +48,7 @@ export default function MLBAnalyticsPage() {
   const [sortBy, setSortBy] = useState<'winPct' | 'profit' | 'name'>('winPct')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [selectedTeam, setSelectedTeam] = useState<TeamWithStreaks | null>(null)
-  const [activeView, setActiveView] = useState<'teams' | 'games' | 'pitchers'>('teams')
+  const [activeView, setActiveView] = useState<'teams' | 'games'>('teams')
   
   // Fetch real team data from ESPN + Supabase
   const { teams: allTeams, loading, error } = useTeamAnalytics('MLB')
@@ -148,7 +148,7 @@ export default function MLBAnalyticsPage() {
           
           {/* View Toggle */}
           <div className="flex gap-2 mt-6 mb-4">
-            {(['teams', 'games', 'pitchers'] as const).map((view) => (
+            {(['teams', 'games'] as const).map((view) => (
               <button
                 key={view}
                 onClick={() => setActiveView(view)}
@@ -161,7 +161,7 @@ export default function MLBAnalyticsPage() {
               >
                 {view === 'teams' && '📊 Team Analytics'}
                 {view === 'games' && '🎯 Today\'s Games'}
-                {view === 'pitchers' && '⚾ Pitcher Stats'}
+
               </button>
             ))}
           </div>
@@ -341,14 +341,7 @@ export default function MLBAnalyticsPage() {
           <GamesSection sport="MLB" />
         )}
         
-        {/* Pitchers View */}
-        {activeView === 'pitchers' && (
-          <div className="text-center py-16">
-            <User className="w-16 h-16 mx-auto mb-4" style={{ color: '#606070' }} />
-            <h2 className="text-xl font-bold mb-2" style={{ color: '#FFF' }}>Pitcher Stats Coming Soon</h2>
-            <p style={{ color: '#808090' }}>Detailed pitcher matchup analysis with ERA, WHIP, and K rates is in development.</p>
-          </div>
-        )}
+
       </section>
     </div>
   )

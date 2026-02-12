@@ -49,8 +49,6 @@ const proSportsNav = [
     color: 'from-green-600 to-green-800',
     subItems: [
       { name: 'Matchups', href: '/nfl/matchups', icon: Target },
-      { name: 'Player Stats', href: '/nfl/players', icon: Users },
-      { name: 'Team Rankings', href: '/nfl/rankings', icon: BarChart3 },
     ]
   },
   { 
@@ -71,9 +69,6 @@ const proSportsNav = [
     color: 'from-blue-600 to-blue-800',
     subItems: [
       { name: 'Matchups', href: '/nhl/matchups', icon: Target },
-      { name: 'Skater Stats', href: '/nhl/skaters', icon: Users },
-      { name: 'Goalie Stats', href: '/nhl/goalies', icon: Shield },
-      { name: 'Team Rankings', href: '/nhl/rankings', icon: BarChart3 },
     ]
   },
   { 
@@ -83,8 +78,6 @@ const proSportsNav = [
     color: 'from-red-600 to-red-800',
     subItems: [
       { name: 'Matchups', href: '/mlb/matchups', icon: Target },
-      { name: 'Player Stats', href: '/mlb/players', icon: Users },
-      { name: 'Team Rankings', href: '/mlb/rankings', icon: BarChart3 },
     ]
   },
   { 

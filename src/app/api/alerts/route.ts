@@ -1,110 +1,118 @@
 import { NextResponse } from 'next/server'
 
-interface Alert {
-  id: string
-  type: 'line_move' | 'sharp_action' | 'injury' | 'weather' | 'public_money'
-  sport: string
-  title: string
-  description: string
-  game: string
-  timestamp: string
-  severity: 'low' | 'medium' | 'high' | 'critical'
-  data?: {
-    oldLine?: number
-    newLine?: number
-    movement?: number
-    percentage?: number
-  }
-}
+export const dynamic = 'force-dynamic'
 
-// Mock real-time alerts - in production, this would connect to live data sources
-const generateAlerts = (): Alert[] => {
-  const now = new Date()
-  
-  return [
-    {
-      id: '1',
-      type: 'line_move',
-      sport: 'NFL',
-      title: 'Major Line Movement',
-      description: 'Line moved 3.5 points in 2 hours',
-      game: 'Chiefs @ Ravens',
-      timestamp: new Date(now.getTime() - 5 * 60000).toISOString(),
-      severity: 'critical',
-      data: { oldLine: -7, newLine: -3.5, movement: 3.5 }
-    },
-    {
-      id: '2',
-      type: 'sharp_action',
-      sport: 'NBA',
-      title: 'Sharp Money Detected',
-      description: '65% of money on Celtics despite 40% of bets',
-      game: 'Celtics @ Lakers',
-      timestamp: new Date(now.getTime() - 12 * 60000).toISOString(),
-      severity: 'high',
-      data: { percentage: 65 }
-    },
-    {
-      id: '3',
-      type: 'injury',
-      sport: 'NBA',
-      title: 'Star Player Out',
-      description: 'Ja Morant ruled OUT - Line shifting',
-      game: 'Grizzlies @ Suns',
-      timestamp: new Date(now.getTime() - 20 * 60000).toISOString(),
-      severity: 'critical'
-    },
-    {
-      id: '4',
-      type: 'public_money',
-      sport: 'NFL',
-      title: 'Heavy Public Action',
-      description: '85% of public bets on Cowboys',
-      game: 'Cowboys @ Eagles',
-      timestamp: new Date(now.getTime() - 35 * 60000).toISOString(),
-      severity: 'medium',
-      data: { percentage: 85 }
-    },
-    {
-      id: '5',
-      type: 'line_move',
-      sport: 'NHL',
-      title: 'Reverse Line Movement',
-      description: 'Line moving against public money',
-      game: 'Oilers @ Flames',
-      timestamp: new Date(now.getTime() - 60 * 60000).toISOString(),
-      severity: 'high',
-      data: { oldLine: -150, newLine: -130, movement: 20 }
-    }
-  ]
-}
-
+/**
+ * GET /api/alerts - Real-time betting alerts
+ * 
+ * Proxies to the real /api/edges system which uses:
+ * 1. Action Network (real-time sharp money, RLM, betting splits)
+ * 2. Supabase edge_alerts table
+ * 
+ * No mock data. Returns empty array when no active alerts.
+ */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const type = searchParams.get('type')
   const sport = searchParams.get('sport')
   const severity = searchParams.get('severity')
 
-  let alerts = generateAlerts()
+  try {
+    // Build edges API URL with matching filters
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
+                    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 
+                    'http://localhost:3000'
+    
+    const edgesUrl = new URL('/api/edges', baseUrl)
+    if (sport && sport !== 'all') edgesUrl.searchParams.set('sport', sport.toUpperCase())
+    if (severity) {
+      // Map severity to edges severity format
+      const severityMap: Record<string, string> = {
+        'critical': 'critical',
+        'high': 'major',
+        'medium': 'minor',
+        'low': 'info'
+      }
+      edgesUrl.searchParams.set('severity', severityMap[severity] || severity)
+    }
 
-  // Filter by type
-  if (type && type !== 'all') {
-    alerts = alerts.filter(a => a.type === type)
+    const edgesRes = await fetch(edgesUrl.toString(), {
+      next: { revalidate: 120 }
+    })
+    const edgesData = await edgesRes.json()
+
+    // Transform edge alerts into the alert format the frontend expects
+    const alerts = (edgesData.edges || []).map((edge: {
+      id: string
+      type: string
+      sport: string
+      title: string
+      description: string
+      gameId: string
+      timestamp: string
+      severity: string
+      confidence: number
+      data?: {
+        publicPct?: number
+        moneyPct?: number
+        line?: number
+      }
+    }) => {
+      // Map edge types to alert types
+      const typeMap: Record<string, string> = {
+        'sharp-public': 'sharp_action',
+        'rlm': 'line_move',
+        'steam': 'line_move',
+        'clv': 'line_move',
+        'arbitrage': 'sharp_action',
+        'props': 'sharp_action'
+      }
+
+      const severityMap: Record<string, string> = {
+        'critical': 'critical',
+        'major': 'high',
+        'minor': 'medium',
+        'info': 'low'
+      }
+
+      return {
+        id: edge.id,
+        type: typeMap[edge.type] || 'sharp_action',
+        sport: edge.sport,
+        title: edge.title,
+        description: edge.description,
+        game: edge.gameId,
+        timestamp: edge.timestamp,
+        severity: severityMap[edge.severity] || 'medium',
+        data: {
+          percentage: edge.data?.publicPct || edge.data?.moneyPct,
+          movement: edge.data?.line,
+        },
+        confidence: edge.confidence,
+        source: 'action-network'
+      }
+    })
+
+    // Filter by alert type if specified
+    let filtered = alerts
+    if (type && type !== 'all') {
+      filtered = filtered.filter((a: { type: string }) => a.type === type)
+    }
+
+    return NextResponse.json({
+      alerts: filtered,
+      count: filtered.length,
+      lastUpdated: new Date().toISOString(),
+      source: edgesData.sources || { primary: 'action-network' }
+    })
+  } catch (error) {
+    console.error('Alerts API error:', error)
+    return NextResponse.json({
+      alerts: [],
+      count: 0,
+      lastUpdated: new Date().toISOString(),
+      source: 'none',
+      message: 'No active alerts at this time'
+    })
   }
-
-  // Filter by sport
-  if (sport && sport !== 'all') {
-    alerts = alerts.filter(a => a.sport.toLowerCase() === sport.toLowerCase())
-  }
-
-  // Filter by severity
-  if (severity && severity !== 'all') {
-    alerts = alerts.filter(a => a.severity === severity)
-  }
-
-  return NextResponse.json({
-    alerts,
-    count: alerts.length,
-    lastUpdated: new Date().toISOString()
-  })
 }
