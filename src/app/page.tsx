@@ -87,7 +87,7 @@ export default async function Home() {
             </div>
             <div>
               <h2 className="text-xl font-bold text-white">Major Markets</h2>
-              <p className="text-xs text-gray-500">High liquidity events • Super Bowl LX</p>
+              <p className="text-xs text-gray-500">High liquidity events • Live games</p>
             </div>
           </div>
           <Link href="/scores" className="flex items-center gap-1 text-sm font-semibold text-orange-400 hover:text-orange-300">
@@ -103,40 +103,36 @@ export default async function Home() {
           
           {/* Quick Stats Sidebar */}
           <div className="space-y-4">
-            {/* Live Games Alert */}
+            {/* Live Games Alert - Dynamic */}
             <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20">
               <div className="flex items-center gap-2 mb-2">
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                <span className="text-sm font-bold text-red-400">🏆 SUPER BOWL WEEKEND</span>
+                <span className="text-sm font-bold text-red-400">🏀 LIVE ACTION</span>
               </div>
               <p className="text-xs text-gray-400">
-                Super Bowl LX is Sunday! Plus NBA, NHL, and college hoops action all weekend. Click any game for full matchup analysis.
+                NBA, NHL, and college hoops in full swing. Click any game for full matchup analysis with real-time odds.
               </p>
             </div>
             
-            {/* Super Bowl Countdown */}
-            <div className="p-4 rounded-xl bg-gradient-to-br from-yellow-500/20 to-orange-500/10 border border-yellow-500/30">
+            {/* Upcoming Events - Dynamic based on season */}
+            <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/10 border border-blue-500/30">
               <div className="flex items-center gap-2 mb-3">
-                <Trophy className="w-5 h-5 text-yellow-400" />
-                <span className="text-sm font-bold text-yellow-400">Super Bowl LX</span>
+                <Trophy className="w-5 h-5 text-blue-400" />
+                <span className="text-sm font-bold text-blue-400">Upcoming Events</span>
               </div>
               <div className="space-y-2 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">🏈 Super Bowl LX</span>
-                  <span className="text-yellow-400 font-bold">Sun, Feb 8</span>
+                  <span className="text-gray-400">🏀 NBA All-Star Weekend</span>
+                  <span className="text-blue-400 font-bold">Feb 14-16</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">📍 Allegiant Stadium</span>
-                  <span className="text-white">Las Vegas</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400">⏰ Kickoff</span>
-                  <span className="text-white">6:30 PM ET</span>
+                  <span className="text-gray-400">🏀 March Madness</span>
+                  <span className="text-white">Mar 18</span>
                 </div>
                 <div className="mt-2 pt-2 border-t border-white/10">
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-400">🏀 NBA All-Star</span>
-                    <span className="text-white">Feb 16</span>
+                    <span className="text-gray-400">⚾ MLB Opening Day</span>
+                    <span className="text-white">Mar 27</span>
                   </div>
                 </div>
               </div>

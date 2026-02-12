@@ -559,7 +559,7 @@ export default function MarketsPage() {
               <div className="space-y-2">
                 {[
                   { market: 'Trump 2028 Primary', amount: '$45,000', side: 'YES', time: '12 min ago' },
-                  { market: 'Chiefs Super Bowl', amount: '$32,000', side: 'NO', time: '28 min ago' },
+                  { market: 'Lakers Finals', amount: '$32,000', side: 'NO', time: '28 min ago' },
                   { market: 'Bitcoin $150k', amount: '$28,000', side: 'YES', time: '45 min ago' },
                 ].map((trade, i) => (
                   <div key={i} className="flex items-center justify-between p-2 rounded-lg" style={{ background: 'rgba(0,0,0,0.3)' }}>

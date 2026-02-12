@@ -485,4 +485,4 @@ ORDER BY s.period_start DESC, s.units_won DESC;
 
 COMMENT ON TABLE tracked_picks IS 'Tracks every pick made by an expert with full line/odds at time of pick for accurate grading';
 COMMENT ON TABLE tracked_expert_stats IS 'Aggregated performance stats by period (daily, weekly, monthly, yearly, all-time)';
-COMMENT ON TABLE cached_game_results IS 'Cached game outcomes for grading picks';
+COMMENT ON TABLE cached_game_results IS 'Cached game outcomes for gradin

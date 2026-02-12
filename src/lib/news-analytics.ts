@@ -240,14 +240,14 @@ export const weatherImpacts: WeatherImpact[] = [
 
 export const sentimentData: SentimentAnalysis[] = [
   {
-    topic: 'Chiefs Super Bowl odds',
-    sport: 'NFL',
+    topic: 'Celtics Championship odds',
+    sport: 'NBA',
     sentiment: 72,
     volume: 45000,
     trending: true,
     relatedNews: ['news-1'],
-    bettingAngle: 'Public heavily on Chiefs futures - possible value in fading',
-    timestamp: '2026-01-03T15:00:00Z'
+    bettingAngle: 'Public heavily on Celtics futures - possible value in fading',
+    timestamp: '2025-02-11T15:00:00Z'
   },
   {
     topic: 'Thunder MVP race (SGA)',

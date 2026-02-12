@@ -73,14 +73,14 @@ const mockTrendingMarkets: TrendingMarket[] = [
   {
     id: '4',
     platform: 'polymarket',
-    question: 'Will Chiefs win Super Bowl LX?',
+    question: 'Will Lakers make 2025 NBA Finals?',
     category: 'sports',
     yesPrice: 0.28,
     change24h: 3.1,
     volume24h: 3200000,
     volumeChange: 15,
     traders: 18000,
-    endDate: '2026-02-09',
+    endDate: '2025-06-15',
     isHot: true
   },
   {
