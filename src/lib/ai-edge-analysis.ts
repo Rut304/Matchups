@@ -259,25 +259,9 @@ Respond with a JSON array of edge opportunities:
     console.error('AI edge analysis error:', error)
   }
   
-  // Fallback mock data
-  return [
-    {
-      id: 'edge-1',
-      sport: sport || 'NFL',
-      type: 'spread',
-      matchup: 'Sample Matchup',
-      pick: 'Home Team -3',
-      odds: -110,
-      confidence: 75,
-      edgePercentage: 4.5,
-      reasoning: 'Based on 20-year historical trends showing home favorites in primetime games cover at 58.2%',
-      supportingTrends: ['nfl-home-dog-ats', 'all-sharp-follow'],
-      historicalWinRate: 58.2,
-      riskLevel: 'medium',
-      clvExpected: 2,
-      aiScore: 78
-    }
-  ]
+  // NO FAKE DATA - return empty array on error
+  // AI edge analysis requires real API response
+  return []
 }
 
 export async function analyzeTrendInsights(sport?: string): Promise<TrendInsight[]> {

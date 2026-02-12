@@ -14,6 +14,7 @@ import {
 
 import { oddsClient, type BettingLine } from './api/odds'
 import { marketsClient, type PredictionMarket } from './api/markets'
+import { createClient } from './supabase/server'
 
 // =============================================================================
 // CACHE LAYER - In-memory with TTL (would be Redis in production)
@@ -500,18 +501,54 @@ export async function getUnifiedTrends(): Promise<UnifiedTrend[]> {
   const cached = getCached<UnifiedTrend[]>(cacheKey)
   if (cached) return cached
 
-  // For now, return curated trends (would come from analysis engine)
-  const trends: UnifiedTrend[] = [
-    { id: '1', sport: 'nfl', title: 'NFL home underdogs', description: 'Home underdogs getting +3 or more', record: '18-6', winPct: 75.0, roi: 12.4, sampleSize: 24, isHot: true, timeframe: '2024-25 Season' },
-    { id: '2', sport: 'nba', title: 'Thunder road games', description: 'OKC ATS on the road', record: '12-3', winPct: 80.0, roi: 8.7, sampleSize: 15, isHot: true, timeframe: 'This Season' },
-    { id: '3', sport: 'nhl', title: 'NHL January overs', description: 'January totals hitting over', record: '14-10', winPct: 58.3, roi: 5.2, sampleSize: 24, isHot: false, timeframe: 'January 2026' },
-    { id: '4', sport: 'nfl', title: 'Week 18 unders', description: 'Totals under in Week 18 games', record: '24-12', winPct: 66.7, roi: 6.8, sampleSize: 36, isHot: true, timeframe: 'Last 3 Seasons' },
-    { id: '5', sport: 'nba', title: 'B2B road dogs', description: 'Road dogs on back-to-backs', record: '31-22', winPct: 58.5, roi: 7.2, sampleSize: 53, isHot: true, timeframe: '2024-25 Season' },
-    { id: '6', sport: 'nfl', title: 'Primetime unders', description: 'SNF/MNF totals under', record: '19-11', winPct: 63.3, roi: 5.8, sampleSize: 30, isHot: false, timeframe: '2024-25 Season' },
-  ]
+  try {
+    // Fetch trends from database (historical_trends table)
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('historical_trends')
+      .select('*')
+      .eq('is_active', true)
+      .order('confidence_score', { ascending: false })
+      .limit(20)
 
-  setCache(cacheKey, trends, TTL.TRENDS, 'internal')
-  return trends
+    if (error) {
+      console.warn('[DataLayer] Could not fetch trends from database:', error.message)
+      // Return empty array - no fake data
+      return []
+    }
+
+    // Map database schema to UnifiedTrend format
+    const trends: UnifiedTrend[] = (data || []).map(trend => ({
+      id: trend.trend_id || trend.id,
+      sport: (trend.sport || 'nfl').toLowerCase(),
+      title: trend.trend_name || trend.title || 'Unknown Trend',
+      description: trend.trend_description || trend.description || '',
+      record: trend.all_time_record || trend.record || 'N/A',
+      winPct: trend.win_pct || calculateWinPct(trend.all_time_record),
+      roi: trend.all_time_roi || trend.roi || 0,
+      sampleSize: trend.all_time_sample_size || trend.sample_size || 0,
+      isHot: trend.hot_streak || false,
+      timeframe: trend.timeframe || 'All Time'
+    }))
+
+    setCache(cacheKey, trends, TTL.TRENDS, 'database')
+    return trends
+  } catch (err) {
+    console.error('[DataLayer] Error fetching trends:', err)
+    // Return empty array - no fake data
+    return []
+  }
+}
+
+// Helper to calculate win percentage from record string like "18-6"
+function calculateWinPct(record: string | null): number {
+  if (!record) return 0
+  const parts = record.split('-')
+  if (parts.length < 2) return 0
+  const wins = parseInt(parts[0]) || 0
+  const losses = parseInt(parts[1]) || 0
+  const total = wins + losses
+  return total > 0 ? Math.round((wins / total) * 1000) / 10 : 0
 }
 
 // =============================================================================

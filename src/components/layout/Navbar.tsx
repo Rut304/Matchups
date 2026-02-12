@@ -250,7 +250,7 @@ export function Navbar() {
             </div>
             <div className="hidden sm:flex flex-col">
               <span className="text-lg font-bold text-white leading-none">Matchups</span>
-              <span className="text-[10px] font-bold text-green-400 tracking-wider">100% FREE</span>
+              <span className="text-[10px] font-bold text-orange-400 tracking-wider">SPORTS GAMBLER INTEL</span>
             </div>
           </Link>
 

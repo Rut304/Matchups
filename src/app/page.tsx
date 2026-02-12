@@ -1,15 +1,16 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import { 
   TrendingUp, 
-  Clock,
-  BarChart3,
   Flame,
   Target,
   Trophy,
   ChevronRight,
-  AlertCircle,
-  Zap
+  Zap,
+  Sparkles,
+  Calculator,
+  ShoppingBag,
+  Activity,
+  AlertTriangle
 } from 'lucide-react'
 import { EdgeDashboardWithFiltersWrapper } from '@/components/edge'
 import { TopMatchups } from '@/components/home/TopMatchups'
@@ -17,7 +18,6 @@ import { TrendFinderSearch } from '@/components/home/TrendFinderSearch'
 import { HomeLeaderboard } from '@/components/home/HomeLeaderboard'
 import { HomeTrends } from '@/components/home/HomeTrends'
 import { HomeInjuries } from '@/components/home/HomeInjuries'
-import { HomeStandings } from '@/components/home/HomeStandings'
 import { DataSourceLabel } from '@/components/ui/DataSourceLabel'
 import { SharpMoneySummary } from '@/components/betting'
 import { getSteamMoveAlerts } from '@/lib/services/real-analytics'
@@ -32,10 +32,10 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen bg-[#050508]">
-      {/* MARKET PULSE TICKER - The "Terminal" Feel */}
+      {/* MARKET PULSE TICKER */}
       <div className="bg-[#0a0a12] border-b border-white/5 overflow-hidden whitespace-nowrap py-2 flex items-center">
         <div className="px-4 flex items-center gap-2 text-xs font-bold text-orange-500 uppercase tracking-wider border-r border-white/10">
-          <Zap className="w-3 h-3" /> Market Pulse
+          <Zap className="w-3 h-3" /> Live
         </div>
         <div className="flex animate-marquee items-center gap-8 px-4">
           {steamAlerts.length > 0 ? steamAlerts.map((alert) => (
@@ -43,154 +43,122 @@ export default async function Home() {
               <span className="text-red-400">STEAM:</span> {alert.teams} {alert.movement > 0 ? '+' : ''}{alert.movement}
             </span>
           )) : (
-            <span className="text-xs font-mono text-slate-500 flex items-center gap-2">
-              <span className="text-slate-600">—</span> Monitoring markets for sharp moves...
-            </span>
+            <span className="text-xs font-mono text-slate-500">Monitoring markets for sharp moves...</span>
           )}
         </div>
       </div>
 
-      {/* SEARCH & NAV - Compact */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-          <h1 className="text-2xl font-black text-white tracking-tight">
-            MATCHUPS <span className="text-orange-500">TERMINAL</span>
-          </h1>
-          <div className="w-full md:w-auto flex-1 max-w-xl">
+      {/* HERO SECTION - Trend Finder is THE STAR */}
+      <section className="relative overflow-hidden">
+        {/* Gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-orange-500/5 via-transparent to-transparent pointer-events-none" />
+        
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center relative">
+          {/* Brand */}
+          <div className="mb-6">
+            <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-2">
+              <span className="text-orange-500">MATCHUPS</span>
+            </h1>
+            <p className="text-lg text-gray-400 font-medium">Sports Gambler Intelligence</p>
+          </div>
+          
+          {/* Trend Finder - THE HERO */}
+          <div className="mb-8">
             <TrendFinderSearch />
           </div>
-          <div className="flex gap-2">
-             <Link href="/sus" className="px-3 py-1.5 rounded bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold uppercase hover:bg-red-500/20">
-               Sus Plays
-             </Link>
-             <Link href="/leaderboard" className="px-3 py-1.5 rounded bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs font-bold uppercase hover:bg-yellow-500/20">
-               Expert Tracker
-             </Link>
+          
+          {/* Quick Action Buttons */}
+          <div className="flex flex-wrap justify-center gap-3">
+            <Link href="/leaderboard" className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-sm font-semibold hover:bg-yellow-500/20 transition-colors">
+              <Trophy className="w-4 h-4" /> Expert Tracker
+            </Link>
+            <Link href="/sus" className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-semibold hover:bg-red-500/20 transition-colors">
+              <AlertTriangle className="w-4 h-4" /> Sus Plays
+            </Link>
+            <Link href="/calculators" className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-sm font-semibold hover:bg-blue-500/20 transition-colors">
+              <Calculator className="w-4 h-4" /> Calculators
+            </Link>
+            <Link href="/lineshop" className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-sm font-semibold hover:bg-green-500/20 transition-colors">
+              <ShoppingBag className="w-4 h-4" /> Line Shop
+            </Link>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* ZONE 1: TOP EDGES (VALUE FIRST) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-        <div className="flex items-center gap-2 mb-4">
-          <Target className="w-5 h-5 text-green-400" />
-          <h2 className="text-lg font-bold text-white">Market Edges</h2>
+      {/* TOP EDGES - Primary Value */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/10 border border-green-500/20 flex items-center justify-center">
+              <Target className="w-5 h-5 text-green-400" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-white">Today's Edges</h2>
+              <p className="text-xs text-gray-500">Sharp money signals & value plays</p>
+            </div>
+          </div>
           <DataSourceLabel source="Action Network" />
         </div>
         <EdgeDashboardWithFiltersWrapper />
       </section>
 
-      {/* ZONE 2: TOP MATCHUPS (POPULARITY SECOND) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-orange-500/10 border border-orange-500/20">
-              <Flame className="w-5 h-5 text-orange-400" />
+      {/* TWO COLUMN: Matchups + Sharp Money */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 border-t border-white/5">
+        <div className="grid lg:grid-cols-5 gap-6">
+          {/* Matchups - 3 columns */}
+          <div className="lg:col-span-3">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500/20 to-red-500/10 border border-orange-500/20 flex items-center justify-center">
+                  <Flame className="w-5 h-5 text-orange-400" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">Top Matchups</h2>
+                  <p className="text-xs text-gray-500">High-action games today</p>
+                </div>
+              </div>
+              <Link href="/scores" className="flex items-center gap-1 text-sm font-semibold text-orange-400 hover:text-orange-300">
+                All Scores <ChevronRight className="w-4 h-4" />
+              </Link>
             </div>
-            <div>
-              <h2 className="text-xl font-bold text-white">Major Markets</h2>
-              <p className="text-xs text-gray-500">High liquidity events <DataSourceLabel source="ESPN" /></p>
-            </div>
-          </div>
-          <Link href="/scores" className="flex items-center gap-1 text-sm font-semibold text-orange-400 hover:text-orange-300">
-            All Games <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
-
-        <div className="grid lg:grid-cols-2 gap-6">
-          {/* Dynamic Top Matchups */}
-          <div>
             <TopMatchups />
           </div>
           
-          {/* Quick Stats Sidebar */}
-          <div className="space-y-4">
-            {/* Live Games Alert - Dynamic */}
-            <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                <span className="text-sm font-bold text-red-400">🏀 LIVE ACTION</span>
-              </div>
-              <p className="text-xs text-gray-400">
-                NBA, NHL, and college hoops in full swing. Click any game for full matchup analysis with real-time odds.
-              </p>
-            </div>
-            
-            {/* Upcoming Events - Dynamic based on season */}
-            <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/10 border border-blue-500/30">
-              <div className="flex items-center gap-2 mb-3">
-                <Trophy className="w-5 h-5 text-blue-400" />
-                <span className="text-sm font-bold text-blue-400">Upcoming Events</span>
-              </div>
-              <div className="space-y-2 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400">🏀 NBA All-Star Weekend</span>
-                  <span className="text-blue-400 font-bold">Feb 14-16</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400">🏀 March Madness</span>
-                  <span className="text-white">Mar 18</span>
-                </div>
-                <div className="mt-2 pt-2 border-t border-white/10">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-400">⚾ MLB Opening Day</span>
-                    <span className="text-white">Mar 27</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Sharp vs Public - LIVE DATA */}
+          {/* Sharp Money - 2 columns */}
+          <div className="lg:col-span-2 space-y-4">
             <SharpMoneySummary 
               sports={['NBA', 'NHL', 'NFL', 'NCAAB']} 
-              limit={4}
+              limit={5}
               showHeader={true}
             />
+            
+            {/* Live indicator */}
+            <div className="p-4 rounded-xl bg-gradient-to-br from-red-500/10 to-orange-500/5 border border-red-500/20">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                <span className="text-sm font-bold text-white">Live Action</span>
+              </div>
+              <p className="text-xs text-gray-400 mb-3">
+                NBA, NHL, and college basketball in full swing.
+              </p>
+              <Link href="/live" className="inline-flex items-center gap-1 text-xs font-semibold text-red-400 hover:text-red-300">
+                <Activity className="w-3 h-3" /> View Live Games <ChevronRight className="w-3 h-3" />
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* LEADERBOARD - THE VIRAL FEATURE - Now with real data */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* LEADERBOARD */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 border-t border-white/5">
         <HomeLeaderboard />
       </section>
 
-      {/* Three Column Layout: Trends, Standings, Injuries */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-        <div className="grid lg:grid-cols-3 gap-6">
-          
-          {/* Hot Trends - Real data from API */}
+      {/* BOTTOM: Trends + Injuries */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 border-t border-white/5 pt-8">
+        <div className="grid lg:grid-cols-2 gap-6">
           <HomeTrends />
-          
-          {/* League Standings - Real data from ESPN */}
-          <HomeStandings />
-          
-          {/* Sidebar - Injuries & Quick Links */}
-          <div className="space-y-4">
-            {/* Key Injuries - Real data from ESPN */}
-            <HomeInjuries />
-            
-            {/* Quick Links - Bettor Decision Tools */}
-            <div className="rounded-2xl p-5 bg-[#0c0c14] border border-white/5">
-              <h3 className="font-bold mb-4 text-white">Bettor Tools</h3>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { label: '🎯 Sharp Money', href: '/edge', desc: 'Follow pro action' },
-                  { label: '🛒 Line Shop', href: '/lineshop', desc: 'Best odds' },
-                  { label: '📈 Trends', href: '/trends', desc: 'Hot systems' },
-                  { label: '🎲 Props', href: '/props/correlations', desc: 'Correlations' },
-                  { label: '🏥 Injuries', href: '/injuries', desc: 'Impact reports' },
-                  { label: '🧾 Experts', href: '/leaderboard', desc: 'Track records' },
-                ].map((link) => (
-                  <Link key={link.href} href={link.href}
-                        className="p-2.5 rounded-lg text-left transition-all hover:scale-105 hover:bg-white/10 bg-white/[0.03] group">
-                    <div className="text-sm font-semibold text-white">{link.label}</div>
-                    <div className="text-[10px] text-gray-500 group-hover:text-gray-400">{link.desc}</div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
+          <HomeInjuries />
         </div>
       </section>
     </div>

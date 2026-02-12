@@ -4,6 +4,8 @@
 // =============================================================================
 
 import { createClient } from './supabase/client'
+import { getWeatherForVenue, analyzeWeatherImpact, DOME_VENUES } from './weather'
+import { getInjuries, Sport } from './unified-data-store'
 
 // =============================================================================
 // TYPES
@@ -187,14 +189,58 @@ export async function getGameOUAnalysis(
   homeTeam: { name: string; abbr: string },
   awayTeam: { name: string; abbr: string },
   currentTotal: number,
-  openTotal: number
+  openTotal: number,
+  venue?: string,
+  gameTime?: string
 ): Promise<OUAnalysis> {
   
-  // Get team O/U profiles
-  const [homeProfile, awayProfile] = await Promise.all([
+  // Get team O/U profiles, weather, and injuries in parallel
+  const [homeProfile, awayProfile, weatherData, allInjuries] = await Promise.all([
     getTeamOUProfile(sport, homeTeam.abbr, homeTeam.name, 'home'),
-    getTeamOUProfile(sport, awayTeam.abbr, awayTeam.name, 'away')
+    getTeamOUProfile(sport, awayTeam.abbr, awayTeam.name, 'away'),
+    venue ? getWeatherForVenue(venue, gameTime) : Promise.resolve(null),
+    getInjuries(sport as Sport).catch(() => [])
   ])
+  
+  // Calculate weather adjustment based on real weather data
+  let weatherAdjustment = 0
+  let weatherImpact: { level: string; totalLean: string; score: number } | null = null
+  // Weather analysis only applies to outdoor sports (NFL, MLB)
+  const outdoorSports = ['NFL', 'MLB', 'nfl', 'mlb']
+  if (weatherData && !DOME_VENUES.has((venue || '').toLowerCase()) && outdoorSports.includes(sport)) {
+    const sportUpper = sport.toUpperCase() as 'NFL' | 'MLB'
+    const analysis = analyzeWeatherImpact(weatherData, sportUpper, venue)
+    weatherImpact = { level: analysis.level, totalLean: analysis.totalLean, score: analysis.score }
+    // Convert weather impact to point adjustment
+    // High impact (score 40+) = up to -3 points, Medium (20-40) = up to -1.5 points
+    if (analysis.totalLean === 'under') {
+      weatherAdjustment = -(analysis.score / 25) // Max ~-4 for extreme weather
+    } else if (analysis.totalLean === 'over') {
+      weatherAdjustment = analysis.score / 40 // Smaller boost for over-favorable weather
+    }
+  }
+  
+  // Calculate injury adjustment based on real injury data
+  let injuryAdjustment = 0
+  const homeInjuries = allInjuries.filter(inj => 
+    inj.team?.toUpperCase().includes(homeTeam.abbr.toUpperCase()) || 
+    inj.teamId === homeTeam.abbr
+  )
+  const awayInjuries = allInjuries.filter(inj => 
+    inj.team?.toUpperCase().includes(awayTeam.abbr.toUpperCase()) || 
+    inj.teamId === awayTeam.abbr
+  )
+  
+  // Count high-impact injuries (key players out)
+  const homeHighImpact = homeInjuries.filter(inj => inj.impact === 'high' && inj.status === 'OUT').length
+  const awayHighImpact = awayInjuries.filter(inj => inj.impact === 'high' && inj.status === 'OUT').length
+  
+  // Key offensive players out typically lowers total
+  const totalHighImpact = homeHighImpact + awayHighImpact
+  if (totalHighImpact > 0) {
+    // Each high-impact injury reduces projected total by ~1-2 points
+    injuryAdjustment = -(totalHighImpact * 1.5)
+  }
   
   // Get H2H O/U history
   const h2hHistory = await getH2HOUHistory(sport, homeTeam.abbr, awayTeam.abbr)
@@ -202,14 +248,17 @@ export async function getGameOUAnalysis(
   // Get matching O/U trends
   const matchingTrends = await getMatchingOUTrends(sport, homeTeam.abbr, awayTeam.abbr, currentTotal)
   
-  // Calculate projections
+  // Calculate projections with real weather and injury adjustments
   const projections = calculateOUProjections({
     homeProfile,
     awayProfile,
     h2hHistory,
     currentTotal,
     openTotal,
-    sport
+    sport,
+    weatherAdjustment,
+    injuryAdjustment,
+    venue
   })
   
   // Get betting data
@@ -405,8 +454,11 @@ function calculateOUProjections(data: {
   currentTotal: number
   openTotal: number
   sport: string
+  weatherAdjustment?: number
+  injuryAdjustment?: number
+  venue?: string
 }): OUAnalysis['projections'] {
-  const { homeProfile, awayProfile, h2hHistory, currentTotal, openTotal, sport } = data
+  const { homeProfile, awayProfile, h2hHistory, currentTotal, openTotal, sport, venue } = data
   
   // Base projection from team averages
   const homeAvg = homeProfile.avgActualCombined
@@ -418,14 +470,17 @@ function calculateOUProjections(data: {
     ? (h2hHistory.avgActualScore - currentTotal) * 0.3
     : 0
   
-  // Venue adjustment (mock)
-  const venueAdjustment = -0.5
+  // Venue adjustment - dome venues typically play slightly over
+  // Outdoor venues have more variance, default to slight under for home-field atmosphere
+  let venueAdjustment = 0
+  if (venue) {
+    const isDome = DOME_VENUES.has(venue.toLowerCase())
+    venueAdjustment = isDome ? 0.5 : -0.5
+  }
   
-  // Weather adjustment (mock - would be calculated from weather data)
-  const weatherAdjustment = 0
-  
-  // Injury adjustment (mock - would be calculated from injury data)
-  const injuryAdjustment = 0
+  // Use real weather and injury adjustments passed from caller
+  const weatherAdjustment = data.weatherAdjustment ?? 0
+  const injuryAdjustment = data.injuryAdjustment ?? 0
   
   const finalProjection = baseProjection + h2hAdjustment + venueAdjustment + weatherAdjustment + injuryAdjustment
   const edgeVsLine = finalProjection - currentTotal

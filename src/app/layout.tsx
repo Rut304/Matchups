@@ -17,9 +17,9 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Matchups - Sports Betting Analysis & Trends",
-  description: "The ultimate sports betting matchup and trends data. AI-powered analysis for NFL, NBA, NHL, MLB, and prediction markets.",
-  keywords: ["sports betting", "matchup analysis", "NFL", "NBA", "NHL", "MLB", "betting trends", "prediction markets"],
+  title: "Matchups - Sports Gambler Intelligence | Free AI-Powered Betting Analysis",
+  description: "The ultimate FREE sports gambling intelligence platform. AI-powered betting analysis, trend finder, sharp money signals, and edge detection for NFL, NBA, NHL, MLB.",
+  keywords: ["sports betting", "gambling intelligence", "betting trends", "sharp money", "NFL betting", "NBA betting", "NHL betting", "MLB betting", "betting edge", "trend finder"],
 };
 
 export default function RootLayout({
