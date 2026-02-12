@@ -2003,12 +2003,20 @@ async function generateAIAnalysis(data: {
       ? `\n\nIMPORTANT: The sharpest play identified from real sharp money data is: "${data.consensus.sharpestPick.pick}" (${data.consensus.sharpestPick.betType}). Your analysis should align with or acknowledge this signal.`
       : `\n\nNOTE: No definitive sharp signal was detected in the betting splits. Be conservative with confidence levels and acknowledge data limitations.`
     
-    const prompt = `You are an elite sports betting analyst. Analyze this ${data.sport} matchup using ALL the data provided.
+    const prompt = `You are an elite sports betting analyst. Analyze this ${data.sport} matchup using ONLY the data provided below.
+
+CRITICAL RULES:
+1. NEVER estimate, guess, or make assumptions. Only state facts from the data below.
+2. If a data field is empty, null, or 0, say "No data available" - do NOT make up numbers.
+3. If H2H shows 0 games played, say "No head-to-head history in database" - do NOT estimate meeting frequency.
+4. If injury data is empty, say "No injury data available" - do NOT assume players are healthy.
+5. All statistics must come directly from the data provided. If it's not below, don't mention it.
+6. Do NOT say things like "estimated", "approximately", "likely around", "probably", or "typically".
 
 MATCHUP: ${data.awayTeam.name} @ ${data.homeTeam.name}
 ${sharpestPickInstruction}
 
-=== 12 ESSENTIAL DATA POINTS ===
+=== 12 ESSENTIAL DATA POINTS (ONLY USE DATA FROM HERE) ===
 
 1. CLV (CLOSING LINE VALUE):
 ${JSON.stringify(data.clv, null, 2)}
@@ -2019,8 +2027,8 @@ ${JSON.stringify(data.lineMovement, null, 2)}
 3. PUBLIC VS SHARP SPLITS:
 ${JSON.stringify(data.splits, null, 2)}
 
-4. INJURY IMPACT:
-${JSON.stringify(data.injuries, null, 2)}
+4. INJURY IMPACT (${data.injuries.homeTeam.outPlayers.length + data.injuries.awayTeam.outPlayers.length} players out):
+${(data.injuries.homeTeam.outPlayers.length + data.injuries.awayTeam.outPlayers.length) === 0 ? 'NO INJURY DATA AVAILABLE - DO NOT ASSUME PLAYERS ARE HEALTHY OR INJURED' : JSON.stringify(data.injuries, null, 2)}
 
 5. WEATHER IMPACT:
 ${JSON.stringify(data.weather, null, 2)}
@@ -2028,66 +2036,72 @@ ${JSON.stringify(data.weather, null, 2)}
 6. SITUATIONAL ANGLES:
 ${JSON.stringify(data.situational, null, 2)}
 
-7. ATS RECORDS:
-Home: Overall ${data.ats.homeTeam.overall.pct}%, Home ${data.ats.homeTeam.home.pct}%, Last 10: ${data.ats.homeTeam.last10.pct}%
-Away: Overall ${data.ats.awayTeam.overall.pct}%, Away ${data.ats.awayTeam.away.pct}%, Last 10: ${data.ats.awayTeam.last10.pct}%
+7. ATS RECORDS (${data.ats.homeTeam.overall.wins + data.ats.homeTeam.overall.losses + data.ats.awayTeam.overall.wins + data.ats.awayTeam.overall.losses} total games):
+${(data.ats.homeTeam.overall.wins + data.ats.homeTeam.overall.losses) === 0 && (data.ats.awayTeam.overall.wins + data.ats.awayTeam.overall.losses) === 0 ? 'NO ATS DATA AVAILABLE - DO NOT ESTIMATE RECORDS' : `Home: Overall ${data.ats.homeTeam.overall.wins}-${data.ats.homeTeam.overall.losses} (${data.ats.homeTeam.overall.pct}%), Home ${data.ats.homeTeam.home.wins}-${data.ats.homeTeam.home.losses} (${data.ats.homeTeam.home.pct}%), Last 10: ${data.ats.homeTeam.last10.wins}-${data.ats.homeTeam.last10.losses} (${data.ats.homeTeam.last10.pct}%)
+Away: Overall ${data.ats.awayTeam.overall.wins}-${data.ats.awayTeam.overall.losses} (${data.ats.awayTeam.overall.pct}%), Away ${data.ats.awayTeam.away.wins}-${data.ats.awayTeam.away.losses} (${data.ats.awayTeam.away.pct}%), Last 10: ${data.ats.awayTeam.last10.wins}-${data.ats.awayTeam.last10.losses} (${data.ats.awayTeam.last10.pct}%)`}
 
-8. O/U TRENDS:
-${JSON.stringify(data.ou.trends, null, 2)}
-Combined projection: ${data.ou.combined.projectedTotal}
+8. O/U TRENDS (${data.ou.trends.length} trends):
+${data.ou.trends.length === 0 ? 'NO O/U TREND DATA AVAILABLE - DO NOT ESTIMATE' : JSON.stringify(data.ou.trends, null, 2)}
+Combined projection: ${data.ou.combined.projectedTotal || 'N/A'}
 
 9. KEY NUMBERS:
 ${JSON.stringify(data.keyNumbers, null, 2)}
 
-10. H2H HISTORY:
-${JSON.stringify(data.h2h, null, 2)}
+10. H2H HISTORY (${data.h2h.gamesPlayed} games in database):
+${data.h2h.gamesPlayed === 0 ? 'NO H2H DATA AVAILABLE - DO NOT ESTIMATE OR GUESS' : JSON.stringify(data.h2h, null, 2)}
 
 11. MARKET CONSENSUS:
 ${JSON.stringify(data.consensus, null, 2)}
 
 12. TEAM ANALYTICS:
-Home Team Trends: ${data.homeAnalytics?.trends?.join(', ') || 'N/A'}
-Away Team Trends: ${data.awayAnalytics?.trends?.join(', ') || 'N/A'}
+Home Team Trends: ${data.homeAnalytics?.trends?.join(', ') || 'NO ANALYTICS DATA - DO NOT ASSUME'}
+Away Team Trends: ${data.awayAnalytics?.trends?.join(', ') || 'NO ANALYTICS DATA - DO NOT ASSUME'}
 
 === ANALYSIS REQUEST ===
 
-IMPORTANT: Always use the actual team names (${data.homeTeam.name}, ${data.awayTeam.name}) instead of "home team" or "away team".
+CRITICAL REMINDERS:
+- ONLY cite statistics that appear in the data above. Do NOT make up numbers.
+- If H2H gamesPlayed is 0, say "No historical head-to-head data available" - do NOT estimate.
+- If ATS records show 0-0, say "No ATS data available" - do NOT assume records.
+- If injuries show empty arrays, say "No injury data available" - do NOT assume health.
+- NEVER use words like "estimated", "approximately", "around", "likely", "probably", "typically".
+- State exact facts or say "data not available".
 
-Provide a comprehensive betting analysis considering ALL 12 data points. Return JSON:
+Use actual team names (${data.homeTeam.name}, ${data.awayTeam.name}) instead of "home team" or "away team".
+
+Return JSON (ONLY include data you can verify from above):
 
 {
-  "summary": "A detailed 2-4 paragraph analysis (150-250 words) that reads like expert commentary. Start with the headline matchup angle, then discuss the key betting factors: sharp money signals vs public betting, line movement significance, injury impact, and situational angles. Always reference teams by their actual names (${data.homeTeam.name}, ${data.awayTeam.name}). End with a clear lean and reasoning. Make it insightful and actionable for serious bettors.",
-  "winProbability": { "home": 0.55, "away": 0.45 },
-  "projectedScore": { "home": 24, "away": 21 },
+  "summary": "A detailed 2-4 paragraph analysis (150-250 words) citing ONLY facts from the data above. Start with the headline matchup angle backed by specific data points. Discuss sharp money signals, line movement, injury impact, situational angles - ONLY if that data exists above. If data is missing/empty, acknowledge it explicitly. Always use team names (${data.homeTeam.name}, ${data.awayTeam.name}). End with a lean based only on available data.",
+  "winProbability": { "home": null, "away": null },
+  "projectedScore": null,
   "spreadAnalysis": {
-    "pick": "${data.awayTeam.name} +X or ${data.homeTeam.name} -X (use actual team name)",
-    "confidence": 0.65,
-    "reasoning": "Main thesis for spread pick using team names",
-    "keyFactors": ["Factor 1 with team names", "Factor 2", "Factor 3"],
-    "risks": ["Risk 1", "Risk 2"]
+    "pick": "${data.awayTeam.name} +X or ${data.homeTeam.name} -X (only if data supports it)",
+    "confidence": 0.52,
+    "reasoning": "Reasoning based ONLY on data provided above - cite specific numbers",
+    "keyFactors": ["Only factors supported by actual data above"],
+    "risks": ["Risks evident from the data"]
   },
   "totalAnalysis": {
-    "pick": "Over X or Under X",
-    "confidence": 0.70,
-    "reasoning": "Main thesis for total pick",
-    "keyFactors": ["Factor 1", "Factor 2"],
-    "paceProjection": "Expected pace and scoring environment"
+    "pick": "Over X or Under X (only if data supports it)",
+    "confidence": 0.52,
+    "reasoning": "Based on O/U trends data above - if empty, state 'Insufficient data'",
+    "keyFactors": ["Only factors from actual data"],
+    "paceProjection": null
   },
   "mlAnalysis": {
-    "pick": "${data.homeTeam.name} or ${data.awayTeam.name} (use actual team name)",
-    "confidence": 0.60,
-    "value": 3.5,
-    "reasoning": "ML value analysis"
+    "pick": "${data.homeTeam.name} or ${data.awayTeam.name}",
+    "confidence": 0.52,
+    "value": null,
+    "reasoning": "ML analysis from available data only"
   },
-  "propPicks": [
-    { "player": "Player Name", "prop": "Prop description", "pick": "Over/Under X", "confidence": 0.65, "reasoning": "Why" }
-  ],
-  "keyEdges": ["Edge 1 with team names", "Edge 2", "Edge 3"],
-  "majorRisks": ["Risk 1 with team names", "Risk 2"],
+  "propPicks": [],
+  "keyEdges": ["Only edges verified from data above - cite specific statistics"],
+  "majorRisks": ["Only risks evident from data - state if data is insufficient"],
   "betGrades": {
-    "spread": "A/B/C/D/F based on edge strength",
-    "total": "A/B/C/D/F",
-    "ml": "A/B/C/D/F"
+    "spread": "Grade based on data quality: F if no ATS data, A-D based on edge strength",
+    "total": "Grade based on data quality",
+    "ml": "Grade based on data quality"
   }
 }`
 
