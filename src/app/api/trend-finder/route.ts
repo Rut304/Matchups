@@ -69,17 +69,23 @@ function parseHistoricalQuery(query: string): HistoricalQuery | null {
   // Detect conditions
   const conditions: QueryCondition[] = []
   
+  // Normalize query - handle "td" vs "touchdown", "rush" vs "rushing" etc
+  const hasBothTeams = lowerQuery.includes('both team') || lowerQuery.includes('each team')
+  const hasRushing = lowerQuery.includes('rushing') || lowerQuery.includes('rush')
+  const hasPassing = lowerQuery.includes('passing') || lowerQuery.includes('pass')
+  const hasTouchdown = lowerQuery.includes('touchdown') || lowerQuery.includes(' td')
+  const hasBothHalves = lowerQuery.includes('both half') || lowerQuery.includes('each half')
+  
   // Check for both teams TD patterns
-  if (lowerQuery.includes('both team') || lowerQuery.includes('each team')) {
-    if (lowerQuery.includes('rushing') && lowerQuery.includes('passing') && lowerQuery.includes('touchdown') || 
-        lowerQuery.includes('rush') && lowerQuery.includes('pass') && lowerQuery.includes('td')) {
-      if (lowerQuery.includes('both half') || lowerQuery.includes('each half')) {
+  if (hasBothTeams) {
+    if (hasRushing && hasPassing && hasTouchdown) {
+      if (hasBothHalves) {
         conditions.push({ type: 'both_teams_rush_pass_td_both_halves' })
       } else {
         conditions.push({ type: 'both_teams_rush_pass_td' })
       }
-    } else if (lowerQuery.includes('touchdown') || lowerQuery.includes('td')) {
-      if (lowerQuery.includes('both half') || lowerQuery.includes('each half')) {
+    } else if (hasTouchdown) {
+      if (hasBothHalves) {
         conditions.push({ type: 'both_teams_td_both_halves' })
       }
     }
@@ -158,34 +164,48 @@ async function queryHistoricalData(parsedQuery: HistoricalQuery): Promise<{
   
   // Apply conditions
   let filteredGames = [...games]
+  let requiresPlayByPlay = false
+  const missingDataConditions: string[] = []
   
   for (const condition of parsedQuery.conditions) {
     switch (condition.type) {
       case 'both_teams_rush_pass_td_both_halves':
-        filteredGames = filteredGames.filter(g => 
-          g.home_rushing_td_first_half >= 1 &&
-          g.home_passing_td_first_half >= 1 &&
-          g.home_rushing_td_second_half >= 1 &&
-          g.home_passing_td_second_half >= 1 &&
-          g.away_rushing_td_first_half >= 1 &&
-          g.away_passing_td_first_half >= 1 &&
-          g.away_rushing_td_second_half >= 1 &&
-          g.away_passing_td_second_half >= 1
-        )
-        break
+      case 'both_teams_rush_pass_td':
       case 'both_teams_td_both_halves':
-        filteredGames = filteredGames.filter(g => 
-          (g.home_rushing_td_first_half + g.home_passing_td_first_half) >= 1 &&
-          (g.home_rushing_td_second_half + g.home_passing_td_second_half) >= 1 &&
-          (g.away_rushing_td_first_half + g.away_passing_td_first_half) >= 1 &&
-          (g.away_rushing_td_second_half + g.away_passing_td_second_half) >= 1
-        )
+        // These require play-by-play data we don't have
+        // Check if any game has the required fields
+        const hasDetailedData = games[0]?.home_rushing_td_first_half !== undefined
+        if (!hasDetailedData) {
+          requiresPlayByPlay = true
+          missingDataConditions.push(condition.type)
+          // Don't filter - let AI handle this query
+        } else {
+          if (condition.type === 'both_teams_rush_pass_td_both_halves') {
+            filteredGames = filteredGames.filter(g => 
+              g.home_rushing_td_first_half >= 1 &&
+              g.home_passing_td_first_half >= 1 &&
+              g.home_rushing_td_second_half >= 1 &&
+              g.home_passing_td_second_half >= 1 &&
+              g.away_rushing_td_first_half >= 1 &&
+              g.away_passing_td_first_half >= 1 &&
+              g.away_rushing_td_second_half >= 1 &&
+              g.away_passing_td_second_half >= 1
+            )
+          } else if (condition.type === 'both_teams_td_both_halves') {
+            filteredGames = filteredGames.filter(g => 
+              (g.home_rushing_td_first_half + g.home_passing_td_first_half) >= 1 &&
+              (g.home_rushing_td_second_half + g.home_passing_td_second_half) >= 1 &&
+              (g.away_rushing_td_first_half + g.away_passing_td_first_half) >= 1 &&
+              (g.away_rushing_td_second_half + g.away_passing_td_second_half) >= 1
+            )
+          }
+        }
         break
       case 'high_scoring':
-        filteredGames = filteredGames.filter(g => g.total_points >= (condition.min || 50))
+        filteredGames = filteredGames.filter(g => (g.home_score + g.away_score) >= (condition.min || 50))
         break
       case 'low_scoring':
-        filteredGames = filteredGames.filter(g => g.total_points <= (condition.max || 30))
+        filteredGames = filteredGames.filter(g => (g.home_score + g.away_score) <= (condition.max || 30))
         break
       case 'blowout':
         filteredGames = filteredGames.filter(g => Math.abs(g.home_score - g.away_score) >= 21)
@@ -197,21 +217,23 @@ async function queryHistoricalData(parsedQuery: HistoricalQuery): Promise<{
   }
   
   const totalGames = games.length
-  const matchingGames = filteredGames.length
-  const percentage = totalGames > 0 ? ((matchingGames / totalGames) * 100).toFixed(1) : '0'
+  const matchingGames = requiresPlayByPlay ? 0 : filteredGames.length
+  const percentage = totalGames > 0 && !requiresPlayByPlay ? ((matchingGames / totalGames) * 100).toFixed(1) : 'N/A'
   
   return {
     found: true,
     totalGames,
     matchingGames,
-    percentage: `${percentage}%`,
-    games: filteredGames.slice(0, 20).map(g => ({
+    percentage: requiresPlayByPlay ? 'Requires play-by-play data' : `${percentage}%`,
+    games: requiresPlayByPlay ? [] : filteredGames.slice(0, 20).map(g => ({
       date: g.game_date,
-      matchup: `${g.away_team_abbr || g.away_team_name} @ ${g.home_team_abbr || g.home_team_name}`,
+      matchup: `${g.away_team_abbr || g.away_team || g.away_team_name} @ ${g.home_team_abbr || g.home_team || g.home_team_name}`,
       score: `${g.away_score}-${g.home_score}`,
-      season: g.season,
+      season: g.season_year || g.season,
     })),
-    estimatedTime: `${Math.ceil(totalGames / 100)}s`
+    estimatedTime: `${Math.ceil(totalGames / 100)}s`,
+    requiresPlayByPlay,
+    missingDataConditions
   }
 }
 
@@ -280,21 +302,25 @@ async function fetchLiveContext(query: string): Promise<string> {
 }
 
 // System prompt that emphasizes using real data
-const SYSTEM_PROMPT = `You are a sports statistics analyst with access to a REAL historical database.
+const SYSTEM_PROMPT = `You are a sports statistics analyst with access to a historical database.
 
 CRITICAL RULES:
 1. When historical query results are provided, USE THEM AS THE SOURCE OF TRUTH
-2. DO NOT estimate or guess - use the actual numbers from the database
-3. If the database shows 0 results, say "Based on our database of X games, this occurred 0 times"
-4. Always cite the actual data: "Out of X games searched, Y matched (Z%)"
+2. If the database has the data, cite actual numbers: "Out of X games, Y matched (Z%)"
+3. If specific data (like play-by-play stats) is NOT available in our database, provide your BEST ESTIMATE based on your sports knowledge and external research
+4. ALWAYS be clear about whether you're using database data vs estimates
+5. For estimates, cite reasoning: "Based on typical NFL game patterns where high-scoring games average X TDs..."
 
-When database results are provided, structure your response as:
-1. **Direct Answer**: "Based on {totalGames} games in our database, this has occurred {matchingGames} times ({percentage})"
-2. **Game Examples**: List the specific games where this happened
+For queries requiring play-by-play data (TDs by half, specific scoring patterns):
+- Acknowledge that our database has game-level data (scores, spreads) but not play-by-play
+- Provide your best estimate based on league averages and game theory
+- Suggest what the actual figure might be with confidence ranges
+
+Structure your response as:
+1. **Direct Answer**: State the answer clearly with data source
+2. **Data Source**: Database results OR AI estimate based on sports research
 3. **Analysis**: What this means for betting
-4. **Note**: If data seems incomplete, mention we may need to fetch more historical data
-
-If NO database results are available, you may provide estimates but CLEARLY state they are estimates.`
+4. **Confidence**: High (database), Medium (estimate from patterns), Low (limited data)`
 
 export async function POST(request: NextRequest) {
   try {
@@ -333,7 +359,20 @@ export async function POST(request: NextRequest) {
     let enhancedQuery = query
     
     if (historicalResults?.found) {
-      enhancedQuery += `\n\n**DATABASE RESULTS (REAL DATA - USE THIS):**
+      if (historicalResults.requiresPlayByPlay) {
+        enhancedQuery += `\n\n**IMPORTANT - PLAY-BY-PLAY DATA REQUIRED:**
+This query requires detailed play-by-play data (TDs by type, scoring by half) that our database does not currently have.
+- We have basic game data: ${historicalResults.totalGames} ${parsedQuery?.sport.toUpperCase()} games with scores, spreads, and totals
+- We do NOT have: rushing TDs, passing TDs, first half stats, second half stats
+
+PLEASE PROVIDE YOUR BEST ESTIMATE based on:
+1. NFL average touchdown distribution patterns
+2. Typical game scoring progressions
+3. Historical league-wide statistics
+
+Be specific with numbers and explain your reasoning. This is for betting research.`
+      } else {
+        enhancedQuery += `\n\n**DATABASE RESULTS (REAL DATA - USE THIS):**
 Sport: ${parsedQuery?.sport.toUpperCase()}
 Season Type: ${parsedQuery?.seasonType}
 Seasons Searched: ${parsedQuery?.seasons.join(', ')}
@@ -343,6 +382,7 @@ Percentage: ${historicalResults.percentage}
 
 Example Games That Match:
 ${historicalResults.games.map((g: any) => `- ${g.date}: ${g.matchup} (${g.score}) - Season ${g.season}`).join('\n')}`
+      }
     } else if (parsedQuery) {
       enhancedQuery += `\n\n**NOTE: Limited historical data available. Database returned 0 results.**
 This query requires play-by-play historical data that may not be fully loaded yet.
@@ -384,7 +424,27 @@ Please provide your best estimate and note that it is an estimate.`
       // AI failed - provide a helpful fallback response
       console.warn('AI unavailable, providing fallback response:', aiError)
       
-      if (historicalResults?.found) {
+      if (historicalResults?.requiresPlayByPlay) {
+        response = `**This query requires play-by-play data**
+
+Your question about specific touchdown types (rushing/passing) in different halves requires detailed play-by-play data that our database doesn't currently have.
+
+**What we DO have:**
+- ${historicalResults.totalGames} NFL games with scores, spreads, and totals
+- Spread results, over/under results, moneyline results
+
+**What we DON'T have (yet):**
+- Rushing TDs vs Passing TDs breakdown
+- First half vs Second half scoring details
+- Detailed play-by-play statistics
+
+**Estimate based on NFL patterns:**
+Both teams scoring a rushing TD AND passing TD in BOTH halves is quite rare. Based on typical NFL scoring patterns:
+- Average NFL game: ~5 total TDs
+- Probability of this specific pattern: Estimated 3-8% of games
+
+*Note: This is an estimate. AI analysis is temporarily unavailable for more precise calculations.*`
+      } else if (historicalResults?.found) {
         response = `**Database Results for your query:**
 
 Based on our database of **${historicalResults.totalGames}** games:
