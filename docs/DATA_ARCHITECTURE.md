@@ -10,6 +10,7 @@ Matchups uses a multi-source data layer backed by Supabase (Postgres). ESPN prov
 ## Data Sources
 
 ### 1. ESPN Public API (Primary - Free, Unlimited)
+
 - **Games/Scores**: Live and historical game data via v2 endpoints
 - **Standings**: Team records and rankings
 - **Injuries**: Player injury reports
@@ -17,12 +18,14 @@ Matchups uses a multi-source data layer backed by Supabase (Postgres). ESPN prov
 - **File**: `src/lib/api/espn.ts`
 
 ### 2. The Odds API v4 (Odds Data - 100,000 credits/month)
+
 - **Live Odds**: Spreads, totals, moneylines from 50+ books
 - **Historical Odds**: Past season odds for CLV tracking
 - **Key**: `THE_ODDS_API_KEY`
 - **File**: `src/lib/api/the-odds-api.ts`
 
 ### 3. Supabase (Primary Data Store)
+
 - **historical_games**: 82,876 game results with ATS/O-U outcomes
 - **game_odds**: 18,598 imported odds records
 - **cappers**: 77 capper profiles
@@ -30,10 +33,12 @@ Matchups uses a multi-source data layer backed by Supabase (Postgres). ESPN prov
 - **Project**: cdfdmkntdsfylososgwo
 
 ### 4. X/Twitter (Expert Tracking)
+
 - **Library**: rettiwt-api (free, no API key)
 - **File**: `src/lib/services/social-media-content.ts`
 
 ### 5. Gemini 2.5 Flash (AI Analysis)
+
 - **Library**: @google/generative-ai
 - **File**: `src/lib/gemini.ts`
 - **Rules**: Strict no-guessing policy, only analyzes available data
@@ -41,6 +46,7 @@ Matchups uses a multi-source data layer backed by Supabase (Postgres). ESPN prov
 ## Database Tables - Current State
 
 ### historical_games (82,876 records) - PRIMARY
+
 The core table for all analytics calculations.
 
 | Column | Type | Description |
@@ -63,6 +69,7 @@ The core table for all analytics calculations.
 | espn_game_id | varchar | ESPN event ID |
 
 **Coverage:**
+
 - NFL: 6,860 games, 26 seasons (2000-2025), 100% complete
 - NBA: 21,682 games, 26 seasons, 98.7% with spreads
 - MLB: 31,516 games, 26 seasons, 100%
@@ -71,6 +78,7 @@ The core table for all analytics calculations.
 - NCAAB: 0 EMPTY
 
 ### game_odds (18,598 records)
+
 Imported from The Odds API v4 historical endpoint. Used for CLV calculations and closing line cross-reference.
 
 | Column | Type | Description |
@@ -92,9 +100,11 @@ Imported from The Odds API v4 historical endpoint. Used for CLV calculations and
 **Coverage:** NFL 1,707 (2020-2024), NBA 2,692 (2021-2025), MLB 3,945 (2020-2024), NHL 3,465 (2021-2025), NCAAF 3,898 (2020-2025), NCAAB 2,891 (2021-2025)
 
 ### cappers (77 records)
+
 Celebrity/pro/community capper profiles for the leaderboard.
 
 ### EMPTY Tables (Data Gaps)
+
 | Table | Intended Purpose | Blocking Feature |
 |-------|-----------------|-----------------|
 | line_snapshots | Point-in-time odds for movement charts | Line movement visualization |

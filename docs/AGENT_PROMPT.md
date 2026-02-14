@@ -2,7 +2,7 @@
 
 ---
 
-You are taking over development of **Matchups** (https://matchups-eta.vercel.app), a Next.js 16 sports betting intelligence platform. Your role is to transform this into the ultimate gambler's paradise — the go-to destination for sports betting intelligence, sharp analytics, and real-time edge detection.
+You are taking over development of **Matchups** (<https://matchups-eta.vercel.app>), a Next.js 16 sports betting intelligence platform. Your role is to transform this into the ultimate gambler's paradise — the go-to destination for sports betting intelligence, sharp analytics, and real-time edge detection.
 
 ## YOUR ROLE
 
@@ -15,18 +15,19 @@ Make Matchups the #1 sports betting intelligence platform. Every serious bettor 
 ## CURRENT STATE (February 2026)
 
 **What's working:**
+
 - 148 pages build and deploy cleanly on Vercel (Next.js 16.1.1, Turbopack)
 - Team analytics: ATS (home/away/overall), O/U, ML, asFavorite, asUnderdog, last10
 - Game matchup pages with ESPN scores, odds, injuries, predictor, AI analysis (Gemini 2.5 Flash)
-- 82,876 historical games across 4 pro sports (NFL/NBA/MLB/NHL), 25-26 seasons each (2000-2025)
-- 18,598 game_odds records from The Odds API across 6 sports
+- ~96,000+ historical games across 4 pro sports (NFL/NBA/MLB/NHL), 25-26 seasons each (2000-2025)
+- ~19,000+ game_odds records from The Odds API across 6 sports (NFL 1,992 / NBA 2,860 / NHL 3,465 / MLB 3,945 + college)
 - 77 cappers seeded on leaderboard
 - 17 Vercel cron jobs (scores, odds, injuries, standings, CLV grading, expert scraping)
 - Expert tracking via free X/Twitter scraping (rettiwt-api)
 - Edge detection features (RLM, steam moves, sharp signals)
 
-**Production:** https://matchups-eta.vercel.app
-**GitHub:** https://github.com/Rut304/Matchups (public, branch: main)
+**Production:** <https://matchups-eta.vercel.app>
+**GitHub:** <https://github.com/Rut304/Matchups> (public, branch: main)
 **Supabase:** Project cdfdmkntdsfylososgwo
 
 ## TECH STACK
@@ -43,18 +44,19 @@ Make Matchups the #1 sports betting intelligence platform. Every serious bettor 
 ## CRITICAL DATA GAPS — FIX THESE FIRST
 
 ### 1. NCAAF + NCAAB: Zero Historical Games
+
 The `historical_games` table has 0 records for NCAAF and NCAAB. Meanwhile, `game_odds` has 3,898 NCAAF and 2,891 NCAAB odds records with nothing to match against. The college sport pages exist but show no real analytics data. Import historical games from ESPN or build a scraper. This is a major gap — college football and basketball are huge for bettors.
 
-### 2. NFL 2025 Game Odds Missing
-The `game_odds` table only covers NFL seasons 2020-2024. The 2025 season (now complete, including Super Bowl LX where Seattle Seahawks beat New England Patriots) has 0 game_odds records. Use `scripts/run-historical-data.ts` to import, or call The Odds API historical endpoint.
+### 2. ~~NFL 2025 Game Odds~~ DONE
 
-### 3. Super Bowl Labeling Wrong
-The Super Bowl game on 2026-02-04 is stored as "NFC @ AFC" with score 66-52. It needs to be updated to show the actual teams: Seattle Seahawks (SEA) vs New England Patriots (NE). SEA won.
+NFL 2025 game_odds imported (285 records). Super Bowl LX (SEA 29, NE 13 on Feb 8, 2026) is in the database with correct team names, ESPN game ID 401772988, spread 4.5, total 45.5. The Feb 4 Pro Bowl (NFC 66, AFC 52) is correctly labeled as `season_type: 'probowl'`.
 
 ### 4. NFL 2025 Has ~100 Duplicate Games
+
 Regular season shows 370 games in DB (expected ~272 for 32 teams x 17 games / 2). The `real-analytics.ts` service handles this at query time with per-team per-date dedup, but the DB should be cleaned. Use `scripts/dedup-smart.ts` as reference — it deduplicates using sorted(team1, team2) + date.
 
 ### 5. Empty Tables Blocking Features
+
 - `line_snapshots`: 0 records — line movement visualization has no data. The `odds-snapshot` cron runs every 30 min but may not be writing correctly. Debug this.
 - `odds`: 0 records — `refresh-odds` cron writes here but nothing reads from it. Either wire features to read from it or consolidate with `game_odds`.
 - `picks`: 0 records — UI exists (/picks, /my-picks) but the write path from user action to DB is broken/missing.
@@ -64,11 +66,13 @@ Regular season shows 370 games in DB (expected ~272 for 32 teams x 17 games / 2)
 ## KEY FILES TO UNDERSTAND
 
 **The analytics engine** — `src/lib/services/real-analytics.ts`:
+
 - `getRealTeams()` is the main function. It fetches all historical_games for the current season of a sport, applies two layers of dedup (global date|home|away, then per-team per-date), cross-references with game_odds for closing lines, and computes ATS/OU/ML/asFavorite/asUnderdog/last10 for every team.
 - IMPORTANT: Season detection uses `now.getMonth() < 6 ? year - 1 : year` heuristic.
 - All Supabase queries use `.range()` pagination to bypass the 1000-row limit.
 
 **Other critical files:**
+
 - `src/lib/services/game-odds-service.ts` — game_odds table queries
 - `src/lib/betting-intelligence.ts` — Timeline analysis, spread/total tracking
 - `src/lib/trend-matcher.ts` — Matches historical trends to live games
@@ -81,6 +85,7 @@ Regular season shows 370 games in DB (expected ~272 for 32 teams x 17 games / 2)
 - `scripts/` — Import scripts, audit scripts, dedup scripts
 
 **Running scripts requires env vars:**
+
 ```bash
 set -a && source .env.local && set +a && npx tsx scripts/<script>.ts
 ```
@@ -88,8 +93,9 @@ set -a && source .env.local && set +a && npx tsx scripts/<script>.ts
 ## DATABASE TABLES
 
 ### historical_games (82,876 records)
+
 NFL: 6,860 games, 26 seasons (2000-2025), 100% complete
-NBA: 21,682 games, 26 seasons, 98.7% with spreads
+NBA: ~34,841 games, 26 seasons (2000-2025), fully backfilled
 MLB: 31,516 games, 26 seasons, 100%
 NHL: 22,818 games, 25 seasons, 100%
 NCAAF: 0 (EMPTY!)
@@ -97,18 +103,25 @@ NCAAB: 0 (EMPTY!)
 
 Columns: id, sport, season, season_type, game_date, home_team, away_team, home_team_abbr, away_team_abbr, home_score, away_score, point_spread, over_under, spread_result, total_result, espn_game_id
 
-### game_odds (18,598 records)
-Imported from The Odds API v4 historical endpoint.
+### game_odds (~19,000+ records)
+
+Imported from The Odds API v4 historical endpoint. NFL and NBA include 2025-26 season.
 Columns: id, sport, season, game_date, home_team, away_team, home_spread, away_spread, total, home_ml, away_ml, bookmaker, import_source
 
 ### cappers (77 records) — Seeded celebrity/pro/community cappers
+
 ### odds_import_log — Tracks import history
+
 ### line_snapshots — EMPTY (should record point-in-time odds for movement charts)
+
 ### odds — EMPTY (refresh-odds cron target, orphaned)
+
 ### picks — EMPTY (user picks, write path broken)
 
 ## VERCEL CRON JOBS (17 total)
+
 Defined in vercel.json. Key ones:
+
 - refresh-scores: every 2 min during game hours
 - refresh-odds: every 5 min during game hours
 - odds-snapshot: every 30 min (CLV tracking — but line_snapshots is empty, debug this)
@@ -121,15 +134,17 @@ Defined in vercel.json. Key ones:
 ## NEXT STEPS — THE ROADMAP TO GAMBLER'S PARADISE
 
 ### Phase 1: Fix Data Layer (Do This First)
+
 1. Import NCAAF + NCAAB historical games (at least 5 years)
-2. Import NFL 2025 game_odds
-3. Fix Super Bowl team names
+2. ~~Import NFL 2025 game_odds~~ DONE (285 records)
+3. ~~Fix Super Bowl~~ DONE (Pro Bowl relabeled, Super Bowl LX inserted: SEA 29 - NE 13)
 4. Clean NFL duplicate games
 5. Debug and fix odds-snapshot cron so line_snapshots gets populated
 6. Verify and fix the picks write path
 7. Create betting_trends table if missing, verify discover-trends cron works
 
 ### Phase 2: Wire Disconnected Features
+
 1. Line Shop page (/lineshop) — currently mock data, connect to The Odds API live endpoint
 2. Picks tracking end-to-end — user logs pick -> saved to picks table -> graded by cron -> appears on leaderboard
 3. User dashboard (/dashboard) — needs real user data
@@ -137,6 +152,7 @@ Defined in vercel.json. Key ones:
 5. Betting splits — find a data source or derive from odds movement
 
 ### Phase 3: Build Killer Features
+
 1. **Arbitrage Finder** — Scan cross-book odds for guaranteed profit opportunities
 2. **Positive EV Finder** — Calculate expected value across all available odds
 3. **Prop Bet Builder** — Multi-leg prop builder with correlation analysis
@@ -146,6 +162,7 @@ Defined in vercel.json. Key ones:
 7. **Real-time Line Movement** — WebSocket-based live odds streaming with movement alerts
 
 ### Phase 4: Engagement and Growth
+
 1. Social sharing — Share picks/analysis to X with branded cards
 2. Mobile-optimized PWA
 3. Push notifications for line moves and edge alerts
@@ -168,6 +185,7 @@ Defined in vercel.json. Key ones:
 ## VERIFICATION
 
 After making changes, verify with:
+
 ```bash
 # Build check
 npm run build

@@ -1,8 +1,8 @@
 # Matchups — Agent Handoff V3
 
 **Date:** February 2026  
-**Production URL:** https://matchups-eta.vercel.app  
-**GitHub:** https://github.com/Rut304/Matchups  
+**Production URL:** <https://matchups-eta.vercel.app>  
+**GitHub:** <https://github.com/Rut304/Matchups>  
 **Status:** Live & Deployed — Data Layer Needs Completion
 
 ---
@@ -36,17 +36,20 @@ Matchups is a Next.js 16 sports betting intelligence platform with 148 pages acr
 ## Infrastructure
 
 ### Vercel Deployment
+
 - **Team:** `team_25BKCm9rNi2FRW0gcF4rbCj0`
 - **Latest Commit:** `5d08098` — "fix: per-team per-date dedup to fix inflated game totals"
 - **Build:** 148/148 pages, zero errors
 - **17 Cron Jobs** in `vercel.json` (see Cron Jobs section below)
 
 ### Supabase
+
 - **URL:** `https://cdfdmkntdsfylososgwo.supabase.co`
 - **Keys:** In `.env.local` (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY)
 - **Important:** Supabase REST API has a 1000-row limit per query. All services MUST use `.range()` pagination to fetch complete datasets.
 
 ### API Keys (in .env.local and Vercel env vars)
+
 - `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY`
 - `THE_ODDS_API_KEY` — The Odds API v4 (100,000 credits/month)
 - `GOOGLE_GEMINI_API_KEY` — Gemini 2.5 Flash
@@ -63,7 +66,7 @@ Matchups is a Next.js 16 sports betting intelligence platform with 148 pages acr
 | Sport | Games | Seasons | Range | Spreads | Results | Scores |
 |-------|-------|---------|-------|---------|---------|--------|
 | NFL | 6,860 | 26 | 2000–2025 | 100% | 100% | 100% |
-| NBA | 21,682 | 26 | 2000–2025 | 98.7% | 98.7% | 100% |
+| NBA | ~34,841 | 26 | 2000–2025 | ~99% | ~99% | 100% |
 | MLB | 31,516 | 26 | 2000–2025 | 100% | 100% | 100% |
 | NHL | 22,818 | 25 | 2000–2025 | 100% | 100% | 100% |
 | **NCAAF** | **0** | **0** | **EMPTY** | — | — | — |
@@ -71,12 +74,12 @@ Matchups is a Next.js 16 sports betting intelligence platform with 148 pages acr
 
 **Key columns:** `id, sport, season, season_type, game_date, home_team, away_team, home_team_abbr, away_team_abbr, home_score, away_score, point_spread, over_under, spread_result, total_result, espn_game_id`
 
-### game_odds (18,598 total records — from The Odds API historical imports)
+### game_odds (~19,000+ total records — from The Odds API historical imports)
 
 | Sport | Records | Seasons | Range | Has Spread | Has Total |
-|-------|---------|---------|-------|------------|-----------|
-| NFL | 1,707 | 5 | 2020–2024 | 100% | 87.5% |
-| NBA | 2,692 | 5 | 2021–2025 | 99.8% | 94.9% |
+|-------|---------|---------|-------|------------|-----------||
+| NFL | 1,992 | 6 | 2020–2025 | 100% | 87.5% |
+| NBA | 2,860 | 6 | 2020–2026 | 99.8% | 94.9% |
 | MLB | 3,945 | 5 | 2020–2024 | 96.6% | 97.1% |
 | NHL | 3,465 | 5 | 2021–2025 | 80.1% | 79.3% |
 | NCAAF | 3,898 | 6 | 2020–2025 | 99.7% | 95.1% |
@@ -95,6 +98,7 @@ Matchups is a Next.js 16 sports betting intelligence platform with 148 pages acr
 | `betting_splits` | **Schema exists, no data** | Public vs sharp money features empty |
 
 ### Other Tables
+
 | Table | Records | Notes |
 |-------|---------|-------|
 | cappers | 77 | Celebrity/pro/community cappers seeded |
@@ -105,10 +109,10 @@ Matchups is a Next.js 16 sports betting intelligence platform with 148 pages acr
 
 ## NFL 2025 Season Data — Known Issues
 
-1. **Super Bowl is in the data** but labeled `NFC @ AFC` instead of `SEA @ NE`
-   - Game date: 2026-02-04, Score: 66-52, spread: 12.5
-   - Conference Championships confirmed: SEA beat LAR 31-27, NE beat DEN 10-7
-   - **Fix needed:** Update home_team/away_team from NFC/AFC to SEA/NE
+1. **Super Bowl LX — FIXED**
+   - Pro Bowl (Feb 4, NFC 66 - AFC 52) relabeled as `season_type: 'probowl'`
+   - Actual Super Bowl LX inserted: SEA 29, NE 13, Feb 8, 2026 (ESPN ID 401772988)
+   - Spread 4.5, Total 45.5, home_cover, under
 
 2. **Regular season count inflated:** 370 games (expected ~272 for 32 teams × 17 games / 2)
    - DB-level duplicates remain from overlapping import sources
@@ -124,6 +128,7 @@ Matchups is a Next.js 16 sports betting intelligence platform with 148 pages acr
 ## Key Source Files
 
 ### Core Services (src/lib/services/)
+
 | File | Purpose |
 |------|---------|
 | `real-analytics.ts` | **THE main analytics engine** — team ATS, O/U, ML, trends, with per-team per-date dedup |
@@ -134,6 +139,7 @@ Matchups is a Next.js 16 sports betting intelligence platform with 148 pages acr
 | `social-media-content.ts` | X/Twitter content scraping |
 
 ### API Layer (src/lib/api/)
+
 | File | Purpose |
 |------|---------|
 | `espn.ts` | ESPN API client (v2 endpoints) — scores, standings, injuries |
@@ -143,6 +149,7 @@ Matchups is a Next.js 16 sports betting intelligence platform with 148 pages acr
 | `team-schedule.ts` | Team schedule fetching |
 
 ### Key Libraries (src/lib/)
+
 | File | Purpose |
 |------|---------|
 | `betting-intelligence.ts` | Timeline analysis, spread/total tracking |
@@ -152,6 +159,7 @@ Matchups is a Next.js 16 sports betting intelligence platform with 148 pages acr
 | `historical-data.ts` | Trend & historical queries from Supabase |
 
 ### Important API Routes (src/app/api/)
+
 | Route | Purpose |
 |-------|---------|
 | `/api/analytics` | Main analytics endpoint (teams, trends, summary) |
@@ -238,8 +246,8 @@ Matchups is a Next.js 16 sports betting intelligence platform with 148 pages acr
 - ✅ **AI analysis** — Gemini 2.5 Flash with strict no-guessing rules
 - ✅ **Expert tracking** — X/Twitter scraping via rettiwt-api, admin feed monitor
 - ✅ **17 Vercel crons** — Scores, odds, injuries, standings, expert scraping, CLV grading
-- ✅ **Historical data** — 82,876 games across 4 pro sports (NFL, NBA, MLB, NHL), 25-26 seasons each
-- ✅ **Game odds** — 18,598 records from The Odds API across 6 sports
+- ✅ **Historical data** — ~96,000+ games across 4 pro sports (NFL, NBA, MLB, NHL), 25-26 seasons each
+- ✅ **Game odds** — ~19,000+ records from The Odds API across 6 sports (NFL/NBA include 2025 season)
 - ✅ **Supabase 1000-row pagination** — All services use `.range()` to bypass API limits
 - ✅ **CLV post-game grading cron** — Compares picks against closing lines
 
@@ -248,26 +256,29 @@ Matchups is a Next.js 16 sports betting intelligence platform with 148 pages acr
 ## What's NOT Working / Missing
 
 ### Critical Data Gaps
+
 1. **NCAAF/NCAAB historical_games: EMPTY** — 0 games despite having game_odds data (3,898 NCAAF + 2,891 NCAAB odds records)
-2. **NFL 2025 game_odds: 0 records** — Historical import only covers 2020–2024
+2. ~~**NFL 2025 game_odds: 0 records**~~ **FIXED** — 285 records imported (2020–2025 complete)
 3. **line_snapshots: 0 records** — Line movement visualization has no data
 4. **odds table: 0 records** — `refresh-odds` cron writes here but nothing reads from it
 5. **picks table: 0 records** — No user picks being tracked
 6. **betting_trends: null** — Table doesn't exist or is empty
 
 ### Data Quality Issues
-7. **Super Bowl labeled "NFC @ AFC"** instead of actual team names (SEA @ NE)
-8. **NFL 2025 regular season: 370 games** in DB (expected ~272) — still ~100 duplicates
-9. **NBA spreads: 98.7%** — ~1.3% of games missing spread data
+
+7. ~~**Super Bowl labeled "NFC @ AFC"**~~ **FIXED** — Pro Bowl relabeled, Super Bowl LX inserted correctly
+2. **NFL 2025 regular season: 370 games** in DB (expected ~272) — still ~100 duplicates
+3. ~~**NBA spreads: 98.7%**~~ NBA now fully backfilled to ~34,841 games
 
 ### Feature Gaps
+
 10. **Line Shop** — Page exists but uses mock data; not connected to The Odds API
-11. **Picks tracking** — UI exists but `picks` table is empty, no write path verified
-12. **Betting splits** — Schema exists, table empty, features show nothing
-13. **User profiles/dashboard** — Auth configured but minimal functionality
-14. **Mobile optimization** — Responsive but not truly mobile-optimized
-15. **Social sharing** — Not implemented
-16. **Push notifications** — Not implemented
+2. **Picks tracking** — UI exists but `picks` table is empty, no write path verified
+3. **Betting splits** — Schema exists, table empty, features show nothing
+4. **User profiles/dashboard** — Auth configured but minimal functionality
+5. **Mobile optimization** — Responsive but not truly mobile-optimized
+6. **Social sharing** — Not implemented
+7. **Push notifications** — Not implemented
 
 ---
 
@@ -297,6 +308,7 @@ Matchups is a Next.js 16 sports betting intelligence platform with 148 pages acr
 | `init-db.ts` | Initialize database tables |
 
 **Running scripts:** Scripts require env vars. Use:
+
 ```bash
 set -a && source .env.local && set +a && npx tsx scripts/<script>.ts
 ```

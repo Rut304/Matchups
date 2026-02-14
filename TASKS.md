@@ -1,7 +1,7 @@
 # Matchups - Task Tracker
 
 > **Last Updated:** February 2026
-> **Production URL:** https://matchups-eta.vercel.app
+> **Production URL:** <https://matchups-eta.vercel.app>
 > **Supabase Project:** Matchups (cdfdmkntdsfylososgwo)
 > **Current Commit:** 5d08098
 
@@ -38,6 +38,7 @@ Full audit completed February 2026. The platform builds and deploys cleanly (148
 | NCAAB | 2,891 | 5 (2021-2025) |
 
 ### Empty Tables
+
 - line_snapshots - 0 records (line movement broken)
 - odds - 0 records (cron writes but nothing reads)
 - picks - 0 records (no user picks)
@@ -49,6 +50,7 @@ Full audit completed February 2026. The platform builds and deploys cleanly (148
 ## COMPLETED
 
 ### Infrastructure (All Deployed)
+
 - [x] Next.js 16.1.1 with Turbopack - 148 pages, zero build errors
 - [x] Vercel deployment with 17 cron jobs
 - [x] Supabase Postgres with RLS
@@ -56,14 +58,21 @@ Full audit completed February 2026. The platform builds and deploys cleanly (148
 - [x] Environment variables on Vercel
 
 ### Data Pipeline
+
 - [x] Historical games imported: NFL, NBA, MLB, NHL (25-26 seasons each, 2000-2025)
-- [x] Game odds imported from The Odds API (6 sports, 18,598 records)
+- [x] NBA historical_games fully backfilled - 34,841 games across all 26 seasons
+- [x] Game odds imported from The Odds API (6 sports, ~19,000+ records)
+- [x] NFL 2025 game_odds imported (285 records, Sep 2025 - Feb 2026)
+- [x] NBA 2025-26 game_odds imported (201 records, Oct 2025 - Feb 2026)
 - [x] game_odds table created and populated
 - [x] odds_import_log tracking imports
 - [x] backfill-closing-odds.ts script
 - [x] CLV grading cron (grade-clv) runs 3x daily
+- [x] Super Bowl LX inserted: SEA 29 - NE 13, Feb 8, 2026 (ESPN ID 401772988)
+- [x] Pro Bowl relabeled: season_type='probowl' (Feb 4, 2026, NFC 66 - AFC 52)
 
 ### Analytics Engine
+
 - [x] real-analytics.ts - Complete team analytics (ATS, O/U, ML, asFavorite, asUnderdog, last10)
 - [x] Per-team per-date dedup - prevents duplicate game counting
 - [x] Global dedup (date|home|away) - prevents same-game duplicates
@@ -72,6 +81,7 @@ Full audit completed February 2026. The platform builds and deploys cleanly (148
 - [x] Provenance metadata on API responses
 
 ### Game Matchup Pages
+
 - [x] /game/[id] - Fully working with ESPN data
 - [x] Scores, odds, predictor, injuries, leaders
 - [x] Line movement (open vs close)
@@ -80,6 +90,7 @@ Full audit completed February 2026. The platform builds and deploys cleanly (148
 - [x] Situational angles (rest, B2B, travel, revenge/letdown/trap)
 
 ### Features
+
 - [x] All 6 sport pages (NFL, NBA, NHL, MLB, NCAAF, NCAAB)
 - [x] Leaderboard page - 77 cappers seeded
 - [x] Markets page - Polymarket/Kalshi
@@ -90,6 +101,7 @@ Full audit completed February 2026. The platform builds and deploys cleanly (148
 - [x] Homepage redesign - compact matchup cards
 
 ### Bug Fixes (This Sprint)
+
 - [x] Build error: import-odds/route.ts SupabaseClient type
 - [x] Build error: betting-intelligence.ts nullable timeline types
 - [x] Inflated game totals (BUF 41 to 24 games) via per-team per-date dedup
@@ -107,11 +119,11 @@ Full audit completed February 2026. The platform builds and deploys cleanly (148
 
 - [ ] Import NCAAB historical games - Same as NCAAF. EMPTY. game_odds has 2,891 records with no games.
 
-- [ ] Import NFL 2025 game_odds - Historical import only covers 2020-2024. Run scripts/run-historical-data.ts for NFL 2025.
+- [ ] Import NFL 2025 game_odds - ~~Historical import only covers 2020-2024~~ **DONE** (285 records imported via scripts/import-game-odds.ts)
 
-- [ ] Fix Super Bowl labeling - 2026-02-04 game stored as NFC @ AFC (score 66-52). Update to SEA vs NE with correct team abbreviations. Seattle Seahawks won Super Bowl LX.
+- [ ] ~~Fix Super Bowl labeling~~ **DONE** - Pro Bowl (Feb 4, NFC 66 - AFC 52) relabeled as `season_type: 'probowl'`. Actual Super Bowl LX (Feb 8, SEA 29 - NE 13, ESPN ID 401772988) inserted with full data.
 
-- [ ] Clean NFL 2025 duplicates - 370 regular-season games in DB (expected ~272). ~100 duplicates from overlapping imports.
+- [x] NBA historical_games backfilled — All 26 seasons (2000-2025) now have complete data. Total: 34,841 games.
 
 ### P0: Empty Tables Blocking Features
 
@@ -138,12 +150,14 @@ Full audit completed February 2026. The platform builds and deploys cleanly (148
 ## FUTURE - Gambler's Paradise
 
 ### Phase 1: Data Completeness
+
 - [ ] All sports with 5+ years historical games
 - [ ] All game_odds current through latest season
 - [ ] Live line_snapshots from crons
 - [ ] Betting splits data source
 
 ### Phase 2: Killer Features
+
 - [ ] Arbitrage Finder
 - [ ] Positive EV Finder
 - [ ] Prop Bet Builder with correlation analysis
@@ -152,6 +166,7 @@ Full audit completed February 2026. The platform builds and deploys cleanly (148
 - [ ] Referee/Umpire O/U trends
 
 ### Phase 3: Engagement
+
 - [ ] Mobile app (PWA)
 - [ ] Push notifications
 - [ ] Premium tier (Stripe)
