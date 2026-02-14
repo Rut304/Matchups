@@ -916,6 +916,11 @@ export default function GameDetailPage() {
                       </>
                     ) : (game.spread?.line !== undefined && game.spread.line !== 0) ? (
                       <>{game.spread.favorite} {formatSpread(game.spread.line)}</>
+                    ) : (!multiBookOdds.loading && multiBookOdds.books.length > 0 && multiBookOdds.bestSpread.line !== 0) ? (
+                      /* Fallback to Action Network / Odds API when ESPN has no odds (college sports) */
+                      <>{game.home.abbr} {multiBookOdds.bestSpread.line > 0 ? '+' : ''}{multiBookOdds.bestSpread.line}</>
+                    ) : multiBookOdds.loading ? (
+                      'Loading...'
                     ) : (
                       'TBD'
                     )}
@@ -926,7 +931,9 @@ export default function GameDetailPage() {
                 <div className="rounded p-1.5 bg-gradient-to-r from-green-500/10 to-green-600/5 border border-green-500/20">
                   <p className="text-[10px] text-slate-500 mb-0.5">TOTAL</p>
                   <p className="text-sm font-black font-mono text-green-400">
-                    O/U {gameSummary.odds?.overUnder || game.total || 'TBD'}
+                    O/U {gameSummary.odds?.overUnder || game.total || 
+                      (!multiBookOdds.loading && multiBookOdds.books.length > 0 && multiBookOdds.bestTotal.over ? multiBookOdds.bestTotal.over : 
+                       multiBookOdds.loading ? 'Loading...' : 'TBD')}
                   </p>
                 </div>
               </div>
@@ -936,24 +943,28 @@ export default function GameDetailPage() {
                 <div className="rounded p-1 bg-slate-800/50 border border-slate-700">
                   <p className="text-[10px] text-slate-500">{game.away.abbr || 'AWAY'}</p>
                   <p className={`text-xs font-bold font-mono ${
-                    (gameSummary.odds?.awayTeamOdds?.moneyLine || game.moneyline.away) > 0 ? 'text-green-400' : 'text-white'
+                    (gameSummary.odds?.awayTeamOdds?.moneyLine || game.moneyline.away || multiBookOdds.bestAwayML.odds) > 0 ? 'text-green-400' : 'text-white'
                   }`}>
                     {gameSummary.odds?.awayTeamOdds?.moneyLine ? (
                       <>{gameSummary.odds.awayTeamOdds.moneyLine > 0 ? '+' : ''}{gameSummary.odds.awayTeamOdds.moneyLine}</>
                     ) : game.moneyline.away !== 0 ? (
                       <>{game.moneyline.away > 0 ? '+' : ''}{game.moneyline.away}</>
+                    ) : (!multiBookOdds.loading && multiBookOdds.bestAwayML.odds !== 0) ? (
+                      <>{multiBookOdds.bestAwayML.odds > 0 ? '+' : ''}{multiBookOdds.bestAwayML.odds}</>
                     ) : 'TBD'}
                   </p>
                 </div>
                 <div className="rounded p-1 bg-slate-800/50 border border-slate-700">
                   <p className="text-[10px] text-slate-500">{game.home.abbr || 'HOME'}</p>
                   <p className={`text-xs font-bold font-mono ${
-                    (gameSummary.odds?.homeTeamOdds?.moneyLine || game.moneyline.home) > 0 ? 'text-green-400' : 'text-white'
+                    (gameSummary.odds?.homeTeamOdds?.moneyLine || game.moneyline.home || multiBookOdds.bestHomeML.odds) > 0 ? 'text-green-400' : 'text-white'
                   }`}>
                     {gameSummary.odds?.homeTeamOdds?.moneyLine ? (
                       <>{gameSummary.odds.homeTeamOdds.moneyLine > 0 ? '+' : ''}{gameSummary.odds.homeTeamOdds.moneyLine}</>
                     ) : game.moneyline.home !== 0 ? (
                       <>{game.moneyline.home > 0 ? '+' : ''}{game.moneyline.home}</>
+                    ) : (!multiBookOdds.loading && multiBookOdds.bestHomeML.odds !== 0) ? (
+                      <>{multiBookOdds.bestHomeML.odds > 0 ? '+' : ''}{multiBookOdds.bestHomeML.odds}</>
                     ) : 'TBD'}
                   </p>
                 </div>
@@ -1021,14 +1032,17 @@ export default function GameDetailPage() {
                 <div className="text-center">
                    <p className="text-[10px] text-slate-500">OPEN</p>
                    <p className="font-mono font-bold text-slate-300">
-                      {game.openingSpread?.line ? formatSpread(game.openingSpread.line) : 'N/A'}
+                      {game.openingSpread?.line ? formatSpread(game.openingSpread.line) : 
+                       (!multiBookOdds.loading && multiBookOdds.bestSpread.line !== 0) ? formatSpread(multiBookOdds.bestSpread.line) : 'N/A'}
                    </p>
                 </div>
                 <ChevronRight className="w-4 h-4 text-slate-600" />
                 <div className="text-center">
                    <p className="text-[10px] text-slate-500">CURRENT</p>
                    <p className="font-mono font-bold text-white">
-                      {gameSummary.odds?.spread ? formatSpread(gameSummary.odds.spread) : formatSpread(game.spread?.line)}
+                      {gameSummary.odds?.spread ? formatSpread(gameSummary.odds.spread) : 
+                       game.spread?.line ? formatSpread(game.spread?.line) :
+                       (!multiBookOdds.loading && multiBookOdds.bestSpread.line !== 0) ? formatSpread(multiBookOdds.bestSpread.line) : 'PK'}
                    </p>
                 </div>
              </div>
@@ -1041,8 +1055,12 @@ export default function GameDetailPage() {
              {/* Key Number Alerts */}
              <div className="mt-3">
                <KeyNumberBadges
-                 spread={gameSummary.odds?.spread ? parseFloat(String(gameSummary.odds.spread)) : game.spread?.line}
-                 total={gameSummary.odds?.overUnder ? parseFloat(String(gameSummary.odds.overUnder)) : game.total}
+                 spread={gameSummary.odds?.spread ? parseFloat(String(gameSummary.odds.spread)) : 
+                         game.spread?.line ? game.spread?.line : 
+                         (!multiBookOdds.loading && multiBookOdds.bestSpread.line !== 0) ? multiBookOdds.bestSpread.line : undefined}
+                 total={gameSummary.odds?.overUnder ? parseFloat(String(gameSummary.odds.overUnder)) : 
+                        game.total ? game.total : 
+                        (!multiBookOdds.loading && multiBookOdds.bestTotal.over !== 0) ? multiBookOdds.bestTotal.over : undefined}
                  sport={sport}
                />
              </div>
