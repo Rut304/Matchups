@@ -358,10 +358,19 @@ export async function getRealTeams(sportOrOptions: Sport | GetRealTeamsOptions):
       const teamCode = entry.team.abbreviation
 
       // Match using team abbreviations (more reliable) against historical_games fields
-      const teamGames = games.filter((g: HistoricalGame) =>
+      const teamGamesRaw = games.filter((g: HistoricalGame) =>
         (g.home_team_abbr && g.home_team_abbr.toUpperCase() === teamCode.toUpperCase()) ||
         (g.away_team_abbr && g.away_team_abbr.toUpperCase() === teamCode.toUpperCase())
       )
+
+      // Per-team dedup: a team can only play one game per date
+      // (DB may have duplicate imports with flipped home/away or different sources)
+      const seenDates = new Set<string>()
+      const teamGames = teamGamesRaw.filter((g: HistoricalGame) => {
+        if (seenDates.has(g.game_date)) return false
+        seenDates.add(g.game_date)
+        return true
+      })
 
       // Calculate ATS records using the abbr-based slices
       const homeGames = teamGames.filter((g: HistoricalGame) => g.home_team_abbr && g.home_team_abbr.toUpperCase() === teamCode.toUpperCase())
