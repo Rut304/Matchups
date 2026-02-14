@@ -3,6 +3,8 @@
 // Fetches game data, matchup details, betting info for all sports
 // =============================================================================
 
+import { getH2HSummary, type H2HGame } from '@/lib/api/head-to-head'
+
 export interface GameTeam {
   id: string
   name: string
@@ -343,9 +345,10 @@ export async function getGameById(id: string, sport?: string): Promise<GameDetai
       // This runs async to not block the main transformation
       try {
         const sportStr = sport || data.sport || 'NFL'
-        const [homeTrendsReal, awayTrendsReal] = await Promise.all([
+        const [homeTrendsReal, awayTrendsReal, h2hData] = await Promise.all([
           generateMeaningfulTrends(gameDetail.home.abbr, sportStr, true),
-          generateMeaningfulTrends(gameDetail.away.abbr, sportStr, false)
+          generateMeaningfulTrends(gameDetail.away.abbr, sportStr, false),
+          getH2HSummary(gameDetail.home.abbr, gameDetail.away.abbr, sportStr, 10)
         ])
         
         // Merge real ATS trends with any key number commentary (prioritize real trends)
@@ -354,6 +357,17 @@ export async function getGameById(id: string, sport?: string): Promise<GameDetai
         }
         if (awayTrendsReal.length > 0) {
           gameDetail.awayTrends = [...awayTrendsReal, ...gameDetail.awayTrends.slice(0, 2)]
+        }
+        
+        // Add H2H data from historical database
+        if (h2hData && h2hData.recentGames && h2hData.recentGames.length > 0) {
+          gameDetail.h2h = h2hData.recentGames.map((g: H2HGame) => ({
+            date: new Date(g.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            score: `${g.homeTeam} ${g.homeScore}, ${g.awayTeam} ${g.awayScore}`,
+            winner: g.winner,
+            atsResult: g.spreadResult === 'home_cover' ? 'W' as const : g.spreadResult === 'away_cover' ? 'L' as const : 'P' as const,
+            ouResult: g.totalResult === 'over' ? 'O' as const : g.totalResult === 'under' ? 'U' as const : 'P' as const,
+          }))
         }
       } catch (trendsError) {
         console.error('[getGameById] Error enriching trends:', trendsError)
