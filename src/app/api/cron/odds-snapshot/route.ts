@@ -1,289 +1,230 @@
 /**
  * Cron Job: Capture Odds Snapshots for CLV Tracking
  * 
- * Runs every 30 minutes via Vercel Cron
- * Captures current odds from DraftKings/FanDuel and stores in Supabase
+ * Runs every 30 minutes via Vercel Cron.
+ * Uses The Odds API (reliable, paid) to capture odds from DraftKings + FanDuel.
+ * Stores snapshots in line_snapshots for line movement visualization + CLV grading.
  * 
- * Vercel cron config in vercel.json: schedule every 30 minutes
+ * Cost: ~1 request per sport per run = 6 requests per 30 min = ~288/day = ~8,640/month
+ * Well within 100k/month budget.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
-export const maxDuration = 60;
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+)
 
-// =============================================================================
-// UTILITY TYPES & HELPERS
-// =============================================================================
+const ODDS_API_BASE = 'https://api.the-odds-api.com/v4'
+
+const SPORT_KEYS: Record<string, string> = {
+  NFL: 'americanfootball_nfl',
+  NBA: 'basketball_nba',
+  NHL: 'icehockey_nhl',
+  MLB: 'baseball_mlb',
+  NCAAF: 'americanfootball_ncaaf',
+  NCAAB: 'basketball_ncaab',
+}
 
 interface OddsSnapshot {
-  game_id: string;
-  sport: string;
-  game_date: string | null;
-  home_team: string;
-  away_team: string;
-  provider: string;
-  spread_home: number | null;
-  spread_home_odds: number | null;
-  spread_away: number | null;
-  spread_away_odds: number | null;
-  total_line: number | null;
-  total_over_odds: number | null;
-  total_under_odds: number | null;
-  home_ml: number | null;
-  away_ml: number | null;
-  is_opening: boolean;
-  is_closing: boolean;
+  game_id: string
+  sport: string
+  game_date: string | null
+  home_team: string
+  away_team: string
+  provider: string
+  spread_home: number | null
+  spread_home_odds: number | null
+  spread_away: number | null
+  spread_away_odds: number | null
+  total_line: number | null
+  total_over_odds: number | null
+  total_under_odds: number | null
+  home_ml: number | null
+  away_ml: number | null
+  is_opening: boolean
+  is_closing: boolean
 }
 
-const DK_SPORT_IDS: Record<string, string> = {
-  NFL: '1', NBA: '3', MLB: '84', NHL: '2'
-};
-
-const FD_SPORT_KEYS: Record<string, string> = {
-  NFL: 'nfl', NBA: 'nba', MLB: 'mlb', NHL: 'nhl'
-};
-
-// =============================================================================
-// DRAFTKINGS FETCHER
-// =============================================================================
-
-async function fetchDraftKingsOdds(sport: string): Promise<OddsSnapshot[]> {
-  const snapshots: OddsSnapshot[] = [];
-  const sportId = DK_SPORT_IDS[sport];
-  if (!sportId) return [];
+async function fetchOddsForSport(sport: string, sportKey: string, apiKey: string): Promise<OddsSnapshot[]> {
+  const snapshots: OddsSnapshot[] = []
 
   try {
-    const url = `https://sportsbook.draftkings.com/sites/US-SB/api/v5/eventgroups/${sportId}?format=json`;
-    const res = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
-      next: { revalidate: 0 }
-    });
+    const url = `${ODDS_API_BASE}/sports/${sportKey}/odds?apiKey=${apiKey}&regions=us&markets=h2h,spreads,totals&bookmakers=draftkings,fanduel&dateFormat=iso`
+    const res = await fetch(url, { cache: 'no-store' })
 
-    if (!res.ok) return [];
-    const data = await res.json();
-    const events = data.eventGroup?.events || data.events || [];
+    if (!res.ok) {
+      if (res.status === 401) {
+        console.warn(`[Odds Snapshot] API quota issue for ${sport}`)
+        return []
+      }
+      console.error(`[Odds Snapshot] HTTP ${res.status} for ${sport}`)
+      return []
+    }
 
-    for (const event of events) {
-      try {
-        const homeTeam = event.teamName1 || '';
-        const awayTeam = event.teamName2 || '';
-        const gameId = event.eventId?.toString();
-        if (!gameId || !homeTeam) continue;
+    const remaining = res.headers.get('x-requests-remaining')
+    console.log(`[Odds Snapshot] ${sport}: ${remaining} API requests remaining`)
 
-        const offers = event.displayGroups?.[0]?.markets || [];
-        let spread_home = null, spread_away = null;
-        let spread_home_odds = null, spread_away_odds = null;
-        let total_line = null, total_over_odds = null, total_under_odds = null;
-        let home_ml = null, away_ml = null;
+    const games = await res.json()
 
-        for (const market of offers) {
-          const type = (market.marketType || '').toLowerCase();
-          const outcomes = market.outcomes || [];
-          
-          if (type.includes('moneyline')) {
-            for (const o of outcomes) {
-              if (o.label?.includes(homeTeam)) home_ml = parseInt(o.oddsAmerican) || null;
-              else away_ml = parseInt(o.oddsAmerican) || null;
+    for (const game of games) {
+      for (const bookmaker of game.bookmakers || []) {
+        let spread_home: number | null = null, spread_away: number | null = null
+        let spread_home_odds: number | null = null, spread_away_odds: number | null = null
+        let total_line: number | null = null, total_over_odds: number | null = null, total_under_odds: number | null = null
+        let home_ml: number | null = null, away_ml: number | null = null
+
+        for (const market of bookmaker.markets || []) {
+          if (market.key === 'h2h') {
+            for (const o of market.outcomes) {
+              if (o.name === game.home_team) home_ml = o.price
+              else away_ml = o.price
             }
           }
-          if (type.includes('spread')) {
-            for (const o of outcomes) {
-              if (o.label?.includes(homeTeam)) {
-                spread_home = parseFloat(o.line) || null;
-                spread_home_odds = parseInt(o.oddsAmerican) || null;
+          if (market.key === 'spreads') {
+            for (const o of market.outcomes) {
+              if (o.name === game.home_team) {
+                spread_home = o.point ?? null
+                spread_home_odds = o.price
               } else {
-                spread_away = parseFloat(o.line) || null;
-                spread_away_odds = parseInt(o.oddsAmerican) || null;
+                spread_away = o.point ?? null
+                spread_away_odds = o.price
               }
             }
           }
-          if (type.includes('total')) {
-            for (const o of outcomes) {
-              if (o.label?.toLowerCase().includes('over')) {
-                total_line = parseFloat(o.line) || null;
-                total_over_odds = parseInt(o.oddsAmerican) || null;
+          if (market.key === 'totals') {
+            for (const o of market.outcomes) {
+              if (o.name === 'Over') {
+                total_line = o.point ?? null
+                total_over_odds = o.price
               } else {
-                total_under_odds = parseInt(o.oddsAmerican) || null;
+                total_under_odds = o.price
               }
             }
           }
         }
 
         snapshots.push({
-          game_id: `dk_${gameId}`,
+          game_id: game.id, // The Odds API game ID (consistent across snapshots)
           sport,
-          game_date: event.startDate || null,
-          home_team: homeTeam,
-          away_team: awayTeam,
-          provider: 'draftkings',
+          game_date: game.commence_time?.split('T')[0] || null,
+          home_team: game.home_team,
+          away_team: game.away_team,
+          provider: bookmaker.key,
           spread_home, spread_home_odds, spread_away, spread_away_odds,
           total_line, total_over_odds, total_under_odds,
           home_ml, away_ml,
-          is_opening: false,
-          is_closing: false
-        });
-      } catch { /* continue */ }
+          is_opening: false, // Will be set below
+          is_closing: false,
+        })
+      }
     }
   } catch (e) {
-    console.error('[DK Error]', e);
+    console.error(`[Odds Snapshot] Error for ${sport}:`, e)
   }
-  return snapshots;
+
+  return snapshots
 }
-
-// =============================================================================
-// FANDUEL FETCHER
-// =============================================================================
-
-async function fetchFanDuelOdds(sport: string): Promise<OddsSnapshot[]> {
-  const snapshots: OddsSnapshot[] = [];
-  const sportKey = FD_SPORT_KEYS[sport];
-  if (!sportKey) return [];
-
-  try {
-    const url = `https://sbapi.ny.sportsbook.fanduel.com/api/content-managed-page?page=CUSTOM&customPageId=${sportKey}&_ak=FhMFpcPWXMeyZxOx`;
-    const res = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
-      next: { revalidate: 0 }
-    });
-
-    if (!res.ok) return [];
-    const data = await res.json();
-    const attachments = data.attachments || {};
-    const events = Object.values(attachments.events || {}) as any[];
-    const markets = attachments.markets || {};
-
-    for (const event of events) {
-      try {
-        const home = event.participants?.[0]?.name || '';
-        const away = event.participants?.[1]?.name || '';
-        const gameId = event.eventId?.toString();
-        if (!gameId || !home) continue;
-
-        let spread_home = null, spread_away = null;
-        let spread_home_odds = null, spread_away_odds = null;
-        let total_line = null, total_over_odds = null, total_under_odds = null;
-        let home_ml = null, away_ml = null;
-
-        const eventMarkets = Object.values(markets).filter((m: any) => m.eventId === event.eventId) as any[];
-        for (const market of eventMarkets) {
-          const type = market.marketType || '';
-          const runners = market.runners || [];
-          
-          if (type === 'MATCH_ODDS') {
-            for (const r of runners) {
-              const odds = Math.round(r.winRunnerOdds?.americanOdds || 0);
-              if (r.runnerName?.includes(home)) home_ml = odds;
-              else away_ml = odds;
-            }
-          }
-          if (type === 'HANDICAP') {
-            for (const r of runners) {
-              const line = r.handicap;
-              const odds = Math.round(r.winRunnerOdds?.americanOdds || 0);
-              if (r.runnerName?.includes(home)) { spread_home = line; spread_home_odds = odds; }
-              else { spread_away = line; spread_away_odds = odds; }
-            }
-          }
-          if (type === 'TOTAL_POINTS') {
-            for (const r of runners) {
-              const odds = Math.round(r.winRunnerOdds?.americanOdds || 0);
-              if (r.runnerName?.toLowerCase().includes('over')) {
-                total_line = r.handicap;
-                total_over_odds = odds;
-              } else total_under_odds = odds;
-            }
-          }
-        }
-
-        snapshots.push({
-          game_id: `fd_${gameId}`,
-          sport,
-          game_date: event.openDate || null,
-          home_team: home,
-          away_team: away,
-          provider: 'fanduel',
-          spread_home, spread_home_odds, spread_away, spread_away_odds,
-          total_line, total_over_odds, total_under_odds,
-          home_ml, away_ml,
-          is_opening: false,
-          is_closing: false
-        });
-      } catch { /* continue */ }
-    }
-  } catch (e) {
-    console.error('[FD Error]', e);
-  }
-  return snapshots;
-}
-
-// =============================================================================
-// SAVE TO DATABASE
-// =============================================================================
 
 async function saveSnapshots(snapshots: OddsSnapshot[]): Promise<number> {
-  let saved = 0;
-  const now = new Date().toISOString();
+  let saved = 0
+  const now = new Date().toISOString()
 
-  for (const snap of snapshots) {
-    // Check if this is opening line
-    const { count } = await supabase
+  // Batch check which game+provider combos already have snapshots (for is_opening)
+  const gameProviderPairs = [...new Set(snapshots.map(s => `${s.game_id}|${s.provider}`))]
+  const existingSet = new Set<string>()
+
+  // Check in batches of 50
+  for (let i = 0; i < gameProviderPairs.length; i += 50) {
+    const batch = gameProviderPairs.slice(i, i + 50)
+    const gameIds = batch.map(p => p.split('|')[0])
+
+    const { data } = await supabase
       .from('line_snapshots')
-      .select('*', { count: 'exact', head: true })
-      .eq('game_id', snap.game_id)
-      .eq('provider', snap.provider);
+      .select('game_id, provider')
+      .in('game_id', gameIds)
+      .limit(1000)
 
-    const { error } = await supabase
-      .from('line_snapshots')
-      .insert({
-        ...snap,
-        is_opening: count === 0,
-        snapshot_ts: now
-      });
-
-    if (!error) saved++;
+    if (data) {
+      for (const row of data) {
+        existingSet.add(`${row.game_id}|${row.provider}`)
+      }
+    }
   }
-  return saved;
+
+  // Batch insert all snapshots
+  const toInsert = snapshots.map(snap => ({
+    ...snap,
+    is_opening: !existingSet.has(`${snap.game_id}|${snap.provider}`),
+    snapshot_ts: now,
+  }))
+
+  // Insert in batches of 50
+  for (let i = 0; i < toInsert.length; i += 50) {
+    const batch = toInsert.slice(i, i + 50)
+    const { error } = await supabase.from('line_snapshots').insert(batch)
+    if (error) {
+      console.error('[Odds Snapshot] Insert error:', error.message)
+    } else {
+      saved += batch.length
+    }
+  }
+
+  return saved
 }
 
-// =============================================================================
-// HANDLER
-// =============================================================================
-
 export async function GET(request: NextRequest) {
-  // Verify cron secret
-  const authHeader = request.headers.get('authorization');
+  const authHeader = request.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}` && process.env.NODE_ENV === 'production') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const sports = ['NFL', 'NBA', 'NHL', 'MLB'];
-  const results: Record<string, number> = {};
-  let totalSaved = 0;
+  const apiKey = process.env.THE_ODDS_API_KEY || process.env.ODDS_API_KEY
+  if (!apiKey) {
+    return NextResponse.json({ error: 'No Odds API key configured' }, { status: 500 })
+  }
 
-  for (const sport of sports) {
-    const [dk, fd] = await Promise.all([
-      fetchDraftKingsOdds(sport),
-      fetchFanDuelOdds(sport)
-    ]);
+  // Only fetch sports that are currently in-season
+  const month = new Date().getMonth() + 1 // 1-12
+  const activeSports: [string, string][] = []
 
-    const allSnaps = [...dk, ...fd];
-    const saved = await saveSnapshots(allSnaps);
-    results[sport] = saved;
-    totalSaved += saved;
+  for (const [sport, key] of Object.entries(SPORT_KEYS)) {
+    // Rough in-season check to save API calls
+    const inSeason = (() => {
+      switch (sport) {
+        case 'NFL': return month >= 9 || month <= 2
+        case 'NBA': return month >= 10 || month <= 6
+        case 'NHL': return month >= 10 || month <= 6
+        case 'MLB': return month >= 3 && month <= 11
+        case 'NCAAF': return month >= 8 || month <= 1
+        case 'NCAAB': return month >= 11 || month <= 4
+        default: return true
+      }
+    })()
+    if (inSeason) activeSports.push([sport, key])
+  }
+
+  const results: Record<string, number> = {}
+  let totalSaved = 0
+
+  for (const [sport, key] of activeSports) {
+    const snapshots = await fetchOddsForSport(sport, key, apiKey)
+    const saved = await saveSnapshots(snapshots)
+    results[sport] = saved
+    totalSaved += saved
   }
 
   return NextResponse.json({
     success: true,
     timestamp: new Date().toISOString(),
     total_saved: totalSaved,
-    by_sport: results
-  });
+    by_sport: results,
+    active_sports: activeSports.map(([s]) => s),
+  })
 }

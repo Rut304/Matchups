@@ -266,13 +266,13 @@ Matchups is a Next.js 16 sports betting intelligence platform with 148 pages acr
 
 ### Data Quality Issues
 
-7. ~~**Super Bowl labeled "NFC @ AFC"**~~ **FIXED** — Pro Bowl relabeled, Super Bowl LX inserted correctly
+1. ~~**Super Bowl labeled "NFC @ AFC"**~~ **FIXED** — Pro Bowl relabeled, Super Bowl LX inserted correctly
 2. **NFL 2025 regular season: 370 games** in DB (expected ~272) — still ~100 duplicates
 3. ~~**NBA spreads: 98.7%**~~ NBA now fully backfilled to ~34,841 games
 
 ### Feature Gaps
 
-10. **Line Shop** — Page exists but uses mock data; not connected to The Odds API
+1. **Line Shop** — Page exists but uses mock data; not connected to The Odds API
 2. **Picks tracking** — UI exists but `picks` table is empty, no write path verified
 3. **Betting splits** — Schema exists, table empty, features show nothing
 4. **User profiles/dashboard** — Auth configured but minimal functionality

@@ -264,12 +264,84 @@ async function runDailyScrape(): Promise<ScraperResult> {
     
     result.expertsProcessed = freeResult.expertResults.length
     result.picksFound = freeResult.totalPicks
-    result.picksNew = freeResult.totalPicks // Will deduplicate in DB
     result.errors = freeResult.errors
-    result.duration = Date.now() - startTime
-    result.success = freeResult.totalPicks > 0 || freeResult.errors.length === 0
     
-    console.log(`[Scraper] Rettiwt: ${freeResult.totalTweets} tweets, ${freeResult.totalPicks} picks from ${freeResult.expertResults.length}/${freeResult.totalExpertsAvailable} experts`)
+    // PERSIST PICKS TO tracked_picks TABLE
+    let picksStored = 0
+    for (const expertResult of freeResult.expertResults) {
+      if (expertResult.picks === 0) continue
+      
+      // Re-scrape this expert to get the actual pick data (expertResult only has count)
+      try {
+        const { scrapeExpertTweets } = await import('@/lib/scrapers/rettiwt-scraper')
+        const detailResult = await scrapeExpertTweets(expertResult.handle, 15)
+        
+        for (const pick of detailResult.picks) {
+          // Map to tracked_picks format
+          const pickRow = {
+            expert_slug: expertResult.handle.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+            pick_date: new Date().toISOString().split('T')[0],
+            pick_timestamp: new Date().toISOString(),
+            sport: pick.sport || 'NFL',
+            game_id: null,
+            game_date: new Date().toISOString().split('T')[0],
+            home_team: pick.team || 'TBD',
+            away_team: pick.opponent || 'TBD',
+            picked_team: pick.team || null,
+            picked_side: pick.side || (pick.team ? 'home' : null),
+            bet_type: pick.pickType || 'spread',
+            line_at_pick: pick.line || null,
+            odds_at_pick: -110,
+            total_pick: pick.pickType === 'total' ? pick.side : null,
+            total_number: pick.pickType === 'total' ? pick.line : null,
+            units: 1.0,
+            confidence: pick.confidence || 'standard',
+            is_public: true,
+            source: 'x_twitter',
+            raw_text: pick.rawText?.substring(0, 500),
+            status: 'pending',
+          }
+          
+          // Check for duplicate by raw_text + expert_slug (avoid re-inserting same tweet)
+          const { data: existing } = await supabase
+            .from('tracked_picks')
+            .select('id')
+            .eq('expert_slug', pickRow.expert_slug)
+            .eq('raw_text', pickRow.raw_text)
+            .limit(1)
+          
+          if (existing && existing.length > 0) continue
+          
+          // Also check if expert exists in tracked_experts
+          const { data: expertExists } = await supabase
+            .from('tracked_experts')
+            .select('slug')
+            .eq('slug', pickRow.expert_slug)
+            .single()
+          
+          if (!expertExists) {
+            // Expert not in tracked_experts, skip (or we could auto-add)
+            console.log(`[Scraper] Expert ${pickRow.expert_slug} not in tracked_experts, skipping`)
+            continue
+          }
+          
+          const { error: insertErr } = await supabase
+            .from('tracked_picks')
+            .insert(pickRow)
+          
+          if (!insertErr) picksStored++
+          else console.warn(`[Scraper] Insert error: ${insertErr.message}`)
+        }
+      } catch (detailErr) {
+        console.warn(`[Scraper] Could not re-fetch picks for @${expertResult.handle}: ${detailErr}`)
+      }
+    }
+    
+    result.picksNew = picksStored
+    result.duration = Date.now() - startTime
+    result.success = picksStored > 0 || freeResult.errors.length === 0
+    
+    console.log(`[Scraper] Rettiwt: ${freeResult.totalTweets} tweets, ${freeResult.totalPicks} picks found, ${picksStored} stored in tracked_picks`)
     return result
   } catch (freeErr) {
     console.error('[Scraper] Rettiwt failed, trying Bearer token fallback:', freeErr)
@@ -318,38 +390,47 @@ async function runDailyScrape(): Promise<ScraperResult> {
         
         // Check for duplicate
         const { data: existing } = await supabase
-          .from('expert_picks')
+          .from('tracked_picks')
           .select('id')
-          .eq('source_id', tweet.id)
+          .eq('source_tweet_id', tweet.id)
           .single()
         
         if (existing) continue
         
-        // Get expert profile ID
-        const { data: profile } = await supabase
-          .from('expert_profiles')
-          .select('id')
+        // Check if expert exists in tracked_experts
+        const { data: expertRecord } = await supabase
+          .from('tracked_experts')
+          .select('slug')
           .eq('slug', expert.id)
           .single()
         
-        // Insert pick
+        if (!expertRecord) continue
+        
+        // Insert pick into tracked_picks
         const { error: insertError } = await supabase
-          .from('expert_picks')
+          .from('tracked_picks')
           .insert({
-            expert_id: profile?.id || null,
-            source: pick.source,
-            source_id: pick.source_id,
-            source_url: pick.source_url,
+            expert_slug: expert.id,
+            pick_date: new Date().toISOString().split('T')[0],
+            pick_timestamp: pick.picked_at,
             sport: pick.sport,
-            pick_type: pick.pick_type,
-            pick_description: pick.pick_description,
-            pick_side: pick.pick_side,
-            line: pick.line,
-            odds: pick.odds,
-            stake: pick.stake,
-            confidence: pick.confidence,
-            picked_at: pick.picked_at,
-            result: 'pending'
+            game_date: new Date().toISOString().split('T')[0],
+            home_team: pick.pick_side || 'TBD',
+            away_team: 'TBD',
+            picked_team: pick.pick_side,
+            picked_side: 'home',
+            bet_type: pick.pick_type,
+            line_at_pick: pick.line,
+            odds_at_pick: pick.odds,
+            units: pick.stake,
+            confidence: pick.confidence ? 
+              (pick.confidence >= 80 ? 'best_bet' : pick.confidence >= 60 ? 'lean' : 'standard') : 'standard',
+            is_public: true,
+            source: 'x_twitter',
+            source_url: pick.source_url,
+            source_tweet_id: pick.source_id,
+            raw_text: pick.raw_text?.substring(0, 500),
+            status: 'pending',
           })
         
         if (insertError) {
