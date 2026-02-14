@@ -75,9 +75,10 @@ export interface LineMovementData {
   }
   timeline: {
     timestamp: string
-    spread: number
-    total: number
-    homeML: number
+    spread: number | null
+    total: number | null
+    homeML: number | null
+    awayML?: number | null
   }[]
 }
 
