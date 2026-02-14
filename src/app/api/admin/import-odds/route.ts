@@ -265,7 +265,8 @@ function extractOdds(game: { home_team: string; away_team: string; bookmakers: A
   }
 }
 
-async function handleCreateTables(supabase: ReturnType<typeof createClient>) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function handleCreateTables(supabase: any) {
   // Auto-create tables via REST API bootstrapping
   try {
     // Test if table exists

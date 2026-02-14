@@ -246,20 +246,26 @@ export async function getRealTeams(sportOrOptions: Sport | GetRealTeamsOptions):
       .eq('sport', sport.toLowerCase())
       .eq('season', season)
       .order('game_date', { ascending: false })
-      .limit(5000)
     
     // Apply seasonType filter if specified
     if (seasonType) {
       query = query.eq('season_type', seasonType)
     }
 
-    const { data: historicalGames, error: histError } = await query
+    const { data: historicalGames, error: histError } = await query.limit(5000)
     
     if (histError) {
       console.error(`Error fetching historical games for ${sport}:`, histError)
     }
 
-    const games = (historicalGames || []) as HistoricalGame[]
+    // Deduplicate games: keep only the first occurrence of each date+home+away combo
+    const seenGames = new Set<string>()
+    const games = ((historicalGames || []) as HistoricalGame[]).filter(g => {
+      const key = `${g.game_date}|${g.home_team_abbr}|${g.away_team_abbr}`
+      if (seenGames.has(key)) return false
+      seenGames.add(key)
+      return true
+    })
     
     // Also fetch game_odds for this sport+season to get real closing lines
     // game_odds has accurate consensus closing lines from The Odds API
