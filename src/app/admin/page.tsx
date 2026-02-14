@@ -44,7 +44,7 @@ import {
 import Link from 'next/link'
 import { ScrapersTabContent } from './scrapers-tab'
 
-type TabType = 'overview' | 'data' | 'diagnostics' | 'users' | 'scrapers' | 'ads' | 'edge' | 'infra' | 'settings' | 'api-usage'
+type TabType = 'overview' | 'data' | 'feeds' | 'diagnostics' | 'users' | 'scrapers' | 'ads' | 'edge' | 'infra' | 'settings' | 'api-usage'
 
 interface Job {
   id: string
@@ -312,6 +312,7 @@ export default function AdminPage() {
   const tabs = [
     { id: 'overview', label: 'Overview', icon: Activity },
     { id: 'data', label: 'Data Jobs', icon: Database },
+    { id: 'feeds', label: 'Data Feeds', icon: Wifi },
     { id: 'diagnostics', label: 'Diagnostics', icon: Heart },
     { id: 'users', label: 'Users', icon: Users },
     { id: 'scrapers', label: 'Expert Scrapers', icon: Search },
@@ -573,6 +574,39 @@ export default function AdminPage() {
   ]
 }`}
                 </pre>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Feeds Tab - Links to dedicated page */}
+        {activeTab === 'feeds' && (
+          <div className="space-y-6">
+            <Card variant="bordered">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Wifi className="w-5 h-5 text-accent" />
+                  Data Feed Monitor
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-green-500/20 to-blue-500/20 rounded-xl flex items-center justify-center">
+                    <Activity className="w-8 h-8 text-green-500" />
+                  </div>
+                  <h3 className="text-xl font-bold text-text-primary mb-2">Monitor All Data Feeds</h3>
+                  <p className="text-text-secondary mb-6 max-w-md mx-auto">
+                    View real-time status of all {16} data feeds, trigger manual runs, see error logs,
+                    and monitor rate limits across ESPN, Action Network, Covers.com, X/Twitter, and more.
+                  </p>
+                  <Link 
+                    href="/admin/feeds"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-accent hover:bg-accent/90 text-background font-semibold rounded-lg transition-colors"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Open Feed Dashboard
+                  </Link>
+                </div>
               </CardContent>
             </Card>
           </div>

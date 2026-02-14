@@ -248,7 +248,26 @@ async function runDailyScrape(): Promise<ScraperResult> {
   const hasXToken = !!getXToken()
   
   if (!hasXToken) {
-    result.errors.push('X/Twitter API token not configured')
+    // TRY FREE SCRAPER (rettiwt-api) as fallback
+    console.log('[Scraper] No X Bearer Token - trying free rettiwt-api scraper...')
+    try {
+      const { scrapeAllGamblingExperts } = await import('@/lib/scrapers/rettiwt-scraper')
+      const freeResult = await scrapeAllGamblingExperts({ batchSize: 3, delayMs: 3000 })
+      
+      result.expertsProcessed = freeResult.expertResults.length
+      result.picksFound = freeResult.totalPicks
+      result.picksNew = freeResult.totalPicks // Will deduplicate in DB
+      result.errors = freeResult.errors
+      result.duration = Date.now() - startTime
+      result.success = freeResult.totalPicks > 0 || freeResult.errors.length === 0
+      
+      console.log(`[Scraper] Free scraper: ${freeResult.totalTweets} tweets, ${freeResult.totalPicks} picks from ${freeResult.expertResults.length} experts`)
+      return result
+    } catch (freeErr) {
+      console.error('[Scraper] Free scraper also failed:', freeErr)
+      result.errors.push(`Free X scraper failed: ${freeErr instanceof Error ? freeErr.message : 'Unknown'}`)
+      result.errors.push('Neither X Bearer Token nor free scraper available')
+    }
   }
   
   // Get experts with X handles
