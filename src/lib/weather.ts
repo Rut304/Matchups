@@ -99,23 +99,85 @@ function mpsToMph(mps: number): number {
 }
 
 /**
- * Fetch weather for a venue from OpenWeatherMap
- * Uses forecast endpoint to get weather at game time (not just current)
+ * Fetch weather from WeatherAPI.com (1M free calls/month)
+ * Uses WEATHER_API_KEY env var
+ */
+async function getWeatherFromWeatherAPI(
+  location: string,
+  gameTime?: string
+): Promise<WeatherForecast | null> {
+  const apiKey = process.env.WEATHER_API_KEY
+  if (!apiKey) return null
+
+  try {
+    const date = gameTime ? gameTime.split('T')[0] : new Date().toISOString().split('T')[0]
+    const url = `https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${encodeURIComponent(location)}&dt=${date}&aqi=no`
+    
+    const res = await fetch(url, { next: { revalidate: 1800 } })
+    if (!res.ok) {
+      console.error(`WeatherAPI error: ${res.status}`)
+      return null
+    }
+    
+    const data = await res.json()
+    
+    // Find the hour closest to game time
+    let forecast = data.current
+    if (data.forecast?.forecastday?.[0]?.hour && gameTime) {
+      const gameHour = new Date(gameTime).getHours()
+      const hourData = data.forecast.forecastday[0].hour.find((h: { time: string }) => {
+        return new Date(h.time).getHours() === gameHour
+      }) || data.forecast.forecastday[0].hour[12] // Default to noon
+      
+      if (hourData) {
+        forecast = hourData
+      }
+    }
+    
+    return {
+      temperature: Math.round(forecast.temp_f || forecast.feelslike_f || 70),
+      feelsLike: Math.round(forecast.feelslike_f || forecast.temp_f || 70),
+      humidity: forecast.humidity || 50,
+      windSpeed: Math.round(forecast.wind_mph || 0),
+      windGust: forecast.gust_mph ? Math.round(forecast.gust_mph) : null,
+      windDirection: forecast.wind_dir || 'N',
+      precipitation: forecast.chance_of_rain || forecast.chance_of_snow || 0,
+      conditions: forecast.condition?.text || 'Clear',
+      icon: forecast.condition?.icon || '',
+      visibility: Math.round(forecast.vis_miles || 10),
+      pressure: Math.round(forecast.pressure_mb || 1013),
+    }
+  } catch (err) {
+    console.error('[WeatherAPI] Error:', err)
+    return null
+  }
+}
+
+/**
+ * Fetch weather for a venue
+ * Tries WeatherAPI.com first, then falls back to OpenWeatherMap
  */
 export async function getWeatherForVenue(
   venueName: string, 
   gameTime?: string
 ): Promise<WeatherForecast | null> {
-  const apiKey = process.env.OPENWEATHER_API_KEY
-  if (!apiKey) return null
-
   const normalized = venueName.toLowerCase()
   
   // Skip dome venues
   if (DOME_VENUES.has(normalized)) return null
   
   const coords = STADIUM_COORDS[normalized]
-  if (!coords) return null
+  
+  // Try WeatherAPI.com first (uses WEATHER_API_KEY)
+  if (process.env.WEATHER_API_KEY) {
+    const location = coords ? `${coords.lat},${coords.lon}` : venueName
+    const result = await getWeatherFromWeatherAPI(location, gameTime)
+    if (result) return result
+  }
+  
+  // Fall back to OpenWeatherMap
+  const apiKey = process.env.OPENWEATHER_API_KEY
+  if (!apiKey || !coords) return null
 
   try {
     // If game is within 5 days, use 3-hour forecast endpoint

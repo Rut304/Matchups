@@ -93,7 +93,7 @@ async function calculateEloForSport(sport: string, season: number) {
   
   const config = ELO_CONFIG[sport] || ELO_CONFIG.nfl
   
-  // Fetch games ordered by date
+  // Fetch games ordered by date - exclude 0-0 games (unplayed/future)
   const { data: games, error } = await supabase
     .from('historical_games')
     .select('id, game_date, season, home_team_abbr, away_team_abbr, home_team_name, away_team_name, home_score, away_score')
@@ -101,6 +101,8 @@ async function calculateEloForSport(sport: string, season: number) {
     .eq('season', season)
     .not('home_score', 'is', null)
     .not('away_score', 'is', null)
+    .not('home_team_abbr', 'is', null)
+    .neq('home_team_abbr', '')
     .order('game_date', { ascending: true })
   
   if (error) {
@@ -108,12 +110,21 @@ async function calculateEloForSport(sport: string, season: number) {
     return
   }
   
-  if (!games || games.length === 0) {
+  // Filter out 0-0 games (unplayed) and TBD teams
+  const completedGames = (games || []).filter(g => 
+    (g.home_score > 0 || g.away_score > 0) && 
+    g.home_team_abbr && 
+    g.away_team_abbr &&
+    g.home_team_abbr !== 'TBD' &&
+    g.away_team_abbr !== 'TBD'
+  )
+  
+  if (!completedGames || completedGames.length === 0) {
     console.log(`No completed games found for ${sport} ${season}`)
     return
   }
   
-  console.log(`Found ${games.length} games`)
+  console.log(`Found ${completedGames.length} games (filtered from ${games?.length || 0})`)
   
   // Initialize team Elos
   const teamElos: Map<string, TeamElo> = new Map()
@@ -128,7 +139,7 @@ async function calculateEloForSport(sport: string, season: number) {
   const prevEloMap = new Map(prevRatings?.map(r => [r.team_abbr, r.elo_rating]) || [])
   
   // Process each game
-  for (const game of games as Game[]) {
+  for (const game of completedGames as Game[]) {
     const homeAbbr = game.home_team_abbr?.toUpperCase() || 'UNK'
     const awayAbbr = game.away_team_abbr?.toUpperCase() || 'UNK'
     
@@ -295,26 +306,27 @@ async function main() {
   console.log('=' .repeat(60))
   
   // Get available seasons from historical_games
-  const { data: seasons } = await supabase
-    .from('historical_games')
-    .select('sport, season')
-    .not('home_score', 'is', null)
-    .order('season', { ascending: true })
+  const sportSeasons = new Map<string, number[]>()
   
-  if (!seasons) {
-    console.log('No historical games found')
-    return
+  for (const sport of ['nfl', 'nba', 'mlb', 'nhl', 'ncaaf', 'ncaab']) {
+    // Get unique seasons for this sport - order descending to get recent first
+    const { data: rows } = await supabase
+      .from('historical_games')
+      .select('season')
+      .eq('sport', sport)
+      .gt('home_score', 0)  // Only games with actual scores
+      .order('season', { ascending: false })
+      .limit(5000)
+    
+    if (rows && rows.length > 0) {
+      const uniqueSeasons = [...new Set(rows.map(r => r.season))].filter(s => s).sort((a, b) => a - b)
+      sportSeasons.set(sport, uniqueSeasons)
+    }
   }
   
-  // Get unique sport-season combos
-  const sportSeasons = new Map<string, number[]>()
-  for (const row of seasons) {
-    if (!sportSeasons.has(row.sport)) {
-      sportSeasons.set(row.sport, [])
-    }
-    if (!sportSeasons.get(row.sport)!.includes(row.season)) {
-      sportSeasons.get(row.sport)!.push(row.season)
-    }
+  if (sportSeasons.size === 0) {
+    console.log('No historical games found')
+    return
   }
   
   console.log('Found historical data:')
