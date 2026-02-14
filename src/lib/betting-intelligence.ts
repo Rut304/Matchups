@@ -861,7 +861,84 @@ async function fetchCLVFromESPN(gameId: string, sport: string): Promise<CLVData>
 }
 
 async function getLineMovementData(gameId: string, sport: string): Promise<LineMovementData> {
-  // Try to fetch line movement from ESPN API
+  // First try line_snapshots table (real DK/FanDuel data captured every 30min)
+  try {
+    const { getLineTimeline } = await import('@/lib/services/game-odds-service')
+    const timeline = await getLineTimeline(gameId)
+    
+    if (timeline && timeline.timestamps.length >= 2) {
+      const firstSpread = timeline.spreads.find(s => s != null) ?? 0
+      const lastSpread = timeline.spreads.filter(s => s != null).pop() ?? 0
+      const firstTotal = timeline.totals.find(t => t != null) ?? 0
+      const lastTotal = timeline.totals.filter(t => t != null).pop() ?? 0
+      const firstHomeML = timeline.homeMLs.find(m => m != null) ?? 0
+      const lastHomeML = timeline.homeMLs.filter(m => m != null).pop() ?? 0
+      const firstAwayML = timeline.awayMLs.find(m => m != null) ?? 0
+      const lastAwayML = timeline.awayMLs.filter(m => m != null).pop() ?? 0
+      
+      const allSpreads = timeline.spreads.filter(s => s != null) as number[]
+      const allTotals = timeline.totals.filter(t => t != null) as number[]
+      
+      const spreadMove = lastSpread - firstSpread
+      const totalMove = lastTotal - firstTotal
+      
+      const spreadDirection: 'toward_home' | 'toward_away' | 'stable' = 
+        spreadMove < -0.5 ? 'toward_home' : spreadMove > 0.5 ? 'toward_away' : 'stable'
+      const totalDirection: 'up' | 'down' | 'stable' = 
+        totalMove > 0.5 ? 'up' : totalMove < -0.5 ? 'down' : 'stable'
+      
+      const spreadMagnitude: 'sharp' | 'moderate' | 'minimal' = 
+        Math.abs(spreadMove) >= 2 ? 'sharp' : Math.abs(spreadMove) >= 1 ? 'moderate' : 'minimal'
+      const totalMagnitude: 'sharp' | 'moderate' | 'minimal' = 
+        Math.abs(totalMove) >= 2 ? 'sharp' : Math.abs(totalMove) >= 1 ? 'moderate' : 'minimal'
+      
+      // Detect steam move: rapid movement (>1pt in last few snapshots)
+      const recentSpreads = allSpreads.slice(-4)
+      const steamMoveDetected = recentSpreads.length >= 2 && 
+        Math.abs(recentSpreads[recentSpreads.length - 1] - recentSpreads[0]) >= 1.5
+      
+      return {
+        spread: {
+          open: firstSpread,
+          current: lastSpread,
+          high: allSpreads.length > 0 ? Math.max(...allSpreads) : lastSpread,
+          low: allSpreads.length > 0 ? Math.min(...allSpreads) : lastSpread,
+          direction: spreadDirection,
+          magnitude: spreadMagnitude,
+          steamMoveDetected
+        },
+        total: {
+          open: firstTotal,
+          current: lastTotal,
+          high: allTotals.length > 0 ? Math.max(...allTotals) : lastTotal,
+          low: allTotals.length > 0 ? Math.min(...allTotals) : lastTotal,
+          direction: totalDirection,
+          magnitude: totalMagnitude
+        },
+        moneyline: {
+          homeOpen: firstHomeML,
+          homeCurrent: lastHomeML,
+          awayOpen: firstAwayML,
+          awayCurrent: lastAwayML,
+          impliedProbShift: Math.abs(
+            (lastHomeML < 0 ? ((-lastHomeML) / ((-lastHomeML) + 100)) : (100 / (lastHomeML + 100))) -
+            (firstHomeML < 0 ? ((-firstHomeML) / ((-firstHomeML) + 100)) : (100 / (firstHomeML + 100)))
+          ) * 100
+        },
+        timeline: timeline.timestamps.map((ts, i) => ({
+          timestamp: ts,
+          spread: timeline.spreads[i],
+          total: timeline.totals[i],
+          homeML: timeline.homeMLs[i],
+          awayML: timeline.awayMLs[i]
+        }))
+      }
+    }
+  } catch (error) {
+    console.error('line_snapshots timeline error:', error)
+  }
+  
+  // Fallback: Try to fetch line movement from ESPN API
   try {
     const sportMap: Record<string, string> = {
       'NFL': 'football/nfl',

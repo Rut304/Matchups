@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { createClient } from '@/lib/supabase/server'
 import { ESPN_APIS } from '@/lib/api/free-sports-apis'
+import { getOddsContext } from '@/lib/services/game-odds-service'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 
@@ -354,6 +355,19 @@ export async function POST(request: NextRequest) {
       historicalResults = await queryHistoricalData(parsedQuery)
     }
     
+    // Fetch historical odds context from game_odds table (real closing lines)
+    let oddsContext = ''
+    try {
+      const sport = parsedQuery?.sport || 'nfl'
+      const seasons = parsedQuery?.seasons || []
+      const oddsData = await getOddsContext(sport, seasons.length > 0 ? seasons : undefined)
+      if (oddsData.totalGamesWithOdds > 0) {
+        oddsContext = `\n\n**HISTORICAL ODDS DATA (Real closing lines from The Odds API - ${oddsData.totalGamesWithOdds} games):**\nAverage spread: ${oddsData.averageSpread}\nAverage total: ${oddsData.averageTotal}\nSpread distribution: ${oddsData.spreadDistribution.map(d => `${d.range}: ${d.count} (${d.pct}%)`).join(', ')}\nTotal distribution: ${oddsData.totalDistribution.map(d => `${d.range}: ${d.count} (${d.pct}%)`).join(', ')}\nRecent odds: ${oddsData.recentGames.slice(0, 5).map(g => `${g.date}: ${g.away}@${g.home} spread:${g.spread} total:${g.total}`).join('; ')}`
+      }
+    } catch (e) {
+      console.error('Error fetching odds context:', e)
+    }
+    
     // Fetch live context for current games
     const liveContext = await fetchLiveContext(query)
     
@@ -389,6 +403,11 @@ ${historicalResults.games.map((g: any) => `- ${g.date}: ${g.matchup} (${g.score}
       enhancedQuery += `\n\n**NOTE: Limited historical data available. Database returned 0 results.**
 This query requires play-by-play historical data that may not be fully loaded yet.
 Please provide your best estimate and note that it is an estimate.`
+    }
+    
+    // Add historical odds context
+    if (oddsContext) {
+      enhancedQuery += oddsContext
     }
     
     if (liveContext) {

@@ -261,6 +261,77 @@ export async function getRealTeams(sportOrOptions: Sport | GetRealTeamsOptions):
 
     const games = (historicalGames || []) as HistoricalGame[]
     
+    // Also fetch game_odds for this sport+season to get real closing lines
+    // game_odds has accurate consensus closing lines from The Odds API
+    // Paginate since Supabase caps at 1000 rows per request
+    let allOddsData: any[] = []
+    let oddsOffset = 0
+    while (true) {
+      const { data: oddsPage } = await supabase
+        .from('game_odds')
+        .select('home_team, away_team, game_date, consensus_spread, consensus_total')
+        .eq('sport', sport.toLowerCase())
+        .eq('season', season)
+        .not('consensus_spread', 'is', null)
+        .range(oddsOffset, oddsOffset + 999)
+      
+      if (!oddsPage || oddsPage.length === 0) break
+      allOddsData.push(...oddsPage)
+      if (oddsPage.length < 1000) break
+      oddsOffset += 1000
+    }
+    const oddsData = allOddsData
+    
+    // Build game_odds lookup by date + home team (fuzzy)
+    const oddsLookup = new Map<string, { spread: number; total: number }>()
+    if (oddsData) {
+      for (const odds of oddsData) {
+        // Key by date + last word of home team name (e.g., "2024-09-15|ravens")
+        const homeKey = odds.home_team.split(' ').pop()?.toLowerCase() || ''
+        const key = `${odds.game_date}|${homeKey}`
+        oddsLookup.set(key, {
+          spread: odds.consensus_spread!,
+          total: odds.consensus_total!
+        })
+        // Also key by ±1 day for timezone edge cases
+        const d = new Date(odds.game_date + 'T12:00:00Z')
+        const prevDate = new Date(d.getTime() - 86400000).toISOString().split('T')[0]
+        const nextDate = new Date(d.getTime() + 86400000).toISOString().split('T')[0]
+        oddsLookup.set(`${prevDate}|${homeKey}`, { spread: odds.consensus_spread!, total: odds.consensus_total! })
+        oddsLookup.set(`${nextDate}|${homeKey}`, { spread: odds.consensus_spread!, total: odds.consensus_total! })
+      }
+    }
+    
+    // Patch games with accurate closing lines from game_odds
+    for (const game of games) {
+      // Skip Pro Bowl, All-Star games
+      if (game.home_team_name?.includes('NFC') || game.home_team_name?.includes('AFC') ||
+          game.home_team_name?.includes('All-Star')) {
+        game.point_spread = null
+        game.spread_result = null
+        continue
+      }
+      
+      const homeKey = (game.home_team_name || '').split(' ').pop()?.toLowerCase() || ''
+      const lookupKey = `${game.game_date}|${homeKey}`
+      const realOdds = oddsLookup.get(lookupKey)
+      
+      if (realOdds && game.home_score != null && game.away_score != null) {
+        game.point_spread = realOdds.spread
+        game.over_under = realOdds.total
+        // Recompute results with accurate lines
+        const adjustedHome = game.home_score + realOdds.spread
+        if (adjustedHome > game.away_score) game.spread_result = 'home_cover'
+        else if (adjustedHome < game.away_score) game.spread_result = 'away_cover'
+        else game.spread_result = 'push'
+        
+        const totalPts = game.home_score + game.away_score
+        if (totalPts > realOdds.total) game.total_result = 'over'
+        else if (totalPts < realOdds.total) game.total_result = 'under'
+        else game.total_result = 'push'
+      }
+    }
+    
     // Build provenance metadata for ATS data
     const atsProvenance: ProvenanceMetadata = {
       source: 'supabase',
@@ -304,6 +375,76 @@ export async function getRealTeams(sportOrOptions: Sport | GetRealTeamsOptions):
         pushes: awayGames.filter((g: HistoricalGame) => g.spread_result === 'push').length,
       }
       
+      // Compute last 10 ATS (games are already sorted desc by date)
+      const recent10 = teamGames.slice(0, 10)
+      const last10ATS = { wins: 0, losses: 0, pushes: 0 }
+      for (const g of recent10) {
+        const isHome = g.home_team_abbr?.toUpperCase() === teamCode.toUpperCase()
+        if (isHome) {
+          if (g.spread_result === 'home_cover') last10ATS.wins++
+          else if (g.spread_result === 'away_cover') last10ATS.losses++
+          else if (g.spread_result === 'push') last10ATS.pushes++
+        } else {
+          if (g.spread_result === 'away_cover') last10ATS.wins++
+          else if (g.spread_result === 'home_cover') last10ATS.losses++
+          else if (g.spread_result === 'push') last10ATS.pushes++
+        }
+      }
+      
+      // Compute last 10 OU
+      const last10OU = { overs: 0, unders: 0, pushes: 0 }
+      for (const g of recent10) {
+        if (g.total_result === 'over') last10OU.overs++
+        else if (g.total_result === 'under') last10OU.unders++
+        else if (g.total_result === 'push') last10OU.pushes++
+      }
+      
+      // Compute as favorite / as underdog (using spread: negative = home fav)
+      const asFavorite = { wins: 0, losses: 0, pushes: 0 }
+      const asUnderdog = { wins: 0, losses: 0, pushes: 0 }
+      for (const g of teamGames) {
+        const isHome = g.home_team_abbr?.toUpperCase() === teamCode.toUpperCase()
+        const spread = g.point_spread ?? 0
+        const isFavorite = isHome ? spread < 0 : spread > 0
+        
+        if (!g.spread_result) continue
+        const covered = isHome 
+          ? g.spread_result === 'home_cover'
+          : g.spread_result === 'away_cover'
+        const lost = isHome
+          ? g.spread_result === 'away_cover'
+          : g.spread_result === 'home_cover'
+        
+        if (isFavorite) {
+          if (covered) asFavorite.wins++
+          else if (lost) asFavorite.losses++
+          else asFavorite.pushes++
+        } else {
+          if (covered) asUnderdog.wins++
+          else if (lost) asUnderdog.losses++
+          else asUnderdog.pushes++
+        }
+      }
+      
+      // Compute ML record as fav/dog
+      const mlAsFavorite = { wins: 0, losses: 0 }
+      const mlAsUnderdog = { wins: 0, losses: 0 }
+      for (const g of teamGames) {
+        if (g.home_score == null || g.away_score == null) continue
+        const isHome = g.home_team_abbr?.toUpperCase() === teamCode.toUpperCase()
+        const spread = g.point_spread ?? 0
+        const isFavorite = isHome ? spread < 0 : spread > 0
+        const won = isHome ? g.home_score > g.away_score : g.away_score > g.home_score
+        
+        if (isFavorite) {
+          if (won) mlAsFavorite.wins++
+          else mlAsFavorite.losses++
+        } else {
+          if (won) mlAsUnderdog.wins++
+          else mlAsUnderdog.losses++
+        }
+      }
+      
       return {
         id: `${sport}-${teamCode}`,
         sport,
@@ -326,9 +467,9 @@ export async function getRealTeams(sportOrOptions: Sport | GetRealTeamsOptions):
           },
           home: homeATS,
           away: awayATS,
-          asFavorite: { wins: 0, losses: 0, pushes: 0 },
-          asUnderdog: { wins: 0, losses: 0, pushes: 0 },
-          last10: { wins: 0, losses: 0, pushes: 0 },
+          asFavorite,
+          asUnderdog,
+          last10: last10ATS,
           provenance: atsProvenance,
           hasData: hasHistory,
         },
@@ -348,13 +489,13 @@ export async function getRealTeams(sportOrOptions: Sport | GetRealTeamsOptions):
             unders: awayGames.filter((g: HistoricalGame) => g.total_result === 'under').length,
             pushes: awayGames.filter((g: HistoricalGame) => g.total_result === 'push').length,
           },
-          last10: { overs: 0, unders: 0, pushes: 0 },
+          last10: last10OU,
           provenance: atsProvenance,
           hasData: hasHistory,
         },
         ml: {
-          asFavorite: { wins: 0, losses: 0 },
-          asUnderdog: { wins: 0, losses: 0 },
+          asFavorite: mlAsFavorite,
+          asUnderdog: mlAsUnderdog,
         },
       }
     })
