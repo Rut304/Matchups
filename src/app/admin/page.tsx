@@ -44,7 +44,7 @@ import {
 import Link from 'next/link'
 import { ScrapersTabContent } from './scrapers-tab'
 
-type TabType = 'overview' | 'data' | 'feeds' | 'diagnostics' | 'users' | 'scrapers' | 'ads' | 'edge' | 'infra' | 'settings' | 'api-usage'
+type TabType = 'overview' | 'data' | 'feeds' | 'analytics' | 'diagnostics' | 'users' | 'scrapers' | 'ads' | 'edge' | 'infra' | 'settings' | 'api-usage'
 
 interface Job {
   id: string
@@ -313,6 +313,7 @@ export default function AdminPage() {
     { id: 'overview', label: 'Overview', icon: Activity },
     { id: 'data', label: 'Data Jobs', icon: Database },
     { id: 'feeds', label: 'Data Feeds', icon: Wifi },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'diagnostics', label: 'Diagnostics', icon: Heart },
     { id: 'users', label: 'Users', icon: Users },
     { id: 'scrapers', label: 'Expert Scrapers', icon: Search },
@@ -605,6 +606,39 @@ export default function AdminPage() {
                   >
                     <ExternalLink className="w-4 h-4" />
                     Open Feed Dashboard
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Diagnostics Tab */}
+        {activeTab === 'analytics' && (
+          <div className="space-y-6">
+            <Card variant="bordered">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-accent" />
+                  Site Analytics
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl flex items-center justify-center">
+                    <BarChart3 className="w-8 h-8 text-blue-500" />
+                  </div>
+                  <h3 className="text-xl font-bold text-text-primary mb-2">Custom Site Analytics</h3>
+                  <p className="text-text-secondary mb-6 max-w-md mx-auto">
+                    Track page views, unique visitors, sessions, devices, browsers, geographic location,
+                    referrers, click events, scroll depth, and more &mdash; all stored in Supabase with zero third-party services.
+                  </p>
+                  <Link 
+                    href="/admin/analytics"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-accent hover:bg-accent/90 text-background font-semibold rounded-lg transition-colors"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Open Analytics Dashboard
                   </Link>
                 </div>
               </CardContent>

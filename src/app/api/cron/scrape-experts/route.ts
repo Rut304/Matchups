@@ -18,33 +18,67 @@ export const maxDuration = 300 // 5 minutes for full scrape
 async function runScrape(job: string) {
   const results: Record<string, any> = {}
   
-  // Check if X API is configured
+  // Check if X API is configured (only used as fallback now)
   const hasXAPI = !!(process.env.X_BEARER_TOKEN || process.env.TWITTER_BEARER_TOKEN)
   
+  // Map jobs to rettiwt time slots for batch distribution
+  const slotMap: Record<string, number> = {
+    'morning': 0,     // slot 0 = priority 5 experts
+    'pregame-nfl': 1, // slot 1 = priority 4+ experts
+    'pregame-weekday': 1,
+    'postgame': 2,    // slot 2 = priority 3+ experts
+  }
+  
   try {
-    // Dynamically import to avoid constructor errors if env vars missing
-    const { XScraper } = await import('@/lib/scrapers/x-scraper')
+    // Dynamically import all scrapers
+    const { scrapeAllGamblingExperts } = await import('@/lib/scrapers/rettiwt-scraper')
     const { fetchAllSportsESPNPicks, storeESPNPicksInDB } = await import('@/lib/scrapers/espn-picks-scraper')
     const { fetchAllSportsConsensus, storeCoversConsensusInDB } = await import('@/lib/scrapers/covers-scraper')
     
     const supabase = await createClient()
     
+    // ALWAYS use rettiwt-api as primary X scraper (free, no API key)
+    const slot = slotMap[job] ?? 3
+    console.log(`[CRON] ${job}: Using rettiwt-api (slot ${slot}) as primary X scraper`)
+    
+    try {
+      const rettiwtResult = await scrapeAllGamblingExperts({ 
+        batchSize: 3, 
+        delayMs: 3000,
+        slot,
+        maxExperts: job === 'postgame' ? 15 : 20,
+      })
+      results.twitter = {
+        source: 'rettiwt-api (free)',
+        experts: rettiwtResult.expertResults.length,
+        totalAvailable: rettiwtResult.totalExpertsAvailable,
+        tweets: rettiwtResult.totalTweets,
+        picks: rettiwtResult.totalPicks,
+        errors: rettiwtResult.errors.length,
+      }
+    } catch (rettiwtError) {
+      console.warn(`[CRON] Rettiwt failed for ${job}:`, rettiwtError)
+      results.twitter_rettiwt = { error: rettiwtError instanceof Error ? rettiwtError.message : 'Rettiwt failed' }
+      
+      // Fallback to Bearer token ONLY if rettiwt fails
+      if (hasXAPI) {
+        console.log(`[CRON] Falling back to Bearer token for ${job}`)
+        try {
+          const { XScraper } = await import('@/lib/scrapers/x-scraper')
+          const xScraper = new XScraper()
+          results.twitter = await xScraper.scrapeAllExperts({ batchSize: 3, delayMs: 2000 })
+          results.twitter.source = 'bearer-token (fallback)'
+        } catch (xError) {
+          results.twitter = { error: xError instanceof Error ? xError.message : 'X scrape failed' }
+        }
+      } else {
+        results.twitter = { skipped: 'Rettiwt failed and no Bearer token' }
+      }
+    }
+    
     switch (job) {
       case 'morning':
-        // Morning: X + Covers (pre-picks)
-        if (hasXAPI) {
-          try {
-            const xScraper = new XScraper()
-            // Use batching: 3 experts per run with 2s delay to avoid rate limits
-            results.twitter = await xScraper.scrapeAllExperts({ batchSize: 3, delayMs: 2000 })
-          } catch (xError) {
-            results.twitter = { error: xError instanceof Error ? xError.message : 'X scrape failed' }
-          }
-        } else {
-          results.twitter = { skipped: 'X API not configured' }
-        }
-        
-        // Wait before Covers
+        // Morning: X (done above) + Covers
         await new Promise(r => setTimeout(r, 2000))
         
         try {
@@ -60,17 +94,7 @@ async function runScrape(job: string) {
       
       case 'pregame-nfl':
       case 'pregame-weekday':
-        // Pre-game: All sources
-        if (hasXAPI) {
-          try {
-            const xScraper = new XScraper()
-            // Use batching: 3 experts per run with 2s delay to avoid rate limits
-            results.twitter = await xScraper.scrapeAllExperts({ batchSize: 3, delayMs: 2000 })
-          } catch (xError) {
-            results.twitter = { error: xError instanceof Error ? xError.message : 'X scrape failed' }
-          }
-        }
-        
+        // Pre-game: X (done above) + ESPN + Covers
         await new Promise(r => setTimeout(r, 2000))
         
         // ESPN
@@ -99,18 +123,7 @@ async function runScrape(job: string) {
         break
       
       case 'postgame':
-        // Post-game: X only (capture final picks, prep for grading)
-        if (hasXAPI) {
-          try {
-            const xScraper = new XScraper()
-            // Use batching: 3 experts per run with 2s delay to avoid rate limits
-            results.twitter = await xScraper.scrapeAllExperts({ batchSize: 3, delayMs: 2000 })
-          } catch (xError) {
-            results.twitter = { error: xError instanceof Error ? xError.message : 'X scrape failed' }
-          }
-        } else {
-          results.twitter = { skipped: 'X API not configured' }
-        }
+        // Post-game: X only (already done above)
         break
       
       default:

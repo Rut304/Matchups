@@ -21,6 +21,10 @@ import {
   ArrowLeft,
   HelpCircle,
   Radio,
+  Settings,
+  Save,
+  ToggleLeft,
+  ToggleRight,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -44,6 +48,8 @@ interface Feed {
   rateLimited: boolean
   health: 'healthy' | 'warning' | 'error' | 'unknown'
   envConfigured: boolean
+  scheduleOverride: string | null
+  feedEnabled: boolean
 }
 
 interface FeedSummary {
@@ -128,7 +134,9 @@ export default function AdminFeedsPage() {
   const [filterCategory, setFilterCategory] = useState<string>('all')
   const [filterHealth, setFilterHealth] = useState<string>('all')
   const [triggerResults, setTriggerResults] = useState<Record<string, { success: boolean; duration: string; error?: string }>>({})
-
+  const [editingSchedule, setEditingSchedule] = useState<string | null>(null)
+  const [scheduleInput, setScheduleInput] = useState<string>('')
+  const [savingSchedule, setSavingSchedule] = useState<string | null>(null)
   const fetchFeeds = useCallback(async () => {
     try {
       const res = await fetch('/api/admin/feeds')
@@ -168,6 +176,60 @@ export default function AdminFeedsPage() {
       setTriggeringFeed(null)
     }
   }
+
+  const saveSchedule = async (feedId: string, schedule: string) => {
+    setSavingSchedule(feedId)
+    try {
+      const res = await fetch('/api/admin/feeds', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update-schedule', feedId, schedule }),
+      })
+      if (res.ok) {
+        await fetchFeeds()
+        setEditingSchedule(null)
+      }
+    } catch (err) {
+      console.error('Failed to save schedule:', err)
+    } finally {
+      setSavingSchedule(null)
+    }
+  }
+
+  const toggleFeed = async (feedId: string, currentEnabled: boolean) => {
+    try {
+      await fetch('/api/admin/feeds', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update-schedule', feedId, enabled: !currentEnabled }),
+      })
+      await fetchFeeds()
+    } catch (err) {
+      console.error('Failed to toggle feed:', err)
+    }
+  }
+
+  // Preset schedule options
+  const SCHEDULE_PRESETS = [
+    { label: 'Every minute', cron: '* * * * *' },
+    { label: 'Every 2 min', cron: '*/2 * * * *' },
+    { label: 'Every 5 min', cron: '*/5 * * * *' },
+    { label: 'Every 15 min', cron: '*/15 * * * *' },
+    { label: 'Every 30 min', cron: '*/30 * * * *' },
+    { label: 'Hourly', cron: '0 * * * *' },
+    { label: 'Every 4 hours', cron: '0 */4 * * *' },
+    { label: 'Every 6 hours', cron: '0 */6 * * *' },
+    { label: 'Daily 3AM ET', cron: '0 8 * * *' },
+    { label: 'Daily 8AM ET', cron: '0 13 * * *' },
+    { label: 'Daily noon ET', cron: '0 17 * * *' },
+    { label: 'Daily 6PM ET', cron: '0 23 * * *' },
+    { label: 'Twice daily', cron: '0 10,22 * * *' },
+    { label: '3x daily', cron: '0 8,16,0 * * *' },
+    { label: 'Game hours only', cron: '* 15-23,0-6 * * *' },
+    { label: 'Sundays only', cron: '0 16 * * 0' },
+    { label: 'Mon-Fri', cron: '30 23 * * 1-5' },
+    { label: 'Weekly Monday', cron: '0 6 * * 1' },
+  ]
 
   // Filter feeds
   const filteredFeeds = feeds.filter(f => {
@@ -386,6 +448,95 @@ export default function AdminFeedsPage() {
                 {isExpanded && (
                   <div className="px-4 pb-4 border-t border-border/50 pt-3 space-y-3">
                     <p className="text-sm text-text-secondary">{feed.description}</p>
+                    
+                    {/* Schedule Editor */}
+                    <div className="bg-background-tertiary rounded-lg p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+                          <Settings className="w-4 h-4 text-accent" />
+                          Schedule Configuration
+                        </h4>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); toggleFeed(feed.id, feed.feedEnabled) }}
+                          className={`flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-medium transition ${
+                            feed.feedEnabled 
+                              ? 'bg-green-400/10 text-green-400 hover:bg-green-400/20' 
+                              : 'bg-red-400/10 text-red-400 hover:bg-red-400/20'
+                          }`}
+                        >
+                          {feed.feedEnabled ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
+                          {feed.feedEnabled ? 'Enabled' : 'Disabled'}
+                        </button>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <div className="text-xs text-text-secondary mb-1">Current (vercel.json)</div>
+                          <code className="text-xs text-text-primary bg-background/50 px-2 py-1 rounded">{feed.schedule}</code>
+                          <span className="text-xs text-text-secondary ml-2">{feed.scheduleHuman}</span>
+                        </div>
+                        {feed.scheduleOverride && (
+                          <div>
+                            <div className="text-xs text-yellow-400 mb-1">Desired Override</div>
+                            <code className="text-xs text-yellow-400 bg-yellow-400/5 px-2 py-1 rounded">{feed.scheduleOverride}</code>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {editingSchedule === feed.id ? (
+                        <div className="space-y-2">
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={scheduleInput}
+                              onChange={(e) => setScheduleInput(e.target.value)}
+                              placeholder="Cron expression (e.g. */5 * * * *)"
+                              className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-secondary focus:border-accent focus:outline-none"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <button
+                              onClick={(e) => { e.stopPropagation(); saveSchedule(feed.id, scheduleInput) }}
+                              disabled={!scheduleInput || savingSchedule === feed.id}
+                              className="flex items-center gap-1 px-3 py-2 bg-accent text-background rounded-lg text-sm font-medium hover:bg-accent/90 disabled:opacity-50 transition"
+                            >
+                              <Save className="w-3 h-3" />
+                              {savingSchedule === feed.id ? 'Saving...' : 'Save'}
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setEditingSchedule(null) }}
+                              className="px-3 py-2 bg-background border border-border rounded-lg text-sm text-text-secondary hover:text-text-primary transition"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {SCHEDULE_PRESETS.map(preset => (
+                              <button
+                                key={preset.cron}
+                                onClick={(e) => { e.stopPropagation(); setScheduleInput(preset.cron) }}
+                                className="px-2 py-1 text-xs bg-background border border-border rounded hover:border-accent/50 hover:text-accent text-text-secondary transition"
+                              >
+                                {preset.label}
+                              </button>
+                            ))}
+                          </div>
+                          <p className="text-xs text-text-secondary">
+                            Note: Saving here records your desired schedule. To apply to Vercel Cron, update <code className="text-accent">vercel.json</code> and redeploy.
+                          </p>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            setEditingSchedule(feed.id); 
+                            setScheduleInput(feed.scheduleOverride || feed.schedule)
+                          }}
+                          className="text-xs text-accent hover:text-accent/80 transition flex items-center gap-1"
+                        >
+                          <Settings className="w-3 h-3" /> Edit Schedule
+                        </button>
+                      )}
+                    </div>
                     
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       <div className="bg-background-tertiary rounded-lg p-3">

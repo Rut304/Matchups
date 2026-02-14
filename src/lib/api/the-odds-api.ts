@@ -77,9 +77,9 @@ export interface OddsApiResponse {
 
 // Get API key from environment
 function getApiKey(): string {
-  const key = process.env.ODDS_API_KEY
+  const key = process.env.THE_ODDS_API_KEY || process.env.ODDS_API_KEY
   if (!key) {
-    throw new Error('ODDS_API_KEY environment variable is required')
+    throw new Error('THE_ODDS_API_KEY or ODDS_API_KEY environment variable is required')
   }
   return key
 }

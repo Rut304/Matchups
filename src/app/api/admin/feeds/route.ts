@@ -194,6 +194,7 @@ export async function GET(request: NextRequest) {
     
     // Get feed run history from admin_settings
     let feedHistory: Record<string, any> = {}
+    let scheduleOverrides: Record<string, any> = {}
     try {
       const { data } = await supabase
         .from('admin_settings')
@@ -205,6 +206,18 @@ export async function GET(request: NextRequest) {
         feedHistory = typeof data.value === 'string' ? JSON.parse(data.value) : data.value
       }
     } catch { /* no history yet */ }
+    
+    try {
+      const { data } = await supabase
+        .from('admin_settings')
+        .select('value')
+        .eq('key', 'feed_schedule_overrides')
+        .single()
+      
+      if (data?.value) {
+        scheduleOverrides = typeof data.value === 'string' ? JSON.parse(data.value) : data.value
+      }
+    } catch { /* no overrides yet */ }
     
     // Check env var status
     const envStatus = {
@@ -256,6 +269,8 @@ export async function GET(request: NextRequest) {
         rateLimited,
         health,
         envConfigured,
+        scheduleOverride: scheduleOverrides[feed.id]?.schedule || null,
+        feedEnabled: scheduleOverrides[feed.id]?.enabled !== false, // default true
       }
     })
     
@@ -278,7 +293,7 @@ export async function GET(request: NextRequest) {
 // POST - Trigger a feed manually or update its schedule
 export async function POST(request: NextRequest) {
   try {
-    const { action, feedId, schedule } = await request.json()
+    const { action, feedId, schedule, enabled } = await request.json()
     
     if (action === 'trigger') {
       // Find the feed
@@ -350,6 +365,53 @@ export async function POST(request: NextRequest) {
         duration: `${duration}ms`, 
         error 
       })
+    }
+    
+    if (action === 'update-schedule') {
+      // Save custom schedule override to admin_settings
+      // NOTE: This saves the desired schedule. To actually change the Vercel cron,
+      // the user needs to update vercel.json. This tracks what they WANT it to be.
+      const supabase = await createClient()
+      
+      try {
+        const { data: current } = await supabase
+          .from('admin_settings')
+          .select('value')
+          .eq('key', 'feed_schedule_overrides')
+          .single()
+        
+        const overrides = current?.value 
+          ? (typeof current.value === 'string' ? JSON.parse(current.value) : current.value)
+          : {}
+        
+        if (schedule !== undefined) {
+          overrides[feedId] = { 
+            ...(overrides[feedId] || {}),
+            schedule,
+            updatedAt: new Date().toISOString(),
+          }
+        }
+        if (enabled !== undefined) {
+          overrides[feedId] = {
+            ...(overrides[feedId] || {}),
+            enabled,
+            updatedAt: new Date().toISOString(),
+          }
+        }
+        
+        await supabase
+          .from('admin_settings')
+          .upsert({ key: 'feed_schedule_overrides', value: overrides, updated_at: new Date().toISOString() })
+        
+        return NextResponse.json({ 
+          success: true, 
+          feedId,
+          message: 'Schedule override saved. Update vercel.json to apply to Vercel Cron.',
+          overrides: overrides[feedId],
+        })
+      } catch (e) {
+        return NextResponse.json({ error: 'Failed to save schedule' }, { status: 500 })
+      }
     }
     
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 })

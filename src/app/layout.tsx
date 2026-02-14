@@ -5,6 +5,8 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { AuthProvider } from "@/lib/auth-context";
 import { AdSlot } from "@/components/ads/AdSlot";
+import { Suspense } from "react";
+import { AnalyticsTracker } from "@/components/analytics/AnalyticsTracker";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -33,6 +35,9 @@ export default function RootLayout({
         className={`${inter.variable} ${jetbrainsMono.variable} antialiased bg-background text-text-primary min-h-screen`}
       >
         <AuthProvider>
+          <Suspense fallback={null}>
+            <AnalyticsTracker />
+          </Suspense>
           <Navbar />
           {/* Header Ad - below navbar */}
           <div className="w-full flex justify-center py-2 bg-background-secondary border-b border-border">

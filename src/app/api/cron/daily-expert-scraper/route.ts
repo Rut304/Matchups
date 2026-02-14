@@ -247,28 +247,44 @@ async function runDailyScrape(): Promise<ScraperResult> {
   
   const hasXToken = !!getXToken()
   
-  if (!hasXToken) {
-    // TRY FREE SCRAPER (rettiwt-api) as fallback
-    console.log('[Scraper] No X Bearer Token - trying free rettiwt-api scraper...')
-    try {
-      const { scrapeAllGamblingExperts } = await import('@/lib/scrapers/rettiwt-scraper')
-      const freeResult = await scrapeAllGamblingExperts({ batchSize: 3, delayMs: 3000 })
-      
-      result.expertsProcessed = freeResult.expertResults.length
-      result.picksFound = freeResult.totalPicks
-      result.picksNew = freeResult.totalPicks // Will deduplicate in DB
-      result.errors = freeResult.errors
-      result.duration = Date.now() - startTime
-      result.success = freeResult.totalPicks > 0 || freeResult.errors.length === 0
-      
-      console.log(`[Scraper] Free scraper: ${freeResult.totalTweets} tweets, ${freeResult.totalPicks} picks from ${freeResult.expertResults.length} experts`)
-      return result
-    } catch (freeErr) {
-      console.error('[Scraper] Free scraper also failed:', freeErr)
-      result.errors.push(`Free X scraper failed: ${freeErr instanceof Error ? freeErr.message : 'Unknown'}`)
-      result.errors.push('Neither X Bearer Token nor free scraper available')
-    }
+  // ALWAYS try free rettiwt-api FIRST (no API key needed)
+  // Only fall back to Bearer token if rettiwt fails AND we have a token
+  console.log('[Scraper] Using free rettiwt-api as primary scraper...')
+  try {
+    const { scrapeAllGamblingExperts, getAllExpertsForScraping } = await import('@/lib/scrapers/rettiwt-scraper')
+    const totalExperts = getAllExpertsForScraping().length
+    console.log(`[Scraper] Full expert list: ${totalExperts} experts with X handles`)
+    
+    const freeResult = await scrapeAllGamblingExperts({ 
+      batchSize: 3, 
+      delayMs: 3000,
+      slot: 3, // deep scrape - all experts
+      maxExperts: 30, // cap per run to avoid timeout
+    })
+    
+    result.expertsProcessed = freeResult.expertResults.length
+    result.picksFound = freeResult.totalPicks
+    result.picksNew = freeResult.totalPicks // Will deduplicate in DB
+    result.errors = freeResult.errors
+    result.duration = Date.now() - startTime
+    result.success = freeResult.totalPicks > 0 || freeResult.errors.length === 0
+    
+    console.log(`[Scraper] Rettiwt: ${freeResult.totalTweets} tweets, ${freeResult.totalPicks} picks from ${freeResult.expertResults.length}/${freeResult.totalExpertsAvailable} experts`)
+    return result
+  } catch (freeErr) {
+    console.error('[Scraper] Rettiwt failed, trying Bearer token fallback:', freeErr)
+    result.errors.push(`Rettiwt failed: ${freeErr instanceof Error ? freeErr.message : 'Unknown'}`)
   }
+  
+  // FALLBACK: Only use Bearer token if rettiwt fails
+  if (!hasXToken) {
+    console.warn('[Scraper] No Bearer token available and rettiwt failed')
+    result.errors.push('No X Bearer Token and rettiwt scraper failed')
+    result.duration = Date.now() - startTime
+    return result
+  }
+  
+  console.log('[Scraper] Falling back to Bearer token API...')
   
   // Get experts with X handles
   const experts = getExpertsWithXHandles().filter(e => e.priority <= 2)

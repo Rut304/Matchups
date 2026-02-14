@@ -8,6 +8,8 @@
  * - User auth: If RETTIWT_API_KEY is set, gets enhanced access
  * - Parses betting picks from tweet text
  * - Stores picks in Supabase
+ * - Uses FULL expert list from betting-experts.ts (60+ experts with X handles)
+ * - Designed to be spread across multiple cron runs throughout the day
  * 
  * To generate an API key for user auth (optional, increases rate limits):
  *   npx rettiwt-api auth login <email> <username> <password>
@@ -16,6 +18,7 @@
 
 import { Rettiwt } from 'rettiwt-api'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { getExpertsWithXHandles, getHighPriorityExperts, type BettingExpert } from '@/lib/data/betting-experts'
 
 // Team abbreviations for all major sports (for pick parsing)
 const ALL_TEAM_ABBREVS = new Set([
@@ -32,16 +35,11 @@ const ALL_TEAM_ABBREVS = new Set([
   'AZ','CWS','SD','STL','TEX','COL',
 ])
 
-// Known gambling experts to track (X handles without @)
-export const GAMBLING_EXPERTS = [
-  // Sharp cappers / analysts
+// Additional gambling-focused accounts not in the main expert list
+const EXTRA_GAMBLING_ACCOUNTS = [
   { handle: 'SBRSportsPicks', name: 'SBR Picks', sport: 'multi' },
   { handle: 'ActionNetworkHQ', name: 'Action Network', sport: 'multi' },
   { handle: 'PFF_Betting', name: 'PFF Betting', sport: 'NFL' },
-  { handle: 'SharpFootball', name: 'Sharp Football', sport: 'NFL' },
-  { handle: 'baborchard', name: 'Bob Orchard', sport: 'multi' },
-  { handle: 'spanky', name: 'Spanky', sport: 'multi' },
-  { handle: 'TheSharpPlays', name: 'Sharp Plays', sport: 'multi' },
   { handle: 'GoldenNuggetLV', name: 'Golden Nugget LV', sport: 'multi' },
   { handle: 'VegasInsider', name: 'Vegas Insider', sport: 'multi' },
   { handle: 'BetCBS', name: 'CBS Bet', sport: 'multi' },
@@ -49,8 +47,77 @@ export const GAMBLING_EXPERTS = [
   { handle: 'FDSportsbook', name: 'FanDuel', sport: 'multi' },
   { handle: 'CoversSports', name: 'Covers', sport: 'multi' },
   { handle: 'WilliamHill', name: 'William Hill', sport: 'multi' },
-  { handle: 'beaborchard', name: 'Bea Orchard', sport: 'multi' },
 ]
+
+/**
+ * Build the FULL expert list by merging:
+ * 1. All experts from betting-experts.ts with X handles
+ * 2. Extra gambling-focused accounts
+ * Returns deduplicated by handle (case-insensitive)
+ */
+export function getAllExpertsForScraping(): Array<{ handle: string; name: string; sport: string; priority: number }> {
+  const seen = new Set<string>()
+  const result: Array<{ handle: string; name: string; sport: string; priority: number }> = []
+  
+  // Primary source: full expert database
+  const allExperts = getExpertsWithXHandles()
+  for (const expert of allExperts) {
+    const key = expert.xHandle!.toLowerCase()
+    if (!seen.has(key)) {
+      seen.add(key)
+      result.push({
+        handle: expert.xHandle!,
+        name: expert.name,
+        sport: expert.sports.join(','),
+        priority: expert.priority,
+      })
+    }
+  }
+  
+  // Secondary: extra gambling accounts
+  for (const acct of EXTRA_GAMBLING_ACCOUNTS) {
+    const key = acct.handle.toLowerCase()
+    if (!seen.has(key)) {
+      seen.add(key)
+      result.push({ ...acct, priority: 3 })
+    }
+  }
+  
+  return result
+}
+
+/**
+ * Get a batch of experts for a specific time slot.
+ * Spreads all experts across 4 daily scrape windows so we don't hit
+ * rate limits trying to scrape everyone at once.
+ * 
+ * slot 0 = morning  (priority 5 experts)
+ * slot 1 = pregame-nfl / pregame-weekday (priority 4+ experts)
+ * slot 2 = postgame (priority 3+ experts) 
+ * slot 3 = daily-deep (remaining experts)
+ */
+export function getExpertBatchForSlot(slot: number): Array<{ handle: string; name: string; sport: string; priority: number }> {
+  const all = getAllExpertsForScraping()
+  
+  switch (slot) {
+    case 0: // morning - highest priority only
+      return all.filter(e => e.priority >= 5)
+    case 1: // pregame - high priority
+      return all.filter(e => e.priority >= 4)
+    case 2: // postgame - medium+
+      return all.filter(e => e.priority >= 3)
+    case 3: // deep scrape - everyone
+    default:
+      return all
+  }
+}
+
+// Legacy export for backward compatibility
+export const GAMBLING_EXPERTS = getAllExpertsForScraping().map(e => ({
+  handle: e.handle,
+  name: e.name,
+  sport: e.sport,
+}))
 
 // Betting keywords to identify picks vs random tweets
 const PICK_KEYWORDS = [
@@ -189,30 +256,45 @@ export async function scrapeExpertTweets(
 }
 
 /**
- * Scrape all tracked gambling experts
+ * Scrape all tracked gambling experts (or a specific batch/slot)
  */
 export async function scrapeAllGamblingExperts(options?: {
   batchSize?: number
   delayMs?: number
+  slot?: number  // 0-3, which time-slot batch to use (undefined = all)
+  maxExperts?: number  // cap how many to process in one run
 }): Promise<{
   totalTweets: number
   totalPicks: number
   expertResults: Array<{ handle: string; name: string; tweets: number; picks: number; errors: string[] }>
   errors: string[]
+  totalExpertsAvailable: number
 }> {
   const batchSize = options?.batchSize || 5
   const delayMs = options?.delayMs || 3000 // Be respectful of rate limits
+  const maxExperts = options?.maxExperts || 100
+  
+  // Use slot-based batching if specified, otherwise use all experts
+  const allExperts = options?.slot !== undefined
+    ? getExpertBatchForSlot(options.slot)
+    : getAllExpertsForScraping()
+  
+  // Cap the number of experts per run to avoid timeouts
+  const experts = allExperts.slice(0, maxExperts)
   
   const results = {
     totalTweets: 0,
     totalPicks: 0,
     expertResults: [] as Array<{ handle: string; name: string; tweets: number; picks: number; errors: string[] }>,
     errors: [] as string[],
+    totalExpertsAvailable: allExperts.length,
   }
   
+  console.log(`[Rettiwt] Scraping ${experts.length} of ${allExperts.length} experts (slot: ${options?.slot ?? 'all'})`)
+  
   // Process in batches
-  for (let i = 0; i < GAMBLING_EXPERTS.length; i += batchSize) {
-    const batch = GAMBLING_EXPERTS.slice(i, i + batchSize)
+  for (let i = 0; i < experts.length; i += batchSize) {
+    const batch = experts.slice(i, i + batchSize)
     
     for (const expert of batch) {
       try {
@@ -239,10 +321,12 @@ export async function scrapeAllGamblingExperts(options?: {
     }
     
     // Longer delay between batches
-    if (i + batchSize < GAMBLING_EXPERTS.length) {
+    if (i + batchSize < experts.length) {
       await new Promise(resolve => setTimeout(resolve, delayMs * 2))
     }
   }
+  
+  console.log(`[Rettiwt] Done: ${results.totalTweets} tweets, ${results.totalPicks} picks from ${results.expertResults.length} experts`)
   
   return results
 }
