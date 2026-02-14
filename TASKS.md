@@ -1,394 +1,177 @@
-# Matchups - Project Task Tracker
+# Matchups - Task Tracker
 
-> **Last Updated:** February 12, 2026  
-> **Production URL:** <https://matchups.vercel.app>
+> **Last Updated:** February 2026
+> **Production URL:** https://matchups-eta.vercel.app
 > **Supabase Project:** Matchups (cdfdmkntdsfylososgwo)
+> **Current Commit:** 5d08098
 
 ---
 
-## ✅ COMPLETED: Super Bowl LX Page Issues (Fixed Feb 12, 2026)
+## CURRENT STATE: Data Layer Audit Complete
 
-**URL:** <https://matchups.vercel.app/game/401772988?sport=nfl>
-
-### Issues Fixed
-
-- [x] **H2H History** - Now pulls from head-to-head.ts module using historical_games
-- [x] **Betting Trends** - Now shows real ATS/O-U performance from calculateTeamATS
-- [x] **AI Analysis** - Fallback analysis always returns meaningful content (no placeholders)
-- [x] **Last 10 games** - Team schedule API enriches with historical betting data
-
-### Infrastructure Improvements
-
-- [x] **Situational Angles** - Wired to rest-schedule.ts (back-to-back, rest advantage, travel)
-- [x] **CLV Tracking** - Cron job running every 30 minutes capturing odds snapshots
-- [x] **Weather API** - OpenWeatherMap integration ready (needs API key in env)
-- [x] **Gemini 2.5 Flash** - Updated to latest model
-
-### See Full Audit
-
-📄 [docs/GAMBLER_AUDIT_COMPLETE.md](docs/GAMBLER_AUDIT_COMPLETE.md)
+Full audit completed February 2026. The platform builds and deploys cleanly (148 pages), team analytics are accurate, but significant data gaps exist in the database layer.
 
 ---
 
-## ✅ Game Matchup Page - FULLY WORKING
+## DATA COVERAGE SUMMARY
 
-The `/game/[id]` page is fully functional with real ESPN data:
+### historical_games - 82,876 total
 
-- ✅ Team scores from ESPN
-- ✅ Odds from ESPN DraftKings  
-- ✅ Predictor win probabilities
-- ✅ Injuries with player details
-- ✅ Team leaders
-- ✅ Line movement (open vs close)
-- ✅ Multi-book odds comparison
-- ✅ ATS Records (calculated from historical_games if ESPN doesn't provide)
+| Sport | Games | Seasons | Coverage |
+|-------|-------|---------|----------|
+| NFL | 6,860 | 26 (2000-2025) | 100% spreads, results, scores |
+| NBA | 21,682 | 26 (2000-2025) | 98.7% spreads |
+| MLB | 31,516 | 26 (2000-2025) | 100% |
+| NHL | 22,818 | 25 (2000-2025) | 100% |
+| NCAAF | 0 | EMPTY | Nothing imported |
+| NCAAB | 0 | EMPTY | Nothing imported |
 
-### Key Files
+### game_odds - 18,598 total (from The Odds API)
 
-- `/src/app/game/[id]/page.tsx` - Main page
-- `/src/app/api/games/[id]/summary/route.ts` - Summary API
-- `/src/lib/api/ats-calculator.ts` - ATS calculation from historical data
+| Sport | Records | Seasons |
+|-------|---------|---------|
+| NFL | 1,707 | 5 (2020-2024) - Missing 2025! |
+| NBA | 2,692 | 5 (2021-2025) |
+| MLB | 3,945 | 5 (2020-2024) |
+| NHL | 3,465 | 5 (2021-2025) |
+| NCAAF | 3,898 | 6 (2020-2025) |
+| NCAAB | 2,891 | 5 (2021-2025) |
 
----
-
-## ✅ COMPLETED (P0 - Critical)
-
-### Core Platform
-
-- [x] **Next.js 16 Setup** - App Router, TypeScript, Tailwind
-- [x] **Vercel Deployment** - Production deploy with CI/CD
-- [x] **Homepage Redesign** - Compact matchup cards, data-driven stats
-- [x] **Bold Color System** - Orange #FF6B00, Blue #00A8FF, Green #00FF88, Pink #FF3366
-
-### Sport Pages (All Complete with Consistent Styling)
-
-- [x] **NFL Page** - Wild Card games, playoff standings, trends sidebar
-- [x] **NBA Page** - Compact game cards, ATS stats, league standings
-- [x] **NHL Page** - Puck line, totals, league points standings
-- [x] **MLB Page** - Run line, pitcher matchups, playoff picture
-- [x] **NCAAF Page** - College Football with AP Top 25, Heisman Watch, CFP Preview ✅ NEW
-- [x] **NCAAB Page** - College Basketball with POY Watch, Bracketology, Conference Rankings ✅ NEW
-
-### Key Features
-
-- [x] **Leaderboard Page** - THE VIRAL FEATURE 🏆
-  - Full capper rankings table
-  - Record, Win %, Units, ROI, Streak columns
-  - Time filters (Today, Week, Month, Season, All Time)
-  - Sport filters (All, NFL, NBA, NHL, MLB)
-  - Hot Streaks & Sport Leaders sidebars
-  - Rank change indicators, verified badges
-- [x] **Markets Page** - Polymarket/Kalshi prediction markets with AI edge
-- [x] **Trends Page** - Betting trends by sport with ROI, confidence bars
-- [x] **Analytics Page** - Dashboard with news sentiment & market data ✅ NEW
-- [x] **Players Page** - Player lookup and stats ✅ NEW
-- [x] **Admin Dashboard** - Basic admin interface
-- [x] **Admin Docs Page** - Infrastructure & workflow documentation
-- [x] **Admin Picks Page** - Pick management interface ✅ NEW
-
-### Data & Stats
-
-- [x] **ATS Records** - Against the spread records on all matchups
-- [x] **O/U Records** - Over/under records for teams
-- [x] **Moneylines** - ML odds with color coding (+green, -red)
-- [x] **Public Betting %** - Progress bars showing public money
-- [x] **Spread Movement** - Line movement indicators
-- [x] **AI Pick Toggle** - Show/hide AI recommendations
-
-### Infrastructure
-
-- [x] **Supabase Schema** - Database tables deployed to Matchups project ✅ MIGRATED
-- [x] **Supabase Connection** - Connected to cdfdmkntdsfylososgwo.supabase.co ✅ NEW
-- [x] **Playwright Tests** - 40+ E2E tests covering all routes ✅ UPDATED
-- [x] **Footer Component** - Admin link moved to footer
-- [x] **Navbar Updated** - Leaderboard CTA, NCAAF/NCAAB links added
-- [x] **Vercel Environment Variables** - All API keys configured ✅ NEW
-- [x] **MCP Servers** - GitHub, Supabase, Vercel MCP configured ✅ NEW
-- [x] **Live Sports API Layer** - ESPN, NHL, MLB, Ball Don't Lie APIs ✅ NEW
-
-### Security
-
-- [x] **.env removed from Git** - Environment variables secured
-- [x] **.gitignore updated** - Proper ignore patterns
-- [x] **Supabase RLS** - Row Level Security policies enabled ✅ NEW
+### Empty Tables
+- line_snapshots - 0 records (line movement broken)
+- odds - 0 records (cron writes but nothing reads)
+- picks - 0 records (no user picks)
+- betting_trends - null/nonexistent
+- betting_splits - schema only, no data
 
 ---
 
-## ✅ RECENTLY COMPLETED (January 4, 2026)
+## COMPLETED
 
-### Sus Plays Feature ✅ NEW
+### Infrastructure (All Deployed)
+- [x] Next.js 16.1.1 with Turbopack - 148 pages, zero build errors
+- [x] Vercel deployment with 17 cron jobs
+- [x] Supabase Postgres with RLS
+- [x] Supabase 1000-row pagination fix (all services use .range())
+- [x] Environment variables on Vercel
 
-- [x] **Sus Plays Page** - /sus - Viral content tracking questionable plays
-  - Monitor X/Twitter for trending sports videos
-  - Players being questioned for throwing games/props
-  - Community voting (Sus vs Legit)
-  - Filtering by sport, bet type, trending
-  - Video thumbnails, view counts, source links
-  - Sus Score algorithm (1-100)
-  - Submit your own sus play feature
+### Data Pipeline
+- [x] Historical games imported: NFL, NBA, MLB, NHL (25-26 seasons each, 2000-2025)
+- [x] Game odds imported from The Odds API (6 sports, 18,598 records)
+- [x] game_odds table created and populated
+- [x] odds_import_log tracking imports
+- [x] backfill-closing-odds.ts script
+- [x] CLV grading cron (grade-clv) runs 3x daily
 
-### API Integrations - ALL LIVE ✅
+### Analytics Engine
+- [x] real-analytics.ts - Complete team analytics (ATS, O/U, ML, asFavorite, asUnderdog, last10)
+- [x] Per-team per-date dedup - prevents duplicate game counting
+- [x] Global dedup (date|home|away) - prevents same-game duplicates
+- [x] Season detection heuristic - handles Jan-Jun mapping to prior season
+- [x] game-odds-service.ts - Cross-references game_odds with historical_games
+- [x] Provenance metadata on API responses
 
-- [x] **The Odds API** - Live odds fetching (key in Vercel)
-- [x] **API-Sports** - Comprehensive sports data (key in Vercel)
-- [x] **ESPN API** - Free live scores and schedules
-- [x] **NHL Official API** - Free hockey data
-- [x] **MLB Stats API** - Free baseball data
-- [x] **Ball Don't Lie** - Free NBA player data
-- [x] **Polymarket API** - Prediction markets
-- [x] **Kalshi API** - Prediction markets
+### Game Matchup Pages
+- [x] /game/[id] - Fully working with ESPN data
+- [x] Scores, odds, predictor, injuries, leaders
+- [x] Line movement (open vs close)
+- [x] H2H history from historical_games
+- [x] AI analysis (Gemini 2.5 Flash, strict no-guessing)
+- [x] Situational angles (rest, B2B, travel, revenge/letdown/trap)
 
-### Database Migration ✅
+### Features
+- [x] All 6 sport pages (NFL, NBA, NHL, MLB, NCAAF, NCAAB)
+- [x] Leaderboard page - 77 cappers seeded
+- [x] Markets page - Polymarket/Kalshi
+- [x] Edge detection (RLM, steam moves, sharp signals)
+- [x] Expert tracking via X/Twitter scraping (rettiwt-api)
+- [x] Admin dashboard and admin docs
+- [x] Calculators, alerts, weather, injuries pages
+- [x] Homepage redesign - compact matchup cards
 
-- [x] **New Supabase Project** - Created "Matchups" project on correct account
-- [x] **Full Schema Deployed** - All tables, indexes, triggers, RLS
-- [x] **Seed Data Loaded** - 8 NFL teams in database
-- [x] **Old Project Separated** - PolyParlay project untouched
-
----
-
-## 🔄 IN PROGRESS (P1 - High Priority)
-
-### User Features
-
-- [x] **User Authentication** - Supabase Auth setup ✅ COMPLETED
-  - Auth context and provider
-  - Login/Signup page with OAuth
-  - Middleware for session refresh
-  - Callback handler for OAuth
-- [x] **Pick Tracking** - Users can log their picks ✅ COMPLETED
-  - /picks page with stats dashboard
-  - Create pick modal
-  - Filter by sport/status
-  - Win rate tracking
-- [x] **Leaderboard Backend** - Connect to Supabase cappers/picks tables ✅ COMPLETED
-  - /api/leaderboard endpoint
-  - /api/cappers/[slug] endpoint
-  - Sport/timeframe filtering
-- [x] **Profile Pages** - Individual capper profiles (/leaderboard/[slug]) ✅ COMPLETED
-  - User profile settings at /profile
-  - Notification preferences
-  - Subscription management UI
-
-### Research Complete ✅
-
-- [x] **Bettor Research** - See docs/BETTOR-RESEARCH.md
-  - 12 essential data points bettors need
-  - Competitive analysis (Action Network, OddsJam, SBR)
-  - Feature prioritization for next phases
-  - Monetization model ($19 Pro / $49 Elite)
+### Bug Fixes (This Sprint)
+- [x] Build error: import-odds/route.ts SupabaseClient type
+- [x] Build error: betting-intelligence.ts nullable timeline types
+- [x] Inflated game totals (BUF 41 to 24 games) via per-team per-date dedup
+- [x] NFL dedup: 6,868 to 6,860 (8 duplicates removed from DB)
+- [x] Gemini API key rotation + model upgrade to 2.5-flash
+- [x] GitHub Push Protection resolved
 
 ---
 
-## ✅ RECENTLY COMPLETED (January 2026)
+## CRITICAL - Fix These First
 
-### Line Shop & Calculators ✅ NEW
+### P0: Data Gaps
 
-- [x] **Line Shop Widget** - /lineshop
-  - Compare odds across 8 sportsbooks
-  - DraftKings, FanDuel, BetMGM, Caesars, etc.
-  - Spread/Total/Moneyline views
-  - Best odds highlighting
-- [x] **Odds Calculator Suite** - /calculators
-  - Parlay calculator (multi-leg)
-  - Hedge calculator (guaranteed profit)
-  - Kelly Criterion (optimal bet sizing)
-  - EV Calculator (expected value)
-  - Odds Converter (American/Decimal/Fractional)
+- [ ] Import NCAAF historical games - Table is EMPTY (0 games). game_odds has 3,898 NCAAF records but no historical games to match. Import from ESPN or other source.
 
-### Weather & Injuries ✅ NEW
+- [ ] Import NCAAB historical games - Same as NCAAF. EMPTY. game_odds has 2,891 records with no games.
 
-- [x] **Weather Widget** - /weather
-  - Outdoor game conditions
-  - Impact assessment (low/medium/high)
-  - Betting tips per game
-- [x] **Injury Tracker** - /injuries
-  - Real-time injury updates
-  - Betting impact ratings (1-5)
-  - Line movement tracking
-  - Star player filtering
+- [ ] Import NFL 2025 game_odds - Historical import only covers 2020-2024. Run scripts/run-historical-data.ts for NFL 2025.
 
-### Alerts & Notifications ✅ NEW
+- [ ] Fix Super Bowl labeling - 2026-02-04 game stored as NFC @ AFC (score 66-52). Update to SEA vs NE with correct team abbreviations. Seattle Seahawks won Super Bowl LX.
 
-- [x] **Live Alerts** - /alerts
-  - Line movement alerts
-  - Sharp action detection
-  - Injury updates
-  - Public money tracking
-  - Severity levels
+- [ ] Clean NFL 2025 duplicates - 370 regular-season games in DB (expected ~272). ~100 duplicates from overlapping imports.
 
-### Admin Management ✅ NEW
+### P0: Empty Tables Blocking Features
 
-- [x] **Admin Content Management** - /admin/manage
-  - CRUD for cappers
-  - Pick result updates
-  - Sus play moderation
-  - Verification management
+- [ ] Populate line_snapshots - 0 records. odds-snapshot cron runs every 30 min but may not write to this table. Debug cron and verify writes.
 
-### API Routes ✅ NEW
+- [ ] Wire up odds table - 0 records. refresh-odds cron writes but no feature reads. Consolidate with game_odds or wire features.
 
-- [x] /api/leaderboard - Capper rankings
-- [x] /api/picks - User picks CRUD
-- [x] /api/cappers/[slug] - Capper profiles
-- [x] /api/injuries - Injury data
-- [x] /api/alerts - Live alerts
+- [ ] Verify picks write path - picks table is empty. UI has /picks and /my-picks but picks never save.
 
 ---
 
-## ✅ DATA INTEGRATIONS COMPLETED (Feb 12, 2026)
+## HIGH PRIORITY
 
-These betting intelligence data points are now WIRED UP with real data:
-
-- [x] **CLV Tracking (Closing Line Value)** ✅ COMPLETED
-  - Cron job running every 30 minutes via `/api/cron/odds-snapshot`
-  - Line snapshots stored in `line_snapshots` table
-  - DraftKings + FanDuel odds captured
-  
-- [x] **Weather API Integration** ✅ READY
-  - OpenWeatherMap integration in `src/lib/weather.ts`
-  - Stadium coordinates for all NFL/MLB outdoor venues
-  - Impact scoring for wind, temp, precipitation
-  - Note: Needs OPENWEATHER_API_KEY in env to activate
-  
-- [x] **Injury Impact Analysis** ✅ COMPLETED
-  - ESPN injuries fetched via summary API
-  - Impact scoring in edge engine
-  - Player importance ratings
-  
-- [x] **Situational Angle Analysis** ✅ COMPLETED
-  - Rest days calculation via `rest-schedule.ts`
-  - Back-to-back detection (NBA/NHL)
-  - Travel miles tracking
-  - Letdown/revenge/trap game detection
-  
-- [x] **H2H Historical Database** ✅ COMPLETED
-  - Head-to-head data from `head-to-head.ts`
-  - ATS records vs specific opponents
-  - O/U trends in matchups
-  - Recent meeting results
-
-### Still In Backlog
-
-- [ ] **Market Consensus Aggregation** - Expert picks aggregation
-  - Scrape Covers consensus
-  - Action Network public picks
-  - OddsJam consensus
-  - Requires: Web scraping, data normalization
-
-### Phase 1: Core Value (From Research)
-
-- [x] **Line Shop Widget** - Show best odds across all books ✅ COMPLETED
-- [x] **Odds Calculator Suite** - Parlay, hedge, Kelly, EV calculators ✅ COMPLETED
-- [x] **Injury Tracker** - Real-time with impact ratings ✅ COMPLETED
-- [x] **Weather Widget** - For NFL/MLB outdoor games ✅ COMPLETED
-
-### Phase 2: Engagement Features
-
-- [x] **Email Alerts** - Line moves, sharp action, injuries ✅ (UI Complete, email integration pending)
-- [ ] **Mobile App** - React Native or PWA
-- [ ] **Social Sharing** - Share picks to Twitter/X
-- [ ] **Push Notifications** - Real-time alerts
-
-### Content
-
-- [ ] **Blog/Articles** - Expert analysis content
-- [ ] **Video Picks** - YouTube/TikTok integration
-- [ ] **Discord Bot** - Community picks channel
-- [ ] **Newsletter** - Weekly picks roundup
-
-### Advanced
-
-- [ ] **AI Model Training** - Improve pick accuracy
-- [ ] **Historical Data** - Past seasons analysis
-- [ ] **Arbitrage Finder** - Cross-book opportunities
-- [ ] **Live Betting** - In-game odds tracking
+- [ ] Fix NBA missing spreads (1.3% of games)
+- [ ] Create/populate betting_trends table
+- [ ] Create/populate betting_splits for public vs sharp money
+- [ ] Connect Line Shop to The Odds API (currently mock data)
+- [ ] End-to-end picks tracking: user to DB to grade to leaderboard
+- [ ] User dashboard with real data
+- [ ] Social sharing (X/Twitter)
 
 ---
 
-## 🎯 FUTURE IDEAS (P3)
+## FUTURE - Gambler's Paradise
 
-### Pro Features (Monetization)
+### Phase 1: Data Completeness
+- [ ] All sports with 5+ years historical games
+- [ ] All game_odds current through latest season
+- [ ] Live line_snapshots from crons
+- [ ] Betting splits data source
 
-- [ ] Arbitrage Scanner
+### Phase 2: Killer Features
+- [ ] Arbitrage Finder
 - [ ] Positive EV Finder
-- [ ] API Access for Developers
-- [ ] Custom Alert System
-- [ ] Historical Database
+- [ ] Prop Bet Builder with correlation analysis
+- [ ] Betting Simulator (backtest historical)
+- [ ] Custom line movement alerts
+- [ ] Referee/Umpire O/U trends
 
-### Content & Community
-
-- [ ] Blog/Articles - Expert analysis
-- [ ] Video Picks - YouTube/TikTok
-- [ ] Discord Bot - Community picks
-- [ ] Newsletter - Weekly roundup
-
-### Advanced Analytics
-
-- [ ] Prop Bet Builder
-- [ ] Betting Simulator
-- [ ] Fantasy Integration
-- [ ] Referee/Umpire Trends
+### Phase 3: Engagement
+- [ ] Mobile app (PWA)
+- [ ] Push notifications
+- [ ] Premium tier (Stripe)
+- [ ] Discord bot
+- [ ] Newsletter
 
 ---
 
-## 📊 Metrics & Goals
+## Verification Commands
 
-| Metric | Current | Target |
-| ------ | ------- | ------ |
-| AI Pick Win Rate | 58% | 60%+ |
-| Pages Complete | 15 | 15 ✅ |
-| E2E Tests | 40+ | 50 |
-| API Integrations | 8 (live) | 8 ✅ |
-| Active Users | 0 | 1,000 |
-| Supabase Tables | 20+ | 20+ ✅ |
+```bash
+# Analytics API
+curl -s "https://matchups-eta.vercel.app/api/analytics?type=teams&sport=NFL" | head -200
 
----
+# Full audit
+set -a && source .env.local && set +a && npx tsx scripts/full-audit.ts
 
-## � Future Enhancements (Deferred)
+# Build
+npm run build
 
-### NFL/NCAAF Week View
-
-**Status:** Deferred (requires significant refactoring)
-
-The scores page currently shows games day-by-day. For NFL and NCAAF, it would be better to show the entire week:
-
-**Requirements:**
-
-1. Week calculation utility:
-   - NFL: Weeks 1-18 based on season schedule
-   - NCAAF: Weeks 0-15 based on college schedule
-2. API changes:
-   - Support date range queries (startDate, endDate)
-   - Or week-based queries (sport, week)
-3. UI changes:
-   - Week selector instead of date picker for football
-   - "Week X" display with date range
-   - Show Thursday-Monday games together
-
-**Complexity:** High (2-3 days of work)
-
----
-
-## �🚀 Deployment Checklist
-
-Before each deploy:
-
-1. [ ] Run `npm run build` locally
-2. [ ] Run `npm run test` - all tests pass
-3. [ ] Check for TypeScript errors
-4. [ ] Verify env variables are set
-5. [ ] Run `vercel --prod`
-6. [ ] Verify production site loads
-
----
-
-## 📝 Notes
-
-- **Design System:** Inline styles used for guaranteed color visibility
-- **Leaderboard is the viral feature** - Focus on making this shareable
-- **Data-driven approach** - Gamblers want stats, not just AI picks
-- **Mobile-first** - All pages responsive
-
----
-
-*This document is actively maintained. Check back for updates.*
+# E2E tests
+npx playwright test
+```

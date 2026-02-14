@@ -1,222 +1,198 @@
 # Matchups Data Architecture
 
+> **Last Updated:** February 2026
+> **Data Audit Status:** Complete
+
 ## Overview
 
-Matchups uses a unified data layer that pulls from multiple sources and serves data through a consistent API. All pages consume data from the same source of truth.
+Matchups uses a multi-source data layer backed by Supabase (Postgres). ESPN provides live game data, The Odds API provides historical and live odds, and the analytics engine in `real-analytics.ts` computes all betting statistics.
 
 ## Data Sources
 
 ### 1. ESPN Public API (Primary - Free, Unlimited)
-
-- **Games/Scores**: Live and historical game data
+- **Games/Scores**: Live and historical game data via v2 endpoints
 - **Standings**: Team records and rankings
 - **Injuries**: Player injury reports
 - **Teams**: Team info and rosters
+- **File**: `src/lib/api/espn.ts`
 
-### 2. The Odds API (Odds Data)
+### 2. The Odds API v4 (Odds Data - 100,000 credits/month)
+- **Live Odds**: Spreads, totals, moneylines from 50+ books
+- **Historical Odds**: Past season odds for CLV tracking
+- **Key**: `THE_ODDS_API_KEY`
+- **File**: `src/lib/api/the-odds-api.ts`
 
-- **Betting Lines**: Spreads, totals, moneylines from 50+ books
-- **Line History**: Opening lines for CLV tracking
-- **Refresh**: Every 15 minutes via cron
+### 3. Supabase (Primary Data Store)
+- **historical_games**: 82,876 game results with ATS/O-U outcomes
+- **game_odds**: 18,598 imported odds records
+- **cappers**: 77 capper profiles
+- **IMPORTANT**: REST API has 1000-row limit per query. ALL queries must use .range() pagination.
+- **Project**: cdfdmkntdsfylososgwo
 
-### 3. API-Sports (Enrichment - 100 free/day)
+### 4. X/Twitter (Expert Tracking)
+- **Library**: rettiwt-api (free, no API key)
+- **File**: `src/lib/services/social-media-content.ts`
 
-- **Player Stats**: Detailed season/game stats
-- **Team Stats**: Advanced metrics
-- **Historical Data**: Past seasons
+### 5. Gemini 2.5 Flash (AI Analysis)
+- **Library**: @google/generative-ai
+- **File**: `src/lib/gemini.ts`
+- **Rules**: Strict no-guessing policy, only analyzes available data
 
-### 4. Supabase (Storage)
+## Database Tables - Current State
 
-- **historical_games**: Game results with ATS/O-U outcomes
-- **historical_trends**: Discovered betting trends
-- **odds**: Current and opening lines
-- **cappers**: Celebrity/pro capper profiles
-- **picks**: Tracked picks with results
+### historical_games (82,876 records) - PRIMARY
+The core table for all analytics calculations.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | uuid | Primary key |
+| sport | varchar | NFL, NBA, MLB, NHL (NCAAF/NCAAB: empty) |
+| season | integer | Season year (2000-2025) |
+| season_type | varchar | regular, postseason |
+| game_date | date | Game date |
+| home_team | varchar | Home team full name |
+| away_team | varchar | Away team full name |
+| home_team_abbr | varchar | Home team abbreviation |
+| away_team_abbr | varchar | Away team abbreviation |
+| home_score | integer | Home final score |
+| away_score | integer | Away final score |
+| point_spread | decimal | Closing spread (home perspective) |
+| over_under | decimal | Closing total |
+| spread_result | varchar | home_cover, away_cover, push |
+| total_result | varchar | over, under, push |
+| espn_game_id | varchar | ESPN event ID |
+
+**Coverage:**
+- NFL: 6,860 games, 26 seasons (2000-2025), 100% complete
+- NBA: 21,682 games, 26 seasons, 98.7% with spreads
+- MLB: 31,516 games, 26 seasons, 100%
+- NHL: 22,818 games, 25 seasons, 100%
+- NCAAF: 0 EMPTY
+- NCAAB: 0 EMPTY
+
+### game_odds (18,598 records)
+Imported from The Odds API v4 historical endpoint. Used for CLV calculations and closing line cross-reference.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | uuid | Primary key |
+| sport | varchar | Sport identifier |
+| season | integer | Season year |
+| game_date | date | Game date |
+| home_team | varchar | Home team |
+| away_team | varchar | Away team |
+| home_spread | decimal | Home spread |
+| away_spread | decimal | Away spread |
+| total | decimal | Over/under total |
+| home_ml | integer | Home moneyline |
+| away_ml | integer | Away moneyline |
+| bookmaker | varchar | Sportsbook name |
+| import_source | varchar | Import method |
+
+**Coverage:** NFL 1,707 (2020-2024), NBA 2,692 (2021-2025), MLB 3,945 (2020-2024), NHL 3,465 (2021-2025), NCAAF 3,898 (2020-2025), NCAAB 2,891 (2021-2025)
+
+### cappers (77 records)
+Celebrity/pro/community capper profiles for the leaderboard.
+
+### EMPTY Tables (Data Gaps)
+| Table | Intended Purpose | Blocking Feature |
+|-------|-----------------|-----------------|
+| line_snapshots | Point-in-time odds for movement charts | Line movement visualization |
+| odds | Live/current odds cache | Real-time odds display |
+| picks | User and capper picks | Pick tracking, leaderboard grading |
+| betting_trends | Discovered trend patterns | Trend finder persistence |
+| betting_splits | Public vs sharp money % | Sharp money detection |
 
 ## Data Flow
 
 ```
-┌──────────────────────────────────────────────────────────────────────┐
-│                            DATA SOURCES                               │
-├───────────────┬────────────────┬───────────────┬────────────────────┤
-│   ESPN API    │  The Odds API  │  API-Sports   │     Supabase       │
-│  (Free/Live)  │  (Odds/Lines)  │  (Stats)      │  (Historical)      │
-└───────┬───────┴───────┬────────┴───────┬───────┴─────────┬──────────┘
-        │               │                │                 │
-        └───────────────┴────────────────┴─────────────────┘
-                                 │
-                                 ▼
-┌──────────────────────────────────────────────────────────────────────┐
-│                        UNIFIED DATA LAYER                             │
-├──────────────────────────────────────────────────────────────────────┤
-│  src/lib/api/data-layer.ts      - Game/odds merging                  │
-│  src/lib/unified-data-store.ts  - Cache & aggregation                │
-│  src/lib/services/real-analytics.ts - Analytics calculations         │
-│  src/lib/historical-data.ts     - Trend & historical queries         │
-└──────────────────────────────────────────────────────────────────────┘
-                                 │
-                                 ▼
-┌──────────────────────────────────────────────────────────────────────┐
-│                            API ROUTES                                 │
-├────────────────────┬───────────────────────────────────────────────┤
-│  /api/games        │ Live games with odds (ESPN + Odds API)         │
-│  /api/analytics    │ Trends, matchups, cappers, summary             │
-│  /api/stats        │ Standings and leaders (ESPN)                   │
-│  /api/teams        │ Team analytics with ATS records                │
-│  /api/matchups     │ Games by date/sport                            │
-│  /api/markets      │ Prediction markets (Polymarket/Kalshi)         │
-│  /api/data/import  │ Import historical games                        │
-│  /api/data/discover-trends │ Run trend discovery                    │
-│  /api/data/refresh │ Force cache refresh                            │
-└────────────────────┴───────────────────────────────────────────────┘
-                                 │
-                                 ▼
-┌──────────────────────────────────────────────────────────────────────┐
-│                          REACT HOOKS                                  │
-├────────────────────┬───────────────────────────────────────────────┤
-│  useGames()        │ Live game data with auto-refresh               │
-│  useAnalytics()    │ Trends, matchups, analytics                    │
-│  useMatchupData()  │ Single game with analytics                     │
-│  useTrends()       │ Historical trends                              │
-│  useCappers()      │ Capper leaderboard data                        │
-└────────────────────┴───────────────────────────────────────────────┘
-                                 │
-                                 ▼
-┌──────────────────────────────────────────────────────────────────────┐
-│                           PAGES                                       │
-├────────────────────┬───────────────────────────────────────────────┤
-│  /                 │ Dashboard with all sports summary              │
-│  /nfl|nba|nhl|mlb  │ Sport pages with games and standings          │
-│  /analytics        │ Edge Finder - trends, picks, AI               │
-│  /trends           │ Historical trend analysis                     │
-│  /leaderboard      │ Capper tracking and CLV                       │
-│  /markets          │ Prediction market prices                      │
-│  /[sport]/matchups/[id] │ Game detail with betting intelligence    │
-└────────────────────┴───────────────────────────────────────────────┘
+ESPN API (live) -----> /api/games, /api/scores, /api/standings
+                       |
+The Odds API --------> /api/cron/refresh-odds --> odds table (EMPTY)
+                       /api/admin/import-odds --> game_odds table
+                       /api/cron/odds-snapshot --> line_snapshots (EMPTY)
+                       |
+Supabase <-----------> /api/analytics --> real-analytics.ts
+                       /api/teams     --> real-analytics.ts
+                       |
+                       v
+                    Frontend Pages (148 total)
 ```
 
-## Cron Jobs (vercel.json)
+## Analytics Engine (real-analytics.ts)
 
-| Schedule | Path | Purpose |
-|----------|------|---------|
-| */15* ** * | /api/cron/refresh-odds | Update betting lines |
-| */5* ** * | /api/cron/refresh-scores | Update live scores |
-| 0 */6* ** | /api/cron/sync-games | Sync game schedule |
-| 0 8 ** * | /api/cron/refresh-standings | Update standings |
-| 0 */12* ** | /api/cron/refresh-injuries | Update injuries |
+The `getRealTeams()` function is the heart of the analytics:
 
-## Cache TTLs
+1. Fetches all `historical_games` for current season + sport (paginated, 1000-row batches)
+2. Applies global dedup: Set of `${game_date}|${home}|${away}` keys
+3. For each team, applies per-team per-date dedup (max 1 game per team per date)
+4. Cross-references with `game_odds` for closing lines (with +/- 1 day fuzzy date matching)
+5. Computes per team: overall ATS, home ATS, away ATS, last10 ATS, O/U, ML, asFavorite, asUnderdog
+6. Season detection: `month < 6 ? year - 1 : year` (Jan-May maps to prior season)
 
-| Data Type | TTL | Reason |
-|-----------|-----|--------|
-| Live Games | 30s | Real-time scores |
-| Odds | 30s | Line movements |
-| Injuries | 2min | Breaking news |
-| Standings | 5min | Updates infrequently |
-| News | 5min | Fresh content |
-| Player Stats | 10min | Moderate updates |
-| Trends | 15min | Analysis takes time |
-| Historical | 1hr | Rarely changes |
+## Cron Jobs (17 in vercel.json)
 
-## Database Schema
+| Schedule | Route | Target Table | Status |
+|----------|-------|-------------|--------|
+| */2 15-23,0-6 | refresh-scores | (in-memory) | Working |
+| */5 15-23,0-6 | refresh-odds | odds | Writes but nothing reads |
+| */30 10-23,0-6 | odds-snapshot | line_snapshots | Table stays empty - debug |
+| * 15-23,0-6 | update-scores | (in-memory) | Working |
+| 0 */4 | sync-games | (in-memory) | Working |
+| 0 10,22 | refresh-standings | (in-memory) | Working |
+| 0 */6 | refresh-injuries | (in-memory) | Working |
+| 0 7 | discover-trends | betting_trends | Table may not exist |
+| 0 8,14,20 | grade-picks | picks | Table empty |
+| 0 9,15,21 | grade-clv | picks/game_odds | Working (no picks to grade) |
+| 0 13 | scrape-experts (morning) | (varies) | Working |
+| 0 16 Sun | scrape-experts (nfl) | (varies) | Working |
+| 30 23 Mon-Fri | scrape-experts (weekday) | (varies) | Working |
+| 30 4 | scrape-experts (postgame) | (varies) | Working |
+| 0 8 | daily-expert-scraper | (varies) | Working |
+| 0 12,16,20 | collect-props | (varies) | Unknown |
+| 0 6 Mon | backfill-history | historical_games | Working |
 
-### historical_games
+## API Routes
 
-```sql
-- id, sport, season_year, game_date
-- home_team, away_team, home_score, away_score
-- close_spread, close_total
-- spread_result ('home_cover'|'away_cover'|'push')
-- total_result ('over'|'under'|'push')
-- public_spread_home_pct, primetime_game, divisional_game
-```
-
-### historical_trends
-
-```sql
-- trend_id, sport, category, bet_type
-- trend_name, trend_description, trend_criteria
-- l30_record, l30_roi, l90_record, l90_roi
-- all_time_record, all_time_roi, all_time_sample_size
-- confidence_score, hot_streak, is_active
-```
-
-### cappers
-
-```sql
-- id, slug, name, avatar_emoji, verified
-- capper_type ('celebrity'|'pro'|'community'|'ai')
-- network, role, primary_sport
-- wins, losses, pushes, units_won, roi, avg_clv
-```
-
-### picks
-
-```sql
-- id, capper_id, game_id, sport, bet_type
-- pick_team, odds, line, units
-- open_line, close_line, clv
-- result ('win'|'loss'|'push'|'pending')
-- source, source_url, notes
-```
+| Route | Purpose | Data Source |
+|-------|---------|-------------|
+| /api/analytics | Teams, trends, summary | real-analytics.ts + Supabase |
+| /api/teams | Team data with ATS | real-analytics.ts |
+| /api/games/[id] | Game details | ESPN Scoreboard |
+| /api/games/[id]/summary | Injuries, leaders, predictor | ESPN Summary |
+| /api/game-trends | Per-game trend matching | trend-matcher.ts |
+| /api/edges/today | Edge detection signals | edge-service.ts |
+| /api/admin/import-odds | Import historical odds | The Odds API |
+| /api/matchups | Games by date/sport | ESPN |
+| /api/markets | Prediction markets | Polymarket/Kalshi |
+| /api/leaderboard | Capper rankings | Supabase cappers |
 
 ## Environment Variables
 
-```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-key
-
-# APIs
-ODDS_API_KEY=your-odds-api-key
-API_SPORTS_KEY=your-api-sports-key
-X_BEARER_TOKEN=your-twitter-token
-
-# Admin
-ADMIN_SECRET=your-admin-secret
-CRON_SECRET=your-cron-secret
+```
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY
+THE_ODDS_API_KEY
+GOOGLE_GEMINI_API_KEY
+CRON_SECRET
+ADMIN_SECRET
+STRIPE_SECRET_KEY (inactive)
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY (inactive)
 ```
 
-## Initialization Steps
+## Utility Scripts (in /scripts)
 
-1. **Deploy Supabase Schemas**
+| Script | Purpose |
+|--------|---------|
+| full-audit.ts | Comprehensive data audit across all tables |
+| check-postseason.ts | NFL postseason validation |
+| dedup-smart.ts | DB-level dedup (sorted team pairs + date) |
+| dedup-historical.ts | Original dedup (date|home|away) |
+| run-historical-data.ts | Import historical odds from The Odds API |
+| backfill-closing-odds.ts | Backfill closing lines to historical_games |
+| init-db.ts | Initialize database tables |
+| seed-picks.ts | Seed sample picks |
+| seed-more-cappers.ts | Seed additional cappers |
 
-   ```bash
-   # Run in Supabase SQL Editor:
-   # - supabase/schema.sql
-   # - supabase/historical-data-schema.sql
-   # - supabase/cappers-schema.sql
-   ```
-
-2. **Import Historical Data**
-
-   ```bash
-   curl -X POST "$URL/api/data/import" \
-     -H "Authorization: Bearer $ADMIN_SECRET" \
-     -d '{"sport":"NFL","startYear":2020,"endYear":2025}'
-   ```
-
-3. **Run Trend Discovery**
-
-   ```bash
-   curl -X POST "$URL/api/data/discover-trends" \
-     -H "Authorization: Bearer $ADMIN_SECRET" \
-     -d '{"minSampleSize":20,"minWinPct":53}'
-   ```
-
-4. **Verify Data Flow**
-
-   ```bash
-   curl "$URL/api/games?sport=NFL"
-   curl "$URL/api/analytics?type=trends"
-   curl "$URL/api/stats?sport=NFL"
-   ```
-
-## Adding New Data Sources
-
-1. Create a service in `src/lib/services/`
-2. Add to unified data layer in `src/lib/api/data-layer.ts`
-3. Create API route in `src/app/api/`
-4. Create hook in `src/hooks/`
-5. Update relevant pages
+Run scripts with: `set -a && source .env.local && set +a && npx tsx scripts/<name>.ts`
