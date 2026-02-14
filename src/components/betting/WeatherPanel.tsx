@@ -51,12 +51,34 @@ function getWeatherIcon(condition: string) {
   return <Sun className="w-5 h-5 text-yellow-400" />
 }
 
+// Outdoor sports where weather matters
+const OUTDOOR_SPORTS = ['nfl', 'ncaaf', 'mlb']
+// NHL outdoor events (Winter Classic, Stadium Series, Heritage Classic)
+const NHL_OUTDOOR_VENUES = [
+  'wrigley field', 'notre dame stadium', 'michigan stadium', 
+  'cotton bowl', 'target field', 'fenway park', 'yankee stadium',
+  'commonwealth stadium', 'tim hortons field', 'mosaic stadium'
+]
+
 export function WeatherPanel({ venue, city, gameDate, gameTime, sport, compact = false }: WeatherPanelProps) {
   const [weather, setWeather] = useState<WeatherData | null>(null)
   const [loading, setLoading] = useState(true)
   
+  // Check if this is an outdoor sport/game
+  const sportLower = sport?.toLowerCase() || ''
+  const venueLower = venue?.toLowerCase() || ''
+  const isOutdoorSport = OUTDOOR_SPORTS.includes(sportLower)
+  const isNHLOutdoor = sportLower === 'nhl' && NHL_OUTDOOR_VENUES.some(v => venueLower.includes(v))
+  const shouldShowWeather = isOutdoorSport || isNHLOutdoor
+  
   useEffect(() => {
     async function fetchWeather() {
+      // Skip fetch for indoor sports
+      if (!shouldShowWeather) {
+        setLoading(false)
+        return
+      }
+      
       try {
         const params = new URLSearchParams({
           venue: venue || '',
@@ -78,12 +100,17 @@ export function WeatherPanel({ venue, city, gameDate, gameTime, sport, compact =
       }
     }
     
-    if (venue || city) {
+    if ((venue || city) && shouldShowWeather) {
       fetchWeather()
     } else {
       setLoading(false)
     }
-  }, [venue, city, gameDate, gameTime, sport])
+  }, [venue, city, gameDate, gameTime, sport, shouldShowWeather])
+  
+  // Don't render anything for indoor sports
+  if (!shouldShowWeather) {
+    return null
+  }
   
   if (loading) {
     return (

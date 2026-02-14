@@ -174,12 +174,24 @@ export async function getGameWeather(
   gameTime?: string,
   sport?: string
 ): Promise<GameWeather | null> {
-  // Check if dome
-  const isDome = DOME_STADIUMS[venue] || venue.toLowerCase().includes('dome')
+  const venueLower = venue?.toLowerCase() || ''
   
-  // Indoor sports don't need weather
+  // Check if dome
+  const isDome = DOME_STADIUMS[venue] || venueLower.includes('dome')
+  
+  // NHL outdoor events (Winter Classic, Stadium Series, Heritage Classic)
+  const nhlOutdoorVenues = [
+    'wrigley field', 'notre dame stadium', 'michigan stadium', 
+    'cotton bowl', 'target field', 'fenway park', 'yankee stadium',
+    'commonwealth stadium', 'tim hortons field', 'mosaic stadium'
+  ]
+  const isNHLOutdoor = sport?.toLowerCase() === 'nhl' && nhlOutdoorVenues.some(v => venueLower.includes(v))
+  
+  // Indoor sports don't need weather (except NHL outdoor games)
   const indoorSports = ['nba', 'nhl', 'ncaab']
-  if (sport && indoorSports.includes(sport.toLowerCase())) {
+  const sportLower = sport?.toLowerCase() || ''
+  
+  if (sportLower && indoorSports.includes(sportLower) && !isNHLOutdoor) {
     return {
       location: `${venue}, ${city}`,
       gameTime: gameTime || '',

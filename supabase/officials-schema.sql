@@ -38,7 +38,9 @@ CREATE TABLE IF NOT EXISTS officials (
 );
 
 -- Game officials junction table
-CREATE TABLE IF NOT EXISTS game_officials (
+-- Drop and recreate to ensure correct schema
+DROP TABLE IF EXISTS game_officials CASCADE;
+CREATE TABLE game_officials (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   game_id TEXT NOT NULL,
   official_id UUID REFERENCES officials(id) ON DELETE CASCADE,
@@ -54,9 +56,9 @@ CREATE TABLE IF NOT EXISTS game_officials (
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_officials_sport ON officials(sport);
 CREATE INDEX IF NOT EXISTS idx_officials_name ON officials(name);
-CREATE INDEX IF NOT EXISTS idx_game_officials_game ON game_officials(game_id);
-CREATE INDEX IF NOT EXISTS idx_game_officials_official ON game_officials(official_id);
-CREATE INDEX IF NOT EXISTS idx_game_officials_date ON game_officials(game_date DESC);
+CREATE INDEX idx_game_officials_game ON game_officials(game_id);
+CREATE INDEX idx_game_officials_official ON game_officials(official_id);
+CREATE INDEX idx_game_officials_date ON game_officials(game_date DESC);
 
 -- Enable RLS
 ALTER TABLE officials ENABLE ROW LEVEL SECURITY;
