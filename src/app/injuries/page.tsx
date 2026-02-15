@@ -89,7 +89,7 @@ export default function InjuriesPage() {
           bodyPart: inj.injury.split(' ')[0] || 'Unknown',
           status: normalizeStatus(inj.status),
           impactRating: getImpactFromStatus(inj.status, inj.position),
-          expectedReturn: 'TBD',
+          expectedReturn: 'Day-to-day',
           lastUpdate: 'Recently updated',
           bettingImpact: `Monitor ${inj.team} betting lines`,
           isStarter: true,

@@ -92,7 +92,7 @@ export function OfficialsPanel({ gameId, sport, compact = false }: OfficialsPane
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Gavel className="w-4 h-4 text-orange-500" />
-            <span className="text-sm font-medium text-white">{headRef?.name || 'TBD'}</span>
+            {headRef?.name && <span className="text-sm font-medium text-white">{headRef.name}</span>}
           </div>
           <div className="flex gap-2">
             <TendencyBadge type="spread" value={bettingImplications.spreadTendency} />

@@ -56,8 +56,8 @@ export default function WNCAABPlayersPage() {
             setPlayers(espnData.athletes.map((a: any) => ({
               id: a.id,
               name: a.displayName || a.fullName,
-              team: a.team?.displayName || 'Unknown',
-              teamAbbr: a.team?.abbreviation || '—',
+              team: a.team?.displayName || '-',
+              teamAbbr: a.team?.abbreviation || '-',
               position: a.position?.abbreviation || 'G',
               gp: 0,
               ppg: 0,
@@ -189,10 +189,10 @@ export default function WNCAABPlayersPage() {
                       </td>
                       <td className="px-4 py-4 text-gray-400">{player.team}</td>
                       <td className="px-4 py-4 text-center text-gray-500">{player.position}</td>
-                      <td className="px-4 py-4 text-center font-bold text-orange-400">{player.ppg > 0 ? player.ppg.toFixed(1) : '—'}</td>
-                      <td className="px-4 py-4 text-center font-bold text-blue-400">{player.rpg > 0 ? player.rpg.toFixed(1) : '—'}</td>
-                      <td className="px-4 py-4 text-center font-bold text-green-400">{player.apg > 0 ? player.apg.toFixed(1) : '—'}</td>
-                      <td className="px-4 py-4 text-center text-gray-400">{player.fgPct > 0 ? `${player.fgPct.toFixed(1)}%` : '—'}</td>
+                      <td className="px-4 py-4 text-center font-bold text-orange-400">{player.ppg > 0 ? player.ppg.toFixed(1) : '-'}</td>
+                      <td className="px-4 py-4 text-center font-bold text-blue-400">{player.rpg > 0 ? player.rpg.toFixed(1) : '-'}</td>
+                      <td className="px-4 py-4 text-center font-bold text-green-400">{player.apg > 0 ? player.apg.toFixed(1) : '-'}</td>
+                      <td className="px-4 py-4 text-center text-gray-400">{player.fgPct > 0 ? `${player.fgPct.toFixed(1)}%` : '-'}</td>
                       <td className="px-4 py-4 text-center">
                         {player.trend === 'hot' && <TrendingUp className="w-4 h-4 text-green-400 mx-auto" />}
                         {player.trend === 'cold' && <TrendingDown className="w-4 h-4 text-red-400 mx-auto" />}

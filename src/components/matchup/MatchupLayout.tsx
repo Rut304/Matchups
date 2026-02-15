@@ -268,7 +268,7 @@ export function MatchupGrid({ children }: { children: ReactNode }) {
 
 /* Collapsible section — "drill in" for deep data */
 export function CollapsibleSection({ title, icon: Icon, children, defaultOpen = false, badge }: {
-  title: string; icon: any; children: ReactNode; defaultOpen?: boolean; badge?: string | number
+  title: ReactNode; icon: any; children: ReactNode; defaultOpen?: boolean; badge?: string | number
 }) {
   const [open, setOpen] = useState(defaultOpen)
   return (

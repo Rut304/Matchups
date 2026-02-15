@@ -46,7 +46,7 @@ export default function PlayersPage() {
               team: p.team,
               teamAbbr: p.teamAbbr,
               sport: s as Sport,
-              position: p.position || 'N/A',
+              position: p.position || '',
               emoji: SPORT_EMOJIS[s] || '🎯',
               isHot: Math.random() > 0.7,
               isCold: Math.random() > 0.9,

@@ -353,7 +353,7 @@ export default function GameDetailPage() {
 
   // Helper to safely display odds
   const formatSpread = (spread: number | undefined | null) => {
-    if (spread === undefined || spread === null || isNaN(spread)) return 'TBD'
+    if (spread === undefined || spread === null || isNaN(spread)) return '-'
     return spread === 0 ? 'PK' : spread > 0 ? `+${spread}` : `${spread}` // Returns string like "-4.5" or "+3.5"
   }
 
@@ -722,12 +722,39 @@ export default function GameDetailPage() {
                     <th className="text-center py-2 text-slate-500 font-medium">Score</th>
                     <th className="text-center py-2 text-slate-500 font-medium">Spread</th>
                     <th className="text-center py-2 text-slate-500 font-medium">ATS</th>
+                    <th className="text-center py-2 text-slate-500 font-medium">Cover?</th>
                     <th className="text-center py-2 text-slate-500 font-medium">Total</th>
                     <th className="text-center py-2 text-slate-500 font-medium">O/U</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {scheduleData.games.map((g, i) => (
+                  {scheduleData.games.map((g, i) => {
+                    // Calculate cover result from score and spread when ATS data is missing
+                    const computeCover = (): { label: string; className: string } => {
+                      // If we already have ATS result, use it
+                      if (g.atsResult === 'W') return { label: '✓ Cover', className: 'text-green-400 font-bold' }
+                      if (g.atsResult === 'L') return { label: '✗ Miss', className: 'text-red-400 font-bold' }
+                      if (g.atsResult === 'P') return { label: '— Push', className: 'text-slate-400 font-bold' }
+
+                      // Attempt to calculate from score and spread
+                      if (!g.isCompleted || g.teamScore == null || g.opponentScore == null || !g.spread) {
+                        return { label: '-', className: 'text-slate-600' }
+                      }
+
+                      const spreadNum = parseFloat(g.spread)
+                      if (isNaN(spreadNum)) return { label: '-', className: 'text-slate-600' }
+
+                      // margin = team score - opponent score + spread
+                      // If margin > 0, team covered
+                      const margin = g.teamScore - g.opponentScore + spreadNum
+                      if (margin > 0) return { label: '✓ Cover', className: 'text-green-400 font-bold' }
+                      if (margin < 0) return { label: '✗ Miss', className: 'text-red-400 font-bold' }
+                      return { label: '— Push', className: 'text-slate-400 font-bold' }
+                    }
+
+                    const cover = computeCover()
+
+                    return (
                     <tr key={g.id || i} className="border-b border-slate-800 hover:bg-slate-800/30">
                       <td className="py-2 text-slate-400">{g.week}</td>
                       <td className="py-2 text-white font-medium">{g.opponent}</td>
@@ -745,7 +772,7 @@ export default function GameDetailPage() {
                         )}
                       </td>
                       <td className="py-2 text-center text-slate-300 font-mono">
-                        {g.isCompleted ? g.score : 'TBD'}
+                        {g.isCompleted ? g.score : '-'}
                       </td>
                       <td className="py-2 text-center text-slate-300 font-mono">
                         {g.spread || <span className="text-slate-600">-</span>}
@@ -760,6 +787,9 @@ export default function GameDetailPage() {
                         ) : (
                           <span className="text-slate-600">-</span>
                         )}
+                      </td>
+                      <td className="py-2 text-center">
+                        <span className={cover.className}>{cover.label}</span>
                       </td>
                       <td className="py-2 text-center text-slate-300 font-mono">
                         {g.total || <span className="text-slate-600">-</span>}
@@ -776,7 +806,8 @@ export default function GameDetailPage() {
                         )}
                       </td>
                     </tr>
-                  ))}
+                    )
+                  })}
                 </tbody>
               </table>
               {/* Data source attribution */}
@@ -922,7 +953,7 @@ export default function GameDetailPage() {
                     ) : multiBookOdds.loading ? (
                       'Loading...'
                     ) : (
-                      'TBD'
+                      '-'
                     )}
                   </p>
                 </div>
@@ -933,7 +964,7 @@ export default function GameDetailPage() {
                   <p className="text-sm font-black font-mono text-green-400">
                     O/U {gameSummary.odds?.overUnder || game.total || 
                       (!multiBookOdds.loading && multiBookOdds.books.length > 0 && multiBookOdds.bestTotal.over ? multiBookOdds.bestTotal.over : 
-                       multiBookOdds.loading ? 'Loading...' : 'TBD')}
+                       multiBookOdds.loading ? 'Loading...' : '-')}
                   </p>
                 </div>
               </div>
@@ -951,7 +982,7 @@ export default function GameDetailPage() {
                       <>{game.moneyline.away > 0 ? '+' : ''}{game.moneyline.away}</>
                     ) : (!multiBookOdds.loading && multiBookOdds.bestAwayML.odds !== 0) ? (
                       <>{multiBookOdds.bestAwayML.odds > 0 ? '+' : ''}{multiBookOdds.bestAwayML.odds}</>
-                    ) : 'TBD'}
+                    ) : '-'}
                   </p>
                 </div>
                 <div className="rounded p-1 bg-slate-800/50 border border-slate-700">
@@ -965,7 +996,7 @@ export default function GameDetailPage() {
                       <>{game.moneyline.home > 0 ? '+' : ''}{game.moneyline.home}</>
                     ) : (!multiBookOdds.loading && multiBookOdds.bestHomeML.odds !== 0) ? (
                       <>{multiBookOdds.bestHomeML.odds > 0 ? '+' : ''}{multiBookOdds.bestHomeML.odds}</>
-                    ) : 'TBD'}
+                    ) : '-'}
                   </p>
                 </div>
               </div>
@@ -1033,7 +1064,7 @@ export default function GameDetailPage() {
                    <p className="text-[10px] text-slate-500">OPEN</p>
                    <p className="font-mono font-bold text-slate-300">
                       {game.openingSpread?.line ? formatSpread(game.openingSpread.line) : 
-                       (!multiBookOdds.loading && multiBookOdds.bestSpread.line !== 0) ? formatSpread(multiBookOdds.bestSpread.line) : 'N/A'}
+                       (!multiBookOdds.loading && multiBookOdds.bestSpread.line !== 0) ? formatSpread(multiBookOdds.bestSpread.line) : '-'}
                    </p>
                 </div>
                 <ChevronRight className="w-4 h-4 text-slate-600" />
@@ -1165,7 +1196,7 @@ export default function GameDetailPage() {
               <p className="text-lg font-bold text-white">
                 {typeof intelligence.quickTakes.sharpestPick === 'string' 
                   ? intelligence.quickTakes.sharpestPick 
-                  : intelligence.quickTakes.sharpestPick.pick || 'N/A'}
+                  : intelligence.quickTakes.sharpestPick.pick || '-'}
               </p>
               {typeof intelligence.quickTakes.sharpestPick === 'object' && intelligence.quickTakes.sharpestPick.reasoning && (
                 <p className="text-sm text-slate-400 mt-1">{intelligence.quickTakes.sharpestPick.reasoning}</p>
@@ -1557,13 +1588,13 @@ export default function GameDetailPage() {
                     <div className="flex items-center justify-between p-3 rounded-lg bg-slate-800/30">
                       <span className="text-slate-400">{game.away.abbr}</span>
                       <span className={`font-bold ${game.matchup.awayOffRank <= 10 ? 'text-green-400' : game.matchup.awayOffRank <= 20 ? 'text-yellow-400' : 'text-red-400'}`}>
-                        #{game.matchup.awayOffRank || 'N/A'}
+                        {game.matchup.awayOffRank ? `#${game.matchup.awayOffRank}` : '-'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between p-3 rounded-lg bg-slate-800/30">
                       <span className="text-slate-400">{game.home.abbr}</span>
                       <span className={`font-bold ${game.matchup.homeOffRank <= 10 ? 'text-green-400' : game.matchup.homeOffRank <= 20 ? 'text-yellow-400' : 'text-red-400'}`}>
-                        #{game.matchup.homeOffRank || 'N/A'}
+                        {game.matchup.homeOffRank ? `#${game.matchup.homeOffRank}` : '-'}
                       </span>
                     </div>
                   </div>
@@ -1578,13 +1609,13 @@ export default function GameDetailPage() {
                     <div className="flex items-center justify-between p-3 rounded-lg bg-slate-800/30">
                       <span className="text-slate-400">{game.away.abbr}</span>
                       <span className={`font-bold ${game.matchup.awayDefRank <= 10 ? 'text-green-400' : game.matchup.awayDefRank <= 20 ? 'text-yellow-400' : 'text-red-400'}`}>
-                        #{game.matchup.awayDefRank || 'N/A'}
+                        {game.matchup.awayDefRank ? `#${game.matchup.awayDefRank}` : '-'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between p-3 rounded-lg bg-slate-800/30">
                       <span className="text-slate-400">{game.home.abbr}</span>
                       <span className={`font-bold ${game.matchup.homeDefRank <= 10 ? 'text-green-400' : game.matchup.homeDefRank <= 20 ? 'text-yellow-400' : 'text-red-400'}`}>
-                        #{game.matchup.homeDefRank || 'N/A'}
+                        {game.matchup.homeDefRank ? `#${game.matchup.homeDefRank}` : '-'}
                       </span>
                     </div>
                   </div>
@@ -2080,7 +2111,7 @@ export default function GameDetailPage() {
                     <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-slate-800/30">
                       <div>
                         <p className="text-sm font-semibold text-white">{injury.athlete.displayName}</p>
-                        <p className="text-xs text-slate-400">{injury.athlete.position} • {injury.type || 'Unknown'}</p>
+                        <p className="text-xs text-slate-400">{injury.athlete.position}{injury.type ? ` • ${injury.type}` : ''}</p>
                       </div>
                       <span className={`px-2 py-1 rounded text-xs font-bold ${
                         injury.status === 'Out' || injury.status === 'Injured Reserve' ? 'bg-red-500/20 text-red-400' :
@@ -2128,7 +2159,7 @@ export default function GameDetailPage() {
                     <div className="flex gap-2">
                       <div className="flex-1 p-2 rounded bg-slate-800/50 text-center">
                         <p className="text-xs text-slate-500">Open</p>
-                        <p className="font-bold text-white">{gameSummary.lineMovement.openingSpread || 'N/A'}</p>
+                        <p className="font-bold text-white">{gameSummary.lineMovement.openingSpread || '-'}</p>
                       </div>
                       <div className="flex items-center">
                         <ChevronRight className="w-4 h-4 text-slate-600" />
@@ -2155,7 +2186,7 @@ export default function GameDetailPage() {
                     <div className="flex gap-2">
                       <div className="flex-1 p-2 rounded bg-slate-800/50 text-center">
                         <p className="text-xs text-slate-500">Open</p>
-                        <p className="font-bold text-white">{gameSummary.lineMovement.openingTotal || 'N/A'}</p>
+                        <p className="font-bold text-white">{gameSummary.lineMovement.openingTotal || '-'}</p>
                       </div>
                       <div className="flex items-center">
                         <ChevronRight className="w-4 h-4 text-slate-600" />
@@ -2193,11 +2224,11 @@ export default function GameDetailPage() {
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div className="text-center">
                           <p className="text-slate-500">{game.away.abbr}</p>
-                          <p className="text-white font-semibold">{gameSummary.atsRecords.awayTeam?.ats || 'N/A'}</p>
+                          <p className="text-white font-semibold">{gameSummary.atsRecords.awayTeam?.ats || '-'}</p>
                         </div>
                         <div className="text-center">
                           <p className="text-slate-500">{game.home.abbr}</p>
-                          <p className="text-white font-semibold">{gameSummary.atsRecords.homeTeam?.ats || 'N/A'}</p>
+                          <p className="text-white font-semibold">{gameSummary.atsRecords.homeTeam?.ats || '-'}</p>
                         </div>
                       </div>
                     </div>

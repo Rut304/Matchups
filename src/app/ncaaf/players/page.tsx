@@ -123,10 +123,10 @@ export default function NCAAFPlayersPage() {
           const stats = player.stats as Record<string, number> || {}
           const baseRow: PlayerStatRow = {
             rank: idx + 1,
-            name: player.player_name || 'Unknown',
-            team: player.team || 'Unknown',
-            pos: player.position || 'Unknown',
-            conf: stats.conference?.toString() || 'Unknown',
+            name: player.player_name || '-',
+            team: player.team || '-',
+            pos: player.position || '-',
+            conf: stats.conference?.toString() || '-',
             gp: stats.games_played || 0,
             trend: 'neutral' as const,
           }

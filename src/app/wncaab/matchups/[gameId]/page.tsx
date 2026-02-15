@@ -48,7 +48,7 @@ export default function WNCAABGameMatchupPage({ params }: { params: Promise<{ ga
         ])
         
         const calcContext = (games: any[]) => {
-          if (!games || games.length === 0) return { last5Record: '—' }
+          if (!games || games.length === 0) return { last5Record: '' }
           const completed = games?.filter(g => g.isCompleted && g.result) || []
           const wins = completed.filter(g => g.result === 'W').length
           const losses = completed.filter(g => g.result === 'L').length
@@ -135,14 +135,14 @@ export default function WNCAABGameMatchupPage({ params }: { params: Promise<{ ga
                 <div>
                   <div className="text-xs text-gray-500 mb-2">{game.homeTeam.abbreviation} (Home)</div>
                   <div className="bg-[#16161e] rounded-lg px-4 py-3 text-center">
-                    <div className="text-2xl font-bold text-green-400">{homeContext?.last5Record || '—'}</div>
+                    <div className="text-2xl font-bold text-green-400">{homeContext?.last5Record || ''}</div>
                     <div className="text-[10px] text-gray-500">LAST 5</div>
                   </div>
                 </div>
                 <div>
                   <div className="text-xs text-gray-500 mb-2">{game.awayTeam.abbreviation} (Away)</div>
                   <div className="bg-[#16161e] rounded-lg px-4 py-3 text-center">
-                    <div className="text-2xl font-bold text-green-400">{awayContext?.last5Record || '—'}</div>
+                    <div className="text-2xl font-bold text-green-400">{awayContext?.last5Record || ''}</div>
                     <div className="text-[10px] text-gray-500">LAST 5</div>
                   </div>
                 </div>
@@ -157,7 +157,7 @@ export default function WNCAABGameMatchupPage({ params }: { params: Promise<{ ga
               Betting Action
             </h3>
             <div className="grid grid-cols-4 gap-2">
-              {bettingMetrics.map((m) => (
+              {bettingMetrics.filter(m => m.value !== '—').map((m) => (
                 <div key={m.label} className="bg-[#16161e] rounded-lg p-3 text-center">
                   <div className="text-[10px] text-gray-500 mb-1">{m.label}</div>
                   <div className={`text-lg font-bold ${m.color || 'text-white'}`}>{m.value}</div>
@@ -187,7 +187,7 @@ export default function WNCAABGameMatchupPage({ params }: { params: Promise<{ ga
                   <div className="text-[10px] text-gray-500">O/U</div>
                 </div>
                 <div className="text-center p-2 bg-[#16161e] rounded-lg">
-                  <div className="text-lg font-bold text-white">{h2h.avgTotal?.toFixed(1) || '—'}</div>
+                  <div className="text-lg font-bold text-white">{h2h.avgTotal?.toFixed(1) || ''}</div>
                   <div className="text-[10px] text-gray-500">AVG PTS</div>
                 </div>
               </div>

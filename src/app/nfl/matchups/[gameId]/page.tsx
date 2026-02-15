@@ -26,6 +26,8 @@ import { OfficialsPanel } from '@/components/betting/OfficialsPanel'
 import { WeatherPanel } from '@/components/betting/WeatherPanel'
 import { PowerRatingsComparison } from '@/components/betting/PowerRatingsComparison'
 import ErrorDisplay from '@/components/matchup/ErrorDisplay'
+import Tooltip from '@/components/ui/Tooltip'
+import { TOOLTIPS } from '@/lib/tooltip-content'
 import type { SportType } from '@/types/sports'
 
 const aiCache = new Map<string, { analysis: string; ts: number; snap: string }>()
@@ -133,10 +135,16 @@ export default function GameMatchupPage({ params }: { params: Promise<{ gameId: 
           )}
 
           {/* Officials — THE differentiator */}
-          <OfficialsPanel gameId={gameId} sport="nfl" />
+          <div className="relative">
+            <span className="absolute top-2.5 right-2 z-10"><Tooltip content={TOOLTIPS.officials} /></span>
+            <OfficialsPanel gameId={gameId} sport="nfl" />
+          </div>
 
           {/* Power Ratings — Elo Comparison */}
-          <PowerRatingsComparison sport="nfl" homeTeam={game.homeTeam.abbreviation} awayTeam={game.awayTeam.abbreviation} />
+          <div className="relative">
+            <span className="absolute top-2.5 right-2 z-10"><Tooltip content={TOOLTIPS.powerRating} /></span>
+            <PowerRatingsComparison sport="nfl" homeTeam={game.homeTeam.abbreviation} awayTeam={game.awayTeam.abbreviation} />
+          </div>
 
           {/* AI Analysis — The Edge */}
           {(topPick || aiAnalysis) && (
@@ -144,6 +152,7 @@ export default function GameMatchupPage({ params }: { params: Promise<{ gameId: 
               <div className="flex items-center gap-2 mb-2">
                 <Brain className="w-4 h-4 text-orange-400" />
                 <span className="text-xs font-bold text-white">The Edge Analysis</span>
+                <Tooltip content={TOOLTIPS.edgeScore} />
               </div>
               {topPick && (
                 <div className="flex items-center justify-between mb-2 p-2 bg-orange-500/10 rounded border border-orange-500/20">
@@ -166,6 +175,7 @@ export default function GameMatchupPage({ params }: { params: Promise<{ gameId: 
             <div className="flex items-center gap-2 mb-2">
               <DollarSign className="w-3.5 h-3.5 text-green-400" />
               <span className="text-xs font-bold text-white">Betting Action</span>
+              <Tooltip content={TOOLTIPS.lineMovement} />
             </div>
             <div className="grid grid-cols-4 gap-1.5">
               {[
@@ -173,7 +183,7 @@ export default function GameMatchupPage({ params }: { params: Promise<{ gameId: 
                 { label: 'Public', value: bettingSplits ? `${bettingSplits.spreadTicketPct}%` : `${bettingIntelligence?.publicPct || 0}%`, sub: (bettingSplits?.spreadTicketPct || bettingIntelligence?.publicPct || 50) > 50 ? game.homeTeam.abbreviation : game.awayTeam.abbreviation },
                 { label: 'Sharp $', value: bettingSplits ? `${bettingSplits.spreadMoneyPct}%` : '—', color: (bettingSplits?.spreadMoneyPct || 0) > 60 ? 'text-green-400' : 'text-white' },
                 { label: 'Handle', value: `${bettingIntelligence?.handlePct || 0}%` },
-              ].map(m => (
+              ].filter(m => m.value !== '—').map(m => (
                 <div key={m.label} className="bg-[#16161e] rounded px-2 py-1.5 text-center">
                   <div className="text-[9px] text-gray-600 mb-0.5">{m.label}</div>
                   <div className={`text-sm font-bold ${m.color || 'text-white'}`}>{m.value}</div>
@@ -187,7 +197,7 @@ export default function GameMatchupPage({ params }: { params: Promise<{ gameId: 
 
           {/* H2H — Behind a click */}
           {h2h && h2h.gamesPlayed > 0 && (
-            <CollapsibleSection title="H2H History" icon={Users} badge={`${h2h.gamesPlayed}g`}>
+            <CollapsibleSection title={<>H2H History <Tooltip content={TOOLTIPS.h2h} /></>} icon={Users} badge={`${h2h.gamesPlayed}g`}>
               <div className="grid grid-cols-4 gap-1.5 mt-2">
                 <div className="text-center p-1.5 bg-[#16161e] rounded">
                   <div className="text-sm font-bold text-orange-400">{h2h.homeATSRecord}</div>
@@ -202,7 +212,7 @@ export default function GameMatchupPage({ params }: { params: Promise<{ gameId: 
                   <div className="text-[9px] text-gray-600">O/U</div>
                 </div>
                 <div className="text-center p-1.5 bg-[#16161e] rounded">
-                  <div className="text-sm font-bold text-white">{h2h.avgTotal?.toFixed(1) || '—'}</div>
+                  <div className="text-sm font-bold text-white">{h2h.avgTotal?.toFixed(1) || ''}</div>
                   <div className="text-[9px] text-gray-600">AVG PTS</div>
                 </div>
               </div>
@@ -233,13 +243,13 @@ export default function GameMatchupPage({ params }: { params: Promise<{ gameId: 
                   <div className="grid grid-cols-2 gap-1.5">
                     <div className="bg-[#16161e] rounded p-2 text-center">
                       <div className="flex items-center justify-center gap-1 text-orange-400 mb-0.5"><Swords className="w-3 h-3" /><span className="text-[9px]">OFF</span></div>
-                      <div className="text-sm font-bold text-white">#{homeRankings?.offenseRank || '—'}</div>
-                      <div className="text-[9px] text-gray-600">{homeRankings?.offenseYPG?.toFixed(1) || '—'} YPG</div>
+                      <div className="text-sm font-bold text-white">{homeRankings?.offenseRank ? `#${homeRankings.offenseRank}` : '-'}</div>
+                      <div className="text-[9px] text-gray-600">{homeRankings?.offenseYPG?.toFixed(1) || '-'} YPG</div>
                     </div>
                     <div className="bg-[#16161e] rounded p-2 text-center">
                       <div className="flex items-center justify-center gap-1 text-blue-400 mb-0.5"><Shield className="w-3 h-3" /><span className="text-[9px]">DEF</span></div>
-                      <div className="text-sm font-bold text-white">#{homeRankings?.defenseRank || '—'}</div>
-                      <div className="text-[9px] text-gray-600">{homeRankings?.defenseYPG?.toFixed(1) || '—'} YPG</div>
+                      <div className="text-sm font-bold text-white">{homeRankings?.defenseRank ? `#${homeRankings.defenseRank}` : '-'}</div>
+                      <div className="text-[9px] text-gray-600">{homeRankings?.defenseYPG?.toFixed(1) || '-'} YPG</div>
                     </div>
                   </div>
                 </div>
@@ -248,13 +258,13 @@ export default function GameMatchupPage({ params }: { params: Promise<{ gameId: 
                   <div className="grid grid-cols-2 gap-1.5">
                     <div className="bg-[#16161e] rounded p-2 text-center">
                       <div className="flex items-center justify-center gap-1 text-orange-400 mb-0.5"><Swords className="w-3 h-3" /><span className="text-[9px]">OFF</span></div>
-                      <div className="text-sm font-bold text-white">#{awayRankings?.offenseRank || '—'}</div>
-                      <div className="text-[9px] text-gray-600">{awayRankings?.offenseYPG?.toFixed(1) || '—'} YPG</div>
+                      <div className="text-sm font-bold text-white">{awayRankings?.offenseRank ? `#${awayRankings.offenseRank}` : '-'}</div>
+                      <div className="text-[9px] text-gray-600">{awayRankings?.offenseYPG?.toFixed(1) || '-'} YPG</div>
                     </div>
                     <div className="bg-[#16161e] rounded p-2 text-center">
                       <div className="flex items-center justify-center gap-1 text-blue-400 mb-0.5"><Shield className="w-3 h-3" /><span className="text-[9px]">DEF</span></div>
-                      <div className="text-sm font-bold text-white">#{awayRankings?.defenseRank || '—'}</div>
-                      <div className="text-[9px] text-gray-600">{awayRankings?.defenseYPG?.toFixed(1) || '—'} YPG</div>
+                      <div className="text-sm font-bold text-white">{awayRankings?.defenseRank ? `#${awayRankings.defenseRank}` : '-'}</div>
+                      <div className="text-[9px] text-gray-600">{awayRankings?.defenseYPG?.toFixed(1) || '-'} YPG</div>
                     </div>
                   </div>
                 </div>
@@ -264,7 +274,7 @@ export default function GameMatchupPage({ params }: { params: Promise<{ gameId: 
 
           {/* Recent Form — Behind a click */}
           {(homeSchedule.length > 0 || awaySchedule.length > 0) && (
-            <CollapsibleSection title="Recent Form (Last 5)" icon={Calendar}>
+            <CollapsibleSection title={<>Recent Form (Last 5) <Tooltip content={TOOLTIPS.restDays} /></>} icon={Calendar}>
               <div className="grid grid-cols-2 gap-3 mt-2">
                 <div>
                   <div className="flex items-center justify-between mb-1">
@@ -316,13 +326,16 @@ export default function GameMatchupPage({ params }: { params: Promise<{ gameId: 
           {edgeScore && edgeScore.overall > 0 && <EdgeScoreCard edgeScore={edgeScore} gameId={gameId} />}
           
           {/* Weather — NFL is outdoor */}
-          <WeatherPanel 
-            venue={game.venue || ''} 
-            city={game.venue?.split(',').pop()?.trim() || ''} 
-            gameDate={game.scheduledAt || game.startTime} 
-            sport="nfl" 
-            compact={false} 
-          />
+          <div className="relative">
+            <span className="absolute top-2.5 right-2 z-10"><Tooltip content={TOOLTIPS.weather} /></span>
+            <WeatherPanel 
+              venue={game.venue || ''} 
+              city={game.venue?.split(',').pop()?.trim() || ''} 
+              gameDate={game.scheduledAt || game.startTime} 
+              sport="nfl" 
+              compact={false} 
+            />
+          </div>
 
           {/* Injury Report — Always visible for serious bettors */}
           <InjuryReport sport={sport} homeTeam={game.homeTeam.abbreviation} awayTeam={game.awayTeam.abbreviation} homeTeamFull={game.homeTeam.name} awayTeamFull={game.awayTeam.name} />

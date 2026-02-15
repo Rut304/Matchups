@@ -709,7 +709,7 @@ export default function LeaderboardPage() {
                             {/* Forever Picks - All-time Record */}
                             <td className="py-3 px-4 text-center hidden lg:table-cell">
                               <span className="font-mono text-xs font-semibold" style={{ color: '#606070' }}>
-                                {entry.foreverRecord || 'N/A'}
+                                {entry.foreverRecord || '-'}
                               </span>
                             </td>
                             

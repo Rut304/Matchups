@@ -37,7 +37,7 @@ export default function WNBARankingsPage() {
               ppg: t.pointsFor || 0,
               papg: t.pointsAgainst || 0,
               diff: t.pointsDiff > 0 ? `+${t.pointsDiff.toFixed(1)}` : t.pointsDiff?.toFixed(1) || '0',
-              streak: t.streak || '—',
+              streak: t.streak || '-',
               change: 0
             })))
             setLoading(false)
@@ -58,7 +58,7 @@ export default function WNBARankingsPage() {
               const losses = stats.find((s: any) => s.name === 'losses')?.value || 0
               const ppg = stats.find((s: any) => s.name === 'pointsFor')?.value || 0
               const papg = stats.find((s: any) => s.name === 'pointsAgainst')?.value || 0
-              const streak = stats.find((s: any) => s.name === 'streak')?.displayValue || '—'
+              const streak = stats.find((s: any) => s.name === 'streak')?.displayValue || '-'
               
               teams.push({
                 rank: 0,
@@ -169,11 +169,11 @@ export default function WNBARankingsPage() {
                         </Link>
                       </td>
                       <td className="px-4 py-4 text-center font-bold text-white">{team.record}</td>
-                      <td className="px-4 py-4 text-center text-green-400">{team.ppg > 0 ? team.ppg.toFixed(1) : '—'}</td>
-                      <td className="px-4 py-4 text-center text-red-400">{team.papg > 0 ? team.papg.toFixed(1) : '—'}</td>
+                      <td className="px-4 py-4 text-center text-green-400">{team.ppg > 0 ? team.ppg.toFixed(1) : '-'}</td>
+                      <td className="px-4 py-4 text-center text-red-400">{team.papg > 0 ? team.papg.toFixed(1) : '-'}</td>
                       <td className="px-4 py-4 text-center">
                         <span className={parseFloat(team.diff) > 0 ? 'text-green-400' : parseFloat(team.diff) < 0 ? 'text-red-400' : 'text-gray-400'}>
-                          {team.diff !== '0' ? team.diff : '—'}
+                          {team.diff !== '0' ? team.diff : '-'}
                         </span>
                       </td>
                       <td className="px-4 py-4 text-center">

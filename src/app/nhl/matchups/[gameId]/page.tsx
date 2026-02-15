@@ -19,6 +19,8 @@ import { GamePlayerProps } from '@/components/game'
 import { OfficialsPanel } from '@/components/betting/OfficialsPanel'
 import { PowerRatingsComparison } from '@/components/betting/PowerRatingsComparison'
 import ErrorDisplay from '@/components/matchup/ErrorDisplay'
+import Tooltip from '@/components/ui/Tooltip'
+import { TOOLTIPS } from '@/lib/tooltip-content'
 import type { SportType } from '@/types/sports'
 
 interface TeamContext { restDays: number; isBackToBack: boolean; last5Record: string }
@@ -36,7 +38,7 @@ export default function NHLGameMatchupPage({ params }: { params: Promise<{ gameI
   useEffect(() => {
     if (!game) return
     const calcCtx = (games: any[], gameDate: string) => {
-      if (!games?.length) return { restDays: 2, isBackToBack: false, last5Record: '—' }
+      if (!games?.length) return { restDays: 2, isBackToBack: false, last5Record: '' }
       const last = games.find((g: any) => g.isCompleted)
       let restDays = 2, isB2B = false
       if (last) {
@@ -89,16 +91,16 @@ export default function NHLGameMatchupPage({ params }: { params: Promise<{ gameI
           {/* Rest & Form */}
           {(homeCtx || awayCtx) && (
             <div className="bg-[#0c0c14] rounded-lg border border-white/5 p-3">
-              <div className="flex items-center gap-2 mb-2"><Calendar className="w-3.5 h-3.5 text-blue-400" /><span className="text-xs font-bold text-white">Rest & Form</span></div>
+              <div className="flex items-center gap-2 mb-2"><Calendar className="w-3.5 h-3.5 text-blue-400" /><span className="text-xs font-bold text-white">Rest & Form</span><Tooltip content={TOOLTIPS.restDays} /></div>
               <div className="grid grid-cols-2 gap-2">
                 {[{ abbr: game.homeTeam.abbreviation, ctx: homeCtx }, { abbr: game.awayTeam.abbreviation, ctx: awayCtx }].map(t => (
                   <div key={t.abbr} className="flex gap-1.5">
                     <div className="bg-[#16161e] rounded px-2 py-1.5 text-center flex-1">
-                      <div className="text-sm font-bold text-white">{t.ctx?.restDays ?? '—'}d</div>
+                      <div className="text-sm font-bold text-white">{t.ctx?.restDays != null ? `${t.ctx.restDays}d` : '-'}</div>
                       <div className="text-[9px] text-gray-600">{t.abbr} REST</div>
                     </div>
                     <div className="bg-[#16161e] rounded px-2 py-1.5 text-center flex-1">
-                      <div className="text-sm font-bold text-green-400">{t.ctx?.last5Record || '—'}</div>
+                      <div className="text-sm font-bold text-green-400">{t.ctx?.last5Record || ''}</div>
                       <div className="text-[9px] text-gray-600">LAST 5</div>
                     </div>
                   </div>
@@ -108,15 +110,21 @@ export default function NHLGameMatchupPage({ params }: { params: Promise<{ gameI
           )}
 
           {/* Officials */}
-          <OfficialsPanel gameId={gameId} sport="nhl" />
+          <div className="relative">
+            <span className="absolute top-2.5 right-2 z-10"><Tooltip content={TOOLTIPS.officials} /></span>
+            <OfficialsPanel gameId={gameId} sport="nhl" />
+          </div>
 
           {/* Power Ratings */}
-          <PowerRatingsComparison sport="nhl" homeTeam={game.homeTeam.abbreviation} awayTeam={game.awayTeam.abbreviation} />
+          <div className="relative">
+            <span className="absolute top-2.5 right-2 z-10"><Tooltip content={TOOLTIPS.powerRating} /></span>
+            <PowerRatingsComparison sport="nhl" homeTeam={game.homeTeam.abbreviation} awayTeam={game.awayTeam.abbreviation} />
+          </div>
 
           {/* AI Pick */}
           {topPick && (
             <div className="bg-[#0c0c14] rounded-lg border border-orange-500/20 p-3">
-              <div className="flex items-center gap-2 mb-2"><Brain className="w-4 h-4 text-orange-400" /><span className="text-xs font-bold text-white">AI Pick</span></div>
+              <div className="flex items-center gap-2 mb-2"><Brain className="w-4 h-4 text-orange-400" /><span className="text-xs font-bold text-white">AI Pick</span><Tooltip content={TOOLTIPS.edgeScore} /></div>
               <div className="flex items-center justify-between p-2 bg-orange-500/10 rounded border border-orange-500/20">
                 <div><div className="text-sm font-bold text-orange-400">{topPick.selection}</div><div className="text-[10px] text-gray-500">{topPick.supportingTrends} trends</div></div>
                 <div className="text-xl font-black text-white">{topPick.confidence}%</div>
@@ -126,14 +134,14 @@ export default function NHLGameMatchupPage({ params }: { params: Promise<{ gameI
 
           {/* Betting Action */}
           <div className="bg-[#0c0c14] rounded-lg border border-white/5 p-3">
-            <div className="flex items-center gap-2 mb-2"><DollarSign className="w-3.5 h-3.5 text-green-400" /><span className="text-xs font-bold text-white">Betting Action</span></div>
+            <div className="flex items-center gap-2 mb-2"><DollarSign className="w-3.5 h-3.5 text-green-400" /><span className="text-xs font-bold text-white">Betting Action</span><Tooltip content={TOOLTIPS.lineMovement} /></div>
             <div className="grid grid-cols-4 gap-1.5">
               {[
                 { label: 'Line Move', value: bettingIntelligence?.lineMovement || '—', color: bettingIntelligence?.lineMovement?.startsWith('-') ? 'text-red-400' : 'text-green-400' },
                 { label: 'Public', value: bettingIntelligence?.publicPct ? `${bettingIntelligence.publicPct}%` : '—' },
                 { label: 'Sharp', value: bettingIntelligence?.sharpPct ? `${bettingIntelligence.sharpPct}%` : '—', color: (bettingIntelligence?.sharpPct || 0) > 60 ? 'text-green-400' : 'text-white' },
                 { label: 'Handle', value: bettingIntelligence?.handlePct ? `${bettingIntelligence.handlePct}%` : '—' },
-              ].map(m => (
+              ].filter(m => m.value !== '—').map(m => (
                 <div key={m.label} className="bg-[#16161e] rounded px-2 py-1.5 text-center">
                   <div className="text-[9px] text-gray-600 mb-0.5">{m.label}</div>
                   <div className={`text-sm font-bold ${m.color || 'text-white'}`}>{m.value}</div>
@@ -144,13 +152,13 @@ export default function NHLGameMatchupPage({ params }: { params: Promise<{ gameI
 
           {/* H2H — Puck Line labels */}
           {h2h && h2h.gamesPlayed > 0 && (
-            <CollapsibleSection title="H2H History" icon={Users} badge={`${h2h.gamesPlayed}g`}>
+            <CollapsibleSection title={<>H2H History <Tooltip content={TOOLTIPS.h2h} /></>} icon={Users} badge={`${h2h.gamesPlayed}g`}>
               <div className="grid grid-cols-4 gap-1.5 mt-2">
                 {[
                   { v: h2h.homeATSRecord, l: `${game.homeTeam.abbreviation} PL`, c: 'text-orange-400' },
                   { v: h2h.awayATSRecord, l: `${game.awayTeam.abbreviation} PL`, c: 'text-blue-400' },
                   { v: h2h.overUnderRecord, l: 'O/U', c: 'text-green-400' },
-                  { v: h2h.avgTotal?.toFixed(1) || '—', l: 'AVG GOALS', c: 'text-white' },
+                  { v: h2h.avgTotal?.toFixed(1), l: 'AVG GOALS', c: 'text-white' },
                 ].map(s => (
                   <div key={s.l} className="text-center p-1.5 bg-[#16161e] rounded">
                     <div className={`text-sm font-bold ${s.c}`}>{s.v}</div>

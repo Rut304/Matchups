@@ -43,7 +43,7 @@ export default function NBAPlayersPage() {
             name: p.name,
             team: p.team,
             teamAbbr: p.teamAbbr,
-            position: p.position || 'N/A',
+            position: p.position || '',
             ppg: 0, rpg: 0, apg: 0,
             fgPct: 0, fg3Pct: 0,
             trend: Math.random() > 0.7 ? 'hot' : Math.random() > 0.9 ? 'cold' : 'neutral'
@@ -167,8 +167,8 @@ export default function NBAPlayersPage() {
                       <td className="px-4 py-4 text-center font-bold text-orange-400">{player.ppg.toFixed(1)}</td>
                       <td className="px-4 py-4 text-center font-bold text-blue-400">{player.rpg.toFixed(1)}</td>
                       <td className="px-4 py-4 text-center font-bold text-green-400">{player.apg.toFixed(1)}</td>
-                      <td className="px-4 py-4 text-center text-gray-400">{player.fgPct > 0 ? `${player.fgPct.toFixed(1)}%` : '—'}</td>
-                      <td className="px-4 py-4 text-center text-gray-400">{player.fg3Pct > 0 ? `${player.fg3Pct.toFixed(1)}%` : '—'}</td>
+                      <td className="px-4 py-4 text-center text-gray-400">{player.fgPct > 0 ? `${player.fgPct.toFixed(1)}%` : '-'}</td>
+                      <td className="px-4 py-4 text-center text-gray-400">{player.fg3Pct > 0 ? `${player.fg3Pct.toFixed(1)}%` : '-'}</td>
                       <td className="px-4 py-4 text-center">
                         {player.trend === 'hot' && <TrendingUp className="w-4 h-4 text-green-400 mx-auto" />}
                         {player.trend === 'cold' && <TrendingDown className="w-4 h-4 text-red-400 mx-auto" />}

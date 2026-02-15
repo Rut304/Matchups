@@ -142,9 +142,9 @@ export default function NCAABPlayersPage() {
             const basePlayer = {
               rank: idx + 1,
               name: player.player_name,
-              team: player.team_name || 'Unknown',
-              pos: String(stats.position || 'N/A'),
-              conf: String(stats.conference || 'N/A'),
+              team: player.team_name || '-',
+              pos: String(stats.position || '-'),
+              conf: String(stats.conference || '-'),
               gp: stats.games_played || 0,
               trend,
             }

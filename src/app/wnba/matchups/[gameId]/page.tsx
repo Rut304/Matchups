@@ -50,7 +50,7 @@ export default function WNBAGameMatchupPage({ params }: { params: Promise<{ game
         ])
         
         const calcContext = (games: any[], gameTime: string): TeamContext => {
-          if (!games || games.length === 0) return { last5Record: '—', restDays: 0, isB2B: false }
+          if (!games || games.length === 0) return { last5Record: '', restDays: 0, isB2B: false }
           const completed = games?.filter(g => g.isCompleted && g.result) || []
           const wins = completed.filter(g => g.result === 'W').length
           const losses = completed.filter(g => g.result === 'L').length
@@ -149,13 +149,13 @@ export default function WNBAGameMatchupPage({ params }: { params: Promise<{ game
                   <div className="text-xs text-gray-500 mb-2">{game.homeTeam.abbreviation} (Home)</div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="bg-[#16161e] rounded-lg px-3 py-2 text-center">
-                      <div className="text-lg font-bold text-green-400">{homeContext?.last5Record || '—'}</div>
+                      <div className="text-lg font-bold text-green-400">{homeContext?.last5Record || ''}</div>
                       <div className="text-[10px] text-gray-500">LAST 5</div>
                     </div>
                     <div className={`bg-[#16161e] rounded-lg px-3 py-2 text-center ${homeContext?.isB2B ? 'border border-amber-500/30' : ''}`}>
                       <div className={`text-lg font-bold flex items-center justify-center gap-1 ${homeContext?.isB2B ? 'text-amber-400' : 'text-white'}`}>
                         <Clock className="w-3 h-3" />
-                        {homeContext?.restDays ?? '—'}
+                        {homeContext?.restDays != null ? homeContext.restDays : '-'}
                       </div>
                       <div className="text-[10px] text-gray-500">REST</div>
                     </div>
@@ -165,13 +165,13 @@ export default function WNBAGameMatchupPage({ params }: { params: Promise<{ game
                   <div className="text-xs text-gray-500 mb-2">{game.awayTeam.abbreviation} (Away)</div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="bg-[#16161e] rounded-lg px-3 py-2 text-center">
-                      <div className="text-lg font-bold text-green-400">{awayContext?.last5Record || '—'}</div>
+                      <div className="text-lg font-bold text-green-400">{awayContext?.last5Record || ''}</div>
                       <div className="text-[10px] text-gray-500">LAST 5</div>
                     </div>
                     <div className={`bg-[#16161e] rounded-lg px-3 py-2 text-center ${awayContext?.isB2B ? 'border border-amber-500/30' : ''}`}>
                       <div className={`text-lg font-bold flex items-center justify-center gap-1 ${awayContext?.isB2B ? 'text-amber-400' : 'text-white'}`}>
                         <Clock className="w-3 h-3" />
-                        {awayContext?.restDays ?? '—'}
+                        {awayContext?.restDays != null ? awayContext.restDays : '-'}
                       </div>
                       <div className="text-[10px] text-gray-500">REST</div>
                     </div>
@@ -188,7 +188,7 @@ export default function WNBAGameMatchupPage({ params }: { params: Promise<{ game
               Betting Action
             </h3>
             <div className="grid grid-cols-4 gap-2">
-              {bettingMetrics.map((m) => (
+              {bettingMetrics.filter(m => m.value !== '—').map((m) => (
                 <div key={m.label} className="bg-[#16161e] rounded-lg p-3 text-center">
                   <div className="text-[10px] text-gray-500 mb-1">{m.label}</div>
                   <div className={`text-lg font-bold ${m.color || 'text-white'}`}>{m.value}</div>
@@ -218,7 +218,7 @@ export default function WNBAGameMatchupPage({ params }: { params: Promise<{ game
                   <div className="text-[10px] text-gray-500">O/U</div>
                 </div>
                 <div className="text-center p-2 bg-[#16161e] rounded-lg">
-                  <div className="text-lg font-bold text-white">{h2h.avgTotal?.toFixed(1) || '—'}</div>
+                  <div className="text-lg font-bold text-white">{h2h.avgTotal?.toFixed(1) || ''}</div>
                   <div className="text-[10px] text-gray-500">AVG PTS</div>
                 </div>
               </div>

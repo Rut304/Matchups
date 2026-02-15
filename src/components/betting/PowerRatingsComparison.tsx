@@ -82,6 +82,9 @@ export function PowerRatingsComparison({
   const eloDiff = (homeRating?.elo || 1500) - (awayRating?.elo || 1500)
   const powerDiff = (homeRating?.power || 0) - (awayRating?.power || 0)
   
+  // If no ratings data available, don't render the component
+  if (!awayRating?.elo && !homeRating?.elo) return null
+  
   // Calculate predicted spread from Elo (rough approximation)
   // Every 25 Elo points ≈ 1 point spread, plus home advantage (~3 points)
   const predictedSpread = -(eloDiff / 25 + 3)

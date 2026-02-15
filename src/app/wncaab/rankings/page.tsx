@@ -31,12 +31,12 @@ export default function WNCAABRankingsPage() {
             setRankings(data.standings.map((t: any, idx: number) => ({
               rank: idx + 1,
               team: t.team?.displayName || t.name,
-              abbr: t.team?.abbreviation || t.abbreviation || '—',
-              conference: t.conference || '—',
+              abbr: t.team?.abbreviation || t.abbreviation || '-',
+              conference: t.conference || '-',
               record: `${t.wins || 0}-${t.losses || 0}`,
               ppg: t.pointsFor || 0,
               papg: t.pointsAgainst || 0,
-              streak: t.streak || '—'
+              streak: t.streak || '-'
             })))
             setLoading(false)
             return
@@ -52,12 +52,12 @@ export default function WNCAABRankingsPage() {
           setRankings(rankings.slice(0, 25).map((r: any) => ({
             rank: r.current,
             team: r.team?.nickname || r.team?.location,
-            abbr: r.team?.abbreviation || '—',
-            conference: r.team?.conferenceId || '—',
+            abbr: r.team?.abbreviation || '-',
+            conference: r.team?.conferenceId || '-',
             record: r.recordSummary || '0-0',
             ppg: 0,
             papg: 0,
-            streak: '—'
+            streak: '-'
           })))
         }
       } catch (e) {
@@ -146,8 +146,8 @@ export default function WNCAABRankingsPage() {
                         </Link>
                       </td>
                       <td className="px-4 py-4 text-center font-bold text-white">{team.record}</td>
-                      <td className="px-4 py-4 text-center text-green-400">{team.ppg > 0 ? team.ppg.toFixed(1) : '—'}</td>
-                      <td className="px-4 py-4 text-center text-red-400">{team.papg > 0 ? team.papg.toFixed(1) : '—'}</td>
+                      <td className="px-4 py-4 text-center text-green-400">{team.ppg > 0 ? team.ppg.toFixed(1) : '-'}</td>
+                      <td className="px-4 py-4 text-center text-red-400">{team.papg > 0 ? team.papg.toFixed(1) : '-'}</td>
                       <td className="px-4 py-4 text-center">
                         <span className={team.streak.startsWith('W') ? 'text-green-400' : team.streak.startsWith('L') ? 'text-red-400' : 'text-gray-500'}>
                           {team.streak}

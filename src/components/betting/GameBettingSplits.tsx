@@ -572,6 +572,153 @@ export function GameBettingSplits({
         </div>
       )}
 
+      {/* ============================================================= */}
+      {/* SHARP SIGNAL SUMMARY - The Whale's divergence indicator         */}
+      {/* Shows when money % diverges from ticket % by 15%+ on any market */}
+      {/* ============================================================= */}
+      {(() => {
+        // Collect all divergence signals across spread, moneyline, and total
+        const divergences: { market: string; side: string; moneyPct: number; ticketPct: number; divergence: number }[] = []
+
+        // Spread divergences
+        const spreadHomeDiff = splits.spread.homeMoneyPct - splits.spread.homeBetPct
+        const spreadAwayDiff = splits.spread.awayMoneyPct - splits.spread.awayBetPct
+        if (Math.abs(spreadHomeDiff) >= 15) {
+          divergences.push({
+            market: 'Spread',
+            side: homeLabel,
+            moneyPct: splits.spread.homeMoneyPct,
+            ticketPct: splits.spread.homeBetPct,
+            divergence: spreadHomeDiff,
+          })
+        }
+        if (Math.abs(spreadAwayDiff) >= 15) {
+          divergences.push({
+            market: 'Spread',
+            side: awayLabel,
+            moneyPct: splits.spread.awayMoneyPct,
+            ticketPct: splits.spread.awayBetPct,
+            divergence: spreadAwayDiff,
+          })
+        }
+
+        // Moneyline divergences
+        const mlHomeDiff = splits.moneyline.homeMoneyPct - splits.moneyline.homeBetPct
+        const mlAwayDiff = splits.moneyline.awayMoneyPct - splits.moneyline.awayBetPct
+        if (Math.abs(mlHomeDiff) >= 15) {
+          divergences.push({
+            market: 'ML',
+            side: homeLabel,
+            moneyPct: splits.moneyline.homeMoneyPct,
+            ticketPct: splits.moneyline.homeBetPct,
+            divergence: mlHomeDiff,
+          })
+        }
+        if (Math.abs(mlAwayDiff) >= 15) {
+          divergences.push({
+            market: 'ML',
+            side: awayLabel,
+            moneyPct: splits.moneyline.awayMoneyPct,
+            ticketPct: splits.moneyline.awayBetPct,
+            divergence: mlAwayDiff,
+          })
+        }
+
+        // Total divergences
+        const totalOverDiff = splits.total.overMoneyPct - splits.total.overBetPct
+        const totalUnderDiff = splits.total.underMoneyPct - splits.total.underBetPct
+        if (Math.abs(totalOverDiff) >= 15) {
+          divergences.push({
+            market: 'Total',
+            side: 'Over',
+            moneyPct: splits.total.overMoneyPct,
+            ticketPct: splits.total.overBetPct,
+            divergence: totalOverDiff,
+          })
+        }
+        if (Math.abs(totalUnderDiff) >= 15) {
+          divergences.push({
+            market: 'Total',
+            side: 'Under',
+            moneyPct: splits.total.underMoneyPct,
+            ticketPct: splits.total.underBetPct,
+            divergence: totalUnderDiff,
+          })
+        }
+
+        // Only keep sharp-side signals (money% > ticket% by 15+)
+        const sharpDivergences = divergences.filter(d => d.divergence >= 15)
+
+        if (sharpDivergences.length === 0) return null
+
+        return (
+          <div className="mt-4 pt-3 border-t border-slate-800">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="w-4 h-4 text-orange-400" />
+              <h4 className="text-sm font-semibold text-white">Sharp Signal Summary</h4>
+            </div>
+            <div className="space-y-2">
+              {sharpDivergences.map((d, i) => {
+                const barWidth = Math.min(100, Math.round(d.divergence))
+                return (
+                  <div
+                    key={i}
+                    className="relative overflow-hidden rounded-lg border border-green-500/30 bg-green-500/5 p-3"
+                  >
+                    {/* Divergence intensity bar (background) */}
+                    <div
+                      className="absolute inset-y-0 left-0 bg-green-500/10 transition-all duration-500"
+                      style={{ width: `${barWidth}%` }}
+                    />
+                    <div className="relative flex items-center gap-2">
+                      <span className="text-base flex-shrink-0">🔥</span>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm font-bold text-green-400">
+                          SHARP ALERT:
+                        </span>{' '}
+                        <span className="text-sm text-slate-200">
+                          {d.moneyPct}% of money but only {d.ticketPct}% of tickets on{' '}
+                          <span className="font-bold text-white">{d.side}</span>{' '}
+                          <span className="text-slate-400">({d.market})</span>
+                        </span>
+                      </div>
+                      <span className="flex-shrink-0 text-xs font-mono font-bold text-green-400 bg-green-500/20 px-2 py-0.5 rounded">
+                        +{d.divergence}%
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+
+              {/* Public-side counter-signal (money lower than tickets by 15+) */}
+              {divergences.filter(d => d.divergence <= -15).map((d, i) => (
+                <div
+                  key={`pub-${i}`}
+                  className="relative overflow-hidden rounded-lg border border-red-500/30 bg-red-500/5 p-3"
+                >
+                  <div className="relative flex items-center gap-2">
+                    <span className="text-base flex-shrink-0">📢</span>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm font-bold text-red-400">
+                        PUBLIC SIDE:
+                      </span>{' '}
+                      <span className="text-sm text-slate-200">
+                        {d.ticketPct}% of tickets but only {d.moneyPct}% of money on{' '}
+                        <span className="font-bold text-white">{d.side}</span>{' '}
+                        <span className="text-slate-400">({d.market})</span>
+                      </span>
+                    </div>
+                    <span className="flex-shrink-0 text-xs font-mono font-bold text-red-400 bg-red-500/20 px-2 py-0.5 rounded">
+                      {d.divergence}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Source Attribution - Smaller */}
       <div className="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-600">
         <span>Live betting data</span>

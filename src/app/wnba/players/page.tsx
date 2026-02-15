@@ -209,7 +209,7 @@ export default function WNBAPlayersPage() {
                       <td className="px-4 py-4 text-center font-bold text-blue-400">{player.rpg.toFixed(1)}</td>
                       <td className="px-4 py-4 text-center font-bold text-green-400">{player.apg.toFixed(1)}</td>
                       <td className="px-4 py-4 text-center font-bold text-purple-400">{player.spg.toFixed(1)}</td>
-                      <td className="px-4 py-4 text-center text-gray-400">{player.fgPct > 0 ? `${player.fgPct.toFixed(1)}%` : '—'}</td>
+                      <td className="px-4 py-4 text-center text-gray-400">{player.fgPct > 0 ? `${player.fgPct.toFixed(1)}%` : '-'}</td>
                       <td className="px-4 py-4 text-center">
                         {player.trend === 'hot' && <TrendingUp className="w-4 h-4 text-green-400 mx-auto" />}
                         {player.trend === 'cold' && <TrendingDown className="w-4 h-4 text-red-400 mx-auto" />}

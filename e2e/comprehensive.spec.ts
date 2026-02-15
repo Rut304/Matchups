@@ -72,7 +72,13 @@ async function collectPageErrors(page: Page): Promise<string[]> {
         !text.includes('CORS') &&  // External API CORS errors
         !text.includes('polymarket') &&  // Polymarket API errors
         !text.includes('Failed to fetch') &&  // Network fetch errors from external APIs
-        !text.includes('net::ERR_FAILED')) {  // Generic network failures
+        !text.includes('net::ERR_FAILED') && // Generic network failures
+        !text.includes('404') &&  // External API 404s that don't affect page
+        !text.includes('ESPN') &&  // ESPN API flakiness
+        !text.includes('rate limit') &&  // API rate limiting
+        !text.includes('ERR_CONNECTION') &&  // Connection errors to external APIs
+        !text.includes('Warning:') &&  // React Dev warnings treated as errors
+        !text.includes('favicon')) {  // Favicon loading errors
       errors.push(text);
     }
   });

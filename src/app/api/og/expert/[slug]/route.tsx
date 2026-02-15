@@ -293,7 +293,7 @@ export async function GET(
                 color: stats.recentForm.startsWith('W') ? '#00FF88' : '#FF4455',
               }}
             >
-              {stats.recentForm || 'N/A'}
+              {stats.recentForm || '-'}
             </span>
             <span style={{ fontSize: '20px', color: '#808090' }}>
               Recent Form

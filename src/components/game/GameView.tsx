@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { type UnifiedGame } from '@/lib/api/data-layer'
 import { getRealEdgeAlerts, type EdgeAlert } from '@/lib/edge-features'
+import Tooltip from '@/components/ui/Tooltip'
+import { TOOLTIPS } from '@/lib/tooltip-content'
 
 interface MatchupAnalytics {
   trends?: {
@@ -204,9 +206,9 @@ export function GameView({ game, expanded = false, showEdge = true, showAnalytic
         {/* Quick Odds Preview */}
         {liveData.odds && !isFinal && (
           <div className="flex items-center gap-4 mt-3 pt-3 border-t border-zinc-800 text-xs text-zinc-400">
-            <span>Spread: {liveData.odds.spread > 0 ? '+' : ''}{liveData.odds.spread}</span>
-            <span>O/U: {liveData.odds.total}</span>
-            <span>ML: {liveData.odds.homeML > 0 ? '+' : ''}{liveData.odds.homeML}</span>
+            <span>Spread <Tooltip content={TOOLTIPS.spread} />: {liveData.odds.spread > 0 ? '+' : ''}{liveData.odds.spread}</span>
+            <span>O/U <Tooltip content={TOOLTIPS.overUnder} />: {liveData.odds.total}</span>
+            <span>ML <Tooltip content={TOOLTIPS.moneyline} />: {liveData.odds.homeML > 0 ? '+' : ''}{liveData.odds.homeML}</span>
           </div>
         )}
         
@@ -242,7 +244,7 @@ export function GameView({ game, expanded = false, showEdge = true, showAnalytic
               <div className="grid grid-cols-3 gap-4">
                 {/* Spread */}
                 <div className="bg-zinc-800 rounded-lg p-3">
-                  <div className="text-xs text-zinc-500 mb-1">Spread</div>
+                  <div className="text-xs text-zinc-500 mb-1">Spread <Tooltip content={TOOLTIPS.spread} /></div>
                   <div className="text-white font-semibold">
                     {liveData.awayTeam?.abbreviation ?? 'Away'} {liveData.odds.spread > 0 ? '+' : ''}{-liveData.odds.spread}
                   </div>
@@ -253,7 +255,7 @@ export function GameView({ game, expanded = false, showEdge = true, showAnalytic
                 
                 {/* Total */}
                 <div className="bg-zinc-800 rounded-lg p-3">
-                  <div className="text-xs text-zinc-500 mb-1">Total</div>
+                  <div className="text-xs text-zinc-500 mb-1">Total <Tooltip content={TOOLTIPS.overUnder} /></div>
                   <div className="text-white font-semibold">
                     O {liveData.odds.total} ({formatOdds(liveData.odds.overOdds)})
                   </div>
@@ -264,7 +266,7 @@ export function GameView({ game, expanded = false, showEdge = true, showAnalytic
                 
                 {/* Moneyline */}
                 <div className="bg-zinc-800 rounded-lg p-3">
-                  <div className="text-xs text-zinc-500 mb-1">Moneyline</div>
+                  <div className="text-xs text-zinc-500 mb-1">Moneyline <Tooltip content={TOOLTIPS.moneyline} /></div>
                   <div className="text-white font-semibold">
                     {liveData.awayTeam?.abbreviation ?? 'Away'} {formatOdds(liveData.odds.awayML)}
                   </div>
@@ -273,6 +275,19 @@ export function GameView({ game, expanded = false, showEdge = true, showAnalytic
                   </div>
                 </div>
               </div>
+
+              {/* Shop for Best Line CTA */}
+              <Link
+                href="/lineshop"
+                className="flex items-center justify-center gap-2 mt-3 py-2 px-4 rounded-lg bg-green-500/10 border border-green-500/30 hover:bg-green-500/20 transition-colors group"
+              >
+                <span className="text-green-400 text-sm font-semibold group-hover:text-green-300">
+                  🏪 Shop for Best Line
+                </span>
+                <span className="text-xs text-zinc-500 group-hover:text-zinc-400">
+                  Compare odds across FanDuel, DraftKings, BetMGM &amp; more
+                </span>
+              </Link>
             </div>
           )}
           
@@ -382,7 +397,7 @@ export function GameView({ game, expanded = false, showEdge = true, showAnalytic
                         <span className="text-purple-400">🏆</span> Head-to-Head
                       </h4>
                       <div className="text-xs text-zinc-400">
-                        {analytics.h2h.gamesPlayed} games • ATS: {analytics.h2h.homeATSRecord} • Avg Total: {analytics.h2h.avgTotal?.toFixed(1)}
+                        {analytics.h2h.gamesPlayed} games • ATS <Tooltip content={TOOLTIPS.ats} />: {analytics.h2h.homeATSRecord} • Avg Total: {analytics.h2h.avgTotal?.toFixed(1)}
                       </div>
                     </div>
                   )}
@@ -390,7 +405,7 @@ export function GameView({ game, expanded = false, showEdge = true, showAnalytic
                   {/* Edge Score */}
                   {analytics.edgeScore && analytics.edgeScore.overall > 0 && (
                     <div className="flex items-center gap-3 pt-2 border-t border-zinc-800">
-                      <div className="text-xs text-zinc-500">Edge Score:</div>
+                      <div className="text-xs text-zinc-500">Edge Score <Tooltip content={TOOLTIPS.edgeScore} />:</div>
                       <div className={`text-sm font-bold ${
                         analytics.edgeScore.overall >= 70 ? 'text-green-400' :
                         analytics.edgeScore.overall >= 50 ? 'text-amber-400' : 'text-zinc-400'
@@ -398,8 +413,8 @@ export function GameView({ game, expanded = false, showEdge = true, showAnalytic
                         {analytics.edgeScore.overall}/100
                       </div>
                       <div className="flex gap-2 text-xs text-zinc-500">
-                        <span>Trends: {analytics.edgeScore.trendAlignment}</span>
-                        <span>Sharp: {analytics.edgeScore.sharpSignal}</span>
+                        <span>Trends <Tooltip content={TOOLTIPS.trendAlignment} />: {analytics.edgeScore.trendAlignment}</span>
+                        <span>Sharp <Tooltip content={TOOLTIPS.sharpSignal} />: {analytics.edgeScore.sharpSignal}</span>
                       </div>
                     </div>
                   )}

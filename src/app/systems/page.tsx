@@ -274,7 +274,7 @@ export default function SystemsPage() {
         sport,
         betType,
         stats: {
-          record: data.wins !== undefined ? `${data.wins}-${data.losses}${data.pushes ? '-' + data.pushes : ''}` : 'N/A',
+          record: data.wins !== undefined ? `${data.wins}-${data.losses}${data.pushes ? '-' + data.pushes : ''}` : '-',
           winPct: data.winPct || 0,
           roi: data.roi || 0,
           units: data.unitsProfit || 0,

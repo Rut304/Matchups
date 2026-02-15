@@ -350,9 +350,9 @@ export default function SusPlaysPage() {
             id: p.id as string,
             sport: (p.sport as string || 'nfl') as Sport,
             playerName: p.playerName as string || 'Unknown',
-            team: p.team as string || 'N/A',
+            team: p.team as string || '',
             title: p.title as string || undefined, // Include title for Unknown players
-            opponent: 'N/A',
+            opponent: '',
             gameDate: new Date().toISOString(),
             description: p.description as string || p.title as string || '',
             susType: (p.susType as string || 'other') as SusType,

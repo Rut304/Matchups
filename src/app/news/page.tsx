@@ -49,12 +49,13 @@ async function NewsFetcher({ sport }: { sport?: string }) {
 }
 
 // Main page component
-export default function NewsPage({
+export default async function NewsPage({
   searchParams,
 }: {
-  searchParams: { sport?: string }
+  searchParams: Promise<{ sport?: string }>
 }) {
-  const activeSport = searchParams.sport || 'ALL'
+  const params = await searchParams
+  const activeSport = params.sport || 'ALL'
 
   return (
     <Suspense

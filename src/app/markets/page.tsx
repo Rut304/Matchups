@@ -458,7 +458,7 @@ export default function MarketsPage() {
                             {' • '}
                             Result: <span style={{ color: '#FFF' }}>{market.resolution}</span>
                             {' • '}
-                            Resolved: {market.resolved_at ? new Date(market.resolved_at).toLocaleDateString() : 'Unknown'}
+                            Resolved: {market.resolved_at ? new Date(market.resolved_at).toLocaleDateString() : 'Pending'}
                           </div>
                         </div>
                         <div className="text-right">

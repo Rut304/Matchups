@@ -19,10 +19,10 @@ test.describe('Edge Features', () => {
       
       const data = await response.json();
       expect(data).toHaveProperty('count');
-      expect(data).toHaveProperty('alerts');
+      expect(data).toHaveProperty('edges');
       expect(data).toHaveProperty('config');
       expect(data).toHaveProperty('timestamp');
-      expect(Array.isArray(data.alerts)).toBe(true);
+      expect(Array.isArray(data.edges)).toBe(true);
     });
 
     test('GET /api/edges with sport filter', async ({ request }) => {
@@ -30,9 +30,9 @@ test.describe('Edge Features', () => {
       expect(response.status()).toBe(200);
       
       const data = await response.json();
-      expect(data.alerts).toBeDefined();
-      // All alerts should be for NFL
-      for (const alert of data.alerts) {
+      expect(data.edges).toBeDefined();
+      // All edges should be for NFL
+      for (const alert of data.edges) {
         expect(alert.sport).toBe('NFL');
       }
     });
@@ -42,7 +42,7 @@ test.describe('Edge Features', () => {
       expect(response.status()).toBe(200);
       
       const data = await response.json();
-      expect(Array.isArray(data.alerts)).toBe(true);
+      expect(Array.isArray(data.edges)).toBe(true);
     });
 
     test('GET /api/edges with type filter', async ({ request }) => {
@@ -50,8 +50,8 @@ test.describe('Edge Features', () => {
       expect(response.status()).toBe(200);
       
       const data = await response.json();
-      // All alerts should be RLM type
-      for (const alert of data.alerts) {
+      // All edges should be RLM type
+      for (const alert of data.edges) {
         expect(alert.type).toBe('rlm');
       }
     });
@@ -61,8 +61,8 @@ test.describe('Edge Features', () => {
       expect(response.status()).toBe(200);
       
       const data = await response.json();
-      // All alerts should have confidence >= 70
-      for (const alert of data.alerts) {
+      // All edges should have confidence >= 70
+      for (const alert of data.edges) {
         expect(alert.confidence).toBeGreaterThanOrEqual(70);
       }
     });
@@ -72,8 +72,8 @@ test.describe('Edge Features', () => {
       expect(response.status()).toBe(200);
       
       const data = await response.json();
-      // All alerts should be critical severity
-      for (const alert of data.alerts) {
+      // All edges should be critical severity
+      for (const alert of data.edges) {
         expect(alert.severity).toBe('critical');
       }
     });
@@ -82,8 +82,8 @@ test.describe('Edge Features', () => {
       const response = await request.get('/api/edges');
       const data = await response.json();
       
-      if (data.alerts.length > 0) {
-        const alert = data.alerts[0];
+      if (data.edges.length > 0) {
+        const alert = data.edges[0];
         expect(alert).toHaveProperty('id');
         expect(alert).toHaveProperty('type');
         expect(alert).toHaveProperty('gameId');
@@ -324,7 +324,7 @@ test.describe('Edge Alert Types', () => {
     const response = await request.get('/api/edges?type=rlm');
     const data = await response.json();
     
-    for (const alert of data.alerts) {
+    for (const alert of data.edges) {
       expect(alert.type).toBe('rlm');
       expect(['critical', 'major', 'minor', 'info']).toContain(alert.severity);
       if (alert.data.lineOpenSpread !== undefined) {
@@ -340,7 +340,7 @@ test.describe('Edge Alert Types', () => {
     const response = await request.get('/api/edges?type=steam');
     const data = await response.json();
     
-    for (const alert of data.alerts) {
+    for (const alert of data.edges) {
       expect(alert.type).toBe('steam');
       if (alert.data.steamSpeed !== undefined) {
         expect(typeof alert.data.steamSpeed).toBe('number');
@@ -355,7 +355,7 @@ test.describe('Edge Alert Types', () => {
     const response = await request.get('/api/edges?type=sharp-public');
     const data = await response.json();
     
-    for (const alert of data.alerts) {
+    for (const alert of data.edges) {
       expect(alert.type).toBe('sharp-public');
       if (alert.data.publicPct !== undefined) {
         expect(alert.data.publicPct).toBeGreaterThanOrEqual(0);

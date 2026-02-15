@@ -122,8 +122,8 @@ export default function CapperProfilePage() {
   
   // Computed values for display
   const streakStr = typeof expertStats.currentStreak === 'number' 
-    ? (expertStats.currentStreak > 0 ? `W${expertStats.currentStreak}` : expertStats.currentStreak < 0 ? `L${Math.abs(expertStats.currentStreak)}` : 'N/A')
-    : String(expertStats.currentStreak || 'N/A')
+    ? (expertStats.currentStreak > 0 ? `W${expertStats.currentStreak}` : expertStats.currentStreak < 0 ? `L${Math.abs(expertStats.currentStreak)}` : 'Even')
+    : String(expertStats.currentStreak || 'Even')
   
   const isHot = streakStr.startsWith('W') && parseInt(streakStr.slice(1)) >= 3
   const isCold = streakStr.startsWith('L') && parseInt(streakStr.slice(1)) >= 3

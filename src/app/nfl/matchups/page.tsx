@@ -238,7 +238,7 @@ export default function NFLMatchupsPage() {
                       <div>
                         <div className="font-bold text-white text-lg">{game.awayTeam.name}</div>
                         <div className="text-sm text-gray-500">
-                          {game.awayTeam.record || 'N/A'}
+                          {game.awayTeam.record}
                           {game.awayTeam.seed && <span className="ml-1 text-orange-500">#{game.awayTeam.seed}</span>}
                         </div>
                         {game.status !== 'scheduled' && (
@@ -267,13 +267,13 @@ export default function NFLMatchupsPage() {
                           <div className="w-px h-8 bg-white/10" />
                           <div className="text-center">
                             <div className="text-xs text-gray-500">TOTAL</div>
-                            <div className="font-bold text-blue-500">{game.odds.total.line || 'N/A'}</div>
+                            <div className="font-bold text-blue-500">{game.odds.total.line || '-'}</div>
                           </div>
                           <div className="w-px h-8 bg-white/10" />
                           <div className="text-center">
                             <div className="text-xs text-gray-500">ML</div>
                             <div className="font-bold text-green-400">
-                              {game.odds.moneyline.home > 0 ? '+' : ''}{game.odds.moneyline.home || 'N/A'}
+                              {game.odds.moneyline.home > 0 ? '+' : ''}{game.odds.moneyline.home || '-'}
                             </div>
                           </div>
                         </div>
@@ -289,7 +289,7 @@ export default function NFLMatchupsPage() {
                       <div className="text-right">
                         <div className="font-bold text-white text-lg">{game.homeTeam.name}</div>
                         <div className="text-sm text-gray-500">
-                          {game.homeTeam.record || 'N/A'}
+                          {game.homeTeam.record}
                           {game.homeTeam.seed && <span className="ml-1 text-orange-500">#{game.homeTeam.seed}</span>}
                         </div>
                         {game.status !== 'scheduled' && (
