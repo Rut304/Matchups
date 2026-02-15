@@ -67,8 +67,8 @@ export default function GameMatchupPage({ params }: { params: Promise<{ gameId: 
 
       // Schedules
       Promise.all([
-        fetch(`/api/team/nfl/${homeAbbr}/schedule?limit=5`).then(r => r.ok ? r.json() : null),
-        fetch(`/api/team/nfl/${awayAbbr}/schedule?limit=5`).then(r => r.ok ? r.json() : null),
+        fetch(`/api/team/nfl/${homeAbbr}/schedule?limit=15`).then(r => r.ok ? r.json() : null),
+        fetch(`/api/team/nfl/${awayAbbr}/schedule?limit=15`).then(r => r.ok ? r.json() : null),
       ]).then(([h, a]) => {
         if (h?.games) setHomeSchedule(h.games.filter((g: any) => g.isCompleted).slice(0, 5))
         if (a?.games) setAwaySchedule(a.games.filter((g: any) => g.isCompleted).slice(0, 5))

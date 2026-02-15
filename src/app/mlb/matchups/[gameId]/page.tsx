@@ -37,8 +37,8 @@ export default function MLBGameMatchupPage({ params }: { params: Promise<{ gameI
   useEffect(() => {
     if (!game) return
     Promise.all([
-      fetch(`/api/team/mlb/${game.homeTeam.abbreviation}/schedule?limit=10`).then(r => r.ok ? r.json() : null),
-      fetch(`/api/team/mlb/${game.awayTeam.abbreviation}/schedule?limit=10`).then(r => r.ok ? r.json() : null),
+      fetch(`/api/team/mlb/${game.homeTeam.abbreviation}/schedule?limit=20`).then(r => r.ok ? r.json() : null),
+      fetch(`/api/team/mlb/${game.awayTeam.abbreviation}/schedule?limit=20`).then(r => r.ok ? r.json() : null),
     ]).then(([h, a]) => {
       const calc = (games: any[]) => {
         const c = (games || []).filter((g: any) => g.isCompleted && g.result)

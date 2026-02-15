@@ -811,7 +811,8 @@ export async function GET(
         h2h: null,
         edgePicks: [],
         aiInsights: null,
-        edgeScore: { overall: 0, trendAlignment: 0, sharpSignal: 0, valueIndicator: 0 }
+        edgeScore: { overall: 0, trendAlignment: 0, sharpSignal: 0, valueIndicator: 0 },
+        bettingIntelligence: null
       })
     }
 
@@ -936,10 +937,39 @@ export async function GET(
           { name: gameData.away_team_name, abbr: gameData.away_team_abbr || '' },
           { includeAI, includeLive: false }
         )
-        response.bettingIntelligence = intelligence
+        // Normalize deeply-nested MatchupIntelligence into flat UI-friendly fields
+        // The UI expects: lineMovement (string), publicPct (number), sharpPct (number), handlePct (number), reverseLineMovement (boolean)
+        const lm = intelligence?.lineMovement?.spread
+        const splits = intelligence?.publicSharpSplits?.spread
+        const spreadDelta = lm ? Math.abs((lm.current ?? 0) - (lm.open ?? 0)) : 0
+        const lineMovementStr = lm && spreadDelta > 0
+          ? (lm.direction === 'toward_home' ? `-${spreadDelta.toFixed(1)}` : `+${spreadDelta.toFixed(1)}`)
+          : lm?.steamMoveDetected ? 'STEAM' : null
+        
+        // Treat 0 as "no data" — real splits are never exactly 0%
+        const pubPct = splits?.publicHomePct && splits.publicHomePct > 0 ? splits.publicHomePct : null
+        const sharpPct = splits?.moneyHomePct && splits.moneyHomePct > 0 ? splits.moneyHomePct : null
+        
+        response.bettingIntelligence = {
+          ...intelligence,
+          // Flat convenience fields for the matchup page UI
+          lineMovement: lineMovementStr || null,
+          publicPct: pubPct,
+          sharpPct: sharpPct,
+          handlePct: sharpPct, // handle% tracks with money% in Action Network data
+          reverseLineMovement: splits?.reverseLineMovement ?? false,
+        }
         response.topDataPoints = getTopDataPoints(intelligence)
       } catch (e) {
         console.error('Failed to get betting intelligence:', e)
+        // Fallback: provide empty but correctly shaped bettingIntelligence
+        response.bettingIntelligence = {
+          lineMovement: null,
+          publicPct: null,
+          sharpPct: null,
+          handlePct: null,
+          reverseLineMovement: false,
+        }
       }
     }
 

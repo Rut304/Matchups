@@ -48,8 +48,8 @@ export default function NBAGameMatchupPage({ params }: { params: Promise<{ gameI
     }
     const gd = game.scheduledAt || game.startTime
     Promise.all([
-      fetch(`/api/team/nba/${game.homeTeam.abbreviation}/schedule?limit=5`).then(r => r.ok ? r.json() : null),
-      fetch(`/api/team/nba/${game.awayTeam.abbreviation}/schedule?limit=5`).then(r => r.ok ? r.json() : null),
+      fetch(`/api/team/nba/${game.homeTeam.abbreviation}/schedule?limit=15`).then(r => r.ok ? r.json() : null),
+      fetch(`/api/team/nba/${game.awayTeam.abbreviation}/schedule?limit=15`).then(r => r.ok ? r.json() : null),
     ]).then(([h, a]) => {
       if (h?.games) setHomeCtx(calcCtx(h.games, gd))
       if (a?.games) setAwayCtx(calcCtx(a.games, gd))

@@ -252,14 +252,21 @@ function transformESPNEvent(event: ESPNScheduleEvent, ourTeamId: string): TeamGa
   const isCompleted = competition.status.type.completed
   
   // Helper to extract score value - ESPN returns score as string, number, or object
+  // IMPORTANT: Use explicit null checks to handle score=0 (shutouts) correctly
   const extractScore = (score: string | number | { value?: number; displayValue?: string } | undefined): number | null => {
     if (score === undefined || score === null) return null
     if (typeof score === 'number') return score
-    if (typeof score === 'string') return parseInt(score) || null
+    if (typeof score === 'string') {
+      const parsed = parseInt(score, 10)
+      return isNaN(parsed) ? null : parsed
+    }
     if (typeof score === 'object') {
       // Handle {value: 14.0, displayValue: '14'} format
-      if (score.value !== undefined) return Math.round(score.value)
-      if (score.displayValue) return parseInt(score.displayValue) || null
+      if (score.value !== undefined && score.value !== null) return Math.round(score.value)
+      if (score.displayValue) {
+        const parsed = parseInt(score.displayValue, 10)
+        return isNaN(parsed) ? null : parsed
+      }
     }
     return null
   }

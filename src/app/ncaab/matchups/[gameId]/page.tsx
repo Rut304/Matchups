@@ -35,8 +35,8 @@ export default function NCAABGameMatchupPage({ params }: { params: Promise<{ gam
   useEffect(() => {
     if (!game) return
     Promise.all([
-      fetch(`/api/team/ncaab/${game.homeTeam.abbreviation}/schedule?limit=5`).then(r => r.ok ? r.json() : null),
-      fetch(`/api/team/ncaab/${game.awayTeam.abbreviation}/schedule?limit=5`).then(r => r.ok ? r.json() : null),
+      fetch(`/api/team/ncaab/${game.homeTeam.abbreviation}/schedule?limit=15`).then(r => r.ok ? r.json() : null),
+      fetch(`/api/team/ncaab/${game.awayTeam.abbreviation}/schedule?limit=15`).then(r => r.ok ? r.json() : null),
     ]).then(([h, a]) => {
       const calc = (games: any[]) => {
         const c = (games || []).filter((g: any) => g.isCompleted && g.result)
