@@ -1006,7 +1006,7 @@ export default function GameDetailPage() {
             awayTeam={game.away.name}
             homeAbbr={game.home.abbr}
             awayAbbr={game.away.abbr}
-            compact={true}
+            compact={false}
             showTitle={true}
           />
           

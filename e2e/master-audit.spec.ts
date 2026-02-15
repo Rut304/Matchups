@@ -28,7 +28,6 @@ const STATIC_ROUTES = [
   { path: '/nhl/matchups', name: 'NHL Matchups List', critical: true, category: 'sports' },
   { path: '/mlb', name: 'MLB Homepage', critical: true, category: 'sports' },
   { path: '/mlb/matchups', name: 'MLB Matchups List', critical: true, category: 'sports' },
-  { path: '/mlb/matchups', name: 'MLB Matchups List', critical: true, category: 'sports' },
   { path: '/ncaaf', name: 'NCAAF Homepage', critical: true, category: 'sports' },
   { path: '/ncaaf/players', name: 'NCAAF Players', critical: true, category: 'sports' },
   { path: '/ncaaf/rankings', name: 'NCAAF Rankings', critical: false, category: 'sports' },

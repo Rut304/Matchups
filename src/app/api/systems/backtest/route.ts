@@ -111,18 +111,18 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = createClient(supabaseUrl, supabaseAnonKey)
     
-    // Build query
+    // Build query - get games with scores (compute spread_result if missing)
     let query = supabase
       .from('historical_games')
       .select('*')
-      .eq('sport', criteria.sport)
+      .not('home_score', 'is', null)
+      .not('away_score', 'is', null)
       .gte('season', criteria.seasonStart || 2000)
       .lte('season', criteria.seasonEnd || 2025)
-      .not('spread_result', 'is', null)
     
-    // Season type filter
-    if (criteria.seasonType && criteria.seasonType !== 'all') {
-      query = query.eq('season_type', criteria.seasonType)
+    // Sport filter (skip for 'all')
+    if (criteria.sport && criteria.sport !== 'all') {
+      query = query.eq('sport', criteria.sport)
     }
     
     // Spread filters
@@ -146,7 +146,9 @@ export async function GET(request: NextRequest) {
       query = query.lte('home_ticket_pct', criteria.publicTicketPctMax)
     }
     
-    const { data: games, error } = await query.order('game_date', { ascending: false })
+    const { data: games, error } = await query
+      .order('game_date', { ascending: false })
+      .limit(5000)
     
     if (error) {
       console.error('Supabase query error:', error)
@@ -197,10 +199,11 @@ function calculateBacktestResults(
     away_score: number
     point_spread: number
     over_under: number
-    spread_result: string
-    total_result: string
+    spread_result?: string
+    total_result?: string
     season: number
     home_ticket_pct?: number
+    total_points?: number
   }>,
   criteria: BacktestCriteria
 ): BacktestResult {
@@ -248,27 +251,51 @@ function calculateBacktestResults(
     let result: 'W' | 'L' | 'P' = 'P'
     let pickSide = ''
     
+    // Compute spread_result and total_result on the fly if missing
+    const margin = game.home_score - game.away_score
+    const spreadResult = game.spread_result || (
+      homeSpread !== 0 ? (
+        (margin + homeSpread) > 0 ? 'home_cover' : (margin + homeSpread) < 0 ? 'away_cover' : 'push'
+      ) : (margin > 0 ? 'home_cover' : margin < 0 ? 'away_cover' : 'push')
+    )
+    const actualTotal = game.total_points || (game.home_score + game.away_score)
+    const totalResult = game.total_result || (
+      game.over_under ? (
+        actualTotal > game.over_under ? 'over' : actualTotal < game.over_under ? 'under' : 'push'
+      ) : undefined
+    )
+
     if (criteria.betType === 'ats') {
-      // ATS betting
+      if (!homeSpread && homeSpread !== 0) continue // skip games without spread
       if (criteria.homeOnly || (criteria.favoriteOnly && homeSpread < 0) || (criteria.underdogOnly && homeSpread > 0)) {
         // Betting on home team
         pickSide = `${game.home_team_abbr} ${homeSpread > 0 ? '+' : ''}${homeSpread}`
-        if (game.spread_result === 'home_cover') result = 'W'
-        else if (game.spread_result === 'away_cover') result = 'L'
+        if (spreadResult === 'home_cover') result = 'W'
+        else if (spreadResult === 'away_cover') result = 'L'
         else result = 'P'
       } else {
         // Betting on away team
         pickSide = `${game.away_team_abbr} ${homeSpread < 0 ? '+' : ''}${-homeSpread}`
-        if (game.spread_result === 'away_cover') result = 'W'
-        else if (game.spread_result === 'home_cover') result = 'L'
+        if (spreadResult === 'away_cover') result = 'W'
+        else if (spreadResult === 'home_cover') result = 'L'
         else result = 'P'
       }
     } else if (criteria.betType === 'ou') {
+      if (!game.over_under) continue // skip games without total
       // Over/Under betting - for simplicity, assume Over is the pick
       pickSide = `O ${game.over_under}`
-      if (game.total_result === 'over') result = 'W'
-      else if (game.total_result === 'under') result = 'L'
+      if (totalResult === 'over') result = 'W'
+      else if (totalResult === 'under') result = 'L'
       else result = 'P'
+    } else if (criteria.betType === 'ml') {
+      // ML: bet on projected side to win outright
+      if (criteria.homeOnly || (criteria.favoriteOnly && homeSpread < 0) || (criteria.underdogOnly && homeSpread > 0)) {
+        pickSide = `${game.home_team_abbr} ML`
+        result = margin > 0 ? 'W' : 'L'
+      } else {
+        pickSide = `${game.away_team_abbr} ML`
+        result = margin < 0 ? 'W' : 'L'
+      }
     }
     
     // Track stats

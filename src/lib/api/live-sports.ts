@@ -720,15 +720,22 @@ export async function getRankings(sport: 'ncaaf' | 'ncaab'): Promise<RankedTeam[
     const poll = data.rankings?.[0]
     if (!poll?.ranks) return []
     
-    return poll.ranks.slice(0, 25).map((team: any) => ({
-      rank: team.current,
-      team: team.team?.shortDisplayName || team.team?.displayName || 'Unknown',
-      abbreviation: team.team?.abbreviation,
-      record: team.recordSummary || `${team.team?.record?.items?.[0]?.summary || '0-0'}`,
-      conference: team.team?.groups?.name || 'Independent',
-      change: team.previous ? team.previous - team.current : 0,
-      logo: team.team?.logos?.[0]?.href,
-    }))
+    return poll.ranks.slice(0, 25).map((entry: any) => {
+      const t = entry.team || {}
+      // ESPN rankings API: team has location, name, nickname, abbreviation, logos[], logo
+      const teamName = t.location 
+        ? `${t.location}${t.name ? ' ' + t.name : ''}`
+        : t.nickname || t.abbreviation || 'Unknown'
+      return {
+        rank: entry.current,
+        team: teamName,
+        abbreviation: t.abbreviation,
+        record: entry.recordSummary || '0-0',
+        conference: t.conferenceId || '',
+        change: entry.previous ? entry.previous - entry.current : 0,
+        logo: t.logo || t.logos?.[0]?.href,
+      }
+    })
   } catch (error) {
     console.error('Failed to fetch rankings:', error)
     return []

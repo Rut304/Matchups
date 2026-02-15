@@ -317,7 +317,7 @@ export function GameBettingSplits({
   const [sharpSignals, setSharpSignals] = useState<SharpSignal[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isExpanded, setIsExpanded] = useState(!compact)
+  const [isExpanded, setIsExpanded] = useState(true)
   const [lastUpdated, setLastUpdated] = useState<string | null>(null)
 
   // Use abbreviations if provided, otherwise extract from team names

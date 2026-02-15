@@ -157,9 +157,14 @@ export default async function NCAABPage() {
                         }`}>
                           {team.rank}
                         </span>
+                        {team.logo && (
+                          <img src={team.logo} alt={team.team} className="w-6 h-6 object-contain" />
+                        )}
                         <div>
                           <span className="font-semibold" style={{ color: '#FFF' }}>{team.team}</span>
-                          <span className="text-xs ml-2" style={{ color: '#606070' }}>{team.conference}</span>
+                          {team.conference && (
+                            <span className="text-xs ml-2" style={{ color: '#606070' }}>{team.conference}</span>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
@@ -271,8 +276,8 @@ export default async function NCAABPage() {
               <h3 className="font-bold mb-4" style={{ color: '#FFF' }}>Quick Links</h3>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { label: '🏆 Bracket', href: '#' },
-                  { label: '📊 Stats', href: '#' },
+                  { label: '🏆 Bracket', href: '/ncaab/rankings' },
+                  { label: '📊 Stats', href: '/stats?sport=ncaab' },
                   { label: '🎯 Props', href: '/players' },
                   { label: '🔥 Trends', href: '/trends' },
                   { label: '📈 Systems', href: '/systems' },

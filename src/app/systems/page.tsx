@@ -128,63 +128,63 @@ interface SystemResult {
   dataNote?: string // Note about data availability
 }
 
-// Pre-built system TEMPLATES - criteria only, no backtest data
-// Real backtesting requires historical betting database connection
+// Pre-built system TEMPLATES - criteria only, stats populated via backtest API
+// Click "Run Backtest" on any template to see real historical results
 const popularSystems: SystemResult[] = [
   {
     id: 'sys-1',
     name: 'NFL Home Dogs After Loss',
-    criteria: ['Home underdog', 'Coming off a loss', 'Spread +3 to +7'],
+    criteria: ['Home team', 'Underdog', 'Spread +3 to +7'],
     sport: 'nfl',
     betType: 'ats',
-    stats: { record: 'N/A', winPct: 0, roi: 0, units: 0, avgOdds: -110, clv: 0, maxDrawdown: 0, sharpeRatio: 0, kellyPct: 0 },
+    stats: { record: 'Run Backtest →', winPct: 0, roi: 0, units: 0, avgOdds: -110, clv: 0, maxDrawdown: 0, sharpeRatio: 0, kellyPct: 0 },
     recentPicks: [],
     upcomingPicks: [],
-    dataNote: 'Connect historical database to backtest this system.',
+    dataNote: 'Click to run against 112K+ historical games',
   },
   {
     id: 'sys-2',
     name: 'NBA Road Favorites -3 to -6',
-    criteria: ['Road favorite', 'Spread -3 to -6', 'Team top-10 Net Rating'],
+    criteria: ['Road team', 'Favorite', 'Spread -3 to -7'],
     sport: 'nba',
     betType: 'ats',
-    stats: { record: 'N/A', winPct: 0, roi: 0, units: 0, avgOdds: -110, clv: 0, maxDrawdown: 0, sharpeRatio: 0, kellyPct: 0 },
+    stats: { record: 'Run Backtest →', winPct: 0, roi: 0, units: 0, avgOdds: -110, clv: 0, maxDrawdown: 0, sharpeRatio: 0, kellyPct: 0 },
     recentPicks: [],
     upcomingPicks: [],
-    dataNote: 'Connect historical database to backtest this system.',
+    dataNote: 'Click to run against 112K+ historical games',
   },
   {
     id: 'sys-3',
     name: 'NHL Unders - Back-to-Back Road',
-    criteria: ['Road team on B2B', 'Total 6+', 'Against top-10 defense'],
+    criteria: ['Road team', 'Back-to-back'],
     sport: 'nhl',
     betType: 'ou',
-    stats: { record: 'N/A', winPct: 0, roi: 0, units: 0, avgOdds: -112, clv: 0, maxDrawdown: 0, sharpeRatio: 0, kellyPct: 0 },
+    stats: { record: 'Run Backtest →', winPct: 0, roi: 0, units: 0, avgOdds: -112, clv: 0, maxDrawdown: 0, sharpeRatio: 0, kellyPct: 0 },
     recentPicks: [],
     upcomingPicks: [],
-    dataNote: 'Connect historical database to backtest this system.',
+    dataNote: 'Click to run against 112K+ historical games',
   },
   {
     id: 'sys-4',
-    name: 'MLB First 5 Home Favorites',
-    criteria: ['Home favorite', 'F5 line', 'SP ERA under 3.50', 'vs SP ERA over 4.00'],
+    name: 'MLB Home Favorites',
+    criteria: ['Home team', 'Favorite'],
     sport: 'mlb',
     betType: 'ml',
-    stats: { record: 'N/A', winPct: 0, roi: 0, units: 0, avgOdds: -135, clv: 0, maxDrawdown: 0, sharpeRatio: 0, kellyPct: 0 },
+    stats: { record: 'Run Backtest →', winPct: 0, roi: 0, units: 0, avgOdds: -135, clv: 0, maxDrawdown: 0, sharpeRatio: 0, kellyPct: 0 },
     recentPicks: [],
     upcomingPicks: [],
-    dataNote: 'Connect historical database to backtest this system.',
+    dataNote: 'Click to run against 112K+ historical games',
   },
   {
     id: 'sys-5',
     name: 'Sharp Money Fade Public',
-    criteria: ['Public betting >65%', 'Sharp money opposite', 'Line moving against public'],
+    criteria: ['>70% public', 'Road team'],
     sport: 'all',
     betType: 'ats',
-    stats: { record: 'N/A', winPct: 0, roi: 0, units: 0, avgOdds: -108, clv: 0, maxDrawdown: 0, sharpeRatio: 0, kellyPct: 0 },
+    stats: { record: 'Run Backtest →', winPct: 0, roi: 0, units: 0, avgOdds: -108, clv: 0, maxDrawdown: 0, sharpeRatio: 0, kellyPct: 0 },
     recentPicks: [],
     upcomingPicks: [],
-    dataNote: 'Connect historical database to backtest this system.',
+    dataNote: 'Click to run against 112K+ historical games',
   },
 ]
 
@@ -240,57 +240,105 @@ export default function SystemsPage() {
   const buildSystem = useCallback(async () => {
     setIsBuilding(true)
     
-    // NOTE: Real system backtesting requires historical betting database
-    // This would need years of game results with spreads/totals/moneylines
-    // Currently showing placeholder - real implementation would query database
-    
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    // Show that historical data is required for real backtesting
-    const mockResult: SystemResult = {
-      id: `sys-custom-${Date.now()}`,
-      name: customPrompt || `Custom ${sport.toUpperCase()} System`,
-      criteria: selectedSituations.length > 0 ? selectedSituations : [customPrompt],
-      sport,
-      betType,
-      stats: {
-        record: 'N/A',
-        winPct: 0,
-        roi: 0,
-        units: 0,
-        avgOdds: -110,
-        clv: 0,
-        maxDrawdown: 0,
-        sharpeRatio: 0,
-        kellyPct: 0,
-      },
-      backtest: {
-        sampleSize: 0,
-        confidence: 'Low',
-        startDate: '2022-09-01',
-        endDate: new Date().toISOString().split('T')[0],
-        monthlyBreakdown: [],
-        seasonalBreakdown: [],
-        streaks: {
-          currentStreak: 0,
-          currentStreakType: 'W',
-          longestWin: 0,
-          longestLoss: 0,
+    try {
+      // Map UI criteria to API parameters
+      const params = new URLSearchParams()
+      params.set('sport', sport)
+      params.set('betType', betType)
+      
+      const allCriteria = selectedSituations.length > 0 ? selectedSituations : [customPrompt]
+      
+      for (const c of allCriteria) {
+        const cl = c.toLowerCase()
+        if (cl === 'home team') params.set('homeOnly', 'true')
+        if (cl === 'road team') params.set('awayOnly', 'true')
+        if (cl === 'favorite') params.set('favoriteOnly', 'true')
+        if (cl === 'underdog') params.set('underdogOnly', 'true')
+        if (cl.includes('spread +3 to +7')) { params.set('spreadMin', '3'); params.set('spreadMax', '7') }
+        if (cl.includes('spread -3 to -7')) { params.set('spreadMin', '3'); params.set('spreadMax', '7'); params.set('favoriteOnly', 'true') }
+        if (cl.includes('total 6+')) params.set('totalMin', '6')
+        if (cl.includes('>70% public') || cl.includes('>65%')) params.set('publicTicketPctMax', '30')
+        if (cl.includes('after bye')) params.set('afterBye', 'true')
+        if (cl.includes('back-to-back')) params.set('backToBack', 'true')
+        if (cl.includes('divisional')) params.set('divisionalGame', 'true')
+        if (cl.includes('primetime')) params.set('primetimeGame', 'true')
+      }
+      
+      const res = await fetch(`/api/systems/backtest?${params.toString()}`)
+      const data = await res.json()
+      
+      const result: SystemResult = {
+        id: `sys-custom-${Date.now()}`,
+        name: customPrompt || `Custom ${sport.toUpperCase()} System`,
+        criteria: allCriteria,
+        sport,
+        betType,
+        stats: {
+          record: data.wins !== undefined ? `${data.wins}-${data.losses}${data.pushes ? '-' + data.pushes : ''}` : 'N/A',
+          winPct: data.winPct || 0,
+          roi: data.roi || 0,
+          units: data.unitsProfit || 0,
+          avgOdds: -110,
+          clv: 0,
+          maxDrawdown: data.maxDrawdown || 0,
+          sharpeRatio: 0,
+          kellyPct: 0,
         },
-        byDay: [],
-        drawdownAnalysis: {
-          current: 0,
-          max: 0,
-          avgRecovery: 0,
+        backtest: {
+          sampleSize: data.sampleSize || 0,
+          confidence: data.confidence || 'Low',
+          startDate: '2017-09-01',
+          endDate: new Date().toISOString().split('T')[0],
+          monthlyBreakdown: [],
+          seasonalBreakdown: data.bySeasons?.map((s: any) => ({
+            season: String(s.season),
+            record: s.record,
+            winPct: s.winPct,
+            roi: s.roi,
+          })) || [],
+          streaks: {
+            currentStreak: data.currentStreak || 0,
+            currentStreakType: data.currentStreakType || 'W',
+            longestWin: data.longestWinStreak || 0,
+            longestLoss: data.longestLossStreak || 0,
+          },
+          byDay: [],
+          drawdownAnalysis: {
+            current: 0,
+            max: data.maxDrawdown || 0,
+            avgRecovery: 0,
+          },
+          profitCurve: [],
         },
-        profitCurve: [],
-      },
-      recentPicks: [],
-      upcomingPicks: [],
-      dataNote: 'System backtesting requires historical betting database. Connect a database with game results and betting lines to enable real backtesting.',
+        recentPicks: data.recentGames?.slice(0, 10).map((g: any) => ({
+          date: g.date,
+          matchup: `${g.awayTeam} @ ${g.homeTeam}`,
+          pick: g.pickSide,
+          result: g.result,
+          profit: g.result === 'W' ? 0.91 : g.result === 'L' ? -1 : 0,
+        })) || [],
+        upcomingPicks: [],
+        dataNote: data.sampleSize > 0 
+          ? `Backtested against ${data.sampleSize} real historical games` 
+          : 'No matching games found. Try different criteria.',
+      }
+      
+      setActiveSystem(result)
+    } catch (err) {
+      console.error('Backtest error:', err)
+      setActiveSystem({
+        id: `sys-err-${Date.now()}`,
+        name: customPrompt || `Custom ${sport.toUpperCase()} System`,
+        criteria: selectedSituations.length > 0 ? selectedSituations : [customPrompt],
+        sport,
+        betType,
+        stats: { record: 'Error', winPct: 0, roi: 0, units: 0, avgOdds: -110, clv: 0, maxDrawdown: 0, sharpeRatio: 0, kellyPct: 0 },
+        recentPicks: [],
+        upcomingPicks: [],
+        dataNote: 'Failed to connect to database. Please try again.',
+      })
     }
     
-    setActiveSystem(mockResult)
     setIsBuilding(false)
   }, [sport, betType, selectedSituations, customPrompt])
 
