@@ -68,6 +68,14 @@
     {
       "path": "/api/cron/grade-clv",
       "schedule": "0 9,15,21 * * *"
+    },
+    {
+      "path": "/api/cron/update-elo",
+      "schedule": "0 6,12 * * *"
+    },
+    {
+      "path": "/api/cron/scrape-officials",
+      "schedule": "0 10,20 * * *"
     }
   ]
 }

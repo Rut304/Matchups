@@ -164,6 +164,15 @@ const dataJobs: Job[] = [
   { id: '3', name: 'Sync Games', status: 'scheduled', lastRun: '1 hour ago', nextRun: '5 min', duration: '8s', endpoint: '/api/cron/sync-games' },
   { id: '4', name: 'Refresh Standings', status: 'completed', lastRun: '30 min ago', nextRun: '30 min', duration: '15s', endpoint: '/api/cron/refresh-standings' },
   { id: '5', name: 'Refresh Injuries', status: 'completed', lastRun: '1 hour ago', nextRun: '6 hours', duration: '45s', endpoint: '/api/cron/refresh-injuries' },
+  { id: '6', name: 'Discover Trends', status: 'completed', lastRun: '3 hours ago', nextRun: '7 AM UTC', duration: '90s', endpoint: '/api/cron/discover-trends' },
+  { id: '7', name: 'Grade Picks', status: 'completed', lastRun: '2 hours ago', nextRun: '2 PM UTC', duration: '30s', endpoint: '/api/cron/grade-picks' },
+  { id: '8', name: 'Expert Scraper', status: 'completed', lastRun: '4 hours ago', nextRun: '8 AM UTC', duration: '60s', endpoint: '/api/cron/daily-expert-scraper' },
+  { id: '9', name: 'Odds Snapshot', status: 'completed', lastRun: '15 min ago', nextRun: '30 min', duration: '20s', endpoint: '/api/cron/odds-snapshot' },
+  { id: '10', name: 'Collect Props', status: 'completed', lastRun: '2 hours ago', nextRun: '4 PM UTC', duration: '25s', endpoint: '/api/cron/collect-props' },
+  { id: '11', name: 'Backfill History', status: 'completed', lastRun: '18 hours ago', nextRun: '6 AM UTC', duration: '120s', endpoint: '/api/cron/backfill-history' },
+  { id: '12', name: 'Grade CLV', status: 'completed', lastRun: '3 hours ago', nextRun: '3 PM UTC', duration: '15s', endpoint: '/api/cron/grade-clv' },
+  { id: '13', name: 'Update Elo Ratings', status: 'completed', lastRun: '6 hours ago', nextRun: '12 PM UTC', duration: '45s', endpoint: '/api/cron/update-elo' },
+  { id: '14', name: 'Scrape Officials', status: 'completed', lastRun: '4 hours ago', nextRun: '8 PM UTC', duration: '35s', endpoint: '/api/cron/scrape-officials' },
 ]
 
 const apiKeys = [
@@ -552,29 +561,109 @@ export default function AdminPage() {
               </CardContent>
             </Card>
 
-            {/* Vercel Cron Configuration */}
+            {/* Data Flow Pipeline Diagram */}
             <Card variant="bordered">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-accent" />
-                  Vercel Cron Jobs
+                  <Activity className="w-5 h-5 text-accent" />
+                  Data Pipeline Flow
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-text-secondary mb-4">
-                  Add these to your <code className="px-1.5 py-0.5 bg-background-tertiary rounded text-highlight">vercel.json</code> for automated updates.
+                <p className="text-text-secondary mb-4 text-sm">
+                  End-to-end data flow with status indicators. <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>Active
+                  <span className="inline-block w-2 h-2 rounded-full bg-yellow-500 mx-1 ml-3"></span>Stale
+                  <span className="inline-block w-2 h-2 rounded-full bg-red-500 mx-1 ml-3"></span>Error
                 </p>
-                <pre className="text-xs bg-background p-4 rounded-lg overflow-x-auto text-text-secondary">
-{`{
-  "crons": [
-    { "path": "/api/cron/refresh-odds", "schedule": "*/15 * * * *" },
-    { "path": "/api/cron/refresh-scores", "schedule": "*/5 * * * *" },
-    { "path": "/api/cron/sync-games", "schedule": "0 */6 * * *" },
-    { "path": "/api/cron/refresh-standings", "schedule": "0 8 * * *" },
-    { "path": "/api/cron/refresh-injuries", "schedule": "0 */12 * * *" }
-  ]
-}`}
-                </pre>
+                <div className="space-y-3">
+                  {/* Row 1: External Sources */}
+                  <div className="grid grid-cols-5 gap-2">
+                    {[
+                      { name: 'ESPN API', desc: 'Games, Injuries, Officials', status: 'green' },
+                      { name: 'The Odds API', desc: 'Lines, Spreads, Props', status: 'green' },
+                      { name: 'Action Network', desc: 'College Odds Fallback', status: 'green' },
+                      { name: 'WeatherAPI', desc: 'Outdoor Sport Weather', status: 'green' },
+                      { name: 'X/Twitter', desc: 'Expert Picks, News', status: 'yellow' },
+                    ].map(s => (
+                      <div key={s.name} className="bg-background-tertiary rounded-lg p-2 border border-border/50 text-center relative">
+                        <div className={`absolute top-1.5 right-1.5 w-2 h-2 rounded-full ${s.status === 'green' ? 'bg-green-500' : s.status === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'}`} />
+                        <div className="text-xs font-bold text-text-primary">{s.name}</div>
+                        <div className="text-[10px] text-text-muted">{s.desc}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Arrow Down */}
+                  <div className="flex justify-center text-text-muted">↓ ↓ ↓ ↓ ↓</div>
+                  {/* Row 2: Cron Jobs (Ingestion) */}
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      { name: 'sync-games', schedule: '4h', status: 'green' },
+                      { name: 'refresh-odds', schedule: '5m', status: 'green' },
+                      { name: 'refresh-scores', schedule: '2m', status: 'green' },
+                      { name: 'refresh-injuries', schedule: '6h', status: 'green' },
+                    ].map(c => (
+                      <div key={c.name} className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-2 text-center relative">
+                        <div className={`absolute top-1 right-1 w-2 h-2 rounded-full bg-${c.status === 'green' ? 'green' : c.status === 'yellow' ? 'yellow' : 'red'}-500`} />
+                        <div className="text-[10px] font-bold text-blue-400">{c.name}</div>
+                        <div className="text-[9px] text-text-muted">every {c.schedule}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex justify-center text-text-muted">↓ ↓ ↓ ↓</div>
+                  {/* Row 3: Supabase Tables */}
+                  <div className="grid grid-cols-6 gap-1.5">
+                    {[
+                      { name: 'games', rows: '~2K active', status: 'green' },
+                      { name: 'game_odds', rows: '19K+', status: 'green' },
+                      { name: 'historical_games', rows: '112K+', status: 'green' },
+                      { name: 'team_ratings', rows: '1.4K+', status: 'green' },
+                      { name: 'officials', rows: '25+', status: 'green' },
+                      { name: 'tracked_picks', rows: '505+', status: 'green' },
+                    ].map(t => (
+                      <div key={t.name} className="bg-purple-500/10 border border-purple-500/30 rounded p-1.5 text-center relative">
+                        <div className={`absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-${t.status === 'green' ? 'green' : 'red'}-500`} />
+                        <div className="text-[9px] font-bold text-purple-400">{t.name}</div>
+                        <div className="text-[8px] text-text-muted">{t.rows}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex justify-center text-text-muted">↓ ↓ ↓ ↓</div>
+                  {/* Row 4: Processing Crons */}
+                  <div className="grid grid-cols-5 gap-2">
+                    {[
+                      { name: 'discover-trends', schedule: '7AM', status: 'green' },
+                      { name: 'update-elo', schedule: '6AM/12PM', status: 'green' },
+                      { name: 'scrape-officials', schedule: '10AM/8PM', status: 'green' },
+                      { name: 'backfill-history', schedule: '6AM', status: 'green' },
+                      { name: 'grade-clv', schedule: '9AM/3PM/9PM', status: 'green' },
+                    ].map(c => (
+                      <div key={c.name} className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-2 text-center relative">
+                        <div className={`absolute top-1 right-1 w-2 h-2 rounded-full bg-${c.status === 'green' ? 'green' : c.status === 'yellow' ? 'yellow' : 'red'}-500`} />
+                        <div className="text-[10px] font-bold text-orange-400">{c.name}</div>
+                        <div className="text-[9px] text-text-muted">{c.schedule}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex justify-center text-text-muted">↓ ↓ ↓ ↓</div>
+                  {/* Row 5: Frontend Outputs */}
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      { name: 'Matchup Pages', desc: '6 sport pages', status: 'green' },
+                      { name: 'Edge Alerts', desc: 'RLM, Steam, CLV', status: 'green' },
+                      { name: 'AI Analysis', desc: 'Gemini game picks', status: 'green' },
+                      { name: 'Leaderboard', desc: 'Expert rankings', status: 'green' },
+                    ].map(o => (
+                      <div key={o.name} className="bg-green-500/10 border border-green-500/30 rounded-lg p-2 text-center relative">
+                        <div className={`absolute top-1 right-1 w-2 h-2 rounded-full bg-${o.status === 'green' ? 'green' : 'red'}-500`} />
+                        <div className="text-[10px] font-bold text-green-400">{o.name}</div>
+                        <div className="text-[9px] text-text-muted">{o.desc}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="mt-4 text-[10px] text-text-muted">
+                  Total: 20 cron jobs configured in vercel.json | 6 external data sources | 15+ Supabase tables
+                </div>
               </CardContent>
             </Card>
           </div>

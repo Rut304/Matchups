@@ -4,7 +4,7 @@
  */
 
 // Layout components
-export { default as MatchupLayout, MatchupMainContent, MatchupSidebar, MatchupGrid } from './MatchupLayout'
+export { default as MatchupLayout, MatchupMainContent, MatchupSidebar, MatchupGrid, CollapsibleSection } from './MatchupLayout'
 
 // Data display components
 export { H2HHistory, H2HCompact } from './H2HHistory'
