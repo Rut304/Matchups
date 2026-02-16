@@ -3,7 +3,7 @@ import { fetchActionNetworkGames, extractMultiBookOdds } from '../scrapers/actio
 import * as espn from './espn'
 import * as apiSports from './api-sports'
 
-// The Odds API for live betting lines (BACKUP - 500 free requests/month)
+// The Odds API for live betting lines (PRIMARY - paid subscription)
 const oddsApi = axios.create({
   baseURL: 'https://api.the-odds-api.com/v4',
   params: {
@@ -71,32 +71,10 @@ export interface LineMovement {
 class OddsClient {
   /**
    * Get odds - Cascades through multiple sources for reliability
-   * Priority: Primary source -> ESPN -> The Odds API -> API-Sports
+   * Priority: The Odds API (paid, 40+ books) -> Action Network -> ESPN -> API-Sports
    */
   async getOdds(sport: string): Promise<BettingLine[]> {
-    // Source 1: Primary odds source (free, unlimited)
-    try {
-      const primaryOdds = await this.getOddsFromPrimarySource(sport)
-      if (primaryOdds.length > 0) {
-        console.log(`[Odds] Source 1 success for ${sport} (${primaryOdds.length} lines)`)
-        return primaryOdds
-      }
-    } catch (error) {
-      console.warn(`[Odds] Source 1 failed for ${sport}:`, error)
-    }
-
-    // Source 2: ESPN Pickcenter (free)
-    try {
-      const espnOdds = await this.getOddsFromESPN(sport)
-      if (espnOdds.length > 0) {
-        console.log(`[Odds] ESPN source for ${sport} (${espnOdds.length} lines)`)
-        return espnOdds
-      }
-    } catch (error) {
-      console.warn(`[Odds] ESPN failed for ${sport}:`, error)
-    }
-
-    // Source 3: The Odds API (500 requests/month limit)
+    // Source 1: The Odds API (paid subscription - 40+ books, most reliable)
     try {
       const theOddsApiData = await this.getOddsFromTheOddsApi(sport)
       if (theOddsApiData.length > 0) {
@@ -105,6 +83,28 @@ class OddsClient {
       }
     } catch (error) {
       console.warn(`[Odds] The Odds API failed for ${sport}:`, error)
+    }
+
+    // Source 2: Action Network (free, unlimited)
+    try {
+      const primaryOdds = await this.getOddsFromActionNetwork(sport)
+      if (primaryOdds.length > 0) {
+        console.log(`[Odds] Action Network for ${sport} (${primaryOdds.length} lines)`)
+        return primaryOdds
+      }
+    } catch (error) {
+      console.warn(`[Odds] Action Network failed for ${sport}:`, error)
+    }
+
+    // Source 3: ESPN Pickcenter (free, single provider)
+    try {
+      const espnOdds = await this.getOddsFromESPN(sport)
+      if (espnOdds.length > 0) {
+        console.log(`[Odds] ESPN source for ${sport} (${espnOdds.length} lines)`)
+        return espnOdds
+      }
+    } catch (error) {
+      console.warn(`[Odds] ESPN failed for ${sport}:`, error)
     }
 
     // Source 4: API-Sports (100 requests/day limit)
@@ -123,9 +123,9 @@ class OddsClient {
   }
 
   /**
-   * PRIMARY: Fetch odds from primary source (free, no rate limit)
+   * SECONDARY: Fetch odds from Action Network (free, no rate limit)
    */
-  private async getOddsFromPrimarySource(sport: string): Promise<BettingLine[]> {
+  private async getOddsFromActionNetwork(sport: string): Promise<BettingLine[]> {
     const games = await fetchActionNetworkGames(sport.toUpperCase())
     const lines: BettingLine[] = []
 
@@ -164,7 +164,7 @@ class OddsClient {
   }
 
   /**
-   * BACKUP: Fetch odds from The Odds API (500 requests/month limit)
+   * PRIMARY: Fetch odds from The Odds API (paid subscription - 40+ books)
    */
   private async getOddsFromTheOddsApi(sport: string): Promise<BettingLine[]> {
     try {

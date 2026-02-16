@@ -28,3 +28,17 @@ export {
   GameInfoSkeleton,
   MatchupPageSkeleton,
 } from './Skeletons'
+
+// Shared section components (deduplicated from sport pages)
+export {
+  SharpSignalAlert,
+  B2BAlert,
+  KeyNumberAlert,
+  AiPickSection,
+  BettingActionGrid,
+  H2HGrid,
+  TrendsList,
+  RestFormSection,
+  PlayerPropsSection,
+  QuickLinks,
+} from './shared-sections'

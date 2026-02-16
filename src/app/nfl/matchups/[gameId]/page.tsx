@@ -3,31 +3,31 @@
 /**
  * NFL GAME MATCHUP PAGE — "The Whale" Edition
  * 
- * Structure:
- * - Trading Desk header (in MatchupLayout): teams, odds, splits, sparkline
- * - Zone 2: THE EDGE (Officials, Power Ratings, AI Pick, Sharp Signals)
- * - Zone 3: CONTEXT (H2H, Trends, Rankings — collapsible)
- * - Sidebar: Edge Score, Injuries, Weather, Game Info
+ * NFL-specific: Rankings, Officials, Weather, AI Analysis text,
+ * W/L dots in form, betting splits fetch
+ * 
+ * Shared: SharpSignalAlert, AiPickSection, BettingActionGrid,
+ * H2HGrid, TrendsList, RestFormSection, QuickLinks, TheEdgeSection, LineShoppingTable
  */
 
 import { useState, useEffect, use } from 'react'
-import Link from 'next/link'
-import { 
-  TrendingUp, Zap, ChevronDown, Users, Shield, BarChart3, DollarSign,
-  ChevronUp, Brain, AlertTriangle, Calendar, ExternalLink, Gavel, 
-  Cloud, Trophy, Target, Swords
-} from 'lucide-react'
+import { Shield, BarChart3, Swords } from 'lucide-react'
 import { useMatchupData } from '@/hooks'
 import { 
-  MatchupLayout, InjuryReport, EdgeScoreCard, GameInfo, MatchupPageSkeleton, CollapsibleSection
+  MatchupLayout, InjuryReport, EdgeScoreCard, MatchupPageSkeleton, CollapsibleSection,
+  SharpSignalAlert, AiPickSection, BettingActionGrid, H2HGrid, TrendsList,
+  RestFormSection, PlayerPropsSection, QuickLinks,
 } from '@/components/matchup'
-import { GamePlayerProps } from '@/components/game'
+import ErrorDisplay from '@/components/matchup/ErrorDisplay'
+import TheEdgeSection from '@/components/game/TheEdgeSection'
+import LineShoppingTable from '@/components/game/LineShoppingTable'
+import { fetchIntelligence } from '@/lib/fetch-intelligence'
 import { OfficialsPanel } from '@/components/betting/OfficialsPanel'
 import { WeatherPanel } from '@/components/betting/WeatherPanel'
 import { PowerRatingsComparison } from '@/components/betting/PowerRatingsComparison'
-import ErrorDisplay from '@/components/matchup/ErrorDisplay'
 import Tooltip from '@/components/ui/Tooltip'
 import { TOOLTIPS } from '@/lib/tooltip-content'
+import { getSportConfig } from '@/lib/sport-config'
 import type { SportType } from '@/types/sports'
 
 const aiCache = new Map<string, { analysis: string; ts: number; snap: string }>()
@@ -38,6 +38,7 @@ interface BettingSplitData { spreadTicketPct: number; spreadMoneyPct: number; li
 export default function GameMatchupPage({ params }: { params: Promise<{ gameId: string }> }) {
   const { gameId } = use(params)
   const sport: SportType = 'nfl'
+  const config = getSportConfig(sport)
   
   const { game, analytics, isLoading, error, refresh, topPick, bettingIntelligence, h2h, edgeScore, trends } = useMatchupData(gameId, sport)
   
@@ -49,6 +50,7 @@ export default function GameMatchupPage({ params }: { params: Promise<{ gameId: 
   const [aiAnalysis, setAiAnalysis] = useState('')
   const [homeSchedule, setHomeSchedule] = useState<any[]>([])
   const [awaySchedule, setAwaySchedule] = useState<any[]>([])
+  const [intelligence, setIntelligence] = useState<any>(null)
 
   useEffect(() => {
     if (!game) return
@@ -104,6 +106,11 @@ export default function GameMatchupPage({ params }: { params: Promise<{ gameId: 
           if (a) { aiCache.set(gameId, { analysis: a, ts: Date.now(), snap }); setAiAnalysis(a) }
         }).catch(() => {})
       }
+
+      // Intelligence (for TheEdgeSection)
+      fetchIntelligence(gameId, 'NFL', game).then(data => {
+        if (data) setIntelligence(data)
+      }).catch(() => {})
     }
     fetchAll()
   }, [game, gameId])
@@ -115,242 +122,121 @@ export default function GameMatchupPage({ params }: { params: Promise<{ gameId: 
     return <ErrorDisplay variant="full" title="Game Not Found" message="This NFL game could not be found." backLink="/nfl/matchups" backText="Back to NFL matchups" showRetry={false} />
   }
 
-  const homeWins = homeSchedule.filter((g: any) => g.result === 'W').length
-  const awayWins = awaySchedule.filter((g: any) => g.result === 'W').length
-
   return (
     <MatchupLayout sport={sport} game={game} analytics={analytics} isLoading={isLoading} lastUpdated={lastUpdated} onRefresh={handleRefresh} activeTab={activeTab} onTabChange={setActiveTab}>
       <MatchupLayout.Grid>
         <MatchupLayout.MainContent>
 
-          {/* ===== ZONE 2: THE EDGE ===== */}
+          {/* Sharp Signal */}
+          <SharpSignalAlert
+            reverseLineMovement={bettingSplits?.isRLM || bettingIntelligence?.reverseLineMovement}
+            customMessage={`Reverse line movement — money on ${(bettingSplits?.spreadTicketPct || 50) > 50 ? game.awayTeam.abbreviation : game.homeTeam.abbreviation}`}
+          />
 
-          {/* RLM Alert — Sharp Signal */}
-          {(bettingSplits?.isRLM || bettingIntelligence?.reverseLineMovement) && (
-            <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-red-400" />
-              <span className="text-xs font-bold text-red-400">SHARP SIGNAL</span>
-              <span className="text-xs text-gray-400">Reverse line movement — money on {(bettingSplits?.spreadTicketPct || 50) > 50 ? game.awayTeam.abbreviation : game.homeTeam.abbreviation}</span>
-            </div>
+          {/* THE EDGE — Full analysis */}
+          {intelligence && (
+            <TheEdgeSection
+              intelligence={intelligence}
+              homeAbbr={game.homeTeam.abbreviation}
+              awayAbbr={game.awayTeam.abbreviation}
+              homeName={game.homeTeam.name}
+              awayName={game.awayTeam.name}
+              sport={sport}
+            />
           )}
 
-          {/* Officials — THE differentiator */}
+          {/* Line Shopping — Multi-book odds */}
+          <LineShoppingTable gameId={gameId} sport={sport} homeAbbr={game.homeTeam.abbreviation} awayAbbr={game.awayTeam.abbreviation} />
+
+          {/* Officials — NFL differentiator */}
           <div className="relative">
             <span className="absolute top-2.5 right-2 z-10"><Tooltip content={TOOLTIPS.officials} /></span>
             <OfficialsPanel gameId={gameId} sport="nfl" />
           </div>
 
-          {/* Power Ratings — Elo Comparison */}
+          {/* Power Ratings */}
           <div className="relative">
             <span className="absolute top-2.5 right-2 z-10"><Tooltip content={TOOLTIPS.powerRating} /></span>
             <PowerRatingsComparison sport="nfl" homeTeam={game.homeTeam.abbreviation} awayTeam={game.awayTeam.abbreviation} />
           </div>
 
-          {/* AI Analysis — The Edge */}
-          {(topPick || aiAnalysis) && (
-            <div className="bg-[#0c0c14] rounded-lg border border-orange-500/20 p-3">
-              <div className="flex items-center gap-2 mb-2">
-                <Brain className="w-4 h-4 text-orange-400" />
-                <span className="text-xs font-bold text-white">The Edge Analysis</span>
-                <Tooltip content={TOOLTIPS.edgeScore} />
-              </div>
-              {topPick && (
-                <div className="flex items-center justify-between mb-2 p-2 bg-orange-500/10 rounded border border-orange-500/20">
-                  <div>
-                    <div className="text-xs text-gray-400">AI PICK</div>
-                    <div className="text-sm font-bold text-orange-400">{topPick.selection}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xl font-black text-white">{topPick.confidence}%</div>
-                    <div className="text-[10px] text-gray-500">{topPick.supportingTrends} trends</div>
-                  </div>
-                </div>
-              )}
-              {aiAnalysis && <p className="text-xs text-gray-400 leading-relaxed">{aiAnalysis}</p>}
-            </div>
-          )}
+          {/* AI Analysis */}
+          <AiPickSection topPick={topPick} aiAnalysisText={aiAnalysis} />
 
-          {/* Betting Action — Compact */}
-          <div className="bg-[#0c0c14] rounded-lg border border-white/5 p-3">
-            <div className="flex items-center gap-2 mb-2">
-              <DollarSign className="w-3.5 h-3.5 text-green-400" />
-              <span className="text-xs font-bold text-white">Betting Action</span>
-              <Tooltip content={TOOLTIPS.lineMovement} />
-            </div>
-            <div className="grid grid-cols-4 gap-1.5">
-              {[
-                { label: 'Line Move', value: bettingSplits?.lineMovement || bettingIntelligence?.lineMovement || '—', color: bettingSplits?.lineMovement?.startsWith('-') ? 'text-red-400' : bettingSplits?.lineMovement?.startsWith('+') ? 'text-green-400' : 'text-gray-400' },
-                { label: 'Public', value: bettingSplits ? `${bettingSplits.spreadTicketPct}%` : `${bettingIntelligence?.publicPct || 0}%`, sub: (bettingSplits?.spreadTicketPct || bettingIntelligence?.publicPct || 50) > 50 ? game.homeTeam.abbreviation : game.awayTeam.abbreviation },
-                { label: 'Sharp $', value: bettingSplits ? `${bettingSplits.spreadMoneyPct}%` : '—', color: (bettingSplits?.spreadMoneyPct || 0) > 60 ? 'text-green-400' : 'text-white' },
-                { label: 'Handle', value: `${bettingIntelligence?.handlePct || 0}%` },
-              ].filter(m => m.value !== '—').map(m => (
-                <div key={m.label} className="bg-[#16161e] rounded px-2 py-1.5 text-center">
-                  <div className="text-[9px] text-gray-600 mb-0.5">{m.label}</div>
-                  <div className={`text-sm font-bold ${m.color || 'text-white'}`}>{m.value}</div>
-                  {m.sub && <div className="text-[9px] text-gray-600">{m.sub}</div>}
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* Betting Action */}
+          <BettingActionGrid
+            lineMovement={bettingSplits?.lineMovement || bettingIntelligence?.lineMovement}
+            publicPct={bettingSplits?.spreadTicketPct || bettingIntelligence?.publicPct}
+            sharpPct={bettingSplits?.spreadMoneyPct || bettingIntelligence?.sharpPct}
+            handlePct={bettingIntelligence?.handlePct}
+            homeAbbr={game.homeTeam.abbreviation}
+            awayAbbr={game.awayTeam.abbreviation}
+          />
 
-          {/* ===== ZONE 3: CONTEXT (Collapsible — drill in) ===== */}
+          {/* H2H */}
+          <H2HGrid h2h={h2h} homeAbbr={game.homeTeam.abbreviation} awayAbbr={game.awayTeam.abbreviation} spreadLabel={config.spreadLabel} scoreUnit={config.scoreUnit} />
 
-          {/* H2H — Behind a click */}
-          {h2h && h2h.gamesPlayed > 0 && (
-            <CollapsibleSection title={<>H2H History <Tooltip content={TOOLTIPS.h2h} /></>} icon={Users} badge={`${h2h.gamesPlayed}g`}>
-              <div className="grid grid-cols-4 gap-1.5 mt-2">
-                <div className="text-center p-1.5 bg-[#16161e] rounded">
-                  <div className="text-sm font-bold text-orange-400">{h2h.homeATSRecord}</div>
-                  <div className="text-[9px] text-gray-600">{game.homeTeam.abbreviation} ATS</div>
-                </div>
-                <div className="text-center p-1.5 bg-[#16161e] rounded">
-                  <div className="text-sm font-bold text-blue-400">{h2h.awayATSRecord}</div>
-                  <div className="text-[9px] text-gray-600">{game.awayTeam.abbreviation} ATS</div>
-                </div>
-                <div className="text-center p-1.5 bg-[#16161e] rounded">
-                  <div className="text-sm font-bold text-green-400">{h2h.overUnderRecord}</div>
-                  <div className="text-[9px] text-gray-600">O/U</div>
-                </div>
-                <div className="text-center p-1.5 bg-[#16161e] rounded">
-                  <div className="text-sm font-bold text-white">{h2h.avgTotal?.toFixed(1) || ''}</div>
-                  <div className="text-[9px] text-gray-600">AVG PTS</div>
-                </div>
-              </div>
-            </CollapsibleSection>
-          )}
+          {/* Trends */}
+          <TrendsList trends={trends} sport={sport} teamAbbr={game.homeTeam.abbreviation} />
 
-          {/* Trends — Behind a click */}
-          {trends && trends.matched > 0 && (
-            <CollapsibleSection title="Betting Trends" icon={TrendingUp} badge={trends.matched}>
-              <div className="space-y-1.5 mt-2">
-                {trends.spreadTrends?.slice(0, 5).map((trend: any, i: number) => (
-                  <div key={i} className="flex items-center justify-between p-1.5 bg-[#16161e] rounded text-xs">
-                    <span className="text-gray-300">{trend.description || trend.text}</span>
-                    <span className={`font-bold ${trend.confidence >= 70 ? 'text-green-400' : 'text-amber-400'}`}>{trend.confidence}%</span>
-                  </div>
-                ))}
-                <Link href={`/trends?sport=nfl&team=${game.homeTeam.abbreviation}`} className="text-[10px] text-orange-400 hover:underline">View all trends →</Link>
-              </div>
-            </CollapsibleSection>
-          )}
-
-          {/* Team Rankings — Behind a click */}
+          {/* NFL: Team Rankings */}
           {(homeRankings || awayRankings) && (
             <CollapsibleSection title="Team Rankings" icon={BarChart3}>
               <div className="grid grid-cols-2 gap-3 mt-2">
-                <div>
-                  <div className="text-[10px] text-gray-600 mb-1">{game.homeTeam.abbreviation} (Home)</div>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <div className="bg-[#16161e] rounded p-2 text-center">
-                      <div className="flex items-center justify-center gap-1 text-orange-400 mb-0.5"><Swords className="w-3 h-3" /><span className="text-[9px]">OFF</span></div>
-                      <div className="text-sm font-bold text-white">{homeRankings?.offenseRank ? `#${homeRankings.offenseRank}` : '-'}</div>
-                      <div className="text-[9px] text-gray-600">{homeRankings?.offenseYPG?.toFixed(1) || '-'} YPG</div>
-                    </div>
-                    <div className="bg-[#16161e] rounded p-2 text-center">
-                      <div className="flex items-center justify-center gap-1 text-blue-400 mb-0.5"><Shield className="w-3 h-3" /><span className="text-[9px]">DEF</span></div>
-                      <div className="text-sm font-bold text-white">{homeRankings?.defenseRank ? `#${homeRankings.defenseRank}` : '-'}</div>
-                      <div className="text-[9px] text-gray-600">{homeRankings?.defenseYPG?.toFixed(1) || '-'} YPG</div>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <div className="text-[10px] text-gray-600 mb-1">{game.awayTeam.abbreviation} (Away)</div>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <div className="bg-[#16161e] rounded p-2 text-center">
-                      <div className="flex items-center justify-center gap-1 text-orange-400 mb-0.5"><Swords className="w-3 h-3" /><span className="text-[9px]">OFF</span></div>
-                      <div className="text-sm font-bold text-white">{awayRankings?.offenseRank ? `#${awayRankings.offenseRank}` : '-'}</div>
-                      <div className="text-[9px] text-gray-600">{awayRankings?.offenseYPG?.toFixed(1) || '-'} YPG</div>
-                    </div>
-                    <div className="bg-[#16161e] rounded p-2 text-center">
-                      <div className="flex items-center justify-center gap-1 text-blue-400 mb-0.5"><Shield className="w-3 h-3" /><span className="text-[9px]">DEF</span></div>
-                      <div className="text-sm font-bold text-white">{awayRankings?.defenseRank ? `#${awayRankings.defenseRank}` : '-'}</div>
-                      <div className="text-[9px] text-gray-600">{awayRankings?.defenseYPG?.toFixed(1) || '-'} YPG</div>
+                {[
+                  { abbr: game.homeTeam.abbreviation, tag: 'Home', rankings: homeRankings },
+                  { abbr: game.awayTeam.abbreviation, tag: 'Away', rankings: awayRankings },
+                ].map(team => (
+                  <div key={team.abbr}>
+                    <div className="text-[10px] text-gray-600 mb-1">{team.abbr} ({team.tag})</div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <div className="bg-[#16161e] rounded p-2 text-center">
+                        <div className="flex items-center justify-center gap-1 text-orange-400 mb-0.5"><Swords className="w-3 h-3" /><span className="text-[9px]">OFF</span></div>
+                        <div className="text-sm font-bold text-white">{team.rankings?.offenseRank ? `#${team.rankings.offenseRank}` : '-'}</div>
+                        <div className="text-[9px] text-gray-600">{team.rankings?.offenseYPG?.toFixed(1) || '-'} YPG</div>
+                      </div>
+                      <div className="bg-[#16161e] rounded p-2 text-center">
+                        <div className="flex items-center justify-center gap-1 text-blue-400 mb-0.5"><Shield className="w-3 h-3" /><span className="text-[9px]">DEF</span></div>
+                        <div className="text-sm font-bold text-white">{team.rankings?.defenseRank ? `#${team.rankings.defenseRank}` : '-'}</div>
+                        <div className="text-[9px] text-gray-600">{team.rankings?.defenseYPG?.toFixed(1) || '-'} YPG</div>
+                      </div>
                     </div>
                   </div>
-                </div>
+                ))}
               </div>
             </CollapsibleSection>
           )}
 
-          {/* Recent Form — Behind a click */}
-          {(homeSchedule.length > 0 || awaySchedule.length > 0) && (
-            <CollapsibleSection title={<>Recent Form (Last 5) <Tooltip content={TOOLTIPS.restDays} /></>} icon={Calendar}>
-              <div className="grid grid-cols-2 gap-3 mt-2">
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] text-gray-600">{game.homeTeam.abbreviation}</span>
-                    <Link href={`/team/nfl/${game.homeTeam.abbreviation.toLowerCase()}`} className="text-[10px] text-orange-400 hover:underline">Full →</Link>
-                  </div>
-                  <div className="bg-[#16161e] rounded p-2 text-center">
-                    <div className="text-lg font-bold text-green-400">{homeWins}-{homeSchedule.length - homeWins}</div>
-                  </div>
-                  <div className="flex gap-0.5 mt-1 justify-center">
-                    {homeSchedule.map((g: any, i: number) => (
-                      <div key={i} className={`w-5 h-5 rounded text-[10px] font-bold flex items-center justify-center ${g.result === 'W' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                        {g.result || '—'}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] text-gray-600">{game.awayTeam.abbreviation}</span>
-                    <Link href={`/team/nfl/${game.awayTeam.abbreviation.toLowerCase()}`} className="text-[10px] text-orange-400 hover:underline">Full →</Link>
-                  </div>
-                  <div className="bg-[#16161e] rounded p-2 text-center">
-                    <div className="text-lg font-bold text-green-400">{awayWins}-{awaySchedule.length - awayWins}</div>
-                  </div>
-                  <div className="flex gap-0.5 mt-1 justify-center">
-                    {awaySchedule.map((g: any, i: number) => (
-                      <div key={i} className={`w-5 h-5 rounded text-[10px] font-bold flex items-center justify-center ${g.result === 'W' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                        {g.result || '—'}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </CollapsibleSection>
-          )}
+          {/* Recent Form with W/L dots */}
+          <RestFormSection
+            homeCtx={{ last5Record: `${homeSchedule.filter((g: any) => g.result === 'W').length}-${homeSchedule.length - homeSchedule.filter((g: any) => g.result === 'W').length}` }}
+            awayCtx={{ last5Record: `${awaySchedule.filter((g: any) => g.result === 'W').length}-${awaySchedule.length - awaySchedule.filter((g: any) => g.result === 'W').length}` }}
+            homeAbbr={game.homeTeam.abbreviation}
+            awayAbbr={game.awayTeam.abbreviation}
+            sport={sport}
+            showRestDays={false}
+            formWindow={config.formWindow}
+            homeSchedule={homeSchedule}
+            awaySchedule={awaySchedule}
+          />
 
-          {/* Player Props — Behind a click */}
-          <CollapsibleSection title="Player Props" icon={Target}>
-            <div className="mt-2">
-              <GamePlayerProps gameId={gameId} sport="NFL" homeTeam={game.homeTeam.name} awayTeam={game.awayTeam.name} />
-            </div>
-          </CollapsibleSection>
+          {/* Player Props */}
+          <PlayerPropsSection gameId={gameId} sport={sport} homeTeam={game.homeTeam.name} awayTeam={game.awayTeam.name} />
 
         </MatchupLayout.MainContent>
 
         <MatchupLayout.Sidebar>
-          {/* Edge Score — Always visible */}
           {edgeScore && edgeScore.overall > 0 && <EdgeScoreCard edgeScore={edgeScore} gameId={gameId} />}
           
           {/* Weather — NFL is outdoor */}
           <div className="relative">
             <span className="absolute top-2.5 right-2 z-10"><Tooltip content={TOOLTIPS.weather} /></span>
-            <WeatherPanel 
-              venue={game.venue || ''} 
-              city={game.venue?.split(',').pop()?.trim() || ''} 
-              gameDate={game.scheduledAt || game.startTime} 
-              sport="nfl" 
-              compact={false} 
-            />
+            <WeatherPanel venue={game.venue || ''} city={game.venue?.split(',').pop()?.trim() || ''} gameDate={game.scheduledAt || game.startTime} sport="nfl" compact={false} />
           </div>
 
-          {/* Injury Report — Always visible for serious bettors */}
           <InjuryReport sport={sport} homeTeam={game.homeTeam.abbreviation} awayTeam={game.awayTeam.abbreviation} homeTeamFull={game.homeTeam.name} awayTeamFull={game.awayTeam.name} />
           
-          {/* Quick Links */}
-          <div className="space-y-1.5">
-            <Link href="/trends?sport=nfl" className="flex items-center justify-between p-2.5 bg-[#0c0c14] rounded-lg border border-white/5 hover:border-orange-500/30 transition-all group text-xs">
-              <div className="flex items-center gap-2"><TrendingUp className="w-3.5 h-3.5 text-orange-500" /><span className="text-gray-300 group-hover:text-orange-400">All NFL Trends</span></div>
-              <ChevronDown className="w-3 h-3 text-gray-600 -rotate-90" />
-            </Link>
-            <Link href="/lineshop" className="flex items-center justify-between p-2.5 bg-[#0c0c14] rounded-lg border border-white/5 hover:border-orange-500/30 transition-all group text-xs">
-              <div className="flex items-center gap-2"><DollarSign className="w-3.5 h-3.5 text-green-500" /><span className="text-gray-300 group-hover:text-orange-400">Line Shop</span></div>
-              <ChevronDown className="w-3 h-3 text-gray-600 -rotate-90" />
-            </Link>
-          </div>
+          <QuickLinks links={config.quickLinks} />
         </MatchupLayout.Sidebar>
       </MatchupLayout.Grid>
     </MatchupLayout>

@@ -1,11 +1,11 @@
 /**
  * Unified Data Layer
- * Combines Action Network + ESPN + The Odds API into a single normalized data source
+ * Combines The Odds API + Action Network + ESPN into a single normalized data source
  * 
- * API PRIORITY (FREE SOURCES FIRST):
- * 1. Action Network - Betting lines, splits, multi-book odds (FREE public API - PRIMARY)
- * 2. ESPN - Game data, scores, schedules (FREE, unlimited)
- * 3. The Odds API - LAST RESORT fallback (PAID, rate limited - only if AN fails)
+ * API PRIORITY:
+ * 1. The Odds API - PAID subscription, 40+ books, most reliable (PRIMARY for odds)
+ * 2. Action Network - FREE public API, multi-book (FALLBACK for odds)
+ * 3. ESPN - FREE, unlimited (PRIMARY for game data/schedules, FALLBACK for odds)
  * 4. Supabase - Historical data, caching
  */
 
@@ -104,30 +104,33 @@ export async function syncGames(sport: SportKey): Promise<UnifiedGame[]> {
   const espnScoreboard = await getScoreboard(sport)
   const espnGames = espnScoreboard.events.map(g => transformESPNGame(g, sport))
   
-  // 2. Fetch odds from Action Network FIRST (free, unlimited)
-  let actionNetworkGames: Awaited<ReturnType<typeof fetchActionNetworkGames>> = []
-  try {
-    actionNetworkGames = await fetchActionNetworkGames(sport)
-    if (actionNetworkGames.length > 0) {
-      console.log(`[DataLayer] Action Network: ${actionNetworkGames.length} games with odds for ${sport}`)
-    }
-  } catch (error) {
-    console.warn(`[DataLayer] Action Network failed for ${sport}, will try fallback:`, error)
-  }
-  
-  // 3. Fallback to The Odds API only if Action Network failed AND we have API key
+  // 2. Fetch odds from The Odds API FIRST (paid subscription, most reliable)
   let oddsGames: ReturnType<typeof transformOddsGame>[] = []
-  if (actionNetworkGames.length === 0 && process.env.ODDS_API_KEY && sport in ODDS_API_SPORTS) {
+  if (process.env.ODDS_API_KEY && sport in ODDS_API_SPORTS) {
     try {
-      console.log(`[DataLayer] Falling back to The Odds API for ${sport}`)
       const oddsData = await getOdds(sport as OddsSportKey)
       oddsGames = oddsData.map(g => transformOddsGame(g, sport as OddsSportKey))
+      if (oddsGames.length > 0) {
+        console.log(`[DataLayer] The Odds API: ${oddsGames.length} games with odds for ${sport}`)
+      }
     } catch (error) {
-      // Only log non-quota errors (quota errors are handled silently in the-odds-api.ts)
       const errorMessage = error instanceof Error ? error.message : String(error)
       if (!errorMessage.includes('OUT_OF_USAGE_CREDITS')) {
         console.warn(`[DataLayer] The Odds API failed for ${sport}:`, errorMessage)
       }
+    }
+  }
+  
+  // 3. Fallback to Action Network if The Odds API returned nothing
+  let actionNetworkGames: Awaited<ReturnType<typeof fetchActionNetworkGames>> = []
+  if (oddsGames.length === 0) {
+    try {
+      actionNetworkGames = await fetchActionNetworkGames(sport)
+      if (actionNetworkGames.length > 0) {
+        console.log(`[DataLayer] Action Network fallback: ${actionNetworkGames.length} games with odds for ${sport}`)
+      }
+    } catch (error) {
+      console.warn(`[DataLayer] Action Network failed for ${sport}:`, error)
     }
   }
   

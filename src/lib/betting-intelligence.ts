@@ -583,7 +583,7 @@ export async function getMatchupIntelligence(
   // Get market consensus with real splits data
   const consensusData = await getMarketConsensus(gameId, sport, splitsData)
 
-  // Calculate edge score from all factors
+  // Calculate edge score from all factors (with sport-specific weights)
   const edgeScore = calculateComprehensiveEdgeScore({
     clv: clvData,
     lineMovement: lineMovementData,
@@ -595,7 +595,8 @@ export async function getMatchupIntelligence(
     ou: ouData,
     keyNumbers: keyNumbersData,
     h2h: h2hData,
-    consensus: consensusData
+    consensus: consensusData,
+    sport
   })
 
   // Get AI analysis if requested
@@ -680,73 +681,147 @@ export async function getMatchupIntelligence(
 // =============================================================================
 
 async function getCLVData(gameId: string, sport: string): Promise<CLVData> {
-  // Attempt to compute CLV from stored line_snapshots table
+  // Step 1: Try line_snapshots table (best source — multiple snapshots over time)
   try {
     const { createAdminClient } = await import('@/lib/supabase/server')
     const supabase = await createAdminClient()
 
     // Get earliest (opening) snapshot and latest snapshot for this game
-    const { data: openingRows, error: openErr } = await supabase
-      .from('line_snapshots')
-      .select('*')
-      .eq('game_id', gameId)
-      .order('snapshot_ts', { ascending: true })
-      .limit(1)
+    const [{ data: openingRows, error: openErr }, { data: latestRows, error: latestErr }] = await Promise.all([
+      supabase
+        .from('line_snapshots')
+        .select('*')
+        .eq('game_id', gameId)
+        .order('snapshot_ts', { ascending: true })
+        .limit(1),
+      supabase
+        .from('line_snapshots')
+        .select('*')
+        .eq('game_id', gameId)
+        .order('snapshot_ts', { ascending: false })
+        .limit(1)
+    ])
 
-    const { data: latestRows, error: latestErr } = await supabase
-      .from('line_snapshots')
-      .select('*')
-      .eq('game_id', gameId)
-      .order('snapshot_ts', { ascending: false })
-      .limit(1)
+    if (!openErr && !latestErr && openingRows?.length && latestRows?.length) {
+      const open = openingRows[0]
+      const latest = latestRows[0]
+      const openSpread = Number(open.spread_home ?? open.spread_away ?? 0)
+      const currentSpread = Number(latest.spread_home ?? latest.spread_away ?? 0)
+      const openTotal = Number(open.total_line ?? 0)
+      const currentTotal = Number(latest.total_line ?? 0)
+      const openHomeML = Number(open.home_ml ?? 0)
+      const currentHomeML = Number(latest.home_ml ?? 0)
+      const spreadCLV = currentSpread - openSpread
+      const totalCLV = openTotal - currentTotal
+      const mlCLV = currentHomeML - openHomeML
 
-    if (openErr || latestErr) {
-      console.error('Supabase CLV query error', openErr || latestErr)
-      throw new Error('CLV query failed')
-    }
+      let grade: CLVData['grade'] = 'neutral'
+      const combined = Math.abs(spreadCLV) + Math.abs(totalCLV) * 0.5
+      if (combined >= 2.5) grade = 'excellent'
+      else if (combined >= 1.5) grade = 'good'
+      else if (combined > 0) grade = 'neutral'
 
-    // If no snapshots in DB, try to get from ESPN API as fallback
-    if (!openingRows || openingRows.length === 0 || !latestRows || latestRows.length === 0) {
-      return await fetchCLVFromESPN(gameId, sport)
-    }
+      const movements: string[] = []
+      if (spreadCLV !== 0) movements.push(`Spread ${spreadCLV > 0 ? '↑' : '↓'} ${Math.abs(spreadCLV).toFixed(1)}`)
+      if (totalCLV !== 0) movements.push(`Total ${totalCLV > 0 ? '↓' : '↑'} ${Math.abs(totalCLV).toFixed(1)}`)
 
-    const open = openingRows[0]
-    const latest = latestRows[0]
-
-    const openSpread = open.spread_home ?? open.spread_away ?? 0
-    const currentSpread = latest.spread_home ?? latest.spread_away ?? 0
-    const openTotal = open.total_line ?? 0
-    const currentTotal = latest.total_line ?? 0
-    const openHomeML = open.home_ml ?? 0
-    const currentHomeML = latest.home_ml ?? 0
-
-    const spreadCLV = Number(currentSpread) - Number(openSpread)
-    const totalCLV = Number(openTotal) - Number(currentTotal)
-    const mlCLV = Number(currentHomeML) - Number(openHomeML)
-
-    let grade: CLVData['grade'] = 'neutral'
-    const absSpread = Math.abs(spreadCLV)
-    if (absSpread >= 2) grade = 'excellent'
-    else if (absSpread >= 1) grade = 'good'
-    else if (absSpread > 0) grade = 'neutral'
-
-    return {
-      openSpread: Number(openSpread),
-      currentSpread: Number(currentSpread),
-      openTotal: Number(openTotal),
-      currentTotal: Number(currentTotal),
-      openHomeML: Number(openHomeML),
-      currentHomeML: Number(currentHomeML),
-      spreadCLV: Number(spreadCLV),
-      totalCLV: Number(totalCLV),
-      mlCLV: Number(mlCLV),
-      grade,
-      description: `Computed from ${openingRows.length} opening rows and ${latestRows.length} latest rows`
+      return {
+        openSpread, currentSpread, openTotal, currentTotal, openHomeML, currentHomeML,
+        spreadCLV, totalCLV, mlCLV, grade,
+        description: movements.length > 0 
+          ? `${movements.join(', ')} (tracked via line snapshots)`
+          : 'No significant movement detected'
+      }
     }
   } catch (error) {
-    console.error('getCLVData error:', error)
-    // Fallback to ESPN API
+    console.error('getCLVData snapshot query error:', error)
+  }
+
+  // Step 2: Try The Odds API directly for current odds (gives us multi-book current lines)
+  try {
+    return await fetchCLVFromOddsAPI(gameId, sport)
+  } catch (error) {
+    console.error('getCLVData Odds API fallback error:', error)
+  }
+
+  // Step 3: ESPN pickcenter as last resort
+  try {
     return await fetchCLVFromESPN(gameId, sport)
+  } catch (error) {
+    console.error('getCLVData ESPN fallback error:', error)
+  }
+
+  return {
+    openSpread: 0, currentSpread: 0, openTotal: 0, currentTotal: 0,
+    openHomeML: 0, currentHomeML: 0, spreadCLV: 0, totalCLV: 0, mlCLV: 0,
+    grade: 'neutral', description: 'No CLV data available'
+  }
+}
+
+// Fetch CLV from The Odds API — current multi-book consensus
+async function fetchCLVFromOddsAPI(gameId: string, sport: string): Promise<CLVData> {
+  const apiKey = process.env.THE_ODDS_API_KEY || process.env.ODDS_API_KEY
+  if (!apiKey) throw new Error('No Odds API key')
+
+  const sportKeyMap: Record<string, string> = {
+    'NFL': 'americanfootball_nfl', 'NBA': 'basketball_nba',
+    'NHL': 'icehockey_nhl', 'MLB': 'baseball_mlb',
+    'NCAAF': 'americanfootball_ncaaf', 'NCAAB': 'basketball_ncaab',
+    'WNBA': 'basketball_wnba', 'WNCAAB': 'basketball_wncaab',
+  }
+  const sportKey = sportKeyMap[sport.toUpperCase()]
+  if (!sportKey) throw new Error(`Unknown sport: ${sport}`)
+
+  const url = `https://api.the-odds-api.com/v4/sports/${sportKey}/odds?apiKey=${apiKey}&regions=us&markets=h2h,spreads,totals&bookmakers=draftkings,fanduel,betmgm&dateFormat=iso`
+  const res = await fetch(url, { next: { revalidate: 300 } }) // 5min cache
+  if (!res.ok) throw new Error(`Odds API ${res.status}`)
+
+  const games = await res.json()
+  
+  // Find the matching game by ID or by team name matching
+  let matchedGame = games.find((g: { id: string }) => g.id === gameId)
+  
+  if (!matchedGame) {
+    // Try to find by Odds API event ID format or team name matching
+    // The gameId from ESPN won't match Odds API IDs, so we check line_snapshots for cross-reference
+    // For now, return first game if there's only one, otherwise fail
+    return {
+      openSpread: 0, currentSpread: 0, openTotal: 0, currentTotal: 0,
+      openHomeML: 0, currentHomeML: 0, spreadCLV: 0, totalCLV: 0, mlCLV: 0,
+      grade: 'neutral', description: 'Could not match game in Odds API response'
+    }
+  }
+
+  // Aggregate across bookmakers for consensus
+  let totalSpread = 0, totalTotal = 0, totalHomeML = 0, bookCount = 0
+  for (const bm of matchedGame.bookmakers || []) {
+    for (const market of bm.markets || []) {
+      if (market.key === 'spreads') {
+        const homeOutcome = market.outcomes.find((o: { name: string }) => o.name === matchedGame.home_team)
+        if (homeOutcome?.point != null) { totalSpread += homeOutcome.point; bookCount++ }
+      }
+      if (market.key === 'totals') {
+        const overOutcome = market.outcomes.find((o: { name: string }) => o.name === 'Over')
+        if (overOutcome?.point != null) totalTotal += overOutcome.point
+      }
+      if (market.key === 'h2h') {
+        const homeOutcome = market.outcomes.find((o: { name: string }) => o.name === matchedGame.home_team)
+        if (homeOutcome?.price != null) totalHomeML += homeOutcome.price
+      }
+    }
+  }
+
+  const avgSpread = bookCount > 0 ? totalSpread / bookCount : 0
+  const avgTotal = bookCount > 0 ? totalTotal / bookCount : 0
+  const avgHomeML = bookCount > 0 ? totalHomeML / bookCount : 0
+
+  return {
+    openSpread: avgSpread, currentSpread: avgSpread,
+    openTotal: avgTotal, currentTotal: avgTotal,
+    openHomeML: avgHomeML, currentHomeML: avgHomeML,
+    spreadCLV: 0, totalCLV: 0, mlCLV: 0,
+    grade: 'neutral',
+    description: `Current consensus from ${bookCount} books (no opening line for CLV comparison yet)`
   }
 }
 
