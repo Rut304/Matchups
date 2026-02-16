@@ -53,6 +53,9 @@ import { KeyNumberBadges } from '@/components/betting/KeyNumberBadges'
 import { LineMovementChart } from '@/components/charts/LineMovementChart'
 import { getTeamSchedule, getTeamId, type TeamGameResult } from '@/lib/api/team-schedule'
 import { type SportKey } from '@/lib/api/espn'
+import ATSMatrix from '@/components/game/ATSMatrix'
+import SituationalTrends from '@/components/game/SituationalTrends'
+import SystemMatches from '@/components/game/SystemMatches'
 
 // =============================================================================
 // THE ULTIMATE GAME MATCHUP PAGE
@@ -243,6 +246,7 @@ export default function GameDetailPage() {
   
   const [game, setGame] = useState<GameDetail | null>(null)
   const [loading, setLoading] = useState(true)
+  const [compactMode, setCompactMode] = useState(false)
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     h2h: true,
     homeSchedule: true,
@@ -824,7 +828,7 @@ export default function GameDetailPage() {
 
   return (
     <main className="min-h-screen bg-[#06060c]">
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className={`mx-auto px-4 py-6 transition-all duration-300 ${compactMode ? 'max-w-[1600px] text-sm [&_.rounded-xl]:rounded-lg [&_.rounded-xl]:p-3 [&_.mb-6]:mb-3 [&_.mb-4]:mb-2 [&_.gap-6]:gap-3 [&_.space-y-6]:space-y-3 [&_.p-5]:p-3 [&_.p-4]:p-2.5' : 'max-w-7xl'}`}>
         {/* Back Navigation */}
         <div className="flex items-center justify-between mb-6">
           <Link href={`/${game.sport.toLowerCase()}`} 
@@ -833,6 +837,18 @@ export default function GameDetailPage() {
             Back to {game.sport} Games
           </Link>
           <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setCompactMode(!compactMode)}
+              title={compactMode ? 'Standard view' : 'Compact view (more data density)'}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                compactMode 
+                  ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' 
+                  : 'bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700 border border-slate-700'
+              }`}
+            >
+              <BarChart3 className="w-3.5 h-3.5" />
+              {compactMode ? 'DENSE' : 'Dense'}
+            </button>
             <button 
               title="Share this matchup"
               className="p-2 rounded-lg bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
@@ -928,27 +944,18 @@ export default function GameDetailPage() {
                   <p className="text-sm font-black font-mono text-orange-400">
                     {gameSummary.odds && gameSummary.odds.spread !== undefined ? (
                       <>
-                        {/* Determine favorite: if moneyline is more negative/lower for home, home is favorite */}
                         {(() => {
                           const homeML = gameSummary.odds.homeTeamOdds?.moneyLine || 0
                           const awayML = gameSummary.odds.awayTeamOdds?.moneyLine || 0
                           const spreadVal = gameSummary.odds.spread
-                          // Favorite has more negative (lower) moneyline
                           const isHomeFavorite = homeML < awayML && homeML !== 0
                           const favoriteAbbr = isHomeFavorite ? game.home.abbr : game.away.abbr
-                          // Just show the spread value directly if we can't determine favorite easily
-                          // But usually spread is relative to home. 
-                          // Let's just show the spread value formatted.
-                          // If spread is -4.5, it means Home is -4.5. 
-                          // If spread is 4.5, it means Home is +4.5.
-                          // To be safe, let's show the favorite's line.
                           return `${favoriteAbbr} ${spreadVal < 0 ? spreadVal : `-${spreadVal}`}`
                         })()}
                       </>
                     ) : (game.spread?.line !== undefined && game.spread.line !== 0) ? (
                       <>{game.spread.favorite} {formatSpread(game.spread.line)}</>
                     ) : (!multiBookOdds.loading && multiBookOdds.books.length > 0 && multiBookOdds.bestSpread.line !== 0) ? (
-                      /* Fallback to Action Network / Odds API when ESPN has no odds (college sports) */
                       <>{game.home.abbr} {multiBookOdds.bestSpread.line > 0 ? '+' : ''}{multiBookOdds.bestSpread.line}</>
                     ) : multiBookOdds.loading ? (
                       'Loading...'
@@ -956,6 +963,11 @@ export default function GameDetailPage() {
                       '-'
                     )}
                   </p>
+                  {!multiBookOdds.loading && multiBookOdds.bestSpread.book && multiBookOdds.bestSpread.odds !== 0 && (
+                    <p className="text-[9px] text-green-400 font-semibold mt-0.5 truncate" title={`Best spread odds at ${formatBookmakerName(multiBookOdds.bestSpread.book)}`}>
+                      Best: {multiBookOdds.bestSpread.odds > 0 ? '+' : ''}{multiBookOdds.bestSpread.odds} @ {formatBookmakerName(multiBookOdds.bestSpread.book)}
+                    </p>
+                  )}
                 </div>
                 
                 {/* Total */}
@@ -966,6 +978,11 @@ export default function GameDetailPage() {
                       (!multiBookOdds.loading && multiBookOdds.books.length > 0 && multiBookOdds.bestTotal.over ? multiBookOdds.bestTotal.over : 
                        multiBookOdds.loading ? 'Loading...' : '-')}
                   </p>
+                  {!multiBookOdds.loading && multiBookOdds.bestTotal.book && multiBookOdds.bestTotal.overOdds !== 0 && (
+                    <p className="text-[9px] text-green-400 font-semibold mt-0.5 truncate" title={`Best over odds at ${formatBookmakerName(multiBookOdds.bestTotal.book)}`}>
+                      O {multiBookOdds.bestTotal.overOdds > 0 ? '+' : ''}{multiBookOdds.bestTotal.overOdds} @ {formatBookmakerName(multiBookOdds.bestTotal.book)}
+                    </p>
+                  )}
                 </div>
               </div>
               
@@ -984,6 +1001,11 @@ export default function GameDetailPage() {
                       <>{multiBookOdds.bestAwayML.odds > 0 ? '+' : ''}{multiBookOdds.bestAwayML.odds}</>
                     ) : '-'}
                   </p>
+                  {!multiBookOdds.loading && multiBookOdds.bestAwayML.book && multiBookOdds.bestAwayML.odds !== 0 && (
+                    <p className="text-[9px] text-green-400 font-semibold truncate">
+                      Best: {multiBookOdds.bestAwayML.odds > 0 ? '+' : ''}{multiBookOdds.bestAwayML.odds} @ {formatBookmakerName(multiBookOdds.bestAwayML.book)}
+                    </p>
+                  )}
                 </div>
                 <div className="rounded p-1 bg-slate-800/50 border border-slate-700">
                   <p className="text-[10px] text-slate-500">{game.home.abbr || 'HOME'}</p>
@@ -998,6 +1020,11 @@ export default function GameDetailPage() {
                       <>{multiBookOdds.bestHomeML.odds > 0 ? '+' : ''}{multiBookOdds.bestHomeML.odds}</>
                     ) : '-'}
                   </p>
+                  {!multiBookOdds.loading && multiBookOdds.bestHomeML.book && multiBookOdds.bestHomeML.odds !== 0 && (
+                    <p className="text-[9px] text-green-400 font-semibold truncate">
+                      Best: {multiBookOdds.bestHomeML.odds > 0 ? '+' : ''}{multiBookOdds.bestHomeML.odds} @ {formatBookmakerName(multiBookOdds.bestHomeML.book)}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -1096,6 +1123,44 @@ export default function GameDetailPage() {
                />
              </div>
           </div>
+        </div>
+
+        {/* =========================================== */}
+        {/* ZONE 1.75: SITUATIONAL INTELLIGENCE         */}
+        {/* ATS Matrix + Situational Trends + Systems   */}
+        {/* =========================================== */}
+        <div className="grid md:grid-cols-2 gap-4 mb-6">
+          <ATSMatrix 
+            homeAbbr={game.home.abbr}
+            awayAbbr={game.away.abbr}
+            sport={sport}
+          />
+          <SituationalTrends
+            gameId={gameId}
+            sport={sport}
+            homeTeam={game.home.name}
+            awayTeam={game.away.name}
+            homeAbbr={game.home.abbr}
+            awayAbbr={game.away.abbr}
+            spread={gameSummary.odds?.spread || game.spread?.line || multiBookOdds.bestSpread.line || 0}
+            total={gameSummary.odds?.overUnder || game.total || multiBookOdds.bestTotal.over || 0}
+          />
+        </div>
+        
+        <div className="mb-6">
+          <SystemMatches
+            sport={sport}
+            homeAbbr={game.home.abbr}
+            awayAbbr={game.away.abbr}
+            spread={gameSummary.odds?.spread || game.spread?.line || multiBookOdds.bestSpread.line || 0}
+            total={gameSummary.odds?.overUnder || game.total || multiBookOdds.bestTotal.over || 0}
+            isHomeFavorite={
+              gameSummary.odds?.homeTeamOdds?.favorite || 
+              (gameSummary.odds?.spread !== undefined && gameSummary.odds.spread < 0) ||
+              (game.spread?.line !== undefined && game.spread.line < 0) ||
+              false
+            }
+          />
         </div>
 
         {/* =========================================== */}
@@ -2091,29 +2156,62 @@ export default function GameDetailPage() {
                   <span className="text-slate-500 text-sm">Loading...</span>
                 </div>
               ) : (() => {
+                // Position impact scores for calculating betting impact
+                const POS_IMPACT: Record<string, number> = {
+                  'QB': 25, 'RB': 12, 'WR': 10, 'TE': 8, 'OL': 7, 'OT': 7, 'OG': 6, 'C': 6,
+                  'DE': 8, 'DT': 7, 'LB': 8, 'CB': 10, 'S': 8, 'FS': 8, 'SS': 10, 'DB': 8, 'DL': 7,
+                  'K': 4, 'P': 3, 'PG': 15, 'SG': 12, 'SF': 12, 'PF': 12,
+                  'SP': 20, 'RP': 6, 'CF': 8, 'LF': 7, 'RF': 7, '1B': 7, '2B': 8, '3B': 8, 'DH': 6,
+                  'GK': 20, 'D': 8, 'LW': 10, 'RW': 10
+                }
+                
                 // Sort injuries by status priority and position importance
                 const sortedInjuries = [...gameSummary.injuries.homeTeam, ...gameSummary.injuries.awayTeam]
                   .filter(inj => inj.status === 'Out' || inj.status === 'Injured Reserve' || inj.status === 'Doubtful' || inj.status === 'Questionable')
                   .sort((a, b) => {
-                    // First sort by status (Out > Doubtful > Questionable)
                     const statusDiff = (PRIORITY_STATUS[a.status] || 99) - (PRIORITY_STATUS[b.status] || 99)
                     if (statusDiff !== 0) return statusDiff
-                    // Then by position priority (QB > WR > RB etc)
                     const posA = PRIORITY_POSITIONS[a.athlete?.position?.toUpperCase()] || 50
                     const posB = PRIORITY_POSITIONS[b.athlete?.position?.toUpperCase()] || 50
                     return posA - posB
                   })
-                  .slice(0, 6) // Show top 6 impactful injuries
+                  .slice(0, 8)
                 
+                // Calculate total impact
+                const totalImpact = sortedInjuries
+                  .filter(inj => inj.status === 'Out' || inj.status === 'Injured Reserve')
+                  .reduce((sum, inj) => sum + (POS_IMPACT[inj.athlete?.position?.toUpperCase()] || 5), 0)
+                  
                 return sortedInjuries.length > 0 ? (
-                <div className="space-y-3">
-                  {sortedInjuries.map((injury, i) => (
+                <div>
+                  {totalImpact > 15 && (
+                    <div className={`mb-3 p-2 rounded-lg text-center text-xs font-bold ${
+                      totalImpact >= 30 ? 'bg-red-500/15 text-red-400 border border-red-500/20' :
+                      'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
+                    }`}>
+                      Injury Impact: {totalImpact >= 30 ? 'HIGH' : 'MODERATE'} ({totalImpact} pts)
+                      {totalImpact >= 20 && <span className="block text-[10px] text-slate-400 font-normal mt-0.5">≈{(totalImpact / 20).toFixed(1)} pts spread adjustment</span>}
+                    </div>
+                  )}
+                  <div className="space-y-2">
+                  {sortedInjuries.map((injury, i) => {
+                    const pos = injury.athlete?.position?.toUpperCase() || ''
+                    const impact = POS_IMPACT[pos] || 5
+                    const isOut = injury.status === 'Out' || injury.status === 'Injured Reserve'
+                    return (
                     <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-slate-800/30">
-                      <div>
-                        <p className="text-sm font-semibold text-white">{injury.athlete.displayName}</p>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-semibold text-white truncate">{injury.athlete.displayName}</p>
+                          {isOut && impact >= 10 && (
+                            <span className="text-[9px] font-bold text-red-400 bg-red-500/15 px-1 py-0.5 rounded flex-shrink-0">
+                              −{impact}pts
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-slate-400">{injury.athlete.position}{injury.type ? ` • ${injury.type}` : ''}</p>
                       </div>
-                      <span className={`px-2 py-1 rounded text-xs font-bold ${
+                      <span className={`px-2 py-1 rounded text-xs font-bold flex-shrink-0 ${
                         injury.status === 'Out' || injury.status === 'Injured Reserve' ? 'bg-red-500/20 text-red-400' :
                         injury.status === 'Doubtful' ? 'bg-orange-500/20 text-orange-400' :
                         injury.status === 'Questionable' ? 'bg-yellow-500/20 text-yellow-400' :
@@ -2122,7 +2220,9 @@ export default function GameDetailPage() {
                         {injury.status}
                       </span>
                     </div>
-                  ))}
+                    )
+                  })}
+                  </div>
                 </div>
                 ) : (
                   <p className="text-sm text-slate-500">No significant injuries reported</p>
