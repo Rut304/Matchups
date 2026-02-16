@@ -24,6 +24,9 @@ export async function GET(
     const awayAbbr = searchParams.get('awayAbbr') || 'AWY'
     const includeAI = searchParams.get('ai') === 'true'
     const includeLive = searchParams.get('live') === 'true'
+    // Accept known spread/total from frontend as fallback for CLV pipeline
+    const knownSpread = searchParams.get('spread') ? parseFloat(searchParams.get('spread')!) : undefined
+    const knownTotal = searchParams.get('total') ? parseFloat(searchParams.get('total')!) : undefined
 
     // Get comprehensive matchup intelligence
     const intelligence = await getMatchupIntelligence(
@@ -31,7 +34,7 @@ export async function GET(
       sport,
       { name: homeTeam, abbr: homeAbbr },
       { name: awayTeam, abbr: awayAbbr },
-      { includeAI, includeLive }
+      { includeAI, includeLive, knownSpread, knownTotal }
     )
 
     // Get top data points summary

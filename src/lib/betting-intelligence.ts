@@ -535,6 +535,8 @@ export async function getMatchupIntelligence(
   options?: {
     includeAI?: boolean
     includeLive?: boolean
+    knownSpread?: number
+    knownTotal?: number
   }
 ): Promise<MatchupIntelligence> {
   const now = new Date().toISOString()
@@ -567,6 +569,16 @@ export async function getMatchupIntelligence(
     getTeamAnalytics(sport, homeTeam.abbr),
     getTeamAnalytics(sport, awayTeam.abbr)
   ])
+  
+  // Patch CLV data with known spread/total from frontend if CLV pipeline returned zeros
+  if (options?.knownTotal && (!clvData.currentTotal || clvData.currentTotal === 0)) {
+    clvData.currentTotal = options.knownTotal
+    if (!clvData.openTotal) clvData.openTotal = options.knownTotal
+  }
+  if (options?.knownSpread && (!clvData.currentSpread || clvData.currentSpread === 0)) {
+    clvData.currentSpread = options.knownSpread
+    if (!clvData.openSpread) clvData.openSpread = options.knownSpread
+  }
   
   // Get market consensus with real splits data
   const consensusData = await getMarketConsensus(gameId, sport, splitsData)
@@ -2306,15 +2318,24 @@ function generateFallbackAnalysis(data: {
   // factor derived from available data (CLV shift, sharp signals, injuries).
   // This ensures the pick is DERIVED from the projection, not vice versa.
   // =========================================================================
-  const total = data.clv.currentTotal || 45
+  
+  // Sport-aware total defaults — CRITICAL: prevents football scores for basketball
+  const sportUpper = data.sport.toUpperCase()
+  const SPORT_DEFAULT_TOTALS: Record<string, number> = {
+    'NFL': 45, 'NCAAF': 50,
+    'NBA': 222, 'NCAAB': 140,
+    'NHL': 5.5, 'MLB': 8.5,
+    'WNBA': 160, 'WNCAAB': 130,
+  }
+  const defaultTotal = SPORT_DEFAULT_TOTALS[sportUpper] || 45
+  const total = (data.clv.currentTotal && data.clv.currentTotal > 0) ? data.clv.currentTotal : defaultTotal
   const spread = data.clv.currentSpread || 0
   
   // Build a power differential from real signals (not just the spread)
   let homeEdge = 0 // points of advantage for home team
   
   // Home-field advantage baseline: ~2.5 pts in NFL, ~3 in NBA, ~0.3 in NHL
-  const sportUpper = data.sport.toUpperCase()
-  const hfaBase = sportUpper === 'NFL' ? 2.5 : sportUpper === 'NBA' ? 3.0 : sportUpper === 'NHL' ? 0.3 : 1.5
+  const hfaBase = sportUpper === 'NFL' ? 2.5 : sportUpper === 'NBA' ? 3.0 : sportUpper === 'NHL' ? 0.3 : sportUpper === 'NCAAB' ? 3.5 : sportUpper === 'NCAAF' ? 3.0 : 1.5
   homeEdge += hfaBase
   
   // Adjust for sharp money signals
@@ -2396,11 +2417,24 @@ function generateFallbackAnalysis(data: {
   // Boost confidence if sharp signals agree with our pick
   if (data.splits.spread.reverseLineMovement) spreadConfidence = Math.min(0.80, spreadConfidence + 0.08)
   
-  // Determine total pick
-  const totalPick = data.splits.total.reverseLineMovement 
-    ? (data.splits.total.sharpSide === 'under' ? `Under ${total}` : `Over ${total}`)
-    : `Under ${total}`
-  const totalConfidence = data.splits.total.reverseLineMovement ? 0.70 : 0.50
+  // Determine total pick — use projected score vs. the posted total
+  const projectedTotal = projectedHome + projectedAway
+  let totalPick: string
+  let totalConfidence: number
+  if (data.splits.total.reverseLineMovement) {
+    // Strong signal: sharp money on the total
+    totalPick = data.splits.total.sharpSide === 'under' ? `Under ${total}` : `Over ${total}`
+    totalConfidence = 0.70
+  } else if (projectedTotal > total + 2) {
+    totalPick = `Over ${total}`
+    totalConfidence = Math.min(0.65, 0.50 + (projectedTotal - total) * 0.02)
+  } else if (projectedTotal < total - 2) {
+    totalPick = `Under ${total}`
+    totalConfidence = Math.min(0.65, 0.50 + (total - projectedTotal) * 0.02)
+  } else {
+    totalPick = `Under ${total}`
+    totalConfidence = 0.50
+  }
   
   // Key edges
   const keyEdges: string[] = []

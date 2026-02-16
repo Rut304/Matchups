@@ -77,7 +77,7 @@ export default function SystemMatches({
           const confidence = system.confidence || 'Low'
           const record = system.record || `${wins}-${losses}`
           
-          if (matches && sampleSize > 20) {
+          if (matches && sampleSize > 50 && winPct > 52) {
             const pick = criteria.underdogOnly 
               ? (criteria.homeOnly ? `${homeAbbr} (Home Dog)` : `${awayAbbr} (Road Dog)`)
               : criteria.favoriteOnly

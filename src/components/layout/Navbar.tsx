@@ -495,11 +495,11 @@ export function Navbar() {
             {/* Expert Tracker - Gold Button in Nav */}
             <Link 
               href="/leaderboard" 
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold hover:scale-105 transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold hover:scale-105 transition-all whitespace-nowrap"
               style={{ background: 'linear-gradient(135deg, #FFD700, #FF8C00)', color: '#000' }}
             >
               <Trophy className="w-4 h-4" />
-              <span className="hidden xl:inline">Check the</span> <span>"Experts"</span>
+              <span>&quot;Experts&quot;</span>
             </Link>
           </div>
 

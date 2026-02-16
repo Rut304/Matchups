@@ -111,12 +111,21 @@ const POPULAR_SYSTEMS_CRITERIA = [
   }
 ]
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    // Read sport filter from query params
+    const { searchParams } = new URL(request.url)
+    const sportFilter = searchParams.get('sport')?.toLowerCase() || null
+    
     const supabase = createClient(supabaseUrl, supabaseAnonKey)
     const results = []
     
-    for (const system of POPULAR_SYSTEMS_CRITERIA) {
+    // Only run systems that match the requested sport
+    const systemsToRun = sportFilter 
+      ? POPULAR_SYSTEMS_CRITERIA.filter(s => s.sport === sportFilter)
+      : POPULAR_SYSTEMS_CRITERIA
+    
+    for (const system of systemsToRun) {
       // Build query for this system
       let query = supabase
         .from('historical_games')

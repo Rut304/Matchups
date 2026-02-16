@@ -466,6 +466,12 @@ export default function GameDetailPage() {
           live: 'false'
         })
         
+        // Pass known spread/total so AI analysis uses correct sport-appropriate numbers
+        const knownSpread = gameSummary.odds?.spread || game.spread?.line || 0
+        const knownTotal = gameSummary.odds?.overUnder || game.total || 0
+        if (knownSpread) params.set('spread', String(knownSpread))
+        if (knownTotal) params.set('total', String(knownTotal))
+        
         const response = await fetch(`/api/games/${gameId}/intelligence?${params}`)
         if (!response.ok) throw new Error('Failed to fetch intelligence')
         
@@ -942,26 +948,38 @@ export default function GameDetailPage() {
                 <div className="rounded p-1.5 bg-gradient-to-r from-orange-500/10 to-orange-600/5 border border-orange-500/20">
                   <p className="text-[10px] text-slate-500 mb-0.5">SPREAD</p>
                   <p className="text-sm font-black font-mono text-orange-400">
-                    {gameSummary.odds && gameSummary.odds.spread !== undefined ? (
-                      <>
-                        {(() => {
-                          const homeML = gameSummary.odds.homeTeamOdds?.moneyLine || 0
-                          const awayML = gameSummary.odds.awayTeamOdds?.moneyLine || 0
-                          const spreadVal = gameSummary.odds.spread
-                          const isHomeFavorite = homeML < awayML && homeML !== 0
-                          const favoriteAbbr = isHomeFavorite ? game.home.abbr : game.away.abbr
-                          return `${favoriteAbbr} ${spreadVal < 0 ? spreadVal : `-${spreadVal}`}`
-                        })()}
-                      </>
-                    ) : (game.spread?.line !== undefined && game.spread.line !== 0) ? (
-                      <>{game.spread.favorite} {formatSpread(game.spread.line)}</>
-                    ) : (!multiBookOdds.loading && multiBookOdds.books.length > 0 && multiBookOdds.bestSpread.line !== 0) ? (
-                      <>{game.home.abbr} {multiBookOdds.bestSpread.line > 0 ? '+' : ''}{multiBookOdds.bestSpread.line}</>
-                    ) : multiBookOdds.loading ? (
-                      'Loading...'
-                    ) : (
-                      '-'
-                    )}
+                    {(() => {
+                      // Determine spread from best available source
+                      let spreadVal: number | null = null
+                      if (gameSummary.odds && gameSummary.odds.spread !== undefined && gameSummary.odds.spread !== 0) {
+                        spreadVal = gameSummary.odds.spread // ESPN convention: negative = home favored
+                      } else if (!multiBookOdds.loading && multiBookOdds.books.length > 0 && multiBookOdds.bestSpread.line !== 0) {
+                        spreadVal = multiBookOdds.bestSpread.line
+                      } else if (game.spread?.line && game.spread.line !== 0) {
+                        // game.spread.line is always positive (Math.abs'd), so we need to re-sign it
+                        const isFavHome = game.spread.favorite === game.home.abbr
+                        spreadVal = isFavHome ? -game.spread.line : game.spread.line
+                      }
+                      
+                      if (spreadVal === null) return multiBookOdds.loading ? 'Loading...' : '-'
+                      
+                      // Determine favorite: use spread sign (negative = home favored), cross-check with ML
+                      const homeML = gameSummary.odds?.homeTeamOdds?.moneyLine || multiBookOdds.bestHomeML?.odds || game.moneyline?.home || 0
+                      const awayML = gameSummary.odds?.awayTeamOdds?.moneyLine || multiBookOdds.bestAwayML?.odds || game.moneyline?.away || 0
+                      
+                      let isHomeFavorite: boolean
+                      if (spreadVal !== 0) {
+                        isHomeFavorite = spreadVal < 0 // ESPN: negative spread = home favored
+                      } else if (homeML !== 0 && awayML !== 0) {
+                        isHomeFavorite = homeML < awayML
+                      } else {
+                        isHomeFavorite = true // default
+                      }
+                      
+                      const absSpread = Math.abs(spreadVal)
+                      const favoriteAbbr = isHomeFavorite ? game.home.abbr : game.away.abbr
+                      return `${favoriteAbbr} -${absSpread}`
+                    })()}
                   </p>
                   {!multiBookOdds.loading && multiBookOdds.bestSpread.book && multiBookOdds.bestSpread.odds !== 0 && (
                     <p className="text-[9px] text-green-400 font-semibold mt-0.5 truncate" title={`Best spread odds at ${formatBookmakerName(multiBookOdds.bestSpread.book)}`}>
@@ -1126,45 +1144,8 @@ export default function GameDetailPage() {
         </div>
 
         {/* =========================================== */}
-        {/* ZONE 1.75: SITUATIONAL INTELLIGENCE         */}
-        {/* ATS Matrix + Situational Trends + Systems   */}
-        {/* =========================================== */}
-        <div className="grid md:grid-cols-2 gap-4 mb-6">
-          <ATSMatrix 
-            homeAbbr={game.home.abbr}
-            awayAbbr={game.away.abbr}
-            sport={sport}
-          />
-          <SituationalTrends
-            gameId={gameId}
-            sport={sport}
-            homeTeam={game.home.name}
-            awayTeam={game.away.name}
-            homeAbbr={game.home.abbr}
-            awayAbbr={game.away.abbr}
-            spread={gameSummary.odds?.spread || game.spread?.line || multiBookOdds.bestSpread.line || 0}
-            total={gameSummary.odds?.overUnder || game.total || multiBookOdds.bestTotal.over || 0}
-          />
-        </div>
-        
-        <div className="mb-6">
-          <SystemMatches
-            sport={sport}
-            homeAbbr={game.home.abbr}
-            awayAbbr={game.away.abbr}
-            spread={gameSummary.odds?.spread || game.spread?.line || multiBookOdds.bestSpread.line || 0}
-            total={gameSummary.odds?.overUnder || game.total || multiBookOdds.bestTotal.over || 0}
-            isHomeFavorite={
-              gameSummary.odds?.homeTeamOdds?.favorite || 
-              (gameSummary.odds?.spread !== undefined && gameSummary.odds.spread < 0) ||
-              (game.spread?.line !== undefined && game.spread.line < 0) ||
-              false
-            }
-          />
-        </div>
-
-        {/* =========================================== */}
         {/* ZONE 2: THE EDGE (AI & Analysis)            */}
+        {/* Moved UP — this is the star attraction      */}
         {/* =========================================== */}
         <div className="rounded-xl p-5 mb-6 bg-gradient-to-br from-orange-950/30 to-slate-900 border border-orange-500/30">
           <div className="flex items-center justify-between mb-4">
@@ -1217,31 +1198,43 @@ export default function GameDetailPage() {
             </div>
           </div>
 
-          {/* AI Pick with Confidence Bar - Only shown when real analysis exists */}
+          {/* The Edge Pick with Confidence Bar - Only shown when real analysis exists */}
           {(intelligence.aiAnalysis?.spreadAnalysis?.pick || (game.aiPick && game.aiPick !== '')) && (
           <div className="p-4 rounded-xl bg-slate-800/50 border border-orange-500/30 mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Brain className="w-5 h-5 text-orange-500" />
-                <span className="font-semibold text-white">AI PICK</span>
-              </div>
-              <span className="text-lg font-bold text-orange-400">
-                {intelligence.aiAnalysis?.spreadAnalysis?.pick || game.aiPick}
-              </span>
-            </div>
-            <div className="h-3 rounded-full overflow-hidden bg-slate-800">
-              {(() => {
-                const confidence = (intelligence.aiAnalysis?.spreadAnalysis?.confidence || game.aiConfidence / 100 || 0.5) * 100;
-                const barClass = confidence >= 70 ? 'confidence-bar-high' : confidence >= 55 ? 'confidence-bar-medium' : 'confidence-bar-low';
-                return (
-                  <div 
-                    className={`h-full rounded-full transition-all ${barClass}`}
-                    style={{ width: `${confidence}%` }}
-                  />
-                );
-              })()}
-            </div>
-            <p className="text-xs text-slate-500 mt-1">{Math.round((intelligence.aiAnalysis?.spreadAnalysis?.confidence || game.aiConfidence / 100 || 0.5) * 100)}% confidence</p>
+            {(() => {
+              const confidence = (intelligence.aiAnalysis?.spreadAnalysis?.confidence || game.aiConfidence / 100 || 0.5) * 100;
+              const isNoBet = confidence < 55;
+              return (
+                <>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Zap className="w-5 h-5 text-orange-500" />
+                      <span className="font-semibold text-white">THE EDGE PICK</span>
+                    </div>
+                    {isNoBet ? (
+                      <span className="text-lg font-bold text-slate-400">No Clear Edge — Pass</span>
+                    ) : (
+                      <span className="text-lg font-bold text-orange-400">
+                        {intelligence.aiAnalysis?.spreadAnalysis?.pick || game.aiPick}
+                      </span>
+                    )}
+                  </div>
+                  <div className="h-3 rounded-full overflow-hidden bg-slate-800">
+                    <div 
+                      className={`h-full rounded-full transition-all ${
+                        isNoBet ? 'bg-slate-600' : confidence >= 70 ? 'confidence-bar-high' : 'confidence-bar-medium'
+                      }`}
+                      style={{ width: `${confidence}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {isNoBet 
+                      ? `${Math.round(confidence)}% confidence — below our 55% threshold for a recommendation`
+                      : `${Math.round(confidence)}% confidence`}
+                  </p>
+                </>
+              );
+            })()}
           </div>
           )}
 
@@ -1456,6 +1449,44 @@ export default function GameDetailPage() {
               <span className="text-slate-400">Analyzing 12 key data points...</span>
             </div>
           )}
+        </div>
+
+        {/* =========================================== */}
+        {/* ZONE 1.75: SITUATIONAL INTELLIGENCE         */}
+        {/* ATS Matrix + Situational Trends + Systems   */}
+        {/* =========================================== */}
+        <div className="grid md:grid-cols-2 gap-4 mb-6">
+          <ATSMatrix 
+            homeAbbr={game.home.abbr}
+            awayAbbr={game.away.abbr}
+            sport={sport}
+          />
+          <SituationalTrends
+            gameId={gameId}
+            sport={sport}
+            homeTeam={game.home.name}
+            awayTeam={game.away.name}
+            homeAbbr={game.home.abbr}
+            awayAbbr={game.away.abbr}
+            spread={gameSummary.odds?.spread || game.spread?.line || multiBookOdds.bestSpread.line || 0}
+            total={gameSummary.odds?.overUnder || game.total || multiBookOdds.bestTotal.over || 0}
+          />
+        </div>
+        
+        <div className="mb-6">
+          <SystemMatches
+            sport={sport}
+            homeAbbr={game.home.abbr}
+            awayAbbr={game.away.abbr}
+            spread={gameSummary.odds?.spread || game.spread?.line || multiBookOdds.bestSpread.line || 0}
+            total={gameSummary.odds?.overUnder || game.total || multiBookOdds.bestTotal.over || 0}
+            isHomeFavorite={
+              gameSummary.odds?.homeTeamOdds?.favorite || 
+              (gameSummary.odds?.spread !== undefined && gameSummary.odds.spread < 0) ||
+              (game.spread?.line !== undefined && game.spread.line < 0) ||
+              false
+            }
+          />
         </div>
 
         {/* =========================================== */}
@@ -2074,39 +2105,7 @@ export default function GameDetailPage() {
             </div>
             )}
 
-            {/* AI ANALYSIS - Only shown when real AI analysis exists */}
-            {game.aiAnalysis && !game.aiAnalysis.includes('requires') && !game.aiAnalysis.includes('coming soon') && game.aiAnalysis !== '' && (
-            <div className="rounded-xl p-5 bg-gradient-to-br from-orange-500/10 to-slate-900 border border-orange-500/20">
-              <h3 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
-                <Brain className="w-5 h-5 text-orange-500" />
-                AI Analysis
-              </h3>
-              <p className="text-slate-300 leading-relaxed mb-6">{game.aiAnalysis}</p>
-              
-              {game.aiPicks && game.aiPicks.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-semibold text-slate-400 mb-3">AI PICKS</h4>
-                  <div className="space-y-3">
-                    {game.aiPicks.map((pick, i) => (
-                      <div key={i} className="p-4 rounded-xl bg-slate-800/50 border border-slate-700">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-bold text-white">{pick.pick}</span>
-                          <span className={`px-2 py-1 rounded text-xs font-bold ${
-                            pick.confidence >= 70 ? 'bg-green-500/20 text-green-400' :
-                            pick.confidence >= 55 ? 'bg-orange-500/20 text-orange-400' :
-                            'bg-slate-700 text-slate-400'
-                          }`}>
-                            {pick.confidence}% confidence
-                          </span>
-                        </div>
-                        <p className="text-sm text-slate-400">{pick.reasoning}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-            )}
+            {/* AI Analysis removed — already shown in THE EDGE section above */}
 
           </div>
 
@@ -2230,114 +2229,7 @@ export default function GameDetailPage() {
               })()}
             </div>
 
-            {/* ESPN Odds & Line Movement */}
-            <div className="rounded-xl p-4 bg-slate-900/50 border border-slate-800">
-              <h3 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
-                <LineChart className="w-5 h-5 text-blue-500" />
-                ESPN Odds & Lines
-              </h3>
-              {gameSummary.loading ? (
-                <div className="flex items-center justify-center py-4">
-                  <RefreshCw className="w-4 h-4 text-orange-500 animate-spin mr-2" />
-                  <span className="text-slate-500 text-sm">Loading...</span>
-                </div>
-              ) : gameSummary.odds ? (
-                <div className="space-y-4">
-                  {/* Provider */}
-                  <p className="text-xs text-slate-500">{gameSummary.odds.provider?.name || 'Sportsbook'}</p>
-                  
-                  {/* Spread */}
-                  <div>
-                    <div className="flex justify-between text-xs text-slate-500 mb-1">
-                      <span>Spread</span>
-                      {gameSummary.lineMovement.spreadMove !== null && gameSummary.lineMovement.spreadMove !== 0 && (
-                        <span className={gameSummary.lineMovement.spreadMove > 0 ? 'text-red-400' : 'text-green-400'}>
-                          {gameSummary.lineMovement.spreadMove > 0 ? '▲' : '▼'} Moved
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <div className="flex-1 p-2 rounded bg-slate-800/50 text-center">
-                        <p className="text-xs text-slate-500">Open</p>
-                        <p className="font-bold text-white">{gameSummary.lineMovement.openingSpread || '-'}</p>
-                      </div>
-                      <div className="flex items-center">
-                        <ChevronRight className="w-4 h-4 text-slate-600" />
-                      </div>
-                      <div className="flex-1 p-2 rounded bg-slate-800/50 text-center">
-                        <p className="text-xs text-slate-500">Current</p>
-                        <p className="font-bold text-orange-400">
-                          {gameSummary.odds.homeTeamOdds?.favorite ? '-' : '+'}{Math.abs(gameSummary.odds.spread).toFixed(1)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Total */}
-                  <div>
-                    <div className="flex justify-between text-xs text-slate-500 mb-1">
-                      <span>Total</span>
-                      {gameSummary.lineMovement.totalMove !== null && gameSummary.lineMovement.totalMove !== 0 && (
-                        <span className={gameSummary.lineMovement.totalMove > 0 ? 'text-red-400' : 'text-green-400'}>
-                          {gameSummary.lineMovement.totalMove > 0 ? '▲' : '▼'} {Math.abs(gameSummary.lineMovement.totalMove).toFixed(1)}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <div className="flex-1 p-2 rounded bg-slate-800/50 text-center">
-                        <p className="text-xs text-slate-500">Open</p>
-                        <p className="font-bold text-white">{gameSummary.lineMovement.openingTotal || '-'}</p>
-                      </div>
-                      <div className="flex items-center">
-                        <ChevronRight className="w-4 h-4 text-slate-600" />
-                      </div>
-                      <div className="flex-1 p-2 rounded bg-slate-800/50 text-center">
-                        <p className="text-xs text-slate-500">Current</p>
-                        <p className="font-bold text-green-400">{gameSummary.odds.overUnder}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Moneyline */}
-                  <div>
-                    <p className="text-xs text-slate-500 mb-2">Moneyline</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="p-2 rounded bg-slate-800/50 text-center">
-                        <p className="text-xs text-slate-500">{game.away.abbr}</p>
-                        <p className={`font-bold ${gameSummary.odds.awayTeamOdds?.moneyLine > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                          {gameSummary.odds.awayTeamOdds?.moneyLine > 0 ? '+' : ''}{gameSummary.odds.awayTeamOdds?.moneyLine}
-                        </p>
-                      </div>
-                      <div className="p-2 rounded bg-slate-800/50 text-center">
-                        <p className="text-xs text-slate-500">{game.home.abbr}</p>
-                        <p className={`font-bold ${gameSummary.odds.homeTeamOdds?.moneyLine > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                          {gameSummary.odds.homeTeamOdds?.moneyLine > 0 ? '+' : ''}{gameSummary.odds.homeTeamOdds?.moneyLine}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* ATS Records */}
-                  {(gameSummary.atsRecords.homeTeam || gameSummary.atsRecords.awayTeam) && (
-                    <div>
-                      <p className="text-xs text-slate-500 mb-2">ATS Records</p>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div className="text-center">
-                          <p className="text-slate-500">{game.away.abbr}</p>
-                          <p className="text-white font-semibold">{gameSummary.atsRecords.awayTeam?.ats || '-'}</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-slate-500">{game.home.abbr}</p>
-                          <p className="text-white font-semibold">{gameSummary.atsRecords.homeTeam?.ats || '-'}</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <p className="text-sm text-slate-500">No odds available</p>
-              )}
-            </div>
+            {/* ESPN Odds removed — redundant with Shop the Best Lines section above */}
 
             {/* Game Info */}
             <div className="rounded-xl p-4 bg-slate-900/50 border border-slate-800">
