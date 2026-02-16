@@ -556,8 +556,8 @@ export async function getMatchupIntelligence(
     homeAnalytics,
     awayAnalytics
   ] = await Promise.all([
-    getCLVData(gameId, sport),
-    getLineMovementData(gameId, sport),
+    getCLVData(gameId, sport, homeTeam.name, awayTeam.name),
+    getLineMovementData(gameId, sport, homeTeam.name, awayTeam.name),
     getPublicSharpSplits(gameId, sport, homeTeam.name, awayTeam.name),
     getInjuryImpact(gameId, sport, homeTeam.abbr, awayTeam.abbr),
     getWeatherImpact(gameId, sport),
@@ -680,24 +680,35 @@ export async function getMatchupIntelligence(
 // DATA FETCHING FUNCTIONS
 // =============================================================================
 
-async function getCLVData(gameId: string, sport: string): Promise<CLVData> {
+async function getCLVData(gameId: string, sport: string, homeTeamName: string, awayTeamName: string): Promise<CLVData> {
   // Step 1: Try line_snapshots table (best source — multiple snapshots over time)
+  // CRITICAL: line_snapshots stores Odds API game IDs, but pageId is ESPN format.
+  // Match by team names instead of game_id.
   try {
     const { createAdminClient } = await import('@/lib/supabase/server')
     const supabase = await createAdminClient()
 
-    // Get earliest (opening) snapshot and latest snapshot for this game
+    // Get today's date range for matching (games are stored by date)
+    const today = new Date()
+    const dateStr = today.toISOString().split('T')[0] // YYYY-MM-DD
+
+    // Match by team names (line_snapshots stores full team names from Odds API)
+    // Team name formats may differ slightly, so we do case-insensitive partial matching
     const [{ data: openingRows, error: openErr }, { data: latestRows, error: latestErr }] = await Promise.all([
       supabase
         .from('line_snapshots')
         .select('*')
-        .eq('game_id', gameId)
+        .eq('sport', sport.toUpperCase())
+        .ilike('home_team', `%${homeTeamName}%`)
+        .ilike('away_team', `%${awayTeamName}%`)
         .order('snapshot_ts', { ascending: true })
         .limit(1),
       supabase
         .from('line_snapshots')
         .select('*')
-        .eq('game_id', gameId)
+        .eq('sport', sport.toUpperCase())
+        .ilike('home_team', `%${homeTeamName}%`)
+        .ilike('away_team', `%${awayTeamName}%`)
         .order('snapshot_ts', { ascending: false })
         .limit(1)
     ])
@@ -948,13 +959,31 @@ async function fetchCLVFromESPN(gameId: string, sport: string): Promise<CLVData>
   }
 }
 
-async function getLineMovementData(gameId: string, sport: string): Promise<LineMovementData> {
+async function getLineMovementData(gameId: string, sport: string, homeTeamName: string, awayTeamName: string): Promise<LineMovementData> {
   // First try line_snapshots table (real DK/FanDuel data captured every 30min)
+  // NOTE: line_snapshots uses Odds API game IDs, while pageId is ESPN format.
+  // getLineTimeline uses game_id which will fail, so we do our own team-name-based query.
   try {
-    const { getLineTimeline } = await import('@/lib/services/game-odds-service')
-    const timeline = await getLineTimeline(gameId)
+    const { createAdminClient } = await import('@/lib/supabase/server')
+    const supabase = await createAdminClient()
     
-    if (timeline && timeline.timestamps.length >= 2) {
+    // Query by team names instead of game_id (cross-API compatibility)
+    const { data: snapshots, error } = await supabase
+      .from('line_snapshots')
+      .select('*')
+      .eq('sport', sport.toUpperCase())
+      .ilike('home_team', `%${homeTeamName}%`)
+      .ilike('away_team', `%${awayTeamName}%`)
+      .order('snapshot_ts', { ascending: true })
+    
+    if (!error && snapshots && snapshots.length >= 2) {
+      const timeline = {
+        timestamps: snapshots.map((d: { snapshot_ts: string }) => d.snapshot_ts),
+        spreads: snapshots.map((d: { spread_home: number | null }) => d.spread_home),
+        totals: snapshots.map((d: { total_line: number | null }) => d.total_line),
+        homeMLs: snapshots.map((d: { home_ml: number | null }) => d.home_ml),
+        awayMLs: snapshots.map((d: { away_ml: number | null }) => d.away_ml),
+      }
       const firstSpread = timeline.spreads.find(s => s != null) ?? 0
       const lastSpread = timeline.spreads.filter(s => s != null).pop() ?? 0
       const firstTotal = timeline.totals.find(t => t != null) ?? 0
