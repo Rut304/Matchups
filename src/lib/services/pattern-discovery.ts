@@ -82,7 +82,7 @@ export async function discoverNewPatterns(
   const historicalData = await fetchHistoricalDataForAnalysis(sports, lookbackYears)
   const existingPatterns = await fetchExistingPatterns()
   
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
   
   const prompt = `You are an elite sports betting pattern analyst with access to ${historicalData.totalGames} historical games across ${historicalData.years} years.
 
@@ -200,7 +200,7 @@ export async function improveExistingPatterns(
     return []
   }
   
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
   
   const improvements: { pattern_id: string; improvements: string[]; new_conditions?: string[] }[] = []
   

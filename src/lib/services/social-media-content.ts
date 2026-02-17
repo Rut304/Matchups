@@ -127,7 +127,7 @@ export async function generateSocialPost(
   const specs = PLATFORM_SPECS[platform]
   const templates = HEADLINE_TEMPLATES[postType]
   
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
   
   const prompt = `You are a viral social media content creator for a sports betting accountability platform called "Check The Experts".
 
@@ -246,7 +246,7 @@ export async function generateWeeklyRecap(
   const top3 = sorted.slice(0, 3)
   const bottom3 = sorted.slice(-3).reverse()
   
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
   
   const prompt = `Create a WEEK ${weekNumber} recap post for ${platform.toUpperCase()}.
 
@@ -319,7 +319,7 @@ export async function generatePredictionVsReality(
 ): Promise<SocialPost> {
   const specs = PLATFORM_SPECS[platform]
   
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
   
   const prompt = `Create a "Prediction vs Reality" post comparing what an expert said to what happened.
 
