@@ -7,6 +7,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { AdSlot } from "@/components/ads/AdSlot";
 import { Suspense } from "react";
 import { AnalyticsTracker } from "@/components/analytics/AnalyticsTracker";
+import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -52,6 +53,7 @@ export default function RootLayout({
           </div>
           <Footer />
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
