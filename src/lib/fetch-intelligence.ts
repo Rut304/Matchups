@@ -1,6 +1,9 @@
 /**
  * Shared intelligence fetcher for sport matchup pages.
  * Maps /api/games/[id]/intelligence response → TheEdgeSection's IntelligenceData shape.
+ * 
+ * v2 (2026-03-05): Now passes through the FULL intelligence payload so the frontend
+ * can render all 12 data points, full edge breakdown, situational badges, key numbers, etc.
  */
 export async function fetchIntelligence(
   gameId: string,
@@ -24,20 +27,64 @@ export async function fetchIntelligence(
   const data = await res.json()
   if (!data.success) return null
 
+  const intel = data.intelligence
+
   return {
-    edgeScore: data.intelligence?.edgeScore?.overall || 0,
+    // --- Core display props (existing) ---
+    edgeScore: intel?.edgeScore?.overall || 0,
     edgeLabel: data.summary?.edgeLabel || 'Analyzing',
     edgeColor: data.summary?.edgeColor || 'gray',
     topDataPoints: data.summary?.topDataPoints || [],
     quickTakes: data.summary?.quickTakes || { spread: '', spreadConfidence: 0, total: '', totalConfidence: 0, sharpestPick: '' },
-    clv: data.intelligence?.clv ? { grade: data.intelligence.clv.grade, description: data.intelligence.clv.description } : undefined,
-    sharpMoney: data.intelligence?.publicSharpSplits?.spread ? {
-      side: data.intelligence.publicSharpSplits.spread.sharpSide,
-      reverseLineMovement: data.intelligence.publicSharpSplits.spread.reverseLineMovement,
-      strength: data.intelligence.publicSharpSplits.spread.rlmStrength,
+    clv: intel?.clv ? { 
+      grade: intel.clv.grade, 
+      description: intel.clv.description,
+      spreadCLV: intel.clv.spreadCLV,
+      totalCLV: intel.clv.totalCLV,
+      mlCLV: intel.clv.mlCLV,
+      openSpread: intel.clv.openSpread,
+      currentSpread: intel.clv.currentSpread,
+      openTotal: intel.clv.openTotal,
+      currentTotal: intel.clv.currentTotal,
     } : undefined,
-    aiAnalysis: data.intelligence?.aiAnalysis || undefined,
+    sharpMoney: intel?.publicSharpSplits?.spread ? {
+      side: intel.publicSharpSplits.spread.sharpSide,
+      reverseLineMovement: intel.publicSharpSplits.spread.reverseLineMovement,
+      strength: intel.publicSharpSplits.spread.rlmStrength,
+    } : undefined,
+    aiAnalysis: intel?.aiAnalysis || undefined,
     loading: false,
     error: null,
+
+    // --- Full edge breakdown (NEW) ---
+    edgeBreakdown: intel?.edgeScore?.breakdown || null,
+    topEdge: intel?.edgeScore?.topEdge || null,
+
+    // --- Full betting splits: spread + total + ML (NEW) ---
+    splits: intel?.publicSharpSplits || null,
+
+    // --- Situational spots (NEW) ---
+    situational: intel?.situational || null,
+
+    // --- Key numbers (NEW) ---
+    keyNumbers: intel?.keyNumbers || null,
+
+    // --- Line movement detail (NEW) ---
+    lineMovement: intel?.lineMovement || null,
+
+    // --- O/U trends + combined analysis (NEW) ---
+    ouTrends: intel?.ouTrends || null,
+
+    // --- ATS records (NEW) ---
+    atsRecords: intel?.atsRecords || null,
+
+    // --- H2H full data (NEW) ---
+    h2hFull: intel?.h2h || null,
+
+    // --- Injury data (NEW) ---
+    injuries: intel?.injuryImpact || null,
+
+    // --- Weather (NEW) ---
+    weather: intel?.weather || null,
   }
 }
