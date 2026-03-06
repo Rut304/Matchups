@@ -252,7 +252,7 @@ function generateDetailFromSignal(signal: EdgeSignal): EdgeDetailData {
     ...signal,
     methodology: methodologyMap[signal.type],
     // Use deterministic values based on signal type - NO RANDOM DATA
-    historicalAccuracy: signal.type === 'bias' ? 58.4 : signal.type === 'volume' ? 54.2 : signal.type === 'news' ? 61.8 : 55.1,
+    historicalAccuracy: 0,
     sampleSize: signal.type === 'bias' ? 847 : signal.type === 'volume' ? 234 : signal.type === 'news' ? 156 : 412,
     lastBacktest: 'January 2026',
     priceHistory: generatePriceHistory(signal.currentPrice, signal.id),

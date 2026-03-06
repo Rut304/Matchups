@@ -380,13 +380,13 @@ export default function MarketsPage() {
 
         {activeTab === 'analytics' && (
           <div className="space-y-6">
-            {/* 20-Year Historical Performance Banner */}
+            {/* Market Analytics */}
             <div className="rounded-xl p-6" style={{ background: 'linear-gradient(135deg, rgba(0,255,136,0.1), rgba(155,89,182,0.1))', border: '1px solid rgba(0,255,136,0.3)' }}>
               <div className="flex items-center gap-2 mb-4">
                 <History className="w-5 h-5" style={{ color: '#00FF88' }} />
-                <h2 className="text-xl font-bold" style={{ color: '#00FF88' }}>20-Year Verified Track Record</h2>
-                <span className="text-[10px] px-2 py-0.5 rounded" style={{ background: 'rgba(0,255,136,0.2)', color: '#00FF88' }}>
-                  Since Jan 2024
+                <h2 className="text-xl font-bold" style={{ color: '#00FF88' }}>Prediction Market Analytics</h2>
+                <span className="text-[10px] px-2 py-0.5 rounded" style={{ background: 'rgba(255,200,0,0.2)', color: '#FFD700' }}>
+                  Beta — Tracking since Jan 2024
                 </span>
               </div>
               

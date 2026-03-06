@@ -143,7 +143,7 @@ function TrendsContent() {
       if (data.success && data.games) {
         // Generate applicable trends for each game
         const gamesWithTrends: TodayGame[] = data.games
-          .filter((g: TodayGame) => g.status === 'scheduled')
+          .filter((g: TodayGame) => g.status === 'scheduled' || g.status === 'in_progress' || g.status === 'in progress' || g.status === 'live')
           .map((game: TodayGame) => ({
             ...game,
             applicableTrends: generateApplicableTrends(game, trends)

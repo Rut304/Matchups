@@ -87,8 +87,17 @@ export async function GET(request: Request) {
             // Only include games with meaningful signals
             if (maxDivergence < 8 && gameSignals.length === 0) continue
             
-            const edgeScore = Math.min(95, 50 + maxDivergence + gameSignals.length * 10)
+            // Edge score: maxDivergence (0-50) scaled to 0-70, plus signal bonus (up to 25)
+            // No artificial floor — a weak edge should show as weak
+            const divergenceComponent = Math.min(70, maxDivergence * 1.4)
+            const signalComponent = Math.min(25, gameSignals.length * 8)
+            const edgeScore = Math.min(95, Math.round(divergenceComponent + signalComponent))
             if (edgeScore < minScore) continue
+            
+            // Confidence is based on data availability and consistency, not just score
+            const hasMultipleSources = spreadDivergence > 5 && mlDivergence > 5
+            const confidenceBonus = hasMultipleSources ? 10 : 0
+            const confidence = Math.min(95, Math.round(edgeScore * 0.8 + confidenceBonus + gameSignals.length * 5))
             
             // Determine pick based on sharp money direction
             const publicSpreadSide = split.spread.homeBetPct > 50 ? 'home' : 'away'
@@ -114,7 +123,7 @@ export async function GET(request: Request) {
               pick: pickStr,
               odds: '-110',
               edgeScore,
-              confidence: edgeScore,
+              confidence,
               trendCount: gameSignals.length,
               topTrends: gameSignals.slice(0, 2).map(g => g.signal.substring(0, 60)),
               publicPct: publicSpreadSide === 'home' ? split.spread.homeBetPct : split.spread.awayBetPct,

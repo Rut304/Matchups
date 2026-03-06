@@ -2185,10 +2185,11 @@ async function generateAIAnalysis(data: {
       hasRealInjuryData
     ].filter(Boolean).length
     
-    // If we have less than 2 real data points, use fallback template-based analysis
+    // If we have NO real data points at all, use fallback template-based analysis
+    // Even 1 data point (e.g., just injury data) is enough for AI to generate something useful
     // NEVER return null - gamblers expect analysis on every game page
-    if (dataPointsAvailable < 2) {
-      console.log(`[AI Analysis] Using fallback - only ${dataPointsAvailable} real data points available`)
+    if (dataPointsAvailable < 1) {
+      console.log(`[AI Analysis] Using fallback - zero real data points available`)
       return generateFallbackAnalysis(data)
     }
     
@@ -2344,21 +2345,20 @@ function generateFallbackAnalysis(data: {
       summaryParts.push(`Sharp money is backing ${sharpPick.pick.includes(homeAbbr) ? home : away} in this matchup.`)
     }
   } else {
-    // Always provide a meaningful opening statement about the matchup
-    const sportUpper = data.sport.toUpperCase()
-    if (sportUpper === 'NFL') {
-      summaryParts.push(`${away} travels to face ${home} in what shapes up to be an intriguing NFL matchup.`)
-    } else if (sportUpper === 'NBA') {
-      summaryParts.push(`The ${away} visit the ${home} in a matchup that presents several betting angles to consider.`)
-    } else if (sportUpper === 'NHL') {
-      summaryParts.push(`${away} face off against ${home} in this NHL contest.`)
-    } else if (sportUpper === 'MLB') {
-      summaryParts.push(`${away} take on ${home} with both teams looking to capitalize on pitching matchups.`)
-    } else {
-      summaryParts.push(`A compelling matchup between ${away} and ${home} with multiple angles to consider.`)
+      // When no sharp signal, provide a direct, no-fluff opening
+      const sportUpper = data.sport.toUpperCase()
+      if (sportUpper === 'NFL') {
+        summaryParts.push(`${away} at ${home} — limited sharp action detected on this game so far. Line shopping and late-breaking injury news will be key.`)
+      } else if (sportUpper === 'NBA') {
+        summaryParts.push(`${away} at ${home} — no strong sharp signal detected yet. Check back closer to tip-off for updated betting splits and line movement.`)
+      } else if (sportUpper === 'NHL') {
+        summaryParts.push(`${away} at ${home} — monitoring for sharp action. Goalie confirmations and late scratches often drive value in NHL betting.`)
+      } else if (sportUpper === 'MLB') {
+        summaryParts.push(`${away} at ${home} — awaiting sharper signals. Pitching matchups and bullpen usage from recent games are the key drivers here.`)
+      } else {
+        summaryParts.push(`${away} at ${home} — still awaiting stronger market signals. Check back closer to game time for updated analysis.`)
+      }
     }
-  }
-  
   // CLV commentary
   if (data.clv.spreadCLV !== 0 || data.clv.totalCLV !== 0) {
     const movements: string[] = []
@@ -2411,7 +2411,7 @@ function generateFallbackAnalysis(data: {
   if (sharpPick && sharpPick.confidence >= 60) {
     summaryParts.push(`The sharpest play identified is ${sharpPick.pick} at ${sharpPick.confidence}% confidence. ${sharpPick.reasoning}`)
   } else {
-    summaryParts.push(`Monitor line movement as game time approaches - sharp action closer to kickoff often reveals informed money.`)
+    summaryParts.push(`No definitive edge identified yet — data will update as game time approaches with fresh betting splits and line movement.`)
   }
   
   const summary = summaryParts.join(' ')

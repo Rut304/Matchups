@@ -275,12 +275,12 @@ export function EdgeDashboardFiltered({
           <div className="flex items-center gap-3">
             <Brain className="text-orange-500 w-6 h-6" />
             <div>
-              <p className="text-sm font-bold text-white">20-Year Track Record</p>
-              <p className="text-xs text-gray-400">40,852 picks analyzed • 58.4% win rate • +9.0% ROI</p>
+              <p className="text-sm font-bold text-white">AI Edge Detection</p>
+              <p className="text-xs text-gray-400">Real-time line divergence • Sharp money signals • Reverse line movement</p>
             </div>
           </div>
           <Link href="/performance" className="text-xs font-medium hover:underline text-orange-500">
-            View Performance →
+            How It Works →
           </Link>
         </div>
 

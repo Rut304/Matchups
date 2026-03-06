@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -238,7 +238,7 @@ interface GameSummaryData {
   error: string | null
 }
 
-export default function GameDetailPage() {
+function GameDetailPageInner() {
   const params = useParams()
   const searchParams = useSearchParams()
   const gameId = params.id as string
@@ -246,6 +246,7 @@ export default function GameDetailPage() {
   
   const [game, setGame] = useState<GameDetail | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [compactMode, setCompactMode] = useState(false)
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     h2h: true,
@@ -363,9 +364,15 @@ export default function GameDetailPage() {
 
   useEffect(() => {
     const loadGame = async () => {
-      const data = await getGameById(gameId, sport)
-      setGame(data)
-      setLoading(false)
+      try {
+        const data = await getGameById(gameId, sport)
+        setGame(data)
+      } catch (err) {
+        console.error('[GamePage] Error loading game:', err)
+        setError('Failed to load game data. Please try again.')
+      } finally {
+        setLoading(false)
+      }
     }
     loadGame()
   }, [gameId, sport])
@@ -660,6 +667,41 @@ export default function GameDetailPage() {
               <RefreshCw className="w-12 h-12 mx-auto mb-4 text-orange-500 animate-spin" />
               <p className="text-slate-500">Loading matchup data...</p>
             </div>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
+  if (error) {
+    return (
+      <main className="min-h-screen bg-[#06060c]">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <Link href="/scores" className="inline-flex items-center gap-2 mb-6 text-slate-500 hover:text-white">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Scores
+          </Link>
+          <div className="text-center py-12">
+            <AlertTriangle className="w-12 h-12 text-red-500 mx-auto" />
+            <h1 className="text-2xl font-bold mt-4 text-white">Error Loading Game</h1>
+            <p className="mt-2 text-slate-500">{error}</p>
+            <button
+              onClick={() => {
+                setError(null)
+                setLoading(true)
+                getGameById(gameId, sport).then(data => {
+                  setGame(data)
+                  setLoading(false)
+                }).catch(() => {
+                  setError('Failed to load game data. Please try again.')
+                  setLoading(false)
+                })
+              }}
+              className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-green-500/10 text-green-400 font-bold text-sm hover:bg-green-500/20"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Try Again
+            </button>
           </div>
         </div>
       </main>
@@ -1009,12 +1051,12 @@ export default function GameDetailPage() {
                 <div className="rounded p-1 bg-slate-800/50 border border-slate-700">
                   <p className="text-[10px] text-slate-500">{game.away.abbr || 'AWAY'}</p>
                   <p className={`text-xs font-bold font-mono ${
-                    (gameSummary.odds?.awayTeamOdds?.moneyLine || game.moneyline.away || multiBookOdds.bestAwayML.odds) > 0 ? 'text-green-400' : 'text-white'
+                    (gameSummary.odds?.awayTeamOdds?.moneyLine || game?.moneyline?.away || multiBookOdds.bestAwayML?.odds) > 0 ? 'text-green-400' : 'text-white'
                   }`}>
                     {gameSummary.odds?.awayTeamOdds?.moneyLine ? (
                       <>{gameSummary.odds.awayTeamOdds.moneyLine > 0 ? '+' : ''}{gameSummary.odds.awayTeamOdds.moneyLine}</>
-                    ) : game.moneyline.away !== 0 ? (
-                      <>{game.moneyline.away > 0 ? '+' : ''}{game.moneyline.away}</>
+                    ) : game?.moneyline?.away !== 0 ? (
+                      <>{(game?.moneyline?.away || 0) > 0 ? '+' : ''}{game?.moneyline?.away || '-'}</>
                     ) : (!multiBookOdds.loading && multiBookOdds.bestAwayML.odds !== 0) ? (
                       <>{multiBookOdds.bestAwayML.odds > 0 ? '+' : ''}{multiBookOdds.bestAwayML.odds}</>
                     ) : '-'}
@@ -1028,12 +1070,12 @@ export default function GameDetailPage() {
                 <div className="rounded p-1 bg-slate-800/50 border border-slate-700">
                   <p className="text-[10px] text-slate-500">{game.home.abbr || 'HOME'}</p>
                   <p className={`text-xs font-bold font-mono ${
-                    (gameSummary.odds?.homeTeamOdds?.moneyLine || game.moneyline.home || multiBookOdds.bestHomeML.odds) > 0 ? 'text-green-400' : 'text-white'
+                    (gameSummary.odds?.homeTeamOdds?.moneyLine || game?.moneyline?.home || multiBookOdds.bestHomeML?.odds) > 0 ? 'text-green-400' : 'text-white'
                   }`}>
                     {gameSummary.odds?.homeTeamOdds?.moneyLine ? (
                       <>{gameSummary.odds.homeTeamOdds.moneyLine > 0 ? '+' : ''}{gameSummary.odds.homeTeamOdds.moneyLine}</>
-                    ) : game.moneyline.home !== 0 ? (
-                      <>{game.moneyline.home > 0 ? '+' : ''}{game.moneyline.home}</>
+                    ) : game?.moneyline?.home !== 0 ? (
+                      <>{(game?.moneyline?.home || 0) > 0 ? '+' : ''}{game?.moneyline?.home || '-'}</>
                     ) : (!multiBookOdds.loading && multiBookOdds.bestHomeML.odds !== 0) ? (
                       <>{multiBookOdds.bestHomeML.odds > 0 ? '+' : ''}{multiBookOdds.bestHomeML.odds}</>
                     ) : '-'}
@@ -1267,7 +1309,7 @@ export default function GameDetailPage() {
             <div className="space-y-4">
               {/* Summary */}
               <div className="p-4 rounded-xl bg-slate-800/30 border border-slate-700/50">
-                <p className="text-slate-300 leading-relaxed">{intelligence.aiAnalysis.summary}</p>
+                <p className="text-slate-300 leading-relaxed">{intelligence.aiAnalysis?.summary || 'Analysis unavailable.'}</p>
               </div>
               
               {/* Win Probability & Projected Score */}
@@ -1277,12 +1319,12 @@ export default function GameDetailPage() {
                   <div className="flex items-center justify-between">
                     <div className="text-center">
                       <p className="text-sm text-slate-400">{game.away.abbr}</p>
-                      <p className="text-xl font-bold text-white">{Math.round(intelligence.aiAnalysis.winProbability.away * 100)}%</p>
+                      <p className="text-xl font-bold text-white">{Math.round((intelligence.aiAnalysis?.winProbability?.away || 0) * 100)}%</p>
                     </div>
                     <div className="text-slate-600">vs</div>
                     <div className="text-center">
                       <p className="text-sm text-slate-400">{game.home.abbr}</p>
-                      <p className="text-xl font-bold text-white">{Math.round(intelligence.aiAnalysis.winProbability.home * 100)}%</p>
+                      <p className="text-xl font-bold text-white">{Math.round((intelligence.aiAnalysis?.winProbability?.home || 0) * 100)}%</p>
                     </div>
                   </div>
                 </div>
@@ -1291,12 +1333,12 @@ export default function GameDetailPage() {
                   <div className="flex items-center justify-between">
                     <div className="text-center">
                       <p className="text-sm text-slate-400">{game.away.abbr}</p>
-                      <p className="text-xl font-bold text-orange-400">{intelligence.aiAnalysis.projectedScore.away}</p>
+                      <p className="text-xl font-bold text-orange-400">{intelligence.aiAnalysis?.projectedScore?.away || '-'}</p>
                     </div>
                     <div className="text-slate-600">-</div>
                     <div className="text-center">
                       <p className="text-sm text-slate-400">{game.home.abbr}</p>
-                      <p className="text-xl font-bold text-orange-400">{intelligence.aiAnalysis.projectedScore.home}</p>
+                      <p className="text-xl font-bold text-orange-400">{intelligence.aiAnalysis?.projectedScore?.home || '-'}</p>
                     </div>
                   </div>
                 </div>
@@ -1317,8 +1359,8 @@ export default function GameDetailPage() {
                       Grade {intelligence.aiAnalysis.betGrades?.spread || 'C'}
                     </span>
                   </div>
-                  <p className="text-lg font-bold text-white mb-1">{intelligence.aiAnalysis.spreadAnalysis.pick}</p>
-                  <p className="text-xs text-slate-400">{Math.round(intelligence.aiAnalysis.spreadAnalysis.confidence * 100)}% confident</p>
+                  <p className="text-lg font-bold text-white mb-1">{intelligence.aiAnalysis?.spreadAnalysis?.pick || 'N/A'}</p>
+                  <p className="text-xs text-slate-400">{Math.round((intelligence.aiAnalysis?.spreadAnalysis?.confidence || 0) * 100)}% confident</p>
                 </div>
 
                 {/* Total Pick */}
@@ -1334,8 +1376,8 @@ export default function GameDetailPage() {
                       Grade {intelligence.aiAnalysis.betGrades?.total || 'C'}
                     </span>
                   </div>
-                  <p className="text-lg font-bold text-white mb-1">{intelligence.aiAnalysis.totalAnalysis.pick}</p>
-                  <p className="text-xs text-slate-400">{Math.round(intelligence.aiAnalysis.totalAnalysis.confidence * 100)}% confident</p>
+                  <p className="text-lg font-bold text-white mb-1">{intelligence.aiAnalysis?.totalAnalysis?.pick || 'N/A'}</p>
+                  <p className="text-xs text-slate-400">{Math.round((intelligence.aiAnalysis?.totalAnalysis?.confidence || 0) * 100)}% confident</p>
                 </div>
 
                 {/* ML Pick */}
@@ -2288,5 +2330,21 @@ export default function GameDetailPage() {
 
       </div>
     </main>
+  )
+}
+
+// Wrap with Suspense to handle useSearchParams() safely in Next.js 14+
+export default function GameDetailPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-[#06060c]">
+        <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+          <div className="animate-spin w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full mx-auto mb-4" />
+          <p className="text-slate-400">Loading game analysis...</p>
+        </div>
+      </main>
+    }>
+      <GameDetailPageInner />
+    </Suspense>
   )
 }

@@ -60,8 +60,17 @@ const PROP_CATEGORIES: Record<string, string[]> = {
   NCAAB: ['All', 'Points', 'Rebounds', 'Assists'],
 }
 
+// Pick a default sport that's currently in-season
+function getDefaultSport(): SportKey {
+  const month = new Date().getMonth() + 1 // 1-12
+  if (month >= 10 || month <= 2) return 'NBA'   // Oct-Feb: NBA
+  if (month >= 3 && month <= 4) return 'NCAAB'  // March-April: March Madness
+  if (month >= 4 && month <= 9) return 'MLB'    // Apr-Sep: MLB
+  return 'NFL'                                    // Fallback
+}
+
 export default function PropsPage() {
-  const [sport, setSport] = useState<SportKey>('NFL')
+  const [sport, setSport] = useState<SportKey>(getDefaultSport())
   const [category, setCategory] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
   const [games, setGames] = useState<Game[]>([])

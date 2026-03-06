@@ -31,7 +31,7 @@ const poyWatch = [
   { name: 'Ace Bailey', team: 'Rutgers', pos: 'F', ppg: 18.1, rpg: 6.7, odds: '+600' },
 ]
 
-// Bracketology preview (updated dynamically based on rankings)
+// Bracketology preview (STATIC - manually maintained projection, NOT live data)
 const bracketPreview = [
   { seed: '1', teams: ['Auburn', 'Duke', 'Iowa State', 'Alabama'] },
   { seed: '2', teams: ['Florida', 'Tennessee', 'Houston', 'Michigan State'] },
@@ -188,7 +188,7 @@ export default async function NCAABPage() {
                   <Target style={{ color: '#FF6B00', width: '20px', height: '20px' }} />
                   <h2 className="text-xl font-bold" style={{ color: '#FFF' }}>Bracketology Preview</h2>
                 </div>
-                <span className="text-xs" style={{ color: '#808090' }}>Updated Today</span>
+                <span className="text-xs" style={{ color: '#FFD700' }}>Preseason Projection</span>
               </div>
               
               <div className="space-y-3">

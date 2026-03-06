@@ -203,9 +203,9 @@ export async function analyzeHistoricalEdges(sport?: string): Promise<EdgeOpport
   // Get hot trends
   const hotTrends = trends.filter((t: HistoricalTrendRow) => t.hot_streak && t.confidence_score >= 80)
   
-  const prompt = `You are an expert sports betting analyst with access to 20 years of historical data.
+  const prompt = `You are an expert sports betting analyst. Analyze the data provided and give honest, data-driven insights.
 
-CURRENT SYSTEM PERFORMANCE (20-Year Track Record):
+CURRENT SYSTEM PERFORMANCE:
 ${JSON.stringify(performance, null, 2)}
 
 RECENT 30-DAY PERFORMANCE:
@@ -269,7 +269,7 @@ export async function analyzeTrendInsights(sport?: string): Promise<TrendInsight
   
   const prompt = `You are an expert sports betting analyst. Analyze these betting trends and provide insights.
 
-ACTIVE TRENDS (20-Year Data):
+ACTIVE TRENDS:
 ${trends.map((t: HistoricalTrendRow) => `
 TREND: ${t.trend_name}
 Sport: ${t.sport} | Category: ${t.category}
@@ -433,7 +433,7 @@ ${JSON.stringify(trendInsights.filter(t => t.currentStatus === 'hot').slice(0, 5
 PATTERNS:
 ${JSON.stringify(patterns.slice(0, 3), null, 2)}
 
-SYSTEM PERFORMANCE (20 Years):
+SYSTEM PERFORMANCE:
 ${JSON.stringify(performance[0], null, 2)}
 
 Generate a brief daily betting report including:
@@ -528,7 +528,7 @@ APPLICABLE HISTORICAL TRENDS:
 ${applicableTrends.map((t: HistoricalTrendRow) => `- ${t.trend_name}: ${t.all_time_record} (${t.all_time_roi}% ROI)`).join('\n')}
 
 OVERALL SYSTEM PERFORMANCE ON ${sport} SPREADS:
-- 20-Year Record: 58.4% win rate
+- System tracks line divergence, sharp money, and market inefficiencies
 - Average ROI: 9.0%
 - CLV Average: +4.0 cents
 
@@ -590,7 +590,7 @@ APPLICABLE HISTORICAL TRENDS:
 ${totalTrends.slice(0, 10).map((t: HistoricalTrendRow) => `- ${t.trend_name}: ${t.all_time_record} (${t.all_time_roi}% ROI)`).join('\n')}
 
 OVERALL SYSTEM PERFORMANCE ON ${sport} TOTALS:
-- 20-Year Data shows unders hit 52.1% of the time
+- Historical data suggests checking total trends before betting
 - Weather games (cold/wind) under rate: 58.5%
 - Primetime games under rate: 54.2%
 
@@ -799,8 +799,8 @@ export async function getFullAIAnalysis(sport?: string) {
     ...report,
     generatedAt: new Date().toISOString(),
     dataYears: 20,
-    totalSampleSize: 40852,
-    systemWinRate: 58.4,
+    totalSampleSize: 0,
+    systemWinRate: 0,
     systemROI: 9.0
   }
 }

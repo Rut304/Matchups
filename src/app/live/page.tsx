@@ -61,7 +61,7 @@ export default function LivePage() {
 
       if (liveData.success && Array.isArray(liveData.games)) {
         const games: LiveGame[] = liveData.games.map((g: Record<string, unknown>) => ({
-          id: g.id as string,
+          id: (g.gameId || g.id) as string,
           sport: (g.sport || 'NFL') as SportKey,
           awayTeam: { name: g.awayTeam as string, score: (g.awayScore as number) || 0 },
           homeTeam: { name: g.homeTeam as string, score: (g.homeScore as number) || 0 },
@@ -188,7 +188,7 @@ export default function LivePage() {
                   <div className="flex items-center gap-2 mb-4"><span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" /><h2 className="text-xl font-bold text-white">LIVE NOW</h2></div>
                   <div className="grid gap-4">
                     {filteredLiveGames.map(game => (
-                      <Link key={game.id} href={`/live/${game.id}`} className="block rounded-2xl p-4 hover:scale-[1.02] transition-all card-live-game">
+                      <Link key={game.id} href={`/game/${game.id}?sport=${game.sport}`} className="block rounded-2xl p-4 hover:scale-[1.02] transition-all card-live-game">
                         <div className="flex items-center justify-between mb-3">
                           <span className="text-xs font-bold px-2 py-1 rounded badge-green">{game.sport} • {game.period} {game.clock}</span>
                           <ExternalLink className="w-4 h-4 text-slate-500" />
@@ -257,7 +257,7 @@ export default function LivePage() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1"><span className={`text-xs font-bold uppercase ${classes.text}`}>{alert.type}</span><span className="text-xs text-slate-500">{alert.timestamp}</span></div>
                             <p className="text-sm text-slate-300">{alert.message}</p>
-                            {alert.gameId && <Link href={`/live/${alert.gameId}`} className={`text-xs mt-2 inline-block ${classes.text}`}>View Game →</Link>}
+                            {alert.gameId && <Link href={`/game/${alert.gameId}?sport=${alert.sport}`} className={`text-xs mt-2 inline-block ${classes.text}`}>View Game →</Link>}
                           </div>
                         </div>
                       </div>

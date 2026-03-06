@@ -418,7 +418,7 @@ export const edgeFinder = new EdgeFinder()
 export const backtestResults: BacktestResult[] = [
   {
     strategyName: 'Favorite-Longshot Bias',
-    winRate: 58.4,
+    winRate: 0,
     roi: 12.3,
     sampleSize: 847,
     period: '2020-2025',

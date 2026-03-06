@@ -234,7 +234,7 @@ export default function AnalyticsPage() {
         {/* EDGE FINDER TAB */}
         {activeTab === 'edge' && (
           <div className="grid lg:grid-cols-3 gap-6">
-            {/* 20-Year Track Record Banner */}
+            {/* Edge System Overview Banner */}
             <div className="lg:col-span-3 mb-4">
               <div className="p-4 rounded-xl" style={{ 
                 background: 'linear-gradient(135deg, rgba(0,255,136,0.1) 0%, rgba(0,168,255,0.1) 100%)',
@@ -247,27 +247,12 @@ export default function AnalyticsPage() {
                       <Shield className="w-6 h-6" style={{ color: '#00FF88' }} />
                     </div>
                     <div>
-                      <h3 className="font-black text-lg" style={{ color: '#FFF' }}>20-Year Verified Track Record</h3>
-                      <p className="text-xs" style={{ color: '#808090' }}>Backtested across 40,852 picks from 2006-2026</p>
+                      <h3 className="font-black text-lg" style={{ color: '#FFF' }}>AI Edge Detection Engine</h3>
+                      <p className="text-xs" style={{ color: '#808090' }}>Analyzing line divergence, sharp money, and market signals in real-time</p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-4 gap-4">
-                    <div className="text-center">
-                      <div className="text-xl font-black" style={{ color: '#00FF88' }}>58.4%</div>
-                      <div className="text-[10px]" style={{ color: '#808090' }}>Win Rate</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xl font-black" style={{ color: '#00FF88' }}>+9.0%</div>
-                      <div className="text-[10px]" style={{ color: '#808090' }}>Avg ROI</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xl font-black" style={{ color: '#00A8FF' }}>+6,924</div>
-                      <div className="text-[10px]" style={{ color: '#808090' }}>Units Won</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xl font-black" style={{ color: '#FFD700' }}>+4.0¢</div>
-                      <div className="text-[10px]" style={{ color: '#808090' }}>Avg CLV</div>
-                    </div>
+                  <div className="px-3 py-1 rounded-lg text-xs font-bold" style={{ background: 'rgba(255,200,0,0.15)', color: '#FFD700' }}>
+                    ⚠️ Performance tracking in progress — results shown as data accumulates
                   </div>
                 </div>
               </div>

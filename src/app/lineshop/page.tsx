@@ -298,11 +298,20 @@ const SPORT_MAP: Record<string, string> = {
   'mlb': 'baseball_mlb'
 }
 
+// Pick a default sport that's currently in-season
+function getDefaultSportFilter(): SportFilter {
+  const month = new Date().getMonth() + 1 // 1-12
+  if (month >= 10 || month <= 2) return 'nba'   // Oct-Feb: NBA
+  if (month >= 3 && month <= 4) return 'nba'    // March-April: NBA/March Madness
+  if (month >= 4 && month <= 9) return 'mlb'    // Apr-Sep: MLB
+  return 'nfl'                                    // Fallback
+}
+
 export default function LineShopPage() {
   const [games, setGames] = useState<GameOdds[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedSport, setSelectedSport] = useState<SportFilter>('nfl')
+  const [selectedSport, setSelectedSport] = useState<SportFilter>(getDefaultSportFilter())
   const [selectedBetType, setSelectedBetType] = useState<BetType>('spread')
   const [refreshing, setRefreshing] = useState(false)
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null)

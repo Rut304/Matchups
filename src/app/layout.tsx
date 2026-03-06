@@ -23,6 +23,32 @@ export const metadata: Metadata = {
   title: "Matchups - Sports Gambler Intelligence | Free AI-Powered Betting Analysis",
   description: "The ultimate FREE sports gambling intelligence platform. AI-powered betting analysis, trend finder, sharp money signals, and edge detection for NFL, NBA, NHL, MLB.",
   keywords: ["sports betting", "gambling intelligence", "betting trends", "sharp money", "NFL betting", "NBA betting", "NHL betting", "MLB betting", "betting edge", "trend finder"],
+  metadataBase: new URL('https://matchups.vercel.app'),
+  openGraph: {
+    title: "Matchups - Sports Gambler Intelligence",
+    description: "Free AI-powered betting analysis, edge detection, sharp money signals, and trend finder for NFL, NBA, NHL, MLB, and college sports.",
+    url: 'https://matchups.vercel.app',
+    siteName: 'Matchups',
+    type: 'website',
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "Matchups - Sports Gambler Intelligence",
+    description: "Free AI-powered betting analysis, edge detection, sharp money signals for NFL, NBA, NHL, MLB.",
+    creator: '@matchups_ai',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
+  alternates: {
+    canonical: 'https://matchups.vercel.app',
+  },
 };
 
 export default function RootLayout({
