@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe'
 import { createClient } from '@/lib/supabase/server'
+
+// Prevent Next.js from collecting page data at build time (Stripe needs runtime env vars)
+export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,7 +26,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create Stripe checkout session
+    // Create Stripe checkout session (lazy import to avoid build-time crash)
+    const { getStripe } = await import('@/lib/stripe')
+    const stripe = getStripe()
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
