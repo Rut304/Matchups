@@ -49,17 +49,17 @@ function calculateEdgeSignal(market: {
 }): EdgeSignal | null {
   const currentPrice = market.outcomes[0]?.price || 50
   const priceChange = market.priceChange24h || 0
-  
+
   // Simple edge detection heuristics
   // In production, this would use ML models and historical data
-  
+
   let type: EdgeSignal['type'] = 'bias'
   let fairValue = currentPrice
   let signal: EdgeSignal['signal'] = 'watch'
   let reason = ''
   let evidence = ''
   let confidence = 50
-  
+
   // Detect favorite-longshot bias at extreme prices
   if (currentPrice > 85 || currentPrice < 15) {
     type = 'bias'
@@ -92,14 +92,14 @@ function calculateEdgeSignal(market: {
       confidence = 60
     }
   }
-  
+
   const edge = currentPrice - fairValue
-  
+
   // Only return if there's meaningful edge
   if (Math.abs(edge) < 2) {
     return null
   }
-  
+
   return {
     id: market.id,
     type,
@@ -127,23 +127,23 @@ export async function fetchEdgeSignals(limit: number = 20): Promise<EdgeSignal[]
   try {
     // Fetch markets through our server-side API to avoid CORS
     const response = await fetch('/api/markets?category=sports&limit=100')
-    
+
     if (!response.ok) {
       console.log('Markets API returned non-OK status - no data available')
       return []  // No fallback to mock data - real data only
     }
-    
+
     const data = await response.json()
     const markets = data.markets || []
-    
+
     if (!markets || markets.length === 0) {
       console.log('No markets returned from API')
       return []  // No fallback to mock data - real data only
     }
-    
+
     // Calculate edge signals from fetched markets
     const signals: EdgeSignal[] = []
-    
+
     for (const market of markets) {
       // Transform API market format to expected format
       const transformedMarket = {
@@ -156,16 +156,16 @@ export async function fetchEdgeSignals(limit: number = 20): Promise<EdgeSignal[]
         outcomes: [{ price: market.yesPrice }],
         priceChange24h: market.change24h || 0
       }
-      
+
       const signal = calculateEdgeSignal(transformedMarket)
       if (signal) {
         signals.push(signal)
       }
     }
-    
+
     // Sort by confidence
     signals.sort((a, b) => b.confidence - a.confidence)
-    
+
     return signals.slice(0, limit)  // No fallback to mock data - real data only
   } catch (error) {
     console.error('Error fetching edge signals:', error)
@@ -235,7 +235,7 @@ export async function fetchEdgeSignalById(id: string): Promise<EdgeDetailData | 
   } catch (error) {
     console.error('Error fetching edge signal by ID:', error)
   }
-  
+
   return null
 }
 
@@ -247,7 +247,7 @@ function generateDetailFromSignal(signal: EdgeSignal): EdgeDetailData {
     time: `Time preference bias exploits the tendency for long-dated markets to regress toward base rates over time. Early pricing often overestimates certainty.`,
     arbitrage: `Cross-platform arbitrage identifies price discrepancies between different prediction market platforms for the same underlying event.`
   }
-  
+
   return {
     ...signal,
     methodology: methodologyMap[signal.type],
@@ -270,7 +270,7 @@ function generatePriceHistory(currentPrice: number, signalId?: string): { timest
   // Use signal ID hash for deterministic variations, or default variations
   const baseVariation = signalId ? Math.abs(signalId.charCodeAt(0) % 5) - 2.5 : 0
   const baseVolume = 800000
-  
+
   for (let i = 7; i >= 0; i--) {
     history.push({
       timestamp: `${i}d ago`,

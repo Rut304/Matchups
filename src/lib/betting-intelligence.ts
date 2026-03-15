@@ -7,8 +7,8 @@
 import { TeamAnalytics, getTeamByAbbr } from './analytics-data'
 import { geminiModel } from './gemini'
 import type { Sport } from '@/types/leaderboard'
-import { 
-  fetchBettingSplitsFromActionNetwork, 
+import {
+  fetchBettingSplitsFromActionNetwork,
   detectSharpMoney,
   fetchMultiBookOdds
 } from './scrapers/action-network'
@@ -478,7 +478,7 @@ export interface AIMatchupAnalysis {
   summary: string
   winProbability: { home: number; away: number }
   projectedScore: { home: number; away: number }
-  
+
   spreadAnalysis: {
     pick: string
     confidence: number
@@ -486,7 +486,7 @@ export interface AIMatchupAnalysis {
     keyFactors: string[]
     risks: string[]
   }
-  
+
   totalAnalysis: {
     pick: string
     confidence: number
@@ -494,14 +494,14 @@ export interface AIMatchupAnalysis {
     keyFactors: string[]
     paceProjection: string
   }
-  
+
   mlAnalysis: {
     pick: string
     confidence: number
     value: number // implied vs actual
     reasoning: string
   }
-  
+
   propPicks: {
     player: string
     prop: string
@@ -509,10 +509,10 @@ export interface AIMatchupAnalysis {
     confidence: number
     reasoning: string
   }[]
-  
+
   keyEdges: string[]
   majorRisks: string[]
-  
+
   betGrades: {
     spread: 'A' | 'B' | 'C' | 'D' | 'F'
     total: 'A' | 'B' | 'C' | 'D' | 'F'
@@ -540,7 +540,7 @@ export async function getMatchupIntelligence(
   }
 ): Promise<MatchupIntelligence> {
   const now = new Date().toISOString()
-  
+
   // Fetch all data points in parallel
   const [
     clvData,
@@ -569,7 +569,7 @@ export async function getMatchupIntelligence(
     getTeamAnalytics(sport, homeTeam.abbr),
     getTeamAnalytics(sport, awayTeam.abbr)
   ])
-  
+
   // Patch CLV data with known spread/total from frontend if CLV pipeline returned zeros
   if (options?.knownTotal && (!clvData.currentTotal || clvData.currentTotal === 0)) {
     clvData.currentTotal = options.knownTotal
@@ -579,7 +579,7 @@ export async function getMatchupIntelligence(
     clvData.currentSpread = options.knownSpread
     if (!clvData.openSpread) clvData.openSpread = options.knownSpread
   }
-  
+
   // Get market consensus with real splits data
   const consensusData = await getMarketConsensus(gameId, sport, splitsData)
 
@@ -739,7 +739,7 @@ async function getCLVData(gameId: string, sport: string, homeTeamName: string, a
       return {
         openSpread, currentSpread, openTotal, currentTotal, openHomeML, currentHomeML,
         spreadCLV, totalCLV, mlCLV, grade,
-        description: movements.length > 0 
+        description: movements.length > 0
           ? `${movements.join(', ')} (tracked via line snapshots)`
           : 'No significant movement detected'
       }
@@ -788,10 +788,10 @@ async function fetchCLVFromOddsAPI(gameId: string, sport: string): Promise<CLVDa
   if (!res.ok) throw new Error(`Odds API ${res.status}`)
 
   const games = await res.json()
-  
+
   // Find the matching game by ID or by team name matching
   let matchedGame = games.find((g: { id: string }) => g.id === gameId)
-  
+
   if (!matchedGame) {
     // Try to find by Odds API event ID format or team name matching
     // The gameId from ESPN won't match Odds API IDs, so we check line_snapshots for cross-reference
@@ -849,18 +849,18 @@ async function fetchCLVFromESPN(gameId: string, sport: string): Promise<CLVData>
     }
     const sportPath = sportMap[sport.toUpperCase()] || 'football/nfl'
     const url = `https://site.api.espn.com/apis/site/v2/sports/${sportPath}/summary?event=${gameId}`
-    
+
     const response = await fetch(url, {
       headers: { 'Accept': 'application/json', 'User-Agent': 'Matchups/1.0' },
       next: { revalidate: 120 }
     })
-    
+
     if (!response.ok) {
       throw new Error(`ESPN API returned ${response.status}`)
     }
-    
+
     const data = await response.json()
-    
+
     // Extract odds from pickcenter
     if (!data.pickcenter || !Array.isArray(data.pickcenter)) {
       return {
@@ -869,13 +869,13 @@ async function fetchCLVFromESPN(gameId: string, sport: string): Promise<CLVData>
         grade: 'neutral', description: 'No odds data in ESPN response'
       }
     }
-    
+
     // Find DraftKings or first available provider
-    const dkOdds = data.pickcenter.find((p: { provider?: { name?: string } }) => 
+    const dkOdds = data.pickcenter.find((p: { provider?: { name?: string } }) =>
       p.provider?.name?.toLowerCase().includes('draftkings')
     )
     const primaryOdds = dkOdds || data.pickcenter[0]
-    
+
     if (!primaryOdds) {
       return {
         openSpread: 0, currentSpread: 0, openTotal: 0, currentTotal: 0,
@@ -883,19 +883,19 @@ async function fetchCLVFromESPN(gameId: string, sport: string): Promise<CLVData>
         grade: 'neutral', description: 'No primary odds provider found'
       }
     }
-    
+
     // Extract line movement from pointSpread and total objects
     const pointSpread = primaryOdds.pointSpread
     const total = primaryOdds.total
-    
+
     let openSpread = 0, currentSpread = 0, openTotal = 0, currentTotal = 0
     let openHomeML = 0, currentHomeML = 0
-    
+
     if (pointSpread?.home) {
       openSpread = parseFloat(pointSpread.home.open?.line || '0')
       currentSpread = parseFloat(pointSpread.home.close?.line || pointSpread.home.current?.line || '0')
     }
-    
+
     if (total?.over) {
       // Total line format may be like "o45.5" or just "45.5"
       const openLine = (total.over.open?.line || '').toString().replace(/[ou]/gi, '')
@@ -903,26 +903,26 @@ async function fetchCLVFromESPN(gameId: string, sport: string): Promise<CLVData>
       openTotal = parseFloat(openLine) || 0
       currentTotal = parseFloat(closeLine) || 0
     }
-    
+
     // Try to get moneyline
     if (primaryOdds.homeTeamOdds?.moneyLine) {
       currentHomeML = primaryOdds.homeTeamOdds.moneyLine
     }
-    
+
     // Calculate CLV
     const spreadCLV = currentSpread - openSpread
     const totalCLV = openTotal - currentTotal // Positive = total went down (under value)
     const mlCLV = 0 // Would need open ML data
-    
+
     // Grade the CLV
     let grade: CLVData['grade'] = 'neutral'
     const absSpreadCLV = Math.abs(spreadCLV)
     const absTotalCLV = Math.abs(totalCLV)
     const combinedMovement = absSpreadCLV + absTotalCLV
-    
+
     if (combinedMovement >= 2) grade = 'excellent'
     else if (combinedMovement >= 1) grade = 'good'
-    
+
     // Build description
     const movements: string[] = []
     if (spreadCLV !== 0) {
@@ -931,11 +931,11 @@ async function fetchCLVFromESPN(gameId: string, sport: string): Promise<CLVData>
     if (totalCLV !== 0) {
       movements.push(`Total ${totalCLV > 0 ? 'dropped' : 'rose'} ${absTotalCLV.toFixed(1)} points`)
     }
-    
-    const description = movements.length > 0 
+
+    const description = movements.length > 0
       ? `${movements.join(', ')} (ESPN data)`
       : 'No significant line movement detected'
-    
+
     return {
       openSpread,
       currentSpread,
@@ -966,7 +966,7 @@ async function getLineMovementData(gameId: string, sport: string, homeTeamName: 
   try {
     const { createAdminClient } = await import('@/lib/supabase/server')
     const supabase = await createAdminClient()
-    
+
     // Query by team names instead of game_id (cross-API compatibility)
     const { data: snapshots, error } = await supabase
       .from('line_snapshots')
@@ -975,7 +975,7 @@ async function getLineMovementData(gameId: string, sport: string, homeTeamName: 
       .ilike('home_team', `%${homeTeamName}%`)
       .ilike('away_team', `%${awayTeamName}%`)
       .order('snapshot_ts', { ascending: true })
-    
+
     if (!error && snapshots && snapshots.length >= 2) {
       const timeline = {
         timestamps: snapshots.map((d: { snapshot_ts: string }) => d.snapshot_ts),
@@ -992,28 +992,28 @@ async function getLineMovementData(gameId: string, sport: string, homeTeamName: 
       const lastHomeML = timeline.homeMLs.filter(m => m != null).pop() ?? 0
       const firstAwayML = timeline.awayMLs.find(m => m != null) ?? 0
       const lastAwayML = timeline.awayMLs.filter(m => m != null).pop() ?? 0
-      
+
       const allSpreads = timeline.spreads.filter(s => s != null) as number[]
       const allTotals = timeline.totals.filter(t => t != null) as number[]
-      
+
       const spreadMove = lastSpread - firstSpread
       const totalMove = lastTotal - firstTotal
-      
-      const spreadDirection: 'toward_home' | 'toward_away' | 'stable' = 
+
+      const spreadDirection: 'toward_home' | 'toward_away' | 'stable' =
         spreadMove < -0.5 ? 'toward_home' : spreadMove > 0.5 ? 'toward_away' : 'stable'
-      const totalDirection: 'up' | 'down' | 'stable' = 
+      const totalDirection: 'up' | 'down' | 'stable' =
         totalMove > 0.5 ? 'up' : totalMove < -0.5 ? 'down' : 'stable'
-      
-      const spreadMagnitude: 'sharp' | 'moderate' | 'minimal' = 
+
+      const spreadMagnitude: 'sharp' | 'moderate' | 'minimal' =
         Math.abs(spreadMove) >= 2 ? 'sharp' : Math.abs(spreadMove) >= 1 ? 'moderate' : 'minimal'
-      const totalMagnitude: 'sharp' | 'moderate' | 'minimal' = 
+      const totalMagnitude: 'sharp' | 'moderate' | 'minimal' =
         Math.abs(totalMove) >= 2 ? 'sharp' : Math.abs(totalMove) >= 1 ? 'moderate' : 'minimal'
-      
+
       // Detect steam move: rapid movement (>1pt in last few snapshots)
       const recentSpreads = allSpreads.slice(-4)
-      const steamMoveDetected = recentSpreads.length >= 2 && 
+      const steamMoveDetected = recentSpreads.length >= 2 &&
         Math.abs(recentSpreads[recentSpreads.length - 1] - recentSpreads[0]) >= 1.5
-      
+
       return {
         spread: {
           open: firstSpread,
@@ -1054,7 +1054,7 @@ async function getLineMovementData(gameId: string, sport: string, homeTeamName: 
   } catch (error) {
     console.error('line_snapshots timeline error:', error)
   }
-  
+
   // Fallback: Try to fetch line movement from ESPN API
   try {
     const sportMap: Record<string, string> = {
@@ -1067,63 +1067,63 @@ async function getLineMovementData(gameId: string, sport: string, homeTeamName: 
     }
     const sportPath = sportMap[sport.toUpperCase()] || 'football/nfl'
     const url = `https://site.api.espn.com/apis/site/v2/sports/${sportPath}/summary?event=${gameId}`
-    
+
     const response = await fetch(url, {
       headers: { 'Accept': 'application/json', 'User-Agent': 'Matchups/1.0' },
       next: { revalidate: 120 }
     })
-    
+
     if (!response.ok) {
       throw new Error(`ESPN API returned ${response.status}`)
     }
-    
+
     const data = await response.json()
-    
+
     // Find DraftKings or first available provider
     if (data.pickcenter && Array.isArray(data.pickcenter)) {
-      const dkOdds = data.pickcenter.find((p: { provider?: { name?: string } }) => 
+      const dkOdds = data.pickcenter.find((p: { provider?: { name?: string } }) =>
         p.provider?.name?.toLowerCase().includes('draftkings')
       )
       const primaryOdds = dkOdds || data.pickcenter[0]
-      
+
       if (primaryOdds) {
         const pointSpread = primaryOdds.pointSpread
         const total = primaryOdds.total
 
         let spreadOpen = 0, spreadCurrent = 0
         let totalOpen = 0, totalCurrent = 0
-        
+
         if (pointSpread?.home) {
           spreadOpen = parseFloat(pointSpread.home.open?.line || '0')
           spreadCurrent = parseFloat(pointSpread.home.close?.line || pointSpread.home.current?.line || '0')
         }
-        
+
         if (total?.over) {
           const openLine = (total.over.open?.line || '').toString().replace(/[ou]/gi, '')
           const closeLine = (total.over.close?.line || total.over.current?.line || '').toString().replace(/[ou]/gi, '')
           totalOpen = parseFloat(openLine) || 0
           totalCurrent = parseFloat(closeLine) || 0
         }
-        
+
         // Determine movement direction and magnitude
         const spreadMove = spreadCurrent - spreadOpen
         const totalMove = totalCurrent - totalOpen
-        
+
         // For spread: negative means line moved toward home (e.g., -3.5 to -4.5) = more points given
         // Positive means line moved toward away (e.g., -3.5 to -2.5) = fewer points given
-        const spreadDirection: 'toward_home' | 'toward_away' | 'stable' = 
+        const spreadDirection: 'toward_home' | 'toward_away' | 'stable' =
           spreadMove < -0.5 ? 'toward_home' : spreadMove > 0.5 ? 'toward_away' : 'stable'
-        const totalDirection: 'up' | 'down' | 'stable' = 
+        const totalDirection: 'up' | 'down' | 'stable' =
           totalMove > 0.5 ? 'up' : totalMove < -0.5 ? 'down' : 'stable'
-        
-        const spreadMagnitude: 'sharp' | 'moderate' | 'minimal' = 
+
+        const spreadMagnitude: 'sharp' | 'moderate' | 'minimal' =
           Math.abs(spreadMove) >= 2 ? 'sharp' : Math.abs(spreadMove) >= 1 ? 'moderate' : 'minimal'
-        const totalMagnitude: 'sharp' | 'moderate' | 'minimal' = 
+        const totalMagnitude: 'sharp' | 'moderate' | 'minimal' =
           Math.abs(totalMove) >= 2 ? 'sharp' : Math.abs(totalMove) >= 1 ? 'moderate' : 'minimal'
-        
+
         // Detect steam move (significant movement in short time - can't determine from ESPN easily)
         const steamMoveDetected = Math.abs(spreadMove) >= 1.5
-        
+
         return {
           spread: {
             open: spreadOpen,
@@ -1156,7 +1156,7 @@ async function getLineMovementData(gameId: string, sport: string, homeTeamName: 
   } catch (error) {
     console.error('getLineMovementData error:', error)
   }
-  
+
   // Fallback to empty state
   return {
     spread: {
@@ -1192,9 +1192,9 @@ async function getPublicSharpSplits(gameId: string, sport: string, homeTeam?: st
   try {
     // Check cache first
     const now = Date.now()
-    if (!bettingSplitsCache || 
-        bettingSplitsCache.sport !== sport || 
-        (now - bettingSplitsCache.fetchedAt) > CACHE_DURATION_MS) {
+    if (!bettingSplitsCache ||
+      bettingSplitsCache.sport !== sport ||
+      (now - bettingSplitsCache.fetchedAt) > CACHE_DURATION_MS) {
       // Fetch fresh data
       const splits = await fetchBettingSplitsFromActionNetwork(sport)
       bettingSplitsCache = {
@@ -1223,32 +1223,32 @@ async function getPublicSharpSplits(gameId: string, sport: string, homeTeam?: st
       // We have REAL data from Action Network!
       const spreadDivergence = Math.abs(gameSplit.spread.homeBetPct - gameSplit.spread.homeMoneyPct)
       const totalDivergence = Math.abs(gameSplit.total.overBetPct - gameSplit.total.overMoneyPct)
-      
+
       // Determine sharp side based on money vs ticket divergence
-      const spreadSharpSide: 'home' | 'away' | 'neutral' = 
+      const spreadSharpSide: 'home' | 'away' | 'neutral' =
         gameSplit.spread.homeMoneyPct > gameSplit.spread.homeBetPct + 5 ? 'home' :
-        gameSplit.spread.awayMoneyPct > gameSplit.spread.awayBetPct + 5 ? 'away' : 'neutral'
-      
-      const totalSharpSide: 'over' | 'under' | 'neutral' = 
+          gameSplit.spread.awayMoneyPct > gameSplit.spread.awayBetPct + 5 ? 'away' : 'neutral'
+
+      const totalSharpSide: 'over' | 'under' | 'neutral' =
         gameSplit.total.overMoneyPct > gameSplit.total.overBetPct + 5 ? 'over' :
-        gameSplit.total.underMoneyPct > gameSplit.total.underBetPct + 5 ? 'under' : 'neutral'
-      
+          gameSplit.total.underMoneyPct > gameSplit.total.underBetPct + 5 ? 'under' : 'neutral'
+
       // Reverse line movement: public betting one way but line moving other
       const spreadRLM = (gameSplit.spread.homeBetPct > 55 && spreadSharpSide === 'away') ||
-                        (gameSplit.spread.awayBetPct > 55 && spreadSharpSide === 'home')
+        (gameSplit.spread.awayBetPct > 55 && spreadSharpSide === 'home')
       const totalRLM = (gameSplit.total.overBetPct > 55 && totalSharpSide === 'under') ||
-                       (gameSplit.total.underBetPct > 55 && totalSharpSide === 'over')
-      
+        (gameSplit.total.underBetPct > 55 && totalSharpSide === 'over')
+
       // Determine RLM strength
-      const rlmStrength: 'strong' | 'moderate' | 'weak' | 'none' = 
+      const rlmStrength: 'strong' | 'moderate' | 'weak' | 'none' =
         spreadDivergence > 15 ? 'strong' :
-        spreadDivergence > 8 ? 'moderate' :
-        spreadDivergence > 3 ? 'weak' : 'none'
-      
+          spreadDivergence > 8 ? 'moderate' :
+            spreadDivergence > 3 ? 'weak' : 'none'
+
       // Determine consensus
       const publicLean = `${gameSplit.spread.homeBetPct > 50 ? 'Home' : 'Away'} Spread + ${gameSplit.total.overBetPct > 50 ? 'Over' : 'Under'}`
       const sharpLean = `${spreadSharpSide === 'home' ? 'Home' : spreadSharpSide === 'away' ? 'Away' : '?'} Spread + ${totalSharpSide === 'over' ? 'Over' : totalSharpSide === 'under' ? 'Under' : '?'}`
-      
+
       return {
         spread: {
           publicHomePct: gameSplit.spread.homeBetPct,
@@ -1276,7 +1276,7 @@ async function getPublicSharpSplits(gameId: string, sport: string, homeTeam?: st
         consensus: {
           publicLean,
           sharpLean,
-          alignment: spreadSharpSide === 'neutral' ? 'split' : 
+          alignment: spreadSharpSide === 'neutral' ? 'split' :
             (publicLean.includes('Home') === (sharpLean.includes('Home'))) ? 'aligned' : 'opposed'
         }
       }
@@ -1319,9 +1319,9 @@ async function getPublicSharpSplits(gameId: string, sport: string, homeTeam?: st
 }
 
 async function getInjuryImpact(
-  gameId: string, 
-  sport: string, 
-  homeAbbr: string, 
+  gameId: string,
+  sport: string,
+  homeAbbr: string,
   awayAbbr: string
 ): Promise<InjuryImpact> {
   // Fetch real injury data from ESPN API
@@ -1336,25 +1336,25 @@ async function getInjuryImpact(
     }
     const sportPath = sportMap[sport.toUpperCase()] || 'football/nfl'
     const url = `https://site.api.espn.com/apis/site/v2/sports/${sportPath}/summary?event=${gameId}`
-    
+
     const response = await fetch(url, {
       headers: { 'Accept': 'application/json', 'User-Agent': 'Matchups/1.0' },
       next: { revalidate: 300 } // Cache for 5 minutes
     })
-    
+
     if (!response.ok) {
       throw new Error(`ESPN API returned ${response.status}`)
     }
-    
+
     const data = await response.json()
-    
+
     // Position impact scores by position (QB and star positions have bigger impact)
     const positionImpactScores: Record<string, number> = {
       'QB': 25, 'RB': 12, 'WR': 10, 'TE': 8, 'OL': 7, 'OT': 7, 'OG': 6, 'C': 6, 'G': 6, 'T': 7,
       'DE': 8, 'DT': 7, 'LB': 8, 'CB': 10, 'S': 8, 'FS': 8, 'SS': 8, 'DB': 8, 'DL': 7,
       'K': 4, 'P': 3, 'LS': 2, 'FB': 4
     }
-    
+
     const processInjuries = (injuryList: Array<{
       athlete?: { displayName?: string; position?: { abbreviation?: string } }
       status?: string
@@ -1365,14 +1365,14 @@ async function getInjuryImpact(
       const questionablePlayers: PlayerInjury[] = []
       let totalImpactScore = 0
       const positionImpacts: Array<{ position: string; impact: 'high' | 'medium' | 'low' | 'critical' }> = []
-      
+
       for (const inj of injuryList) {
         const name = inj.athlete?.displayName || 'Unknown'
         const position = inj.athlete?.position?.abbreviation || ''
         const statusRaw = (inj.status || '').toLowerCase()
         const injuryType = typeof inj.type === 'string' ? inj.type : (inj.type?.description || inj.details?.type || 'Unknown')
         const impactScore = positionImpactScores[position] || 5
-        
+
         // Map to PlayerInjury status type
         const mapStatus = (s: string): 'Out' | 'Doubtful' | 'Questionable' | 'Probable' => {
           if (s === 'out' || s.includes('ir') || s === 'injured reserve') return 'Out'
@@ -1380,16 +1380,16 @@ async function getInjuryImpact(
           if (s === 'probable') return 'Probable'
           return 'Questionable'
         }
-        
+
         // Determine impact rating (1-5 based on position importance)
         const impactRating = Math.min(5, Math.ceil(impactScore / 5)) as 1 | 2 | 3 | 4 | 5
-        
+
         // Determine if starter/star (high impact positions assumed to be starters)
         const isStarter = impactScore >= 8
         const isStar = impactScore >= 15
-        
+
         const status = mapStatus(statusRaw)
-        
+
         const playerInjury: PlayerInjury = {
           name,
           position,
@@ -1399,13 +1399,13 @@ async function getInjuryImpact(
           isStarter,
           isStar
         }
-        
+
         if (statusRaw === 'out' || statusRaw === 'injured reserve' || statusRaw.includes('ir')) {
           outPlayers.push(playerInjury)
           totalImpactScore += impactScore
-          
+
           // Track position impacts
-          const impact: 'high' | 'medium' | 'low' | 'critical' = 
+          const impact: 'high' | 'medium' | 'low' | 'critical' =
             impactScore >= 20 ? 'critical' : impactScore >= 12 ? 'high' : impactScore >= 8 ? 'medium' : 'low'
           if (!positionImpacts.find(p => p.position === position)) {
             positionImpacts.push({ position, impact })
@@ -1417,13 +1417,13 @@ async function getInjuryImpact(
           totalImpactScore += Math.round(impactScore * (1 - probability))
         }
       }
-      
+
       return { outPlayers, questionablePlayers, totalImpactScore, positionImpacts }
     }
-    
+
     let homeInjuries: Array<any> = []
     let awayInjuries: Array<any> = []
-    
+
     // Extract injuries from ESPN data
     if (data.injuries && Array.isArray(data.injuries)) {
       for (const teamInjuries of data.injuries) {
@@ -1431,7 +1431,7 @@ async function getInjuryImpact(
         // Determine if this is home or away based on boxscore teams order
         const isHome = data.boxscore?.teams?.[1]?.team?.id === teamId
         const injuryList = teamInjuries.injuries || []
-        
+
         if (isHome) {
           homeInjuries = injuryList
         } else {
@@ -1439,14 +1439,14 @@ async function getInjuryImpact(
         }
       }
     }
-    
+
     const homeData = processInjuries(homeInjuries)
     const awayData = processInjuries(awayInjuries)
-    
+
     // Calculate line impact based on injury differential
     const impactDiff = awayData.totalImpactScore - homeData.totalImpactScore
     const spreadAdjustment = impactDiff / 20 // Roughly 1 point per 20 impact score difference
-    
+
     // Build narrative
     const narrativeParts: string[] = []
     if (homeData.outPlayers.length > 0) {
@@ -1461,7 +1461,7 @@ async function getInjuryImpact(
         narrativeParts.push(`${awayAbbr} missing ${keyOuts.join(', ')}`)
       }
     }
-    
+
     return {
       homeTeam: homeData,
       awayTeam: awayData,
@@ -1484,19 +1484,19 @@ async function getInjuryImpact(
 async function getWeatherImpact(gameId: string, sport: string): Promise<WeatherImpact> {
   try {
     // Fetch weather data from our weather API (which now uses OpenWeatherMap + ESPN)
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL 
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'
-    const res = await fetch(`${baseUrl}/api/weather?sport=${sport}`, { 
+    const res = await fetch(`${baseUrl}/api/weather?sport=${sport}`, {
       next: { revalidate: 1800 } // Cache 30 min
     })
-    
+
     if (!res.ok) throw new Error('Weather API failed')
     const data = await res.json()
-    
+
     // Find this game in weather results
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const gameWeather = data.games?.find((g: any) => g.id === gameId || g.id === gameId.replace(/^(espn_|an_)/, ''))
-    
+
     if (gameWeather) {
       return {
         venue: gameWeather.venue || '',
@@ -1528,7 +1528,7 @@ async function getWeatherImpact(gameId: string, sport: string): Promise<WeatherI
   } catch (err) {
     console.warn('[WeatherImpact] Could not fetch weather:', err)
   }
-  
+
   // Fallback: no weather data available
   return {
     venue: '',
@@ -1566,7 +1566,7 @@ async function getSituationalAngles(
 ): Promise<SituationalAngles> {
   // Import rest-schedule analyzer for real situational data
   const { analyzeRestFactors, getSituationalATSRecord } = await import('@/lib/api/rest-schedule')
-  
+
   const emptySituation = {
     restDays: 0,
     isBackToBack: false,
@@ -1585,15 +1585,15 @@ async function getSituationalAngles(
     homeStandLength: 0,
     roadTripLength: 0
   }
-  
+
   try {
     // Analyze rest and schedule factors
     const restAnalysis = await analyzeRestFactors(homeAbbr, awayAbbr, gameId, new Date().toISOString(), sport)
-    
+
     if (!restAnalysis) {
       return { home: emptySituation, away: { ...emptySituation }, angles: [] }
     }
-    
+
     // Convert rest analysis to our situational format
     const homeSituation = {
       restDays: restAnalysis.homeTeam?.daysRest || 0,
@@ -1613,7 +1613,7 @@ async function getSituationalAngles(
       homeStandLength: 0,
       roadTripLength: 0
     }
-    
+
     const awaySituation = {
       restDays: restAnalysis.awayTeam?.daysRest || 0,
       isBackToBack: restAnalysis.awayTeam?.isBackToBack || false,
@@ -1632,10 +1632,10 @@ async function getSituationalAngles(
       homeStandLength: 0,
       roadTripLength: 0
     }
-    
+
     // Generate angles from the analysis
     const angles: SituationalAngle[] = []
-    
+
     // Rest advantage angle
     const restDiff = (restAnalysis.homeTeam?.daysRest || 0) - (restAnalysis.awayTeam?.daysRest || 0)
     if (Math.abs(restDiff) >= 2) {
@@ -1652,7 +1652,7 @@ async function getSituationalAngles(
         pick: advantageTeam === 'home' ? homeAbbr : awayAbbr
       })
     }
-    
+
     // Back-to-back fade angle
     if (restAnalysis.awayTeam?.isSecondOfBackToBack) {
       const atsRecord = getSituationalATSRecord('b2b_road')
@@ -1667,7 +1667,7 @@ async function getSituationalAngles(
         pick: homeAbbr
       })
     }
-    
+
     // Cross-country travel angle
     if (restAnalysis.awayTeam?.isCrossCountry) {
       const atsRecord = getSituationalATSRecord('cross_country')
@@ -1682,7 +1682,7 @@ async function getSituationalAngles(
         pick: homeAbbr
       })
     }
-    
+
     // Letdown spot
     if (restAnalysis.homeTeam?.isLetDownSpot) {
       angles.push({
@@ -1696,7 +1696,7 @@ async function getSituationalAngles(
         pick: awayAbbr
       })
     }
-    
+
     // Trap game
     if (restAnalysis.homeTeam?.isTrapGame || restAnalysis.awayTeam?.isTrapGame) {
       const trapTeam = restAnalysis.homeTeam?.isTrapGame ? 'home' : 'away'
@@ -1711,7 +1711,7 @@ async function getSituationalAngles(
         pick: trapTeam === 'home' ? awayAbbr : homeAbbr
       })
     }
-    
+
     return {
       home: homeSituation,
       away: awaySituation,
@@ -1733,15 +1733,15 @@ async function getATSRecords(
     calculateTeamATS(homeAbbr, sport),
     calculateTeamATS(awayAbbr, sport)
   ])
-  
+
   const emptyATSRecord = { wins: 0, losses: 0, pushes: 0, pct: 0 }
-  
+
   // Helper to convert calculator format to our format
   const toATSRecord = (data: { wins: number; losses: number; pushes: number; percentage: number } | undefined) => {
     if (!data) return emptyATSRecord
     return { wins: data.wins, losses: data.losses, pushes: data.pushes, pct: data.percentage }
   }
-  
+
   return {
     homeTeam: {
       overall: toATSRecord(homeData?.ats),
@@ -1781,18 +1781,18 @@ async function getOUTrends(
     calculateTeamATS(homeAbbr, sport),
     calculateTeamATS(awayAbbr, sport)
   ])
-  
+
   const emptyOURecord = { overs: 0, unders: 0, pushes: 0, overPct: 0 }
-  
+
   // Helper to convert calculator format
   const toOURecord = (data: { wins: number; losses: number; pushes: number; percentage: number } | undefined) => {
     if (!data) return emptyOURecord
     return { overs: data.wins, unders: data.losses, pushes: data.pushes, overPct: data.percentage }
   }
-  
+
   // Generate real trends from the data
   const trends: OUTrends['trends'] = []
-  
+
   if (homeData?.ou && (homeData.ou.wins + homeData.ou.losses) >= 5) {
     const overPct = homeData.ou.percentage
     if (overPct >= 60) {
@@ -1813,7 +1813,7 @@ async function getOUTrends(
       })
     }
   }
-  
+
   if (awayData?.ou && (awayData.ou.wins + awayData.ou.losses) >= 5) {
     const overPct = awayData.ou.percentage
     if (overPct >= 60) {
@@ -1877,9 +1877,9 @@ async function getKeyNumbers(gameId: string, sport: string): Promise<KeyNumbers>
     NHL: [1, 2],
     MLB: [1, 1.5, 2]
   }
-  
+
   const keyNums = sportKeyNumbers[sport] || [3, 7]
-  
+
   // Return just the educational content, no fake current line data
   return {
     spread: {
@@ -1914,9 +1914,9 @@ async function getH2HHistory(
   try {
     // Import H2H module for real historical data
     const { getH2HSummary } = await import('@/lib/api/head-to-head')
-    
+
     const h2hData = await getH2HSummary(homeAbbr, awayAbbr, sport, 10)
-    
+
     if (!h2hData || h2hData.totalGames === 0) {
       return {
         gamesPlayed: 0,
@@ -1939,42 +1939,42 @@ async function getH2HHistory(
         insights: ['No H2H history found in database']
       }
     }
-    
+
     // Convert H2HSummary to our H2HHistory format
     const insights: string[] = []
-    
+
     // Generate insights from the data
     if (h2hData.team1Wins > h2hData.team2Wins * 1.5) {
       insights.push(`${homeAbbr} dominates this matchup (${h2hData.team1Wins}-${h2hData.team2Wins})`)
     } else if (h2hData.team2Wins > h2hData.team1Wins * 1.5) {
       insights.push(`${awayAbbr} dominates this matchup (${h2hData.team2Wins}-${h2hData.team1Wins})`)
     }
-    
+
     if (h2hData.team1ATSRecord.pct >= 60) {
       insights.push(`${homeAbbr} covers ${h2hData.team1ATSRecord.pct.toFixed(0)}% ATS in H2H`)
     } else if (h2hData.team2ATSRecord.pct >= 60) {
       insights.push(`${awayAbbr} covers ${h2hData.team2ATSRecord.pct.toFixed(0)}% ATS in H2H`)
     }
-    
+
     if (h2hData.overUnderRecord.overPct >= 60) {
       insights.push(`Games go OVER ${h2hData.overUnderRecord.overPct.toFixed(0)}% of the time`)
     } else if (h2hData.overUnderRecord.overPct <= 40) {
       insights.push(`Games go UNDER ${(100 - h2hData.overUnderRecord.overPct).toFixed(0)}% of the time`)
     }
-    
+
     if (h2hData.currentStreak) {
       insights.push(`${h2hData.currentStreak.team} on ${h2hData.currentStreak.count}-game win streak in H2H`)
     }
-    
+
     if (insights.length === 0) {
       insights.push(`${h2hData.totalGames} games played between these teams`)
     }
-    
+
     // Format records
     const homeATSRecord = `${h2hData.team1ATSRecord.wins}-${h2hData.team1ATSRecord.losses}`
     const awayATSRecord = `${h2hData.team2ATSRecord.wins}-${h2hData.team2ATSRecord.losses}`
     const ouRecord = `${h2hData.overUnderRecord.overs}-${h2hData.overUnderRecord.unders}`
-    
+
     return {
       gamesPlayed: h2hData.totalGames,
       homeTeamWins: h2hData.team1Wins,
@@ -2039,19 +2039,19 @@ async function getH2HHistory(
 async function getMarketConsensus(gameId: string, sport: string, splits?: PublicSharpSplits): Promise<MarketConsensus> {
   // REAL DATA: Derive consensus from Action Network splits we already fetched
   // The splits parameter is passed from getMatchupIntelligence after fetching
-  
+
   let sharpestPick: MarketConsensus['sharpestPick'] = null
   let bestConfidence = 0
   let bestPick = ''
   let bestBetType = ''
   let bestReasoning = ''
-  
+
   if (splits) {
     // Check spread for sharp signal
     if (splits.spread.reverseLineMovement && splits.spread.sharpSide !== 'neutral') {
       const sharpSideLabel = splits.spread.sharpSide === 'home' ? 'HOME' : 'AWAY'
-      const conf = splits.spread.rlmStrength === 'strong' ? 75 : 
-                   splits.spread.rlmStrength === 'moderate' ? 65 : 55
+      const conf = splits.spread.rlmStrength === 'strong' ? 75 :
+        splits.spread.rlmStrength === 'moderate' ? 65 : 55
       if (conf > bestConfidence) {
         bestConfidence = conf
         bestPick = `${sharpSideLabel} spread`
@@ -2059,7 +2059,7 @@ async function getMarketConsensus(gameId: string, sport: string, splits?: Public
         bestReasoning = `RLM detected - Sharps on ${sharpSideLabel.toLowerCase()}, public on opposite side`
       }
     }
-    
+
     // Check total for sharp signal
     if (splits.total.reverseLineMovement && splits.total.sharpSide !== 'neutral') {
       const sharpSideLabel = splits.total.sharpSide === 'over' ? 'OVER' : 'UNDER'
@@ -2071,7 +2071,7 @@ async function getMarketConsensus(gameId: string, sport: string, splits?: Public
         bestReasoning = `Sharp money on ${sharpSideLabel.toLowerCase()}, line moving opposite to public`
       }
     }
-    
+
     // Check for strong money/ticket divergence even without RLM
     const spreadMoneyDiff = Math.abs(splits.spread.moneyHomePct - splits.spread.publicHomePct)
     if (spreadMoneyDiff >= 15 && splits.spread.sharpSide !== 'neutral') {
@@ -2083,7 +2083,7 @@ async function getMarketConsensus(gameId: string, sport: string, splits?: Public
         bestReasoning = `${spreadMoneyDiff.toFixed(0)}% money/ticket divergence - sharp action detected`
       }
     }
-    
+
     const totalMoneyDiff = Math.abs(splits.total.moneyOverPct - splits.total.publicOverPct)
     if (totalMoneyDiff >= 15 && splits.total.sharpSide !== 'neutral') {
       const conf = Math.min(50 + totalMoneyDiff, 70)
@@ -2094,7 +2094,7 @@ async function getMarketConsensus(gameId: string, sport: string, splits?: Public
         bestReasoning = `${totalMoneyDiff.toFixed(0)}% money/ticket divergence on total`
       }
     }
-    
+
     if (bestPick) {
       sharpestPick = {
         betType: bestBetType,
@@ -2104,7 +2104,7 @@ async function getMarketConsensus(gameId: string, sport: string, splits?: Public
       }
     }
   }
-  
+
   return {
     spreadConsensus: {
       pick: splits?.spread.sharpSide === 'home' ? 'Home' : splits?.spread.sharpSide === 'away' ? 'Away' : '',
@@ -2172,19 +2172,19 @@ async function generateAIAnalysis(data: {
     )
     const hasRealOUData = data.ou.trends.length > 0
     const hasRealInjuryData = (
-      data.injuries.homeTeam.outPlayers.length > 0 || 
+      data.injuries.homeTeam.outPlayers.length > 0 ||
       data.injuries.awayTeam.outPlayers.length > 0 ||
       data.injuries.homeTeam.questionablePlayers.length > 0 ||
       data.injuries.awayTeam.questionablePlayers.length > 0
     )
-    
+
     const dataPointsAvailable = [
       hasRealSplitsData,
-      hasRealATSData, 
+      hasRealATSData,
       hasRealOUData,
       hasRealInjuryData
     ].filter(Boolean).length
-    
+
     // If we have NO real data points at all, use fallback template-based analysis
     // Even 1 data point (e.g., just injury data) is enough for AI to generate something useful
     // NEVER return null - gamblers expect analysis on every game page
@@ -2192,12 +2192,12 @@ async function generateAIAnalysis(data: {
       console.log(`[AI Analysis] Using fallback - zero real data points available`)
       return generateFallbackAnalysis(data)
     }
-    
+
     // If we already have a sharpestPick from real data, tell the AI to use it
-    const sharpestPickInstruction = data.consensus.sharpestPick 
+    const sharpestPickInstruction = data.consensus.sharpestPick
       ? `\n\nIMPORTANT: The sharpest play identified from real sharp money data is: "${data.consensus.sharpestPick.pick}" (${data.consensus.sharpestPick.betType}). Your analysis should align with or acknowledge this signal.`
       : `\n\nNOTE: No definitive sharp signal was detected in the betting splits. Be conservative with confidence levels and acknowledge data limitations.`
-    
+
     const prompt = `You are an elite sports betting analyst writing for a professional-grade handicapping tool called "Matchups". Your audience is sharp bettors who expect high data density and specific numbers — not generic commentary.
 
 VOICE & STYLE:
@@ -2301,7 +2301,7 @@ Return JSON:
 
     const result = await geminiModel.generateContent(prompt)
     const response = result.response.text()
-    
+
     const jsonMatch = response.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
       return JSON.parse(jsonMatch[0]) as AIMatchupAnalysis
@@ -2309,7 +2309,7 @@ Return JSON:
   } catch (error) {
     console.error('AI analysis generation failed:', error)
   }
-  
+
   // FALLBACK: Generate analysis without Gemini API using the data we have
   return generateFallbackAnalysis(data)
 }
@@ -2332,10 +2332,10 @@ function generateFallbackAnalysis(data: {
   const away = data.awayTeam.name
   const homeAbbr = data.homeTeam.abbr
   const awayAbbr = data.awayTeam.abbr
-  
+
   // Build the summary paragraph based on available data
   const summaryParts: string[] = []
-  
+
   // Opening statement
   const sharpPick = data.consensus.sharpestPick
   if (sharpPick && sharpPick.confidence >= 60) {
@@ -2345,20 +2345,20 @@ function generateFallbackAnalysis(data: {
       summaryParts.push(`Sharp money is backing ${sharpPick.pick.includes(homeAbbr) ? home : away} in this matchup.`)
     }
   } else {
-      // When no sharp signal, provide a direct, no-fluff opening
-      const sportUpper = data.sport.toUpperCase()
-      if (sportUpper === 'NFL') {
-        summaryParts.push(`${away} at ${home} — limited sharp action detected on this game so far. Line shopping and late-breaking injury news will be key.`)
-      } else if (sportUpper === 'NBA') {
-        summaryParts.push(`${away} at ${home} — no strong sharp signal detected yet. Check back closer to tip-off for updated betting splits and line movement.`)
-      } else if (sportUpper === 'NHL') {
-        summaryParts.push(`${away} at ${home} — monitoring for sharp action. Goalie confirmations and late scratches often drive value in NHL betting.`)
-      } else if (sportUpper === 'MLB') {
-        summaryParts.push(`${away} at ${home} — awaiting sharper signals. Pitching matchups and bullpen usage from recent games are the key drivers here.`)
-      } else {
-        summaryParts.push(`${away} at ${home} — still awaiting stronger market signals. Check back closer to game time for updated analysis.`)
-      }
+    // When no sharp signal, provide a direct, no-fluff opening
+    const sportUpper = data.sport.toUpperCase()
+    if (sportUpper === 'NFL') {
+      summaryParts.push(`${away} at ${home} — limited sharp action detected on this game so far. Line shopping and late-breaking injury news will be key.`)
+    } else if (sportUpper === 'NBA') {
+      summaryParts.push(`${away} at ${home} — no strong sharp signal detected yet. Check back closer to tip-off for updated betting splits and line movement.`)
+    } else if (sportUpper === 'NHL') {
+      summaryParts.push(`${away} at ${home} — monitoring for sharp action. Goalie confirmations and late scratches often drive value in NHL betting.`)
+    } else if (sportUpper === 'MLB') {
+      summaryParts.push(`${away} at ${home} — awaiting sharper signals. Pitching matchups and bullpen usage from recent games are the key drivers here.`)
+    } else {
+      summaryParts.push(`${away} at ${home} — still awaiting stronger market signals. Check back closer to game time for updated analysis.`)
     }
+  }
   // CLV commentary
   if (data.clv.spreadCLV !== 0 || data.clv.totalCLV !== 0) {
     const movements: string[] = []
@@ -2372,7 +2372,7 @@ function generateFallbackAnalysis(data: {
       summaryParts.push(`Line movement tells an interesting story with the ${movements.join(' and ')}.`)
     }
   }
-  
+
   // Sharp vs Public split
   if (data.splits.total.reverseLineMovement) {
     summaryParts.push(`There's a notable sharp/public split on the total - ${Math.round(data.splits.total.publicOverPct)}% of tickets are on the OVER but the line has moved DOWN, indicating sharp money on the UNDER.`)
@@ -2380,7 +2380,7 @@ function generateFallbackAnalysis(data: {
     const sharpSide = data.splits.spread.sharpSide === 'home' ? home : away
     summaryParts.push(`Reverse line movement detected on the spread with sharps positioning on ${sharpSide}.`)
   }
-  
+
   // Injury impact
   const totalInjuryImpact = data.injuries.homeTeam.totalImpactScore + data.injuries.awayTeam.totalImpactScore
   if (totalInjuryImpact > 30) {
@@ -2388,7 +2388,7 @@ function generateFallbackAnalysis(data: {
     const awayOuts = data.injuries.awayTeam.outPlayers.length
     summaryParts.push(`Injuries could be a factor with ${homeAbbr} missing ${homeOuts} players and ${awayAbbr} missing ${awayOuts}.`)
   }
-  
+
   // If we still don't have enough content (summaryParts is short), add template content
   if (summaryParts.length < 3) {
     const sportUpper = data.sport.toUpperCase()
@@ -2406,23 +2406,23 @@ function generateFallbackAnalysis(data: {
       summaryParts.push(`Market efficiency varies by sport - look for value in public perception mismatches.`)
     }
   }
-  
+
   // Conclusion
   if (sharpPick && sharpPick.confidence >= 60) {
     summaryParts.push(`The sharpest play identified is ${sharpPick.pick} at ${sharpPick.confidence}% confidence. ${sharpPick.reasoning}`)
   } else {
     summaryParts.push(`No definitive edge identified yet — data will update as game time approaches with fresh betting splits and line movement.`)
   }
-  
+
   const summary = summaryParts.join(' ')
-  
+
   // =========================================================================
   // PROJECTED SCORE — Independent of spread. Based on total + scoring context.
   // We use the total as combined score, then split using a home-field edge
   // factor derived from available data (CLV shift, sharp signals, injuries).
   // This ensures the pick is DERIVED from the projection, not vice versa.
   // =========================================================================
-  
+
   // Sport-aware total defaults — CRITICAL: prevents football scores for basketball
   const sportUpper = data.sport.toUpperCase()
   const SPORT_DEFAULT_TOTALS: Record<string, number> = {
@@ -2434,14 +2434,14 @@ function generateFallbackAnalysis(data: {
   const defaultTotal = SPORT_DEFAULT_TOTALS[sportUpper] || 45
   const total = (data.clv.currentTotal && data.clv.currentTotal > 0) ? data.clv.currentTotal : defaultTotal
   const spread = data.clv.currentSpread || 0
-  
+
   // Build a power differential from real signals (not just the spread)
   let homeEdge = 0 // points of advantage for home team
-  
+
   // Home-field advantage baseline: ~2.5 pts in NFL, ~3 in NBA, ~0.3 in NHL
   const hfaBase = sportUpper === 'NFL' ? 2.5 : sportUpper === 'NBA' ? 3.0 : sportUpper === 'NHL' ? 0.3 : sportUpper === 'NCAAB' ? 3.5 : sportUpper === 'NCAAF' ? 3.0 : 1.5
   homeEdge += hfaBase
-  
+
   // Adjust for sharp money signals
   if (data.splits.spread.reverseLineMovement) {
     // RLM detected — sharp side gets +1.5 pt adjustment
@@ -2452,38 +2452,38 @@ function generateFallbackAnalysis(data: {
     if (pickStr.includes(homeAbbr)) homeEdge += 1.0
     else if (pickStr.includes(awayAbbr)) homeEdge -= 1.0
   }
-  
+
   // Adjust for injury differential
   const injuryDiff = data.injuries.awayTeam.totalImpactScore - data.injuries.homeTeam.totalImpactScore
   if (Math.abs(injuryDiff) > 10) {
     homeEdge += injuryDiff > 0 ? 1.5 : -1.5 // Injured away team helps home
   }
-  
+
   // CLV shift: if line moved toward home, home is stronger than market thought
   if (data.clv.spreadCLV !== 0) {
     homeEdge += data.clv.spreadCLV * 0.5 // Half of CLV movement
   }
-  
+
   // Calculate projected score using total and our independent home edge
   const projectedHome = Math.round((total / 2) + (homeEdge / 2))
   const projectedAway = Math.round((total / 2) - (homeEdge / 2))
   const projectedMargin = projectedHome - projectedAway // positive = home wins by X
-  
+
   // =========================================================================
   // AI PICK — Derived FROM the projected score vs the actual spread.
   // If we project home wins by 4, and spread is home -6.5, pick the underdog.
   // If we project home wins by 4, and spread is home -2.5, pick the favorite.
   // =========================================================================
-  
+
   // spread < 0 means home is favored (e.g. -4.5)
   // We need: projectedMargin vs |spread|
   // If home favored (spread < 0): home covers if projectedMargin > |spread|
   // If away favored (spread > 0): away covers if projectedMargin < -|spread|
-  
+
   let spreadPick: string
   let spreadConfidence: number
   let spreadReasoning: string
-  
+
   if (spread === 0) {
     // Pick'em — just pick the projected winner
     spreadPick = projectedMargin > 0 ? `${home} ML` : `${away} ML`
@@ -2517,10 +2517,10 @@ function generateFallbackAnalysis(data: {
       spreadReasoning = `Projecting ${away} wins by only ${Math.max(0, awayProjectedMargin)}, not enough to cover ${spread}. Value on ${home} at home.`
     }
   }
-  
+
   // Boost confidence if sharp signals agree with our pick
   if (data.splits.spread.reverseLineMovement) spreadConfidence = Math.min(0.80, spreadConfidence + 0.08)
-  
+
   // Determine total pick — use projected score vs. the posted total
   const projectedTotal = projectedHome + projectedAway
   let totalPick: string
@@ -2539,7 +2539,7 @@ function generateFallbackAnalysis(data: {
     totalPick = `Under ${total}`
     totalConfidence = 0.50
   }
-  
+
   // Key edges
   const keyEdges: string[] = []
   if (data.clv.grade === 'excellent') keyEdges.push(`Excellent CLV - ${data.clv.description}`)
@@ -2549,7 +2549,7 @@ function generateFallbackAnalysis(data: {
     keyEdges.push(`${awayAbbr} hampered by more injuries (${data.injuries.awayTeam.totalImpactScore} impact score)`)
   }
   if (keyEdges.length === 0) keyEdges.push('Limited sharp signals - proceed with caution')
-  
+
   // Major risks
   const majorRisks: string[] = []
   if (!data.splits.spread.reverseLineMovement && !data.splits.total.reverseLineMovement) {
@@ -2557,17 +2557,17 @@ function generateFallbackAnalysis(data: {
   }
   if (totalInjuryImpact > 40) majorRisks.push('High injury situation - monitor reports')
   if (majorRisks.length === 0) majorRisks.push('Public heavy on one side - potential line value')
-  
+
   // Bet grades
   const spreadGrade = data.splits.spread.reverseLineMovement ? 'B' : 'C'
   const totalGrade = data.splits.total.reverseLineMovement ? 'A' : 'B'
   const mlGrade = Math.abs(spread) > 7 ? 'D' : 'C'
-  
+
   return {
     summary,
-    winProbability: { 
-      home: parseFloat(Math.min(0.95, Math.max(0.05, 0.5 + projectedMargin * 0.025)).toFixed(2)), 
-      away: parseFloat(Math.min(0.95, Math.max(0.05, 0.5 - projectedMargin * 0.025)).toFixed(2)) 
+    winProbability: {
+      home: parseFloat(Math.min(0.95, Math.max(0.05, 0.5 + projectedMargin * 0.025)).toFixed(2)),
+      away: parseFloat(Math.min(0.95, Math.max(0.05, 0.5 - projectedMargin * 0.025)).toFixed(2))
     },
     projectedScore: { home: projectedHome, away: projectedAway },
     spreadAnalysis: {
@@ -2580,7 +2580,7 @@ function generateFallbackAnalysis(data: {
     totalAnalysis: {
       pick: totalPick,
       confidence: totalConfidence,
-      reasoning: data.splits.total.reverseLineMovement 
+      reasoning: data.splits.total.reverseLineMovement
         ? `${Math.round(data.splits.total.publicOverPct)}% of tickets on OVER but line moved DOWN - classic sharp under signal`
         : 'Standard pace analysis',
       keyFactors: [`Total opened ${data.clv.openTotal || 'N/A'}, now ${total}`, `Public ${Math.round(data.splits.total.publicOverPct)}% OVER`],
@@ -2620,7 +2620,7 @@ export function getTopDataPoints(intelligence: MatchupIntelligence): {
   impact: 'positive' | 'negative' | 'neutral'
 }[] {
   const points: { point: string; value: string; impact: 'positive' | 'negative' | 'neutral' }[] = []
-  
+
   // CLV
   if (intelligence.clv.grade !== 'neutral') {
     points.push({
@@ -2629,7 +2629,7 @@ export function getTopDataPoints(intelligence: MatchupIntelligence): {
       impact: intelligence.clv.grade === 'excellent' || intelligence.clv.grade === 'good' ? 'positive' : 'negative'
     })
   }
-  
+
   // Sharp Money
   if (intelligence.publicSharpSplits.spread.reverseLineMovement) {
     points.push({
@@ -2638,7 +2638,7 @@ export function getTopDataPoints(intelligence: MatchupIntelligence): {
       impact: 'positive'
     })
   }
-  
+
   // Weather
   if (intelligence.weather.bettingImpact.level !== 'none' && intelligence.weather.bettingImpact.level !== 'low') {
     points.push({
@@ -2647,7 +2647,7 @@ export function getTopDataPoints(intelligence: MatchupIntelligence): {
       impact: 'neutral'
     })
   }
-  
+
   // Injuries
   const totalInjuryImpact = intelligence.injuryImpact.homeTeam.totalImpactScore + intelligence.injuryImpact.awayTeam.totalImpactScore
   if (totalInjuryImpact > 20) {
@@ -2657,7 +2657,7 @@ export function getTopDataPoints(intelligence: MatchupIntelligence): {
       impact: 'neutral'
     })
   }
-  
+
   // O/U Trends
   if (intelligence.ouTrends.trends.length > 0) {
     const topTrend = intelligence.ouTrends.trends[0]
@@ -2667,7 +2667,7 @@ export function getTopDataPoints(intelligence: MatchupIntelligence): {
       impact: 'positive'
     })
   }
-  
+
   // H2H
   if (intelligence.h2h.gamesPlayed >= 5) {
     points.push({
@@ -2676,6 +2676,6 @@ export function getTopDataPoints(intelligence: MatchupIntelligence): {
       impact: 'neutral'
     })
   }
-  
+
   return points.slice(0, 6) // Return top 6 most relevant
 }

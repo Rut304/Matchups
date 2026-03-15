@@ -13,6 +13,7 @@ import {
   Target,
 } from 'lucide-react'
 import { getGames, getNews, getRankings, type LiveGame, type RankedTeam } from '@/lib/api/live-sports'
+import { SportSplitsPanel } from '@/components/betting/SportSplitsPanel'
 
 // Conference standings (static reference data)
 const conferences = [
@@ -215,6 +216,9 @@ export default async function NCAABPage() {
           
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Betting Splits */}
+            <SportSplitsPanel sport="NCAAB" />
+
             {/* Player of the Year Watch */}
             <div className="rounded-2xl p-6" style={{ background: '#0c0c14', border: '1px solid rgba(255,215,0,0.2)' }}>
               <div className="flex items-center gap-2 mb-4">

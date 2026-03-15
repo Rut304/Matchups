@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { useTeamAnalytics, calcWinPct, calcOverPct, type TeamWithStreaks } from '@/hooks/useTeamAnalytics'
 import { GamesSection } from '@/components/game'
+import { SportSplitsPanel } from '@/components/betting/SportSplitsPanel'
 
 // Get team emoji based on abbreviation
 const getTeamEmoji = (abbr: string): string => {
@@ -298,6 +299,9 @@ export default function NHLAnalyticsPage() {
                 )}
               </div>
               
+              {/* NHL Betting Splits - Live from Action Network */}
+              <SportSplitsPanel sport="NHL" />
+
               {selectedTeam && (
                 <TeamDetailCard team={selectedTeam} onClose={() => setSelectedTeam(null)} />
               )}

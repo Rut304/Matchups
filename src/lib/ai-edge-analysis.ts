@@ -95,94 +95,94 @@ export interface AIInsightReport {
 
 async function fetchHistoricalTrends(sport?: string) {
   const supabase = createClient()
-  
+
   let query = supabase
     .from('historical_trends')
     .select('*')
     .eq('is_active', true)
     .order('confidence_score', { ascending: false })
-  
+
   if (sport && sport !== 'ALL') {
     query = query.or(`sport.eq.${sport},sport.eq.ALL`)
   }
-  
+
   const { data, error } = await query.limit(50)
-  
+
   if (error) {
     console.error('Error fetching trends:', error)
     return []
   }
-  
+
   return data || []
 }
 
 async function fetchSystemPerformance(sport?: string) {
   const supabase = createClient()
-  
+
   let query = supabase
     .from('system_performance_summary')
     .select('*')
     .eq('period_type', 'all_time')
-  
+
   if (sport && sport !== 'ALL') {
     query = query.eq('sport', sport)
   }
-  
+
   const { data, error } = await query
-  
+
   if (error) {
     console.error('Error fetching performance:', error)
     return []
   }
-  
+
   return data || []
 }
 
 async function fetchRecentEdgePicks(sport?: string, days: number = 30) {
   const supabase = createClient()
-  
+
   const startDate = new Date()
   startDate.setDate(startDate.getDate() - days)
-  
+
   let query = supabase
     .from('historical_edge_picks')
     .select('*')
     .gte('pick_date', startDate.toISOString().split('T')[0])
     .order('pick_date', { ascending: false })
-  
+
   if (sport && sport !== 'ALL') {
     query = query.eq('sport', sport)
   }
-  
+
   const { data, error } = await query.limit(100)
-  
+
   if (error) {
     console.error('Error fetching edge picks:', error)
     return []
   }
-  
+
   return data || []
 }
 
 async function fetchPredictionMarkets(category?: string) {
   const supabase = createClient()
-  
+
   let query = supabase
     .from('historical_prediction_markets')
     .select('*')
     .order('total_volume', { ascending: false })
-  
+
   if (category) {
     query = query.eq('market_category', category)
   }
-  
+
   const { data, error } = await query.limit(50)
-  
+
   if (error) {
     console.error('Error fetching markets:', error)
     return []
   }
-  
+
   return data || []
 }
 
@@ -194,15 +194,15 @@ export async function analyzeHistoricalEdges(sport?: string): Promise<EdgeOpport
   const trends = await fetchHistoricalTrends(sport)
   const performance = await fetchSystemPerformance(sport)
   const recentPicks = await fetchRecentEdgePicks(sport, 30)
-  
+
   // Calculate recent performance stats
   const recentWins = recentPicks.filter((p: EdgePickRow) => p.result === 'win').length
   const recentTotal = recentPicks.filter((p: EdgePickRow) => p.result !== 'pending' && p.result !== 'push').length
   const recentWinRate = recentTotal > 0 ? (recentWins / recentTotal) * 100 : 0
-  
+
   // Get hot trends
   const hotTrends = trends.filter((t: HistoricalTrendRow) => t.hot_streak && t.confidence_score >= 80)
-  
+
   const prompt = `You are an expert sports betting analyst. Analyze the data provided and give honest, data-driven insights.
 
 CURRENT SYSTEM PERFORMANCE:
@@ -249,7 +249,7 @@ Respond with a JSON array of edge opportunities:
   try {
     const result = await geminiModel.generateContent(prompt)
     const response = result.response.text()
-    
+
     const jsonMatch = response.match(/\[[\s\S]*\]/)
     if (jsonMatch) {
       const edges = JSON.parse(jsonMatch[0])
@@ -258,7 +258,7 @@ Respond with a JSON array of edge opportunities:
   } catch (error) {
     console.error('AI edge analysis error:', error)
   }
-  
+
   // NO FAKE DATA - return empty array on error
   // AI edge analysis requires real API response
   return []
@@ -266,7 +266,7 @@ Respond with a JSON array of edge opportunities:
 
 export async function analyzeTrendInsights(sport?: string): Promise<TrendInsight[]> {
   const trends = await fetchHistoricalTrends(sport)
-  
+
   const prompt = `You are an expert sports betting analyst. Analyze these betting trends and provide insights.
 
 ACTIVE TRENDS:
@@ -308,7 +308,7 @@ Respond with JSON array:
   try {
     const result = await geminiModel.generateContent(prompt)
     const response = result.response.text()
-    
+
     const jsonMatch = response.match(/\[[\s\S]*\]/)
     if (jsonMatch) {
       const insights = JSON.parse(jsonMatch[0])
@@ -317,7 +317,7 @@ Respond with JSON array:
   } catch (error) {
     console.error('AI trend analysis error:', error)
   }
-  
+
   // Fallback: transform database trends to insights
   return trends.slice(0, 10).map((t: HistoricalTrendRow) => ({
     trendId: t.trend_id,
@@ -329,7 +329,7 @@ Respond with JSON array:
     allTimeRecord: t.all_time_record || '0-0',
     roi: t.all_time_roi || 0,
     sampleSize: t.all_time_sample_size || 0,
-    aiAnalysis: `${t.trend_description}. 20-year track record shows consistent profitability.`,
+    aiAnalysis: `${t.trend_description}. Historical data supports this pattern.`,
     currentApplications: [],
     confidence: t.confidence_score || 70
   }))
@@ -338,7 +338,7 @@ Respond with JSON array:
 export async function findHistoricalPatterns(sport?: string): Promise<HistoricalPattern[]> {
   const trends = await fetchHistoricalTrends(sport)
   const performance = await fetchSystemPerformance(sport)
-  
+
   const prompt = `You are an expert sports betting pattern analyst with 20 years of data.
 
 SYSTEM PERFORMANCE DATA:
@@ -377,7 +377,7 @@ Respond with JSON:
   try {
     const result = await geminiModel.generateContent(prompt)
     const response = result.response.text()
-    
+
     const jsonMatch = response.match(/\[[\s\S]*\]/)
     if (jsonMatch) {
       return JSON.parse(jsonMatch[0])
@@ -385,7 +385,7 @@ Respond with JSON:
   } catch (error) {
     console.error('AI pattern analysis error:', error)
   }
-  
+
   // Fallback patterns
   return [
     {
@@ -419,9 +419,9 @@ export async function generateDailyInsightReport(sport?: string): Promise<AIInsi
     analyzeTrendInsights(sport),
     findHistoricalPatterns(sport)
   ])
-  
+
   const performance = await fetchSystemPerformance(sport)
-  
+
   const prompt = `You are a sports betting analyst creating a daily insight report.
 
 TODAY'S TOP EDGES:
@@ -464,11 +464,11 @@ Respond with JSON:
       'Late injury news causing sharp line movement - wait for confirmation'
     ]
   }
-  
+
   try {
     const result = await geminiModel.generateContent(prompt)
     const response = result.response.text()
-    
+
     const jsonMatch = response.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
       reportContent = JSON.parse(jsonMatch[0])
@@ -476,7 +476,7 @@ Respond with JSON:
   } catch (error) {
     console.error('AI report generation error:', error)
   }
-  
+
   return {
     timestamp: new Date().toISOString(),
     sport,
@@ -504,10 +504,10 @@ export async function analyzeSpreadValue(
   supportingData: string[]
 }> {
   const trends = await fetchHistoricalTrends(sport)
-  
+
   const isHomeDog = spread > 0
   const spreadAbs = Math.abs(spread)
-  
+
   // Find applicable trends
   const applicableTrends = trends.filter((t: HistoricalTrendRow) => {
     if (isHomeDog && t.category === 'situational' && t.trend_name.toLowerCase().includes('dog')) {
@@ -518,7 +518,7 @@ export async function analyzeSpreadValue(
     }
     return false
   })
-  
+
   const prompt = `Analyze this spread bet based on 20 years of historical data:
 
 ${awayTeam} @ ${homeTeam}
@@ -544,7 +544,7 @@ Provide analysis:
   try {
     const result = await geminiModel.generateContent(prompt)
     const response = result.response.text()
-    
+
     const jsonMatch = response.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
       return JSON.parse(jsonMatch[0])
@@ -552,7 +552,7 @@ Provide analysis:
   } catch (error) {
     console.error('Spread analysis error:', error)
   }
-  
+
   // Fallback
   return {
     recommendation: 'pass',
@@ -576,11 +576,11 @@ export async function analyzeTotalValue(
   factors: string[]
 }> {
   const trends = await fetchHistoricalTrends(sport)
-  
-  const totalTrends = trends.filter((t: HistoricalTrendRow) => 
+
+  const totalTrends = trends.filter((t: HistoricalTrendRow) =>
     t.bet_type === 'total' || t.category === 'weather' || t.category === 'timing'
   )
-  
+
   const prompt = `Analyze this total bet based on 20 years of historical data:
 
 ${awayTeam} @ ${homeTeam}
@@ -606,7 +606,7 @@ Provide analysis:
   try {
     const result = await geminiModel.generateContent(prompt)
     const response = result.response.text()
-    
+
     const jsonMatch = response.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
       return JSON.parse(jsonMatch[0])
@@ -614,7 +614,7 @@ Provide analysis:
   } catch (error) {
     console.error('Total analysis error:', error)
   }
-  
+
   return {
     recommendation: 'pass',
     confidence: 50,
@@ -720,7 +720,7 @@ Analyze this matchup and provide your expert recommendation:
   try {
     const result = await geminiModel.generateContent(prompt)
     const response = result.response.text()
-    
+
     const jsonMatch = response.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
       const analysis = JSON.parse(jsonMatch[0])
@@ -732,7 +732,7 @@ Analyze this matchup and provide your expert recommendation:
   } catch (error) {
     console.error('Game matchup analysis error:', error)
   }
-  
+
   // Fallback if AI fails
   const topTrend = matchedTrends[0]
   return {
@@ -762,7 +762,7 @@ export async function storeGameInsight(
   analysis: GameMatchupAnalysis
 ): Promise<boolean> {
   const supabase = createClient()
-  
+
   const { error } = await supabase
     .from('matchup_ai_insights')
     .upsert({
@@ -779,12 +779,12 @@ export async function storeGameInsight(
     }, {
       onConflict: 'game_id'
     })
-  
+
   if (error) {
     console.error('Failed to store game insight:', error)
     return false
   }
-  
+
   return true
 }
 
@@ -794,7 +794,7 @@ export async function storeGameInsight(
 
 export async function getFullAIAnalysis(sport?: string) {
   const report = await generateDailyInsightReport(sport)
-  
+
   return {
     ...report,
     generatedAt: new Date().toISOString(),

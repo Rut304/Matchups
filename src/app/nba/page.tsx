@@ -31,6 +31,7 @@ import {
 } from 'lucide-react'
 import { useTeamAnalytics, calcWinPct, calcOverPct, type TeamWithStreaks } from '@/hooks/useTeamAnalytics'
 import { GamesSection } from '@/components/game'
+import { SportSplitsPanel } from '@/components/betting/SportSplitsPanel'
 
 type TimeFrame = 'season' | 'last30' | 'last14' | 'last7'
 type BetType = 'ats' | 'ou' | 'ml'
@@ -333,6 +334,9 @@ export default function NBAAnalyticsPage() {
                 )}
               </div>
               
+              {/* NBA Betting Splits - Live from Action Network */}
+              <SportSplitsPanel sport="NBA" />
+
               {selectedTeam && (
                 <TeamDetailCard team={selectedTeam} onClose={() => setSelectedTeam(null)} sport="nba" />
               )}
